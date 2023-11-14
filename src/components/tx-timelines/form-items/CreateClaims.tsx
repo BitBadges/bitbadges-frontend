@@ -1,15 +1,16 @@
 
 import { DevMode } from '../../common/DevMode';
 
-import { CollectionApprovalWithDetails, DistributionMethod, getReservedAddressMapping } from 'bitbadgesjs-utils';
-import { useState } from 'react';
+import { CollectionApprovalWithDetails } from 'bitbadgesjs-utils';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { ApprovalSelect } from '../../transfers/ApprovalSelect';
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { ApprovalSelectWrapper } from '../../collection-page/ApprovalsTab';
 
-export function CreateClaims({ setVisible, nonMintApproval, defaultApproval }: {
+export function CollectionApprovalSelect({ setVisible, nonMintApproval, defaultApproval,
+
+}: {
   setVisible: (visible: boolean) => void, nonMintApproval?: boolean,
-  defaultApproval?: CollectionApprovalWithDetails<bigint>
+  defaultApproval?: CollectionApprovalWithDetails<bigint>,
 }) {
   const txTimelineContext = useTxTimelineContext();
   const collection = useCollection(NEW_COLLECTION_ID);
@@ -20,28 +21,26 @@ export function CreateClaims({ setVisible, nonMintApproval, defaultApproval }: {
       collectionApprovals: approvalsToAdd
     })
   }
-  const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
-  const isOffChainBalances = collection?.balancesType === "Off-Chain";
+
+  if (!collection) return <div></div>
 
   return <div style={{ justifyContent: 'center', width: '100%' }}>
     <br />
     <div>
-      <ApprovalSelect
-        defaultFromMapping={nonMintApproval ? getReservedAddressMapping("AllWithoutMint") : getReservedAddressMapping("Mint")}
-        fromMappingLocked={!nonMintApproval}
-        collectionId={NEW_COLLECTION_ID}
-        hideTransferDisplay={true}
-        setVisible={setVisible}
-        defaultApproval={defaultApproval}
-        distributionMethod={isOffChainBalances ? DistributionMethod.OffChainBalances : distributionMethod}
-        setDistributionMethod={setDistributionMethod}
-        showMintingOnlyFeatures={!nonMintApproval}
-        approvalsToAdd={approvalsToAdd}
-        setApprovalsToAdd={setApprovalsToAdd}
+      <ApprovalSelectWrapper
         startingApprovals={txTimelineContext.startingCollection?.collectionApprovals ?? []}
         approvalPermissions={txTimelineContext.startingCollection?.collectionPermissions.canUpdateCollectionApprovals ?? []}
+        approvals={approvalsToAdd}
+        approvalLevel='collection'
+        setApprovals={setApprovalsToAdd}
+        setVisible={setVisible}
+        defaultApproval={defaultApproval}
+        collection={collection}
+        approverAddress=''
+        mintingOnly={!nonMintApproval}
       />
     </div>
     <DevMode obj={approvalsToAdd} />
   </div >
+
 }

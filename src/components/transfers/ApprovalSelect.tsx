@@ -5,7 +5,6 @@ import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPer
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
-import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
@@ -18,11 +17,11 @@ import { BalanceInput } from '../inputs/BalanceInput';
 import { DateRangeInput } from '../inputs/DateRangeInput';
 import { NumberInput } from '../inputs/NumberInput';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
-import { ClaimMetadataSelect } from './ClaimMetadataSelectStep';
 import { AddressMappingSelectComponent } from './ApprovalSelectHelpers/AddressMappingSelectComponent';
 import { ApprovalAmounts as ApprovalAmountsComponent } from './ApprovalSelectHelpers/ApprovalAmountsSelectComponent';
 import { MaxUses } from './ApprovalSelectHelpers/MaxUsesSelectComponent';
 import { OrderCalculationMethod } from './ApprovalSelectHelpers/OrderCalculationComponent';
+import { ClaimMetadataSelect } from './ClaimMetadataSelectStep';
 
 const crypto = require('crypto');
 
@@ -155,8 +154,6 @@ export function ApprovalSelect({
   const [claimPassword, setClaimPassword] = useState('');
   const [predeterminedType, setPredeterminedType] = useState(PredeterminedType.NoLimit);
 
-  const txTimelineContext = useTxTimelineContext();
-  const startingCollection = txTimelineContext.startingCollection;
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
 
   const defaultApprovalToAdd: CollectionApprovalWithDetails<bigint> & {
@@ -1251,10 +1248,8 @@ export function ApprovalSelect({
 
         const newApprovalsToAdd = [...approvalsToAdd, deepCopy(newApprovalToAdd)]
 
-        let isValidUpdateError = null;
-        if (startingCollection) {
-          isValidUpdateError = validateCollectionApprovalsUpdate(startingApprovals, newApprovalsToAdd, approvalPermissions);
-        }
+        let isValidUpdateError = validateCollectionApprovalsUpdate(startingApprovals, newApprovalsToAdd, approvalPermissions);
+
 
         if (isValidUpdateError && !confirm("This update is disallowed by the collection permissions. Please confirm this was intended. Details: " + isValidUpdateError.message)) {
 

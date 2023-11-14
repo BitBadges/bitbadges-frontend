@@ -250,6 +250,12 @@ export function TxModal(
       if (DEV_MODE) console.log(initialRes);
 
       const txHash = initialRes.tx_response.txhash;
+      if (initialRes.tx_response.code !== 0) {
+        throw {
+          message: `Code ${initialRes.tx_response.code} from \"${initialRes.tx_response.codespace}\": ${initialRes.tx_response.raw_log}`,
+        }
+      }
+
       let fetchResponse = null
       while (!fetchResponse) {
         try {
@@ -319,6 +325,15 @@ export function TxModal(
 
 
 
+
+      notification.success({
+        message: 'Transaction Successful!',
+      });
+
+      setTransactionStatus(TransactionStatus.None);
+      await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
+
+
       //If it is a new collection, redirect to collection page
       if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/badges.MsgUpdateCollection") {
         const collectionIdStr = msgResponse.tx_response.logs[0]?.events[1].attributes.find((attr: any) => attr.key === "collectionId")?.value;
@@ -326,17 +341,9 @@ export function TxModal(
           const collectionId = Numberify(collectionIdStr)
           Modal.destroyAll()
 
-          router.push(`/collections/${collectionId}`);
+          await router.push(`/collections/${collectionId}`);
         }
       }
-
-      notification.success({
-        message: 'Transaction Successful!',
-      });
-
-      console.log("fdjhaskhk");
-      setTransactionStatus(TransactionStatus.None);
-      await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
 
     } catch (err: any) {
       console.error(err);

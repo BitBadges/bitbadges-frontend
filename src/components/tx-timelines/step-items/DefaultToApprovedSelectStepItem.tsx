@@ -3,12 +3,12 @@ import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { ApprovalsDisplay } from "../../collection-page/ApprovalsTab";
+import { EditableApprovalsDisplay } from "../../collection-page/ApprovalsTab";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function DefaultToApprovedSelectStepItem() {
 
@@ -71,14 +71,26 @@ export function DefaultToApprovedSelectStepItem() {
           }}
         />
         <div style={{ textAlign: 'center' }}>
-          <ApprovalsDisplay
+          <EditableApprovalsDisplay
             approvals={
               castIncomingTransfersToCollectionTransfers(
                 collection.defaultUserIncomingApprovals.length > 0 ?
-                  collection.defaultUserIncomingApprovals : appendDefaultForIncoming([], chain.address), chain.address)}
+                  collection.defaultUserIncomingApprovals :
+                  appendDefaultForIncoming([], chain.address), chain.address)}
             collection={collection}
             approvalLevel='incoming'
-            
+
+            editable={true}
+            //genesis only so will always not have existing approvals or permissions
+            startingApprovals={[]}
+            approvalPermissions={[]}
+            mintingOnly={false}
+            setApprovals={(approvals) => {
+              updateCollection({
+                collectionId: NEW_COLLECTION_ID,
+                defaultUserIncomingApprovals: approvals
+              })
+            }}
             approverAddress={chain.address}
             title="Incoming Approvals"
           />

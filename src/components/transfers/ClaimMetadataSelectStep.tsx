@@ -70,6 +70,7 @@ export function ClaimMetadataSelectSelectStep(
             >
               <Input.TextArea
                 defaultValue={description}
+                placeholder="Describe this approval. How do users get approved? What is it for?"
                 value={description}
                 onChange={(e) => {
                   setDescription(e.target.value);

@@ -2,10 +2,10 @@ import { Empty, Spin } from 'antd';
 import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 
-import { ClaimDisplay } from '../claims/ClaimDisplay';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { CodesDisplay } from '../claims/CodesPasswordsDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
-import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
   collectionId: bigint;
@@ -52,11 +52,9 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
       <div className=''>
         {currApproval &&
           <>
-            <ClaimDisplay
+            <CodesDisplay
               collectionId={collectionId}
-              approvals={approvals}
               approval={currApproval}
-              isCodeDisplay={codesAndPasswords ? true : false}
               codes={codesAndPasswords ? codesAndPasswords[currPage - 1]?.codes : []}
               claimPassword={codesAndPasswords ? codesAndPasswords[currPage - 1]?.password : ""}
             />

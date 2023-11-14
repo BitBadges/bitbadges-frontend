@@ -434,14 +434,13 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Balances Storage Options
+                      Hybrid Off-Chain Balances
                     </Typography.Text>
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       BitBadges supports multiple storage methods for balances, including storing balances off-chain for enhanced user experience and scalability.
                       Learn more about this <a href='https://docs.bitbadges.io/overview/concepts/balances-types' target='_blank'>here</a>.
-
                     </Typography.Text>
                   </>
                 }

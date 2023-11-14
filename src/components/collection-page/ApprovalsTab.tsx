@@ -1,13 +1,10 @@
 import { ClockCircleOutlined, CloseOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { Col, Divider, Empty, Switch, Typography } from 'antd';
-import { BitBadgesCollection, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castFromCollectionTransferToIncomingTransfer, castFromCollectionTransferToOutgoingTransfer, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping } from 'bitbadgesjs-utils';
+import { Divider, Empty, Switch, Typography } from 'antd';
+import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { FC, useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-
-
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { fetchBalanceForUser, updateCollection, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { fetchBalanceForUser, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { NODE_API_URL } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
@@ -17,11 +14,11 @@ import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { Tabs } from '../navigation/Tabs';
 import { ApprovalSelect } from '../transfers/ApprovalSelect';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
-import { TransferabilityRow, getTableHeader } from './TransferabilityRow';
-import { TransferabilityTab } from './TransferabilityTab';
 import { UserPermissionsOverview } from './PermissionsInfo';
+import { TransferabilityRow } from './TransferabilityRow';
+import { TransferabilityTab } from './TransferabilityTab';
 
-interface Props {
+interface DisplayProps {
   approvals: CollectionApprovalWithDetails<bigint>[];
   collection: BitBadgesCollection<bigint>;
   badgeId?: bigint;
@@ -32,28 +29,170 @@ interface Props {
   onlyShowFromMint?: boolean;
   title?: string;
   subtitle?: React.ReactNode;
-
-  //Edit features
-  onDelete?: (approvalId: string) => void;
-  editable?: boolean;
-  addMoreNode?: React.ReactNode;
   defaultShowDisallowed?: boolean;
-  showDeletedGrayedOut?: boolean;
-  startingApprovals?: CollectionApprovalWithDetails<bigint>[];
 }
 
-export const ApprovalsDisplay: FC<Props> = ({
+interface EditableProps extends DisplayProps {
+  editable: boolean;
+  showDeletedGrayedOut?: boolean;
+  startingApprovals: CollectionApprovalWithDetails<bigint>[];
+  approvalPermissions: CollectionApprovalPermissionWithDetails<bigint>[];
+  setApprovals: (approvals: CollectionApprovalWithDetails<bigint>[]) => void;
+  mintingOnly: boolean;
+  defaultApproval?: CollectionApprovalWithDetails<bigint>;
+}
+
+type FullProps = DisplayProps & Partial<EditableProps> & {
+  editable?: boolean,
+  onDelete?: (approvalId: string) => void,
+  onRestore?: (approvalId: string) => void,
+  addMoreNode?: React.ReactNode
+};
+
+
+export const ApprovalSelectWrapper: FC<{
+  startingApprovals: CollectionApprovalWithDetails<bigint>[];
+  approvalPermissions: CollectionApprovalPermissionWithDetails<bigint>[];
+  approvals: CollectionApprovalWithDetails<bigint>[];
+  setApprovals: (approvals: CollectionApprovalWithDetails<bigint>[]) => void;
+  collection: BitBadgesCollection<bigint>;
+  approverAddress: string;
+  mintingOnly: boolean;
+  setVisible: (visible: boolean) => void;
+  defaultApproval?: CollectionApprovalWithDetails<bigint>;
+  approvalLevel: string;
+} & { setVisible: (visible: boolean) => void }> = (props) => {
+  const startingApprovals = props.startingApprovals;
+  const approvalPermissions = props.approvalPermissions;
+  const approvals = props.approvals;
+  const setApprovals = props.setApprovals;
+  const collection = props.collection;
+  const approverAddress = props.approverAddress;
+  const mintingOnly = props.mintingOnly;
+  const setVisible = props.setVisible;
+  const isIncomingDisplay = props.approvalLevel === "incoming";
+  const isOutgoingDisplay = props.approvalLevel === "outgoing";
+  const isPostMintDisplay = !isIncomingDisplay && !isOutgoingDisplay && !mintingOnly;
+  const isMintDisplay = !isIncomingDisplay && !isOutgoingDisplay && mintingOnly;
+  const defaultApproval = props.defaultApproval;
+
+  const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
+
+  return <ApprovalSelect
+    fromMappingLocked={isOutgoingDisplay || isMintDisplay}
+    toMappingLocked={isIncomingDisplay}
+
+    defaultToMapping={
+      isIncomingDisplay ? getReservedAddressMapping(approverAddress) : getReservedAddressMapping("All")}
+    defaultFromMapping={isMintDisplay ? getReservedAddressMapping("Mint") : isOutgoingDisplay ?
+      getReservedAddressMapping(approverAddress)
+      : isPostMintDisplay ? getReservedAddressMapping("AllWithoutMint") : getReservedAddressMapping("All")
+    }
+    defaultApproval={defaultApproval}
+    collectionId={collection.collectionId}
+    hideTransferDisplay={true}
+    setVisible={setVisible}
+    distributionMethod={distributionMethod}
+    setDistributionMethod={setDistributionMethod}
+    showMintingOnlyFeatures={isMintDisplay}
+    approvalsToAdd={approvals}
+    setApprovalsToAdd={setApprovals}
+    hideCollectionOnlyFeatures={isIncomingDisplay || isOutgoingDisplay}
+    startingApprovals={startingApprovals}
+    approvalPermissions={approvalPermissions}
+  />
+}
+
+
+export const EditableApprovalsDisplay: FC<EditableProps> = (props) => {
+  const editable = props.editable;
+  const startingApprovals = props.startingApprovals;
+  const approvalPermissions = props.approvalPermissions;
+  const approvals = props.approvals;
+
+  const setApprovals = props.setApprovals;
+
+  const [addMoreIsVisible, setAddMoreIsVisible] = useState<boolean>(false);
+
+  const onRestore = (approvalId: string) => {
+    const approvalsToAdd = approvals;
+    const x = startingApprovals.find(x => x.approvalId === approvalId);
+    if (!x) return;
+
+    if (approvalsToAdd?.find(y => y.approvalId === x.approvalId)) {
+      alert('This approval ID is already used.');
+      return;
+    }
+    setApprovals?.([...approvalsToAdd, x]);
+  }
+
+  const onDelete = (approvalId: string) => {
+    const postApprovalsToAdd = approvals.filter(x => x.approvalId !== approvalId);
+
+    let hasValidateUpdateError = validateCollectionApprovalsUpdate(startingApprovals, postApprovalsToAdd, approvalPermissions);
+    if (hasValidateUpdateError && !confirm("This update is disallowed by the collection permissions. See the current permissions by clicking Permission at the top of the page. Please confirm this action was intended. Details: " + hasValidateUpdateError.message)) {
+      return;
+    }
+
+    //Overwrite duplicate approval IDs
+    setApprovals(approvals.filter(x => x.approvalId !== approvalId));
+  }
+
+  const addMoreNode =
+    <>
+      <div className='flex-center'>
+        <IconButton
+          src={addMoreIsVisible ? <CloseOutlined /> : <PlusOutlined />}
+          onClick={() => {
+            setAddMoreIsVisible(!addMoreIsVisible);
+          }}
+          text={addMoreIsVisible ? 'Cancel' : 'Add'}
+        />
+      </div>
+
+      {
+        addMoreIsVisible &&
+        <>
+          <div style={{ justifyContent: 'center', width: '100%' }}>
+            <br />
+            <div>
+              <ApprovalSelectWrapper {...props} setVisible={setAddMoreIsVisible} />
+            </div>
+          </div >
+        </>
+      }
+    </>
+
+  const editableProps = editable ? {
+    onDelete, addMoreNode, onRestore, editable
+  } : {};
+
+  return <FullApprovalsDisplay
+    {...props}
+    {...editableProps}
+  />
+}
+
+export const ApprovalsDisplay: FC<DisplayProps> = (props) => {
+  return <FullApprovalsDisplay {...props} />
+}
+
+const FullApprovalsDisplay: FC<FullProps> = ({
+  setApprovals,
   startingApprovals,
-  showDeletedGrayedOut, subtitle, defaultShowDisallowed, title, addMoreNode, onDelete, editable, approvals, collection, badgeId, filterFromMint, hideHelperMessage, approvalLevel, approverAddress, onlyShowFromMint
+  onRestore,
+  approvalPermissions,
+  showDeletedGrayedOut,
+  subtitle,
+  defaultShowDisallowed,
+  title, addMoreNode, onDelete, editable, approvals, collection, badgeId, filterFromMint, hideHelperMessage, approvalLevel, approverAddress, onlyShowFromMint
 }) => {
   const [showHidden, setShowHidden] = useState<boolean>(defaultShowDisallowed ?? false);
   const chain = useChainContext();
-  const simulatedCollection = useCollection(NEW_COLLECTION_ID);
 
-  let disapproved = showHidden ?
-    approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true)
-      : approvalLevel === "outgoing" ? getUnhandledUserOutgoingApprovals(approvals, approverAddress, true)
-        : getUnhandledCollectionApprovals(approvals, true, true) : [];
+  let disapproved = showHidden ? approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true)
+    : approvalLevel === "outgoing" ? getUnhandledUserOutgoingApprovals(approvals, approverAddress, true)
+      : getUnhandledCollectionApprovals(approvals, true, true) : [];
 
   //filter approvals to only take first time an approvalId is seen (used for duplicates "default-incoming" and "default-outgoing")
   approvals = approvals.filter((x, i) => approvals.findIndex(y => y.approvalId === x.approvalId) === i);
@@ -83,13 +222,15 @@ export const ApprovalsDisplay: FC<Props> = ({
     })
   }
 
-  const getRows = (mobile: boolean) => {
+  const getRows = () => {
     return <>
       {
         <>
           {approvals.map((x, idx) => {
             const result = <TransferabilityRow
               startingApprovals={startingApprovals}
+              approvalPermissions={approvalPermissions ?? []}
+              setAllTransfers={setApprovals ? setApprovals : () => { }}
               editable={editable}
               approverAddress={approverAddress}
               onDelete={onDelete}
@@ -101,39 +242,34 @@ export const ApprovalsDisplay: FC<Props> = ({
               transfer={x} key={idx}
               badgeId={filterByBadgeId ? badgeId : undefined}
               collectionId={collection.collectionId}
-              filterFromMint={filterFromMint} mobileFriendly={mobile}
-
+              filterFromMint={filterFromMint}
             />
             return result
           })}
 
           {showDeletedGrayedOut && deletedApprovals?.map((x, idx) => {
             const result = <TransferabilityRow grayedOut
-
-              onRestore={() => {
-                //TODO: This assumes mint timeline is used
-
-                const approvalsToAdd = simulatedCollection?.collectionApprovals;
-                if (approvalsToAdd?.find(y => y.approvalId === x.approvalId)) {
-                  alert('This approval ID is already used.');
-                  return;
-                }
-
-                updateCollection({
-                  collectionId: NEW_COLLECTION_ID,
-                  collectionApprovals: [...(simulatedCollection?.collectionApprovals ?? []), x]
-                });
-              }}
-              allTransfers={approvals} address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"} isOutgoingDisplay={approvalLevel === "outgoing"} transfer={x} key={idx} badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} mobileFriendly={mobile} />
+              setAllTransfers={setApprovals ? setApprovals : () => { }}
+              approvalPermissions={approvalPermissions ?? []}
+              onRestore={onRestore ? onRestore : () => { }}
+              allTransfers={approvals}
+              address={address}
+              setAddress={setAddress}
+              isIncomingDisplay={approvalLevel === "incoming"}
+              isOutgoingDisplay={approvalLevel === "outgoing"}
+              transfer={x} key={idx}
+              badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
             return result
           })}
 
           {disapproved.map((x, idx) => {
             const result = <TransferabilityRow
+              setAllTransfers={setApprovals ? setApprovals : () => { }}
+              approvalPermissions={approvalPermissions ?? []}
               onDelete={onDelete} allTransfers={approvals}
               address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"}
               isOutgoingDisplay={approvalLevel === "outgoing"} disapproved transfer={x} key={idx}
-              badgeId={filterByBadgeId ? badgeId : undefined} collectionId={collection.collectionId} filterFromMint={filterFromMint} mobileFriendly={mobile} />
+              badgeId={filterByBadgeId ? badgeId : undefined} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
             return result
           })}
         </>
@@ -141,19 +277,18 @@ export const ApprovalsDisplay: FC<Props> = ({
     </>
   }
 
-
-  console.log(title);
   return <>
     <br />
 
     <InformationDisplayCard
 
 
-      title={title ?? (approvalLevel === "incoming" ? "Incoming Approvals" : approvalLevel === "outgoing" ? "Outgoing Approvals" : "Transferability")
+      title={title ?? ''
 
       }
-      span={24} subtitle={subtitle} >
-      <br />
+      span={24} subtitle={subtitle}
+      noBorder inheritBg
+    >
 
       <div style={{ float: 'right' }}>
         {onlyShowFromMint && <Switch
@@ -189,25 +324,7 @@ export const ApprovalsDisplay: FC<Props> = ({
       </div>
       <br />
       <div>
-        <br />
-        <br />
-        <Col md={0} xs={24} sm={24}>
-          {getRows(true)}
-        </Col>
-        <Col md={24} xs={0} sm={0}>
-          <div className='overflow-x-auto'>
-            <table className="table-auto overflow-x-scroll w-full table-wrp">
-
-
-              <thead className='sticky top-0 z-10' style={{ zIndex: 10 }}>
-                {getTableHeader(false)}
-              </thead>
-              <tbody>
-                {getRows(false)}
-              </tbody>
-            </table>
-          </div>
-        </Col>
+        {getRows()}
       </div>
       <br />
       {addMoreNode}
@@ -259,15 +376,11 @@ export function UserApprovalsTab({
 }) {
 
   const chain = useChainContext();
-
   const collection = useCollection(collectionId);
 
 
   const [address, setAddress] = useState<string>(defaultApprover ?? chain.address);
-  const [visible, setVisible] = useState<boolean>(false);
-
   const [tab, setTab] = useState<string>(isIncomingApprovalEdit ? 'incoming' : 'outgoing');
-  const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
   const approverAccount = useAccount(address);
 
@@ -442,9 +555,7 @@ export function UserApprovalsTab({
       </>}
 
       {tab == 'collection' && <div>
-        <TransferabilityTab
-          collectionId={collectionId}
-        />
+        <TransferabilityTab collectionId={collectionId} />
 
       </div>}
 
@@ -490,140 +601,51 @@ export function UserApprovalsTab({
       {approverAccount?.address && <>
         {tab === 'outgoing' && <>
 
-          <ApprovalsDisplay
-            subtitle={appendDefaultOutgoing ? '' : ''}
+          <EditableApprovalsDisplay
             approvals={castedOutgoingApprovals}
             collection={collection}
             badgeId={badgeId}
+            mintingOnly={false}
             approvalLevel='outgoing'
+            editable={!!setUserOutgoingApprovals}
             startingApprovals={castOutgoingTransfersToCollectionTransfers(startingOutgoingApprovals, approverAccount.address)}
             approverAddress={approverAccount?.address ?? ''}
-            onDelete={setUserOutgoingApprovals ? (approvalId: string) => {
-              setUserOutgoingApprovals?.((userOutgoingApprovals ?? []).filter(x => x.approvalId !== approvalId));
-            } : undefined}
-            // editable={!!setUserOutgoingApprovals}
-            addMoreNode={setUserOutgoingApprovals ? <>
-              <>
-                <div className='flex-center'>
-                  <IconButton
-                    src={visible ? <CloseOutlined /> : <PlusOutlined />}
-                    onClick={() => {
-                      setVisible(!visible);
-                    }}
-                    text={visible ? 'Cancel' : 'Add'}
-                  />
-                </div>
-
-                {visible &&
-                  <>
-                    <div style={{ justifyContent: 'center', width: '100%' }}>
-                      <br />
-                      <div>
-                        <ApprovalSelect
-                          defaultToMapping={getReservedAddressMapping("All")}
-                          fromMappingLocked={true}
-                          defaultFromMapping={getReservedAddressMapping(approverAccount?.address)}
-                          collectionId={collectionId}
-                          hideTransferDisplay={true}
-                          setVisible={setVisible}
-                          distributionMethod={distributionMethod}
-                          setDistributionMethod={setDistributionMethod}
-                          showMintingOnlyFeatures={false}
-                          approvalsToAdd={castedOutgoingApprovals}
-                          setApprovalsToAdd={(approvalsToAdd: CollectionApprovalWithDetails<bigint>[]) => {
-                            setUserOutgoingApprovals?.(approvalsToAdd.map(x => castFromCollectionTransferToOutgoingTransfer(x)));
-                          }}
-                          hideCollectionOnlyFeatures
-                          startingApprovals={
-                            castOutgoingTransfersToCollectionTransfers(collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.outgoingApprovals ?? [], approverAccount.address)
-                          }
-                          approvalPermissions={
-                            castUserOutgoingApprovalPermissionToCollectionApprovalPermission(
-                              (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateOutgoingApprovals ?? []).map(x => {
-                                return {
-                                  ...x,
-                                  toMapping: getReservedAddressMapping(x.toMappingId),
-                                  initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
-                                }
-                              }),
-                              approverAccount.address
-                            )
-                          }
-
-                        />
-                      </div>
-                    </div >
-                  </>}
-              </>
-            </> : <></>}
+            setApprovals={setUserOutgoingApprovals ?? (() => { })}
+            approvalPermissions={castUserOutgoingApprovalPermissionToCollectionApprovalPermission(
+              (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateOutgoingApprovals ?? []).map(x => {
+                return {
+                  ...x,
+                  toMapping: getReservedAddressMapping(x.toMappingId),
+                  initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
+                }
+              }),
+              approverAccount.address
+            )
+            }
           />
         </>}
 
         {tab === 'incoming' && <>
-          <ApprovalsDisplay
+          <EditableApprovalsDisplay
             approvals={castedIncomingApprovals}
             collection={collection}
             badgeId={badgeId}
             approvalLevel='incoming'
+            mintingOnly={false}
+            editable={!!setUserIncomingApprovals}
             startingApprovals={castIncomingTransfersToCollectionTransfers(startingIncomingApprovals, approverAccount.address)}
             approverAddress={approverAccount?.address ?? ''}
-            onDelete={setUserIncomingApprovals ? (approvalId: string) => {
-              setUserIncomingApprovals?.((userIncomingApprovals ?? []).filter(x => x.approvalId !== approvalId));
-            } : undefined}
-            // editable={!!setUserIncomingApprovals}
-            addMoreNode={setUserIncomingApprovals ? <>
-              <>
-                <div className='flex-center'>
-                  <IconButton
-                    src={visible ? <CloseOutlined /> : <PlusOutlined />}
-                    onClick={() => {
-                      setVisible(!visible);
-                    }}
-                    text={visible ? 'Cancel' : 'Add'}
-                  />
-                </div>
-
-                {visible &&
-                  <>
-                    <div style={{ justifyContent: 'center', width: '100%' }}>
-                      <br />
-                      <div>
-                        <ApprovalSelect
-                          defaultFromMapping={getReservedAddressMapping("All")}
-                          toMappingLocked={true}
-                          defaultToMapping={getReservedAddressMapping(approverAccount?.address)}
-                          collectionId={collectionId}
-                          hideTransferDisplay={true}
-                          setVisible={setVisible}
-                          distributionMethod={distributionMethod}
-                          setDistributionMethod={setDistributionMethod}
-                          showMintingOnlyFeatures={false}
-                          approvalsToAdd={castedIncomingApprovals}
-                          setApprovalsToAdd={(approvalsToAdd: CollectionApprovalWithDetails<bigint>[]) => {
-                            setUserIncomingApprovals(approvalsToAdd.map(x => castFromCollectionTransferToIncomingTransfer(x)));
-                          }}
-                          hideCollectionOnlyFeatures
-                          startingApprovals={
-                            castIncomingTransfersToCollectionTransfers(collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.incomingApprovals ?? [], approverAccount.address)
-                          }
-                          approvalPermissions={
-                            castUserIncomingApprovalPermissionToCollectionApprovalPermission(
-                              (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateIncomingApprovals ?? []).map(x => {
-                                return {
-                                  ...x,
-                                  fromMapping: getReservedAddressMapping(x.fromMappingId),
-                                  initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
-                                }
-                              }),
-                              approverAccount.address
-                            )
-                          }
-                        />
-                      </div>
-                    </div >
-                  </>}
-              </>
-            </> : <></>}
+            setApprovals={setUserIncomingApprovals ?? (() => { })}
+            approvalPermissions={castUserIncomingApprovalPermissionToCollectionApprovalPermission(
+              (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateIncomingApprovals ?? []).map(x => {
+                return {
+                  ...x,
+                  fromMapping: getReservedAddressMapping(x.fromMappingId),
+                  initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
+                }
+              }),
+              approverAccount.address
+            )}
           />
         </>}
       </>}

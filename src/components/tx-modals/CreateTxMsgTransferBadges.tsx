@@ -18,17 +18,36 @@ import { useAccount, fetchAccounts } from '../../bitbadges-api/contexts/accounts
 import { useCollection, fetchBalanceForUser, fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
-export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, tree, fromTransferabilityRow }: {
+export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, fromTransferabilityRow }: {
   collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
   children?: React.ReactNode
   defaultAddress?: string
   approval?: CollectionApprovalWithDetails<bigint>,
-  tree?: MerkleTree | null,
   fromTransferabilityRow?: boolean
 }) {
   const chain = useChainContext();
+
+  const approvalCriteria = approval?.approvalCriteria;
+  const merkleChallenge = approval?.approvalCriteria && approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
+  const leavesDetails = approval?.details?.challengeDetails?.leavesDetails;
+  const treeOptions = approval?.details?.challengeDetails?.treeOptions;
+
+
+
+  const [tree, setTree] = useState<MerkleTree | null>(merkleChallenge ?
+    new MerkleTree(leavesDetails?.leaves.map(x => leavesDetails?.isHashed ? x : SHA256(x)) ?? [], SHA256, treeOptions) : null);
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect:  tree');
+    if (merkleChallenge) {
+      const tree = new MerkleTree(approval?.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
+        return approval?.details?.challengeDetails?.leavesDetails?.isHashed ? x : SHA256(x);
+      }) ?? [], SHA256, approval?.details?.challengeDetails?.treeOptions);
+      setTree(tree);
+    }
+  }, [approval, merkleChallenge]);
 
 
   const collection = useCollection(collectionId);
@@ -127,13 +146,13 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
           {!fromTransferabilityRow && sender === 'Mint' && <>
             <Divider />
             <Typography.Text style={{ color: '#FF5733' }} >
-              <WarningOutlined /> {"For minting with predetermined or dynamic balances (increments, all or nothing, etc), please use the Transferability tab. This modal only allows you to manually input balances."}
+              <WarningOutlined /> {"Certain features for minting may not be supported using this modal. This could cause your transaction to fail. Please use the Transferability tab to transfer badges from the Mint address."}
             </Typography.Text>
           </>}
 
           <Divider />
           <Typography.Text className='secondary-text'>
-            <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the sender's outgoing approvals as well."}
+            <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the sender's outgoing and recipient's incoming approvals as well."}
           </Typography.Text>
         </InformationDisplayCard>
       </div >

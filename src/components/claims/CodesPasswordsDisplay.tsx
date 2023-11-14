@@ -9,6 +9,7 @@ import { downloadJson, downloadTxt } from "../../utils/downloadJson";
 import { Pagination } from "../common/Pagination";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
 
 export function CodesDisplay({
   approval,
@@ -36,12 +37,14 @@ export function CodesDisplay({
   const urlSuffix = approval.details?.challengeDetails?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
   const hasPassword = approval.details?.challengeDetails?.hasPassword;
 
+  const cantShowUrl = collectionId === NEW_COLLECTION_ID;
+  const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
 
   return <>
 
     <Row className='flex-center primary-text' style={{ textAlign: 'center', width: '100%' }}>
 
-      <InformationDisplayCard md={12} xs={24} sm={24} title={hasPassword ? 'Password' : 'Codes'} subtitle={'Codes / passwords can either be entered manually by users on the claim page, or they can be given a unique URL containing the code to claim. URLs can also be navigated to using a QR code.'} >
+      <InformationDisplayCard md={24} xs={24} sm={24} title={hasPassword ? 'Password' : 'Codes'} subtitle={'Codes / passwords can either be entered manually by users on the claim page, or they can be given a unique URL containing the code to claim. URLs can also be navigated to using a QR code.'} >
 
         {!approval.details?.challengeDetails?.hasPassword && codes && codes.length > 0 && <>
           <br />
@@ -61,11 +64,12 @@ export function CodesDisplay({
 
                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
                     const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+                    const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
 
                     downloadJson({
-                      prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=ADD_CODE_HERE',
+                      prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=ADD_CODE_HERE',
                       codes,
-                      codeUrls: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x)
+                      codeUrls: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x)
                     }, `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.json`);
                   }}
                   className="landing-button primary-text" style={{ width: 150 }}
@@ -87,12 +91,21 @@ export function CodesDisplay({
                 </button>
                 <button
                   onClick={() => {
+                    if (cantShowUrl) {
+                      notification.warn({
+                        duration: 0,
+                        message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
+                      });
+                    }
+
                     const today = new Date();
 
                     const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
                     const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
 
-                    downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
+                    const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
+
+                    downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
                   }}
                   className="landing-button primary-text" style={{ width: 150 }}
                 >
@@ -118,7 +131,16 @@ export function CodesDisplay({
                 </button>
                 <button className="landing-button primary-text" style={{ width: 150 }}
                   onClick={() => {
-                    navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionId + '?approvalId=' + approvalId + '&code=' + x).join('\n'));
+                    const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
+
+                    if (cantShowUrl) {
+                      notification.warn({
+                        duration: 0,
+                        message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
+                      });
+                    }
+
+                    navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'));
                     notification.success({
                       message: 'Copied!',
                       description: 'We have copied the URLs to your clipboard.'
@@ -189,11 +211,18 @@ export function CodesDisplay({
           >
             Copy {printStr[0].toUpperCase() + printStr.slice(1)}
           </button>
-          <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionId}?approvalId=${approvalId}&${urlSuffix}`}>
+          <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`}>
             <button className="landing-button primary-text" style={{ width: 150 }}
               onClick={() => {
 
-                navigator.clipboard.writeText(`${WEBSITE_HOSTNAME}/collections/${collectionId}?approvalId=${approvalId}&${urlSuffix}`);
+                if (cantShowUrl) {
+                  notification.warn({
+                    duration: 0,
+                    message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
+                  });
+                }
+
+                navigator.clipboard.writeText(`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`);
                 notification.success({
                   message: 'Copied!',
                   description: 'We have copied the URL to your clipboard.'
@@ -206,11 +235,14 @@ export function CodesDisplay({
 
         </div>
 
-        <br />
-        <br />
-        <div className="flex-center">
-          <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionId}?approvalId=${approvalId}&${urlSuffix}`} /></div>
-        <br />
+        {cantShowUrl ? <></> : <>
+          <br />
+          <br />
+
+          <div className="flex-center">
+            <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`} /></div>
+          <br />
+        </>}
       </InformationDisplayCard>
     </Row>
 

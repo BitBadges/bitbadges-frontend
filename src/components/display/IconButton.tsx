@@ -29,7 +29,7 @@ const IconButton: React.FC<IconButtonProps> = ({ src, text, style, onClick, tool
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...style,
           }}
-          onClick={onClick}
+          onClick={disabled ? undefined : onClick}
           size={size}
         />
         {!hideText &&

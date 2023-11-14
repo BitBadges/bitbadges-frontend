@@ -33,7 +33,7 @@ export function OffChainTransferabilityTab({ collectionId }: {
         inheritBg
       >
         <div className='secondary-text'>
-          <InfoCircleOutlined /> This collection stores its balances off-chain via a typical server,
+          <InfoCircleOutlined /> This collection stores its balances off-chain,
           meaning no approvals or transfers happen on the blockchain.  {' '}Learn more about off-chain balances <a
             target='_blank'
             href="https://docs.bitbadges.io/overview/concepts/balances-types" rel="noreferrer">
@@ -44,7 +44,7 @@ export function OffChainTransferabilityTab({ collectionId }: {
           <br />
           {isBitBadgesHosted && "This collection's balances are stored on the BitBadges servers. We allow the manager to update the balances at any time."}
           {!isBitBadgesHosted && immutable && "This collection's balances are permanently frozen because they use permanent storage and the server URL can not be updated."}
-          {!isBitBadgesHosted && !immutable && "This collection's balances are hosted via the server at the URL specified below. The balances are assigned and controlled by whoever has control of the server."}
+          {!isBitBadgesHosted && !immutable && "This collection's balances are hosted via the server at the URL specified below. The balances are assigned and controlled by whoever has permissions to control the server."}
 
 
 

@@ -1,33 +1,21 @@
-import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { CollectionApprovalWithDetails, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
-import { getNonMintApprovals, getMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
-import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
-import IconButton from "../../display/IconButton";
-import { CreateClaims } from "../form-items/CreateClaims";
-import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
+import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
+import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function DistributionMethodStepItem() {
 
 
   const txTimelineContext = useTxTimelineContext();
   const collection = useCollection(NEW_COLLECTION_ID);
-  const approvalsToAdd = collection?.collectionApprovals ?? [];
-  const setApprovalsToAdd = (approvalsToAdd: CollectionApprovalWithDetails<bigint>[]) => {
-    updateCollection({
-      collectionId: NEW_COLLECTION_ID,
-      collectionApprovals: approvalsToAdd
-    })
-  }
   const startingCollection = txTimelineContext.startingCollection;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
   const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
   const isOffChainBalances = collection?.balancesType === "Off-Chain";
 
-  const [visible, setVisible] = useState(false);
   const [err, setErr] = useState<Error | null>(null);
 
   if (!collection) return EmptyStepItem;
@@ -37,44 +25,11 @@ export function DistributionMethodStepItem() {
       {!isOffChainBalances &&
         <div className='flex-center full-width' style={{ textAlign: 'center' }}>
           <TransferabilityTab
-            onDelete={(approvalId: string) => {
-              const postApprovalsToAdd = approvalsToAdd.filter(x => x.approvalId !== approvalId);
-
-              let hasValidateUpdateError = null;
-              if (startingCollection) {
-                hasValidateUpdateError = validateCollectionApprovalsUpdate(startingCollection.collectionApprovals, postApprovalsToAdd, startingCollection.collectionPermissions.canUpdateCollectionApprovals);
-              }
-
-              if (hasValidateUpdateError && !confirm("This update is disallowed by the collection permissions. See the current permissions by clicking Permission at the top of the page. Please confirm this action was intended. Details: " + hasValidateUpdateError.message)) {
-                return;
-              }
-
-              //Overwrite duplicate approval IDs
-              setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
-            }}
             editable
             showDeletedGrayedOut
             collectionId={NEW_COLLECTION_ID}
             onlyShowFromMint
             hideHelperMessage
-            addMoreNode={<>
-              <div className='flex-center'>
-                <IconButton
-                  src={visible ? <CloseOutlined /> : <PlusOutlined />}
-                  onClick={() => {
-                    setVisible(!visible);
-                  }}
-                  text={visible ? 'Cancel' : 'Add'}
-                />
-              </div>
-
-              {visible &&
-                <>
-                  <CreateClaims
-                    setVisible={setVisible}
-                  />
-                </>}
-            </>}
           />
         </div>}
     </>}

@@ -1,25 +1,21 @@
-import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
 import { Divider } from "antd";
 import { deepCopy } from "bitbadgesjs-proto";
-import { CollectionApprovalWithDetails, getReservedAddressMapping, validateCollectionApprovalsUpdate } from "bitbadgesjs-utils";
+import { CollectionApprovalWithDetails, getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
-import IconButton from "../../display/IconButton";
-import { CreateClaims } from "../form-items/CreateClaims";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function TransferabilitySelectStepItem() {
 
   const txTimelineContext = useTxTimelineContext();
   const collection = useCollection(NEW_COLLECTION_ID);
-  const approvalsToAdd = collection?.collectionApprovals ?? [];
   const setApprovalsToAdd = (approvalsToAdd: CollectionApprovalWithDetails<bigint>[]) => {
     updateCollection({
       collectionId: NEW_COLLECTION_ID,
@@ -30,7 +26,6 @@ export function TransferabilitySelectStepItem() {
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
   const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
 
-  const [visible, setVisible] = useState<boolean>(false);
   const [err, setErr] = useState<Error | null>(null);
 
   if (!collection) return EmptyStepItem;
@@ -108,39 +103,6 @@ export function TransferabilitySelectStepItem() {
               hideHelperMessage
               showDeletedGrayedOut
               editable
-              onDelete={(approvalId: string) => {
-                const postApprovalsToAdd = approvalsToAdd.filter(x => x.approvalId !== approvalId);
-
-                let isValidUpdateError = null;
-                if (startingCollection) {
-                  isValidUpdateError = validateCollectionApprovalsUpdate(startingCollection.collectionApprovals, postApprovalsToAdd, startingCollection.collectionPermissions.canUpdateCollectionApprovals);
-                }
-
-                if (isValidUpdateError && !confirm("This update is disallowed by the collection permissions. See the current permissions by clicking Permission at the top of the page. Please confirm this action was intended. Details: " + isValidUpdateError.message)) {
-                  return;
-                }
-
-                setApprovalsToAdd(approvalsToAdd.filter(x => x.approvalId !== approvalId));
-              }}
-              addMoreNode={<>
-                <div className='flex-center'>
-                  <IconButton
-                    src={visible ? <CloseOutlined /> : <PlusOutlined />}
-                    onClick={() => {
-                      setVisible(!visible);
-                    }}
-                    text={visible ? 'Cancel' : 'Add'}
-                  />
-                </div>
-
-                {visible &&
-                  <>
-                    <CreateClaims
-                      nonMintApproval
-                      setVisible={setVisible}
-                    />
-                  </>}
-              </>}
             />
           </div>
         </div >
