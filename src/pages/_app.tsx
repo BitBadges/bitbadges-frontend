@@ -1,6 +1,6 @@
-import '../styles/antd-override-styles.css';
-import '../styles/custom.css';
+import '../styles/custom.css'
 import '../styles/index.css';
+import '../styles/antd-override-styles.css';
 
 import { configureStore, createSerializableStateInvariantMiddleware } from '@reduxjs/toolkit';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
