@@ -8,7 +8,6 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import { Avatar, Badge, Dropdown, Input, Layout, Menu, Modal, Tooltip, Typography } from 'antd';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useCookies } from 'react-cookie';
@@ -18,13 +17,13 @@ import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import DarkModeSwitcher from '../DarkModeSwitcher';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
-import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import DarkModeSwitcher from '../DarkModeSwitcher';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -327,13 +326,12 @@ export function WalletHeader() {
 
           <div onClick={() => router.push('/')}>
             <div className="navbar-super-collapsed ml-3">
-              <Image
+              <img
                 src={'/images/bitbadgeslogo.png'}
                 className="App-logo"
                 alt="logo"
                 height={60}
                 width={60}
-                quality={100}
               />
               <Typography className='App-title'>
                 BitBadges

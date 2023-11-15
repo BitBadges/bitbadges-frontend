@@ -12,30 +12,30 @@ const urlsToCache = [
 ];
 
 // Install the service worker
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            // Cache the specified URLs
-            return cache.addAll(urlsToCache);
-        })
-    );
-});
+// self.addEventListener('install', (event) => {
+//     event.waitUntil(
+//         caches.open(CACHE_NAME).then((cache) => {
+//             // Cache the specified URLs
+//             return cache.addAll(urlsToCache);
+//         })
+//     );
+// });
 
 // // Activate the service worker
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    // Delete old caches if they exist
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
-});
+// self.addEventListener('activate', (event) => {
+//     event.waitUntil(
+//         caches.keys().then((cacheNames) => {
+//             return Promise.all(
+//                 cacheNames.map((cacheName) => {
+//                     // Delete old caches if they exist
+//                     if (cacheName !== CACHE_NAME) {
+//                         return caches.delete(cacheName);
+//                     }
+//                 })
+//             );
+//         })
+//     );
+// });
 
 // // Fetch resources from cache or network
 // self.addEventListener('fetch', (event) => {

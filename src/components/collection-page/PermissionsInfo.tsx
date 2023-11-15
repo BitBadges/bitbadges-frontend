@@ -587,12 +587,14 @@ export const PermissionIcon = ({ permissions, usedFlags, neverHasManager, badgeI
       {
         (neverHasManager || (hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)) && <>
           <CloseCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'red' }} />
+          {/* <FontAwesomeIcon icon={faSnowflake} style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> */}
         </>
       }
       {
         hasPermittedTimes && !hasNeutralTimes && !hasForbiddenTimes &&
         !neverHasManager && <>
           <CheckCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'green' }} />
+          {/* <FontAwesomeIcon icon={faSnowflake} style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> */}
         </>
       }
     </Popover >

@@ -177,7 +177,7 @@ export const BlockinDisplay = ({
               assetIds: [{ start: 8, end: 8 }],
               mustOwnAmounts: { start: 0, end: 0 },
               name: 'General Access',
-              description: 'Gain general access to this website. You will not be allowed access if you own a scammer or spammer badge.',
+              description: 'Gain general access to this website. You will not be allowed access if you own a scammer badge.',
               frozen: true,
               defaultSelected: true,
               additionalDisplay: <div>

@@ -101,7 +101,7 @@ export function MetadataForm({
     ...sampleImages,
     currMetadata.image && !sampleImages.find(x => x.value === currMetadata.image)
       ? {
-        value: currMetadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/'),
+        value: currMetadata.image,
         label: 'Custom Image',
       } : undefined
   ].filter(x => !!x);
@@ -518,7 +518,7 @@ export function MetadataForm({
               <div className='flex-between' style={{}}>
                 <Select
                   className="selector primary-text inherit-bg"
-                  value={images.find((item: any) => item.value === currMetadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/'))?.label}
+                  value={images.find((item: any) => item.value === currMetadata.image)?.label}
                   onChange={(e) => {
                     const newImage = images.find((item: any) => e === item.label)?.value;
                     if (newImage) {
@@ -564,7 +564,7 @@ export function MetadataForm({
                         }}
                       >
                         <img
-                          src={item.value}
+                          src={item.value.replace('ipfs://', 'https://ipfs.io/ipfs/')}
 
                           style={{ paddingRight: 10, height: 20 }}
                           alt="Label"

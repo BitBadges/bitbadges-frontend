@@ -93,7 +93,7 @@ function BrowsePage() {
                   tab={tab}
                 />
               }
-              items={browseInfo?.profiles[tab]?.map((profile, idx) => {
+              items={browseInfo?.profiles[tab]?.map((_, idx) => {
                 const itemWidth = 330; // Set the width of each carousel item (adjust as needed)
                 const numItems = Math.round(containerWidth / itemWidth) ? Math.round(containerWidth / itemWidth) : 1;
 
@@ -108,7 +108,7 @@ function BrowsePage() {
 
                 >{idxArr.map(idx => {
                   if (idx >= browseInfo?.profiles[tab]?.length) return null
-                  profile = browseInfo?.profiles[tab][idx];
+                  const profile = browseInfo?.profiles[tab][idx];
                   return <InformationDisplayCard title='' key={idx} style={{}}>
                     <>
                       <div style={{ alignItems: 'normal' }}>
@@ -175,7 +175,10 @@ function BrowsePage() {
                 tab={badgesTab}
               />
             }
-            items={(browseInfo && browseInfo.collections[badgesTab]?.map((collection, idx) => {
+            items={(browseInfo && browseInfo.collections[badgesTab]?.map((_, idx) => {
+
+
+
               const itemWidth = 350; // Set the width of each carousel item (adjust as needed)
               const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
 
@@ -188,7 +191,7 @@ function BrowsePage() {
               return <div key={idx} className='flex flex-center-if-mobile'
               >{idxArr.map(idx => {
                 if (idx >= browseInfo?.collections[badgesTab]?.length) return null
-                collection = browseInfo?.collections[badgesTab][idx];
+                const collection = browseInfo?.collections[badgesTab][idx];
                 return <InformationDisplayCard title='' key={idx} style={{ minWidth: 350 }}>
                   <MultiCollectionBadgeDisplay
                     collectionIds={[collection.collectionId]}
@@ -198,15 +201,6 @@ function BrowsePage() {
                   />
                 </InformationDisplayCard>
               }).filter(x => x)}</div>
-
-
-              // console.log(collection);
-              // return <MultiCollectionBadgeDisplay
-              //   collectionIds={[collection.collectionId]}
-              //   groupByCollection
-              //   cardView={cardView}
-              //   key={idx}
-              // />
             }).filter(x => x)) ?? []}
           />
           <Divider />
@@ -231,7 +225,7 @@ function BrowsePage() {
                 tab={listsTab}
               />
             }
-            items={browseInfo?.addressMappings[listsTab]?.map((addressMapping, idx) => {
+            items={browseInfo?.addressMappings[listsTab]?.map((_, idx) => {
               const itemWidth = 225; // Set the width of each carousel item (adjust as needed)
               const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
 
@@ -246,7 +240,7 @@ function BrowsePage() {
 
               >{idxArr.map(idx => {
                 if (idx >= browseInfo?.addressMappings[listsTab]?.length) return null
-                addressMapping = browseInfo?.addressMappings[listsTab][idx];
+                const addressMapping = browseInfo?.addressMappings[listsTab][idx];
                 return <> <AddressListCard
                   addressMapping={addressMapping}
                   key={idx}

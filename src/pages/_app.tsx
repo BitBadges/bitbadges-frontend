@@ -1,33 +1,32 @@
-import '../styles/custom.css'
-import '../styles/index.css';
 import '../styles/antd-override-styles.css';
+import '../styles/custom.css';
+import '../styles/index.css';
 
+import { configureStore, createSerializableStateInvariantMiddleware } from '@reduxjs/toolkit';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
 import { Button } from 'antd';
+import { BitBadgesUserInfo, CollectionMap } from 'bitbadgesjs-utils';
 import type { AppProps } from 'next/app';
+import Head from "next/head";
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { Provider, useDispatch } from 'react-redux';
+import { combineReducers } from 'redux';
+import thunk from 'redux-thunk';
+import type { } from 'redux-thunk/extend-redux';
+import { WagmiConfig } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { BrowseContextProvider } from '../bitbadges-api/contexts/BrowseContext';
 import { ChainContextProvider } from '../bitbadges-api/contexts/ChainContext';
 import { StatusContextProvider } from '../bitbadges-api/contexts/StatusContext';
 import { TxTimelineContextProvider } from '../bitbadges-api/contexts/TxTimelineContext';
+import { AccountRequestParams, accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
 import { CosmosContextProvider } from '../bitbadges-api/contexts/chains/CosmosContext';
 import { EthereumContextProvider } from '../bitbadges-api/contexts/chains/EthereumContext';
+import { CollectionRequestParams, collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
 import { WalletFooter } from '../components/navigation/WebsiteFooter';
 import { WalletHeader } from '../components/navigation/WebsiteHeader';
-import { INFINITE_LOOP_MODE } from '../constants';
-import { configureStore, createSerializableStateInvariantMiddleware } from '@reduxjs/toolkit';
-import { WagmiConfig } from 'wagmi';
-import { combineReducers } from 'redux';
-import { AccountRequestParams, accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
-import { CollectionRequestParams, collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
-import thunk from 'redux-thunk';
-import type { } from 'redux-thunk/extend-redux';
-import { BitBadgesUserInfo, CollectionMap } from 'bitbadgesjs-utils';
-import Head from "next/head"
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -218,18 +217,8 @@ const App = ({ Component, pageProps }: AppProps) => {
   }, []);
 
 
-
-
-  const [myCookieValue, setMyCookieValue] = useState(null);
+  const myCookieValue = cookies.policies;
   // const [topPopupIsVisible, setTopPopupIsVisible] = useState(true);
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: cookie check');
-    // Check if the cookie exists before using it
-    if (cookies.policies) {
-      setMyCookieValue(cookies.policies);
-    }
-  }, [cookies]);
 
   const handleCookieResponse = (accepted: boolean) => {
     if (accepted) {

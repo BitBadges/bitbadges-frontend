@@ -5,15 +5,16 @@ import { ReactNode } from "react";
 const { Text } = Typography;
 
 export function TableRow({
-  label, value, labelSpan, valueSpan
+  label, value, labelSpan, valueSpan, customClass
 }: {
   label: string | ReactNode,
   value: string | ReactNode
   labelSpan?: number,
-  valueSpan?: number
+  valueSpan?: number,
+  customClass?: string
 }) {
 
-  return <><Row style={{ alignItems: 'normal' }} className="full-width">
+  return <><Row style={{ alignItems: 'normal' }} className={"full-width " + customClass}>
     <Col xs={0} sm={0} md={labelSpan ? labelSpan : 16} lg={labelSpan ? labelSpan : 16} style={{ textAlign: 'left', paddingLeft: 10 }}>
       <Text style={{ fontSize: 16 }} className='primary-text'>
         {label}

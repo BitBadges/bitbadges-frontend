@@ -188,7 +188,7 @@ export function DateRangeInput({
           allowClear={false}
           placeholder='Start Date'
           value={timeRanges[showTimeRange].start ? moment(new Date(Number(timeRanges[showTimeRange].start))) : null}
-          className='primary-text inherit-bg full-width'
+          className='dark primary-text inherit-bg full-width'
           onChange={(_date, dateString) => {
             if (new Date(dateString).valueOf() > new Date(Number(timeRanges[showTimeRange].end)).valueOf()) {
               alert('Start time must be before end time.');
