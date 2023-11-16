@@ -3,11 +3,11 @@ import { Col, Empty, Tooltip } from "antd";
 import { Balance, BigIntify, MustOwnBadges, UintRange, convertUintRange } from "bitbadgesjs-proto";
 import { getAllBalancesToBeTransferred, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { ReactNode, useEffect, useState } from "react";
+import { INFINITE_LOOP_MODE } from "../../../constants";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../../utils/dates";
 import { BalanceDisplayEditRow } from "../../inputs/BalanceDisplayEditRow";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
-import { INFINITE_LOOP_MODE } from "../../../constants";
 
 
 export function BalanceDisplay({
@@ -72,6 +72,8 @@ export function BalanceDisplay({
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("BalanceDisplay useEffect", { balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy })
+    // console.log("BalanceDisplay useEffect", { balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy })
+
     const allBalances = !isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
       {
         from: '',
@@ -97,7 +99,6 @@ export function BalanceDisplay({
     const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
       return balanceAmount.badgeIds.map((uintRange) => convertUintRange(uintRange, BigIntify));
     }).flat();
-
     setAllBalances(allBalances);
     setAllBadgeIdsArr(allBadgeIdsArr);
 
