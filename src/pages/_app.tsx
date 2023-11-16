@@ -168,15 +168,15 @@ const App = ({ Component, pageProps }: AppProps) => {
 
     if ('Notification' in window) {
       //TODO: Needs a notify permission request button to work on mobile
-      Notification.requestPermission()
-        .then(function (permission) {
-          if (permission === 'granted') {
-            console.log('Notification permission granted.');
-            // You can now subscribe to push notifications.
-          } else {
-            console.log('Notification permission denied.');
-          }
-        });
+      // Notification.requestPermission()
+      //   .then(function (permission) {
+      //     if (permission === 'granted') {
+      //       console.log('Notification permission granted.');
+      //       // You can now subscribe to push notifications.
+      //     } else {
+      //       console.log('Notification permission denied.');
+      //     }
+      //   });
 
       //Sample notification. Works on desktop but not mobile?
       // const options = {

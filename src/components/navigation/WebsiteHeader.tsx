@@ -328,7 +328,7 @@ export function WalletHeader() {
             <div className="navbar-super-collapsed ml-3">
               <img
                 src={'/images/bitbadgeslogo.png'}
-                className="App-logo"
+                className=""
                 alt="logo"
                 height={60}
                 width={60}

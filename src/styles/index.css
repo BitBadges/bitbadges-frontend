@@ -162,10 +162,6 @@ code {
     background-color: #001529;
   }
   
-  .App-logo {
-    height: 7vh;
-    pointer-events: none;
-  }
   
   .App-header {
     width: 100%;
@@ -502,28 +498,26 @@ transform: scale(1.01);
     height: 100%;
   }
 
-  @media (max-width: 920px) { 
+  /* @media (max-width: 920px) { 
     .collect-title {
       font-size: 48px;
-      line-height: 59px; /* 105.952% */
-      letter-spacing: -2.5px;
+      line-height: 54px; 
     }
     .inline-logo {
       height: 54px;
     }
   }
   
-  @media (min-width: 920px) { 
+  @media (min-width: 920px) {  */
    .collect-title {
       font-size: 72px;
-      line-height: 89px; /* 105.952% */
-      letter-spacing: -3.5px;
+      line-height: 89px;
     }
   
   
     .inline-logo {
-      height: 80px;
-    }
+      height: 72px;
+    /* } */
   }
 
 .collect-title {
