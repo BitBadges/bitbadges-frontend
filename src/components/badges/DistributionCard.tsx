@@ -1,7 +1,7 @@
 import { EditOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto";
-import { ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
+import { ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
 
 import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 import { neverHasManager } from "../../bitbadges-api/utils/manager";
@@ -92,7 +92,7 @@ export function DistributionOverview({
 
       {!isSelectStep && <TableRow label={"Can transferability be updated (including mints)?"} value={
         <PermissionIcon
-          permissions={castBalancesActionPermissionToUniversalPermission(
+          permissions={castCollectionApprovalPermissionToUniversalPermission(
             collection.collectionPermissions.canUpdateCollectionApprovals)}
           usedFlags={ApprovalPermissionUsedFlags}
           neverHasManager={neverHasManager(collection)}

@@ -1,5 +1,5 @@
 import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Checkbox, Divider, Form, Input, InputNumber, Progress, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
+import { Button, Checkbox, Col, Divider, Form, Input, InputNumber, Progress, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
 import { useState } from 'react';
 
 import { faMinus, faPlus, faReplyAll } from '@fortawesome/free-solid-svg-icons';
@@ -236,14 +236,20 @@ export function MetadataForm({
           </div>
 
           <br />
-          <BadgeIdRangesInput
-            uintRangeBounds={badgeIds}
-            uintRanges={uintRanges}
-            setUintRanges={setUintRanges}
-            collectionId={collectionId}
-          />
-
-          <Divider />
+          <br />
+          <div className='flex-center'>
+            <Col md={12} xs={24} className='full-width'>
+              <BadgeIdRangesInput
+                uintRangeBounds={badgeIds}
+                uintRanges={uintRanges}
+                setUintRanges={setUintRanges}
+                collectionId={collectionId}
+                hideSelect
+                hideNumberSelects
+              />
+            </Col>
+          </div>
+          <br />
           {isCollectionSelect && !isAddressMappingSelect && <div className='secondary-text' style={{ textAlign: 'center' }}>
             <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated badge metadata will be visible on the next step.
             <br />
@@ -320,7 +326,7 @@ export function MetadataForm({
 
   return (
     <>
-      <div>
+      <InformationDisplayCard span={24} title=''>
         {!isAddressMappingSelect && setAddMethod && <>
           <br />
           <div className='flex-center flex-column'>
@@ -841,7 +847,7 @@ export function MetadataForm({
         <DevMode obj={collection?.cachedCollectionMetadata} />
         <DevMode obj={collection?.cachedBadgeMetadata} />
         <DevMode obj={collection?.badgeMetadataTimeline} />
-      </div >
+      </InformationDisplayCard >
     </>
   );
 };

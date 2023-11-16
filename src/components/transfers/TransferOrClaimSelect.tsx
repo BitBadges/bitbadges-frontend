@@ -1,5 +1,5 @@
 import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, Divider, Empty, Row, StepProps, Steps, Tooltip } from 'antd';
+import { Button, Col, Divider, Empty, Radio, Row, StepProps, Steps, Tooltip } from 'antd';
 import { Balance, BigIntify, convertBalance, deepCopy } from 'bitbadgesjs-proto';
 import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -232,6 +232,7 @@ export function TransferSelect({
       (!!postTransferBalancesWithCurrent?.find((balance) => balance.amount < 0))
   });
 
+  const [balanceTab, setBalanceTab] = useState('remaining');
 
   return <>
 
@@ -248,45 +249,85 @@ export function TransferSelect({
             <div className="secondary-text">
               <InfoCircleOutlined /> Assign the badges you have created to the intended recipients. This is done off-chain so will not increase your transaction fee.
             </div>}
-          <div className='flex flex-wrap flex-center' style={{ alignItems: 'normal' }}>
-            <InformationDisplayCard noBorder inheritBg
-              title='Start Balances'
-              md={8}
-              sm={24}
-              xs={24}
-            >
-              <BalanceDisplay
-                hideMessage
-                collectionId={collectionId ?? NEW_COLLECTION_ID}
-                balances={originalSenderBalances ?? []}
-              />
-            </InformationDisplayCard>
-            <InformationDisplayCard noBorder inheritBg
-              title={`Remaining${(addTransferIsVisible && transfers.length > 1) ? ' (Before Adding)' : ''}`}
-              md={8}
-              sm={24}
-              xs={24}
-            >
-              <BalanceDisplay
-                hideMessage
-                collectionId={collectionId ?? NEW_COLLECTION_ID}
-                balances={postTransferBalances ?? []}
-              />
-            </InformationDisplayCard>
-            {(addTransferIsVisible && transfers.length > 1) &&
-              <InformationDisplayCard noBorder inheritBg
-                title='Remaining (After Adding)'
-                md={8}
-                sm={24}
-                xs={24}
+          <br />
+          <div className='flex'>
+            <InformationDisplayCard title='Balances' style={{ alignItems: 'normal' }} md={12} sm={24} xs={24}>
+              <Radio.Group
+                buttonStyle='solid'
+                onChange={(e) => {
+                  setBalanceTab(e.target.value);
+                }}
+                value={balanceTab}
               >
+                {<Radio.Button value='start'>
+                  <div className='primary-text hover:text-gray-400'>
+                    Start Balances
+                  </div>
+                </Radio.Button>}
+                <Radio.Button value='remaining'><div className='primary-text hover:text-gray-400'>
+                  Remaining Balances
+                </div></Radio.Button>
+              </Radio.Group>
+              <br />
+              {balanceTab === 'remaining' && <div className='secondary-text'>
+                <InfoCircleOutlined /> The remaining balances after transfers are applied{addTransferIsVisible && <> (including the current transfer)</>}.
+                <br />
+                <br />
                 <BalanceDisplay
                   hideMessage
-
                   collectionId={collectionId ?? NEW_COLLECTION_ID}
                   balances={postTransferBalancesWithCurrent ?? []}
                 />
-              </InformationDisplayCard>}
+
+              </div>}
+
+
+              {balanceTab === 'start' && <div className='secondary-text'>
+                <InfoCircleOutlined /> {"The sender's balances before any transfers are applied."}
+                <br />
+                <br />
+                <BalanceDisplay
+                  hideMessage
+                  collectionId={collectionId ?? NEW_COLLECTION_ID}
+                  balances={originalSenderBalances ?? []}
+                />
+              </div>}
+            </InformationDisplayCard>
+            <InformationDisplayCard title='Added Transfers' style={{ alignItems: 'normal' }} md={12} sm={24} xs={24}>
+              <>
+                {[...(transfers ?? [])].length === 0 && <Empty
+                  className='primary-text'
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={'None added.'} />}
+
+                {[...(transfers ?? [])].length > 0 && <>
+                  <ActivityTab
+                    paginated
+                    activity={transfers.map(x => {
+
+                      return {
+                        _id: `collection-${collectionId}-${x.from}-${x.toAddresses.join('-')}`,
+                        from: x.from,
+                        balances: x.balances,
+                        collectionId: collectionId,
+                        method: 'Transfer' as TransferMethod,
+                        to: x.toAddresses,
+                        initiatedBy: chain.address,
+                        timestamp: BigInt(Date.now()),
+                        block: 0n
+                      }
+                    }).flat()
+                    }
+                    fetchMore={async () => { }}
+                    hasMore={false}
+                    onDelete={(idx) => {
+                      const newTransfers = transfers.filter((_, i) => i !== idx);
+                      setTransfers(newTransfers);
+                    }}
+                  />
+                </>}
+              </>
+            </InformationDisplayCard>
           </div>
           <div style={{ alignItems: 'center' }} className='primary-text full-width'>
             {
@@ -298,7 +339,7 @@ export function TransferSelect({
 
             {
               addTransferIsVisible || setVisible ?
-                <div className='full-width'>
+                <InformationDisplayCard title='Add Transfer' style={{ alignItems: 'normal' }} md={24} sm={24} xs={24}>
                   <div className='flex-between' >
                     <div></div>
                     <div>
@@ -334,7 +375,7 @@ export function TransferSelect({
                       </div>}
                     </div>
                   ))}
-                </div>
+                </InformationDisplayCard>
                 : <>
                   <div className='flex-center flex-wrap'>
                     <div>
@@ -345,7 +386,7 @@ export function TransferSelect({
                             setAddTransferIsVisible(true);
                           }}
                           src={<PlusOutlined />}
-                          text='Add'
+                          text='Add Transfer'
                         >
                         </IconButton>
                       </div> :
@@ -390,51 +431,7 @@ export function TransferSelect({
           </div >
 
 
-          {transfers.length > 0 && <>
-            <Divider />
-            {!addTransferIsVisible && <>
-              <InformationDisplayCard
-                title={<>Added</>}
-                span={24}
-                noBorder
-                inheritBg
-              >
-                <>
-                  {[...(transfers ?? [])].length === 0 && <Empty
-                    className='primary-text'
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={'None added.'} />}
 
-                  {[...(transfers ?? [])].length > 0 && <>
-                    <ActivityTab
-                      paginated
-                      activity={transfers.map(x => {
-
-                        return {
-                          _id: `collection-${collectionId}-${x.from}-${x.toAddresses.join('-')}`,
-                          from: x.from,
-                          balances: x.balances,
-                          collectionId: collectionId,
-                          method: 'Transfer' as TransferMethod,
-                          to: x.toAddresses,
-                          initiatedBy: chain.address,
-                          timestamp: BigInt(Date.now()),
-                          block: 0n
-                        }
-                      }).flat()
-                      }
-                      fetchMore={async () => { }}
-                      hasMore={false}
-                      onDelete={(idx) => {
-                        const newTransfers = transfers.filter((_, i) => i !== idx);
-                        setTransfers(newTransfers);
-                      }}
-                    />
-                  </>}
-                </>
-              </InformationDisplayCard>
-            </>}
-          </>}
           <br />
 
         </InformationDisplayCard>

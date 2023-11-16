@@ -59,7 +59,7 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
         </Col>
         <div className='flex-center' onClick={(e) => { e.stopPropagation(); }} style={{ display: 'flex', alignItems: 'center' }}>
           {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})
-          {onDelete && <IconButton src={<DeleteOutlined />} onClick={() => onDelete(idx)} text='Delete' />}
+          {onDelete && <IconButton src={<DeleteOutlined />} onClick={() => onDelete(idx)} text='' tooltipMessage='Delete' />}
         </div>
       </Row>
       <Row>

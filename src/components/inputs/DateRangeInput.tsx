@@ -17,7 +17,8 @@ export function DateRangeInput({
   suggestedTimeRanges?: UintRange<bigint>[],
 }) {
 
-  const [showTimeRange, setShowTimeRange] = useState(-1);
+  const [showTimeRange, setShowTimeRange] = useState<number>(-1);
+  const [timeRangeToEdit, setTimeRangeToEdit] = useState<UintRange<bigint> | undefined>(undefined);
 
   // //Top of the hour even :00:00
   const currTimeNextHour = new Date();
@@ -53,9 +54,11 @@ export function DateRangeInput({
                   onClick={() => {
                     if (showTimeRange === i) {
                       setShowTimeRange(-1);
+                      setTimeRangeToEdit(undefined);
                       return;
                     }
                     setShowTimeRange(i);
+                    setTimeRangeToEdit(deepCopy(timeRanges[i]));
                   }}
                   text={showTimeRange === i ? 'Hide' : 'Edit'}
 
@@ -117,10 +120,10 @@ export function DateRangeInput({
         <br />
         <br />
       </div>
-      {showTimeRange >= 0 && showTimeRange < timeRanges.length && <>
+      {showTimeRange >= 0 && timeRangeToEdit && showTimeRange < timeRanges.length && <>
         <hr />
         <div style={{ textAlign: 'center', marginBottom: 10 }}>
-          <b>Editing Time Range: {getTimeRangesElement([timeRanges[showTimeRange]], '', true, false)}</b>
+          <b>Editing Time Range: {getTimeRangesElement([timeRangeToEdit], '', true, false)}</b>
           <br />
         </div>
         <b >Suggested Time Ranges</b>
@@ -130,8 +133,8 @@ export function DateRangeInput({
             className='styled-icon-button'
             style={{ margin: 4 }}
             onClick={() => {
-              timeRanges[showTimeRange].start = BigInt(currTimeNextHour.valueOf());
-              timeRanges[showTimeRange].end = BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24);
+              timeRangeToEdit.start = BigInt(currTimeNextHour.valueOf());
+              timeRangeToEdit.end = BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24);
 
               setTimeRanges(deepCopy(timeRanges));
             }}
@@ -142,8 +145,8 @@ export function DateRangeInput({
             className='styled-icon-button'
             style={{ margin: 4 }}
             onClick={() => {
-              timeRanges[showTimeRange].start = BigInt(currTimeNextHour.valueOf());
-              timeRanges[showTimeRange].end = BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 7);
+              timeRangeToEdit.start = BigInt(currTimeNextHour.valueOf());
+              timeRangeToEdit.end = BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 7);
 
               setTimeRanges(deepCopy(timeRanges));
             }}
@@ -154,8 +157,8 @@ export function DateRangeInput({
             className='styled-icon-button'
             style={{ margin: 4 }}
             onClick={() => {
-              timeRanges[showTimeRange].start = BigInt(currTimeNextHour.valueOf());
-              timeRanges[showTimeRange].end = BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 30);
+              timeRangeToEdit.start = BigInt(currTimeNextHour.valueOf());
+              timeRangeToEdit.end = BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 30);
 
               setTimeRanges(deepCopy(timeRanges));
             }}
@@ -169,8 +172,8 @@ export function DateRangeInput({
                 className='styled-icon-button'
                 style={{ margin: 4 }}
                 onClick={() => {
-                  timeRanges[showTimeRange].start = x.start;
-                  timeRanges[showTimeRange].end = x.end;
+                  timeRangeToEdit.start = x.start;
+                  timeRangeToEdit.end = x.end;
 
                   setTimeRanges(deepCopy(timeRanges));
                 }}
@@ -187,15 +190,15 @@ export function DateRangeInput({
           showTime
           allowClear={false}
           placeholder='Start Date'
-          value={timeRanges[showTimeRange].start ? moment(new Date(Number(timeRanges[showTimeRange].start))) : null}
+          value={timeRangeToEdit.start ? moment(new Date(Number(timeRangeToEdit.start))) : null}
           className='dark primary-text inherit-bg full-width'
           onChange={(_date, dateString) => {
-            if (new Date(dateString).valueOf() > new Date(Number(timeRanges[showTimeRange].end)).valueOf()) {
+            if (new Date(dateString).valueOf() > new Date(Number(timeRangeToEdit.end)).valueOf()) {
               alert('Start time must be before end time.');
               return;
             }
 
-            timeRanges[showTimeRange].start = BigInt(new Date(dateString).valueOf());
+            timeRangeToEdit.start = BigInt(new Date(dateString).valueOf());
 
             setTimeRanges(deepCopy(timeRanges));
           }}
@@ -208,19 +211,39 @@ export function DateRangeInput({
           showTime
           allowClear={false}
           placeholder='End Date'
-          value={timeRanges[showTimeRange].end ? moment(new Date(Number(timeRanges[showTimeRange].end))) : null}
+          value={timeRangeToEdit.end ? moment(new Date(Number(timeRangeToEdit.end))) : null}
           className='primary-text inherit-bg full-width'
           onChange={(_date, dateString) => {
-            if (new Date(dateString).valueOf() < new Date(Number(timeRanges[showTimeRange].start)).valueOf()) {
+            if (new Date(dateString).valueOf() < new Date(Number(timeRangeToEdit.start)).valueOf()) {
               alert('End time must be after start time.');
               return;
             }
 
-            timeRanges[showTimeRange].end = BigInt(new Date(dateString).valueOf());
+            timeRangeToEdit.end = BigInt(new Date(dateString).valueOf());
 
             setTimeRanges(deepCopy(timeRanges));
           }}
         />
+        <br />
+        <br />
+
+        <button className='landing-button' style={{ width: '100%' }} onClick={() => {
+          if (new Date(Number(timeRangeToEdit.start)).valueOf() > new Date(Number(timeRangeToEdit.end)).valueOf()) {
+            alert('Start time must be before end time.');
+            return;
+          }
+
+          const newTimeRanges = deepCopy(timeRanges);
+          newTimeRanges[showTimeRange] = timeRangeToEdit;
+
+          setTimeRanges(newTimeRanges);
+          setShowTimeRange(-1);
+          setTimeRangeToEdit(undefined);
+        }
+        }>
+          Save
+        </button>
+
         <Divider />
       </>}
     </div >

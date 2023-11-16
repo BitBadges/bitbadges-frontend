@@ -191,12 +191,11 @@ function PortfolioPage() {
         continue;
       }
 
-      if (accountInfo) {
-        allBadgeIds.push({
-          badgeIds: balanceInfo.balances.map(balance => balance.badgeIds).flat() || [],
-          collectionId: balanceInfo.collectionId
-        });
-      }
+      allBadgeIds.push({
+        badgeIds: balanceInfo.balances.map(balance => balance.badgeIds).flat() || [],
+        collectionId: balanceInfo.collectionId
+      })
+
     }
 
     //Calculate total number of badge IDs
@@ -209,24 +208,11 @@ function PortfolioPage() {
     }
 
     return Numberify(total);
-  }, [badgesToShow, accountInfo]);
-
+  }, [badgesToShow]);
 
   const fetchMoreCollected = useCallback(async (address: string) => {
-    if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
-      await fetchNextForAccountViews(address, editMode ? ['badgesCollectedWithHidden'] : ['badgesCollected']);
-    }
-
-    if (!groupByCollection) {
-      if (numBadgesDisplayed + 25 > numTotalBadges) {
-        setNumBadgesDisplayed(numBadgesDisplayed + 25);
-      } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
-        setNumBadgesDisplayed(numBadgesDisplayed + 100);
-      } else {
-        setNumBadgesDisplayed(numTotalBadges + 25);
-      }
-    }
-  }, [editMode, numBadgesDisplayed, numTotalBadges, groupByCollection]);
+    await fetchNextForAccountViews(address, editMode ? ['badgesCollectedWithHidden'] : ['badgesCollected']);
+  }, [editMode]);
 
   const fetchMoreLists = useCallback(async (address: string, viewKey: AccountViewKey) => {
     await fetchNextForAccountViews(address, [viewKey]);
@@ -249,6 +235,7 @@ function PortfolioPage() {
   const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch more collected');
+
     //Fetch on tab change but only if empty and has mroe
     const collectedIsEmpty = !accountInfo?.views['badgesCollected']?.ids.length;
     const listsIsEmpty = !accountInfo?.views['addressMappings']?.ids.length;
@@ -266,7 +253,7 @@ function PortfolioPage() {
     } else if (tab === 'managing' && (accountInfo?.views['managing']?.pagination?.hasMore ?? true) && managingIsEmpty) {
       fetchMoreManaging(accountInfo?.address ?? '', 'managing');
     }
-  }, [tab, accountInfo, fetchMoreCollected, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, listsTab]);
+  }, [tab, accountInfo, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, fetchMoreCollected, listsTab]);
 
 
   useEffect(() => {
@@ -551,7 +538,21 @@ function PortfolioPage() {
 
             <InfiniteScroll
               dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
-              next={async () => fetchMoreCollected(accountInfo?.address ?? '')}
+              next={async () => {
+                if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
+                  await fetchMoreCollected(accountInfo?.address ?? '');
+                }
+
+                if (!groupByCollection) {
+                  if (numBadgesDisplayed + 25 > numTotalBadges) {
+                    setNumBadgesDisplayed(numBadgesDisplayed + 25);
+                  } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
+                    setNumBadgesDisplayed(numBadgesDisplayed + 100);
+                  } else {
+                    setNumBadgesDisplayed(numTotalBadges + 25);
+                  }
+                }
+              }}
               hasMore={collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)}
               loader={<div>
                 <br />

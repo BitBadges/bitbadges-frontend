@@ -17,6 +17,7 @@ import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { UserPermissionsOverview } from './PermissionsInfo';
 import { TransferabilityRow } from './TransferabilityRow';
 import { TransferabilityTab } from './TransferabilityTab';
+import { EmptyIcon } from '../common/Empty';
 
 interface DisplayProps {
   approvals: CollectionApprovalWithDetails<bigint>[];
@@ -277,6 +278,11 @@ const FullApprovalsDisplay: FC<FullProps> = ({
     </>
   }
 
+  let hasRows = false;
+  if (approvals.length > 0) hasRows = true;
+  if (showDeletedGrayedOut && deletedApprovals && deletedApprovals?.length > 0) hasRows = true;
+  if (disapproved.length > 0) hasRows = true;
+
   return <>
     <br />
 
@@ -325,6 +331,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
       <br />
       <div>
         {getRows()}
+        {!hasRows && <EmptyIcon description='No approvals found.' />}
       </div>
       <br />
       {addMoreNode}

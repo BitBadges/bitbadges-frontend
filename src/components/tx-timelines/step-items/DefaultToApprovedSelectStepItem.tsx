@@ -92,7 +92,6 @@ export function DefaultToApprovedSelectStepItem() {
               })
             }}
             approverAddress={chain.address}
-            title="Incoming Approvals"
           />
         </div>
       </>

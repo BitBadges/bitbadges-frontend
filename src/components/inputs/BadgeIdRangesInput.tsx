@@ -1,4 +1,4 @@
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, InfoCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Input, InputNumber } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
 import { Numberify, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
@@ -8,6 +8,8 @@ import IconButton from "../display/IconButton";
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm";
 import { getBadgeIdsString } from "../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../utils/dates";
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 
 export function BadgeIdRangesInput({
   uintRanges,
@@ -34,6 +36,8 @@ export function BadgeIdRangesInput({
 }) {
   uintRangeBounds = sortUintRangesAndMergeIfNecessary(uintRangeBounds, true);
 
+  const collection = useCollection(collectionId);
+  const totalNumberOfBadges = collection ? getTotalNumberOfBadges(collection) : 0n;
   const [numRanges, setNumRanges] = useState(uintRanges ? uintRanges.length : 1);
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
     uintRanges ? uintRanges.map(({ start, end }) => [start, end])
@@ -97,7 +101,7 @@ export function BadgeIdRangesInput({
 
         <Input
           style={{ textAlign: 'center' }}
-          
+
           className="primary-text inherit-bg"
           value={inputStr}
           placeholder="Ex: 1-5, 7-10, 11, 20-30, 40-50, ...."
@@ -138,7 +142,12 @@ export function BadgeIdRangesInput({
           }}
 
         />
+
       </div>
+      {totalNumberOfBadges > 0 &&
+        <div className="secondary-text" style={{ textAlign: 'center', fontSize: 12 }}>
+          <InfoCircleOutlined /> Created IDs for this collection: 1-{totalNumberOfBadges.toString()}
+        </div>}
       <br />
       {/* <h2 style={{ textAlign: 'center',  }} className='primary-text'>Badge ID Select</h2> */}
       {
@@ -310,6 +319,7 @@ export function BadgeIdRangesInput({
   return <>
     {hideSelect ? <>
       {CustomInput}
+
       <br />
       {AvatarDisplay}
     </> :
