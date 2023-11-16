@@ -440,11 +440,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         let existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
 
         if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
-          console.log(existingCollection);
+          
           await fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
         }
-
-        console.log(existingCollectionsRes);
 
         startingCollectionDefault = {
           ...startingCollectionDefault,

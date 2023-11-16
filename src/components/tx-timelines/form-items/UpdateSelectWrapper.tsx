@@ -111,7 +111,6 @@ export function UpdateSelectWrapper({
         break;
       case 'canUpdateCollectionApprovals':
         validateFunction = validateCollectionApprovalsUpdate
-        console.log('collection approval update')
         break;
     }
   }
@@ -134,7 +133,6 @@ export function UpdateSelectWrapper({
     if (validateFunction && startingValue !== undefined && currValue !== undefined) {
       validateErr = validateFunction(startingValue, currValue, prevPermissions);
       setErr(validateErr);
-      console.log('validateErr: ', validateErr);
     }
 
   }, [currValue, startingValue, prevPermissions, permissionName, jsonPropertyPath, setErr, validateFunction])

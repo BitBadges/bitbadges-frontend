@@ -47,7 +47,6 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         const accountHasBalance = account?.collected.find(x => x.collectionId === collectionId);
         const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
 
-        console.log(accountHasBalance, collectionHasBalance);
         if (accountHasBalance) {
           setCurrBalances(accountHasBalance.balances);
           return;

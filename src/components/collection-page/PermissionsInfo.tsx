@@ -254,8 +254,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
   //Isn't worth confusing the average user
   if (hideIfFull) {
     for (const column of columns) {
-
-      console.log(columns);
       if ((column.key.endsWith('Times') || column.key.endsWith('Ids')) && column.key !== 'permissionTimes') {
         const key = column.key as keyof typeof dataSource[0];
         let allAreFull = true;
@@ -396,7 +394,6 @@ export const PermissionDisplay = (
                         y.badgeIds = removed;
                       }
 
-                      console.log(y, columns)
                       //we previously may have filtered out columns, here we should not display them
                       const columnKeys = columns.map(x => x.key);
 

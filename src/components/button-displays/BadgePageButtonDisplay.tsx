@@ -20,10 +20,6 @@ export function BadgeButtonDisplay({
 }) {
   const [reportIsVisible, setReportIsVisible] = useState(false);
 
-
-  console.log(global.navigator && global.navigator.canShare && global.navigator.canShare({
-    url: window.location.href,
-  }));
   return (
     <div>
 

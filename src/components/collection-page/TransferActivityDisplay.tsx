@@ -212,7 +212,6 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
       const accountsToFetch = [...new Set(currActivityToDisplay.map(a => { return [...new Set([a.from, a.to.length > 1 ? 'Mint' : a.to[0]])].filter(a => a !== 'Mint') }).flat())];
       const collectionsToFetch = currActivityToDisplay.map(a => a.collectionId).filter(x => x > 0n);
 
-      console.log('fetching collections', collectionsToFetch);
       await fetchCollections(collectionsToFetch);
       await fetchAccounts(accountsToFetch);
     }

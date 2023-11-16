@@ -95,7 +95,6 @@ export function MetadataForm({
     },
   ]
 
-  console.log(currMetadata.image)
 
   const images = [
     ...sampleImages,

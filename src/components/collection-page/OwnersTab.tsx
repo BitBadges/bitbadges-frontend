@@ -37,7 +37,6 @@ export function OwnersTab({ collectionId, badgeId }: {
   });
 
   const totalNumOwners = pagination.total ? Numberify(pagination.total) : 0;
-  console.log('rerender');
   const fetchMore = useCallback(async (bookmark: string) => {
     if (isPreview) return;
 

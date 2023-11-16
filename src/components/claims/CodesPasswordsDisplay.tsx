@@ -200,7 +200,6 @@ export function CodesDisplay({
         <div className="flex-center flex-wrap">
           <button className="landing-button primary-text" style={{ width: 150 }}
             onClick={() => {
-              console.log(navigator.clipboard && window.isSecureContext)
 
               navigator.clipboard.writeText((hasPassword ? claimPassword : codes?.[codePage - 1]) ?? '').catch(e => { console.error(e) });
               notification.success({

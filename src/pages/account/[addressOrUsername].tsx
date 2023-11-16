@@ -142,7 +142,6 @@ function PortfolioPage() {
     if (!accountInfo?.address) return;
 
     for (const id of filteredCollections) {
-      console.log('ids');
       fetchBalanceForUser(id.collectionId, accountInfo?.address);
     }
   }, [filteredCollections, accountInfo?.address]);

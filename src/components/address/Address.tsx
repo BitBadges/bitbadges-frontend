@@ -142,7 +142,6 @@ export function Address({
   const showLink = !hidePortfolioLink && address && address !== MINT_ACCOUNT.address && address != 'All' && address != 'All Other';
   const invalidAddress = !isValidAddress;
 
-  console.log(address, fontColor);
   return (
     <div style={{}}>
       <div

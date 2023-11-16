@@ -123,7 +123,6 @@ export function ConfirmManagerStepItem() {
                         <AddressSelect
                           defaultValue={address}
                           onUserSelect={(address) => {
-                            console.log("USER SELECT")
                             setAddress(address);
                             updateCollection({
                               collectionId: NEW_COLLECTION_ID,

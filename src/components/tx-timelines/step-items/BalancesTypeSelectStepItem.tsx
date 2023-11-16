@@ -1,5 +1,7 @@
+import { WarningOutlined } from "@ant-design/icons";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
 
 import { SwitchForm } from "../form-items/SwitchForm";
 
@@ -10,8 +12,10 @@ export function BalanceTypeSelectStepItem() {
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
 
-  if (existingCollectionId) return EmptyStepItem;
 
+  if (!collection || existingCollectionId) return EmptyStepItem;
+
+  const totalNumberOfBadges = getTotalNumberOfBadges(collection);
   const StandardOption = {
     title: 'Standard',
     message: <>
@@ -36,7 +40,14 @@ export function BalanceTypeSelectStepItem() {
       <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">
         {' '}here.
       </a></span>
+      {totalNumberOfBadges > 15000 && <div className='flex-center' style={{ marginTop: 10, color: 'red' }}>
+        <WarningOutlined />
+        <span>
+          {' '}This option is disabled for collections with more than 15,000 badges.
+        </span>
+      </div>}
     </div >,
+    disabled: totalNumberOfBadges > 15000
   }
 
   const options = [

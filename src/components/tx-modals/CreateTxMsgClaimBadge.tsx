@@ -100,8 +100,6 @@ export function CreateTxMsgClaimBadgeModal(
     approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
     : approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())) ?? -1;
 
-  console.log("CODE", code, leafIndex, calculationMethod?.useMerkleChallengeLeafIndex, approval.details);
-
 
   //There are many different cases that can happen here as to why a user can not claim
   //1. Not connected to wallet

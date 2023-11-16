@@ -15,9 +15,7 @@ import { updateCollection, useCollection } from "../../../bitbadges-api/contexts
 
 export const getBadgesWithLockedSupply = (collection: BitBadgesCollection<bigint>, startingCollection: BitBadgesCollection<bigint> | undefined, currentCollection = false) => {
   const collectionToCheck = currentCollection ? collection : startingCollection;
-  if (!collectionToCheck) return [];
-
-  console.log(collectionToCheck.collectionPermissions.canCreateMoreBadges);
+  if (!collectionToCheck) return []
 
   const canCreateMoreBadgesRes = getPermissionDetails(
     collectionToCheck ? castBalancesActionPermissionToUniversalPermission(collectionToCheck.collectionPermissions.canCreateMoreBadges ?? []) : [],

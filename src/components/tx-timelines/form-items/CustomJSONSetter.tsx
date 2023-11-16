@@ -64,7 +64,6 @@ export function JSONSetter({
     } : (val: any) => {
       const isValid = preClean(val);
       if (!isValid) return;
-      console.log(isValid, val);
 
       updateCollection({
         collectionId: collection.collectionId,

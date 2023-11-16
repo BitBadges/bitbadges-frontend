@@ -1173,8 +1173,6 @@ export function ApprovalSelect({
           newApprovalToAdd.initiatedByMapping = getReservedAddressMapping("AllWithMint");
           newApprovalToAdd.initiatedByMappingId = "AllWithMint";
 
-          console.log("toAddresses", toAddresses);
-
           addresses.push(...toAddresses.map(x => convertToCosmosAddress(x)));
           const treeOptions = { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }
           const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256, treeOptions);

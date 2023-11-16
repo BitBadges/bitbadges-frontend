@@ -54,7 +54,6 @@ export function Notifications() {
 
     if (chain.connected && chain.loggedIn && chain.address) {
       setPrevSeenActivity(Number(signedInAccount?.seenActivity ?? 0n));
-      console.log("UPDATING Seen activity", chain.lastSeenActivity);
       updateProfileInfo(chain.address, { seenActivity: chain.lastSeenActivity }); //chain.lastSeenActivity was fetch time
     }
   }, [chain.connected, chain.loggedIn, chain.address, chain.lastSeenActivity]);
