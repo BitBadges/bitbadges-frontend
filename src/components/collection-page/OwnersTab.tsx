@@ -51,9 +51,11 @@ export function OwnersTab({ collectionId, badgeId }: {
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: ');
-    if (isPreview ? false : pagination.hasMore) fetchMore(pagination.bookmark);
+    if (isPreview) return;
+
+    fetchMore('');
     setLoaded(true);
-  }, [pagination, fetchMore, isPreview])
+  }, [fetchMore, isPreview])
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch accounts ');
@@ -81,7 +83,9 @@ export function OwnersTab({ collectionId, badgeId }: {
           {/* <Pagination currPage={currPage} onChange={setCurrPage} total={totalNumOwners} pageSize={PAGE_SIZE} /> */}
           <InfiniteScroll
             dataLength={owners.length}
-            next={() => fetchMore(pagination.bookmark)}
+            next={() => {
+              fetchMore(pagination.bookmark)
+            }}
 
             hasMore={isPreview ? false : pagination.hasMore}
             loader={<div>
@@ -90,7 +94,7 @@ export function OwnersTab({ collectionId, badgeId }: {
             </div>}
             scrollThreshold="200px"
             endMessage={null}
-            style={{ width: '100%', overflow: 'hidden' }}
+            style={{ width: '100%' }}
           >
             {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
 
