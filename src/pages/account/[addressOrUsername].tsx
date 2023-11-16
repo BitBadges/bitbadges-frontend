@@ -7,7 +7,7 @@ import { AccountViewKey, Numberify, getMetadataForBadgeId, isFullUintRanges, rem
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
-import { ReactElement, useCallback, useEffect, useState } from 'react';
+import { ReactElement, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
@@ -54,14 +54,11 @@ function PortfolioPage() {
   const [groupByCollection, setGroupByCollection] = useState(false);
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
-  const [numTotalBadges, setNumTotalBadges] = useState<number>(25);
   const [hiddenBadgesDisplayed, setHiddenBadgesDisplayed] = useState<number>(25);
 
   const [editMode, setEditMode] = useState(false);
   const [listsTab, setListsTab] = useState<AccountViewKey>('addressMappings');
   const [searchValue, setSearchValue] = useState<string>('');
-
-  const showHidden = false;
 
 
   const tabInfo = [];
@@ -142,42 +139,78 @@ function PortfolioPage() {
   </Dropdown >
 
   useEffect(() => {
-    if (!accountInfo) return;
+    if (!accountInfo?.address) return;
 
     for (const id of filteredCollections) {
       console.log('ids');
       fetchBalanceForUser(id.collectionId, accountInfo?.address);
     }
-  }, [filteredCollections, accountInfo]);
+  }, [filteredCollections, accountInfo?.address]);
 
-  let badgesToShow = getAccountBalancesView(accountInfo, editMode ? 'badgesCollectedWithHidden' : 'badgesCollected')
+  let badgesToShow = useMemo(() => {
 
-  if (filteredCollections.length > 0) {
-    badgesToShow = [];
-    for (const filteredCollection of filteredCollections) {
-      const balanceInfo = accountInfo?.collected.find(x => x.collectionId === filteredCollection.collectionId);
-      if (balanceInfo) {
-        const balancesToAdd = [];
-        for (const balance of balanceInfo.balances) {
-          const [, removed] = removeUintRangeFromUintRange(filteredCollection.badgeIds, balance.badgeIds);
-          if (removed.length > 0) {
-            balancesToAdd.push({
-              ...balance,
-              badgeIds: removed
+    let badgesToShow = getAccountBalancesView(accountInfo, editMode ? 'badgesCollectedWithHidden' : 'badgesCollected')
+
+    if (filteredCollections.length > 0) {
+      badgesToShow = [];
+      for (const filteredCollection of filteredCollections) {
+        const balanceInfo = accountInfo?.collected.find(x => x.collectionId === filteredCollection.collectionId);
+        if (balanceInfo) {
+          const balancesToAdd = [];
+          for (const balance of balanceInfo.balances) {
+            const [, removed] = removeUintRangeFromUintRange(filteredCollection.badgeIds, balance.badgeIds);
+            if (removed.length > 0) {
+              balancesToAdd.push({
+                ...balance,
+                badgeIds: removed
+              });
+            }
+          }
+
+          if (balancesToAdd.length > 0) {
+            badgesToShow.push({
+              ...balanceInfo,
+              balances: balancesToAdd
             });
           }
         }
-
-        if (balancesToAdd.length > 0) {
-          badgesToShow.push({
-            ...balanceInfo,
-            balances: balancesToAdd
-          });
-        }
       }
     }
-  }
 
+    return badgesToShow;
+  }, [accountInfo, editMode, filteredCollections]);
+
+  const numTotalBadges = useMemo(() => {
+
+    //Calculate badge IDs for each collection
+    const allBadgeIds: {
+      collectionId: bigint
+      badgeIds: UintRange<bigint>[]
+    }[] = [];
+    for (const balanceInfo of badgesToShow) {
+      if (!balanceInfo) {
+        continue;
+      }
+
+      if (accountInfo) {
+        allBadgeIds.push({
+          badgeIds: balanceInfo.balances.map(balance => balance.badgeIds).flat() || [],
+          collectionId: balanceInfo.collectionId
+        });
+      }
+    }
+
+    //Calculate total number of badge IDs
+    let total = 0n;
+    for (const obj of allBadgeIds) {
+      for (const range of obj.badgeIds) {
+        const numBadgesInRange = range.end - range.start + 1n;
+        total += numBadgesInRange;
+      }
+    }
+
+    return Numberify(total);
+  }, [badgesToShow, accountInfo]);
 
 
   const fetchMoreCollected = useCallback(async (address: string) => {
@@ -211,7 +244,7 @@ function PortfolioPage() {
   const listsView = getAccountAddressMappingsView(accountInfo, listsTab);
   const collectedHasMore = editMode ? accountInfo?.views['badgesCollectedWithHidden']?.pagination?.hasMore ?? true :
     accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true;
-  
+
 
   const createdView = accountInfo?.views['createdBy'];
   const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
@@ -235,12 +268,15 @@ function PortfolioPage() {
       fetchMoreManaging(accountInfo?.address ?? '', 'managing');
     }
   }, [tab, accountInfo, fetchMoreCollected, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, listsTab]);
+
+
   useEffect(() => {
     if (tab === 'lists') {
+      const listsView = getAccountAddressMappingsView(accountInfo, listsTab);
       const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
       fetchAccounts([...new Set(createdBys)]);
     }
-  }, [tab, listsView]);
+  }, [tab, accountInfo, listsTab]);
 
 
   useEffect(() => {
@@ -249,52 +285,17 @@ function PortfolioPage() {
       //Check if addressOrUsername is an address or account number and fetch portfolio accordingly
       if (!addressOrUsername) return;
 
-      await fetchNextForAccountViews(addressOrUsername as string, ['latestActivity', 'latestReviews', 'badgesCollected', 'addressMappings', 'explicitlyIncludedAddressMappings', 'explicitlyExcludedAddressMappings']);
-      //TODO:
-      // if (fetchedAccount.readme) {
-      //   setTab('overview');
-      // }
+      await fetchAccounts([addressOrUsername as string]);
     }
     getPortfolioInfo();
-  }, [addressOrUsername, showHidden]);
+  }, [addressOrUsername]);
 
 
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: get num total badges ');
-    if (!accountInfo) return;
 
-    //Calculate badge IDs for each collection
-    const allBadgeIds: {
-      collectionId: bigint
-      badgeIds: UintRange<bigint>[]
-    }[] = [];
-    for (const balanceInfo of badgesToShow) {
-      if (!balanceInfo) {
-        continue;
-      }
-
-      if (accountInfo) {
-        allBadgeIds.push({
-          badgeIds: balanceInfo.balances.map(balance => balance.badgeIds).flat() || [],
-          collectionId: balanceInfo.collectionId
-        });
-      }
-    }
-
-    //Calculate total number of badge IDs
-    let total = 0n;
-    for (const obj of allBadgeIds) {
-      for (const range of obj.badgeIds) {
-        const numBadgesInRange = range.end - range.start + 1n;
-        total += numBadgesInRange;
-      }
-    }
-    setNumTotalBadges(Numberify(total));
-  }, [accountInfo, editMode, showHidden, filteredCollections, badgesToShow]);
 
   const [reactElement, setReactElement] = useState<ReactElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: get readme');
     const HtmlToReactParser = HtmlToReact.Parser();
     const reactElement = HtmlToReactParser.parse(mdParser.render(accountInfo?.readme ? accountInfo?.readme : ''));

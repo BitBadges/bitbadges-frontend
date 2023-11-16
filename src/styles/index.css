@@ -498,7 +498,7 @@ transform: scale(1.01);
     height: 100%;
   }
 
-  /* @media (max-width: 920px) { 
+  @media (max-width: 920px) { 
     .collect-title {
       font-size: 48px;
       line-height: 54px; 
@@ -508,7 +508,7 @@ transform: scale(1.01);
     }
   }
   
-  @media (min-width: 920px) {  */
+  @media (min-width: 920px) { 
    .collect-title {
       font-size: 72px;
       line-height: 89px;
@@ -517,7 +517,7 @@ transform: scale(1.01);
   
     .inline-logo {
       height: 72px;
-    /* } */
+    }
   }
 
 .collect-title {
