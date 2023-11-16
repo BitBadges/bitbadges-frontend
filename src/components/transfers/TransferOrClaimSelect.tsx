@@ -1,6 +1,6 @@
 import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, Divider, Empty, Radio, Row, StepProps, Steps, Tooltip } from 'antd';
-import { Balance, BigIntify, convertBalance, deepCopy } from 'bitbadgesjs-proto';
+import { Button, Col, Empty, Radio, Row, StepProps, Steps, Tooltip } from 'antd';
+import { Balance, BigIntify, convertBalance } from 'bitbadgesjs-proto';
 import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -48,7 +48,6 @@ export function TransferSelect({
   const chain = useChainContext();
 
   const [numRecipients, setNumRecipients] = useState<bigint>(0n);
-  const [postTransferBalances, setPostTransferBalance] = useState<Balance<bigint>[]>();
   const [postTransferBalancesWithCurrent, setPostTransferBalancesWithCurrent] = useState<Balance<bigint>[]>();
   const [addTransferIsVisible, setAddTransferIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -122,7 +121,6 @@ export function TransferSelect({
     if (!preTransferBalanceObj || preTransferBalanceObj.length == 0) return;
 
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...convertedTransfers], true)
-    setPostTransferBalance(deepCopy(postTransferBalanceObj));
 
     //with existing ones to add
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...transfersToAdd], true);
