@@ -1,4 +1,4 @@
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Col, Collapse, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { TransferActivityInfo } from 'bitbadgesjs-utils';
@@ -133,6 +133,10 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                   <div key={idx} className='primary-text'>
                     <Row>
                       <Col span={24}>
+                        {activity.balances.length == 0 && <div className='secondary-text'>
+                          <InfoCircleOutlined /> This user previously owned badges, and their balance was updated to own none.
+                        </div>}
+
                         <TransferDisplay
                           key={idx}
 

@@ -7,7 +7,7 @@ import {
   ShareAltOutlined,
   TwitterOutlined
 } from '@ant-design/icons';
-import { Avatar, Col, Layout, Tooltip, message } from 'antd';
+import { Avatar, Col, Layout, Tooltip, message, notification } from 'antd';
 import { SupportedChain } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
@@ -72,9 +72,8 @@ export function AccountButtonDisplay({
   const twitterLink = 'https://twitter.com/' + accountInfo?.twitter;
   const telegramLink = 'https://t.me/' + accountInfo?.telegram;
   const githubLink = 'https://github.com/' + accountInfo?.github;
-  const discordLink = 'https://discord.com/users/' + accountInfo?.discord;
   const stargazeLink = `https://www.stargaze.zone/p/${address?.replace('cosmos', 'stars')}/tokens`
-  const blurLink = 'https://blur.network/0x' + address;
+  // const blurLink = 'https://blur.network/0x' + address;
 
   return (
     <div>
@@ -93,7 +92,7 @@ export function AccountButtonDisplay({
           </a>
         )}
 
-        {accountInfo?.chain === SupportedChain.ETH && (
+        {/* {accountInfo?.chain === SupportedChain.ETH && (
           <a href={blurLink} target="_blank" rel="noreferrer">
             <Tooltip title="Blur" placement="bottom">
               <Avatar
@@ -105,7 +104,7 @@ export function AccountButtonDisplay({
               </Avatar>
             </Tooltip>
           </a>
-        )}
+        )} */}
 
         {accountInfo?.chain === SupportedChain.COSMOS && (
           <a href={stargazeLink} target="_blank" rel="noreferrer">
@@ -179,17 +178,22 @@ export function AccountButtonDisplay({
           </a>
         )}
         {accountInfo?.discord && (
-          <a href={discordLink} target="_blank" rel="noreferrer">
-            <Tooltip title="Discord" placement="bottom">
-              <Avatar
-                size="large"
-                onClick={() => { }}
-                className="styled-button account-socials-button"
-                src={"https://global-uploads.webflow.com/5e157548d6f7910beea4e2d6/604150242d4c6f111dc4e0e8_AMXD2mEvYtyJeooktUtHlCW0f3vrpbwrCN0KjvULcmHdfWBRaAyxA9cSiPn_t6wHhI4mm1qbImd2ewbgBQwm-EtT8hZVevgGiACcBFZ58UQC6EPLcV-mQtaHVb02PzhRrjrpYsnz.png"}
-              >
-              </Avatar>
-            </Tooltip>
-          </a>
+          <Tooltip title={accountInfo?.discord} placement="bottom">
+            <Avatar
+              size="large"
+              onClick={() => {
+                if (!accountInfo?.discord) return;
+
+                navigator.clipboard.writeText(accountInfo.discord);
+                notification.info({
+                  message: 'Copied to clipboard!',
+                });
+              }}
+              className="styled-button account-socials-button"
+              src={"https://global-uploads.webflow.com/5e157548d6f7910beea4e2d6/604150242d4c6f111dc4e0e8_AMXD2mEvYtyJeooktUtHlCW0f3vrpbwrCN0KjvULcmHdfWBRaAyxA9cSiPn_t6wHhI4mm1qbImd2ewbgBQwm-EtT8hZVevgGiACcBFZ58UQC6EPLcV-mQtaHVb02PzhRrjrpYsnz.png"}
+            >
+            </Avatar>
+          </Tooltip>
         )}
 
         {(customLinks ?? accountInfo?.customLinks)?.map((link, i) => (<div key={i}>

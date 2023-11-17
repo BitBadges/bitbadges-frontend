@@ -18,7 +18,7 @@ export function TemplateCollectionSelect() {
       <SwitchForm
         options={[
           {
-            title: 'My Experiences',
+            title: 'Experiences',
             message: <>
               This collection will have six badges of infinite supply that you get to hand out based on your experiences.
               You will always have full control over who gets these badges.

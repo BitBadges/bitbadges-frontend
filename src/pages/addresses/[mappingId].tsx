@@ -150,7 +150,7 @@ function AddressMappingPage() {
             <InformationDisplayCard
               title="About"
             >
-              <div style={{ maxHeight: 200, overflow: 'auto' }} >
+              <div style={{ maxHeight: 200, overflow: 'auto' }} className='flex-center'>
                 <div className='custom-html-style primary-text' id="description">
                   {reactElement}
                 </div>

@@ -1,7 +1,9 @@
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, isInAddressMapping } from 'bitbadgesjs-utils';
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { neverHasManager } from '../../bitbadges-api/utils/manager';
 import { getPermissionDetails } from '../collection-page/PermissionsInfo';
 import { FormTimeline, TimelineItem } from '../navigation/FormTimeline';
 import { AddressMappingSelectStepItem } from './step-items/AddressMappingSelectStepItem';
@@ -28,11 +30,8 @@ import { PreviewCollectionStepItem } from './step-items/PreviewCollectionStepIte
 import { SetAddressMappingMetadataStepItem } from './step-items/SetAddressMappingMetadataStepItem';
 import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
-import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
-import { neverHasManager } from '../../bitbadges-api/utils/manager';
-import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { CollectionTypeSelect } from './step-items/CustomVsPresetCollection';
 import { TemplateCollectionSelect } from './step-items/TemplateCollections';
+import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 
 //See TxTimeline for explanations and documentation
 export function UpdateCollectionTimeline() {
@@ -75,7 +74,7 @@ export function UpdateCollectionTimeline() {
   const BalanceTypeSelect = BalanceTypeSelectStepItem();
   const CodesViewStep = CodesViewStepItem();
 
-  const CustomCollectionStep = CollectionTypeSelect();
+  // const CustomCollectionStep = CollectionTypeSelect();
   const TemplateSelectStep = TemplateCollectionSelect();
 
   const items: TimelineItem[] = [
@@ -179,13 +178,13 @@ export function UpdateCollectionTimeline() {
       //or permissions are completely neutral
       || (Object.values(startingCollection.collectionPermissions).every(x => x.length == 0))
 
-    const toShowCollectionType = (!existingCollectionId || existingCollectionId == 0n)
+    // const toShowCollectionType = (!existingCollectionId || existingCollectionId == 0n)
 
     const templateCollectionSelect = !txTimelineContext.customCollection;
 
-    items.push(
-      toShowCollectionType ? CustomCollectionStep : EmptyStepItem,
-    )
+    // items.push(
+    //   toShowCollectionType ? CustomCollectionStep : EmptyStepItem,
+    // )
     if (templateCollectionSelect) {
       items.push(
         TemplateSelectStep

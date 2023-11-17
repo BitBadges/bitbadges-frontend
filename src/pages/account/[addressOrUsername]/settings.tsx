@@ -210,10 +210,16 @@ export function AccountSettings() {
                       defaultValue={twitter}
                       value={twitter}
                       onChange={(e) => {
+
                         setTwitter(e.target.value);
                       }}
                       className="form-input"
                     />
+                    {twitter &&
+                      <a href={"https://twitter.com/" + twitter} target="_blank" rel="noopener noreferrer">
+                        https://twitter.com/{twitter}
+                      </a>}
+
                   </Form.Item>
 
                   <Form.Item
@@ -231,7 +237,13 @@ export function AccountSettings() {
                       }}
                       className="form-input"
                     />
+                    {github &&
+                      <a href={"https://github.com/" + github} target="_blank" rel="noopener noreferrer">
+                        https://github.com/{github}
+                      </a>}
                   </Form.Item>
+
+
 
                   <Form.Item
                     label={
@@ -248,6 +260,10 @@ export function AccountSettings() {
                       }}
                       className="form-input"
                     />
+                    {telegram &&
+                      <a href={`https://t.me/${telegram}`} target="_blank" rel="noopener noreferrer">
+                        https://t.me/{telegram}
+                      </a>}
                   </Form.Item>
 
                   <Form.Item
@@ -265,6 +281,12 @@ export function AccountSettings() {
                       }}
                       className="form-input"
                     />
+                    {
+                      discord &&
+                      <div className='secondary-text'>
+                        @{discord}
+                      </div>
+                    }
                   </Form.Item>
                   <br />
 

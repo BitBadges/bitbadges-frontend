@@ -18,7 +18,7 @@ export function AddressDisplayList({
   fontSize,
   title,
   hideTitle,
-  center,
+  center = true,
   // toLength,
   pageSize = 10,
   allExcept,

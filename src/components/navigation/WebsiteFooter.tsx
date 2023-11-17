@@ -1,8 +1,11 @@
 import { Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { FooterButtonDisplay } from '../button-displays/FooterButtonDisplay';
+import { useRouter } from 'next/router';
 
 export function WalletFooter() {
+  const router = useRouter();
+
   return (
     <>
       <Content
@@ -22,7 +25,10 @@ export function WalletFooter() {
             </Row>
 
             <Row className='flex text-center justify-center'>
-              <a target="_blank " href="https://bitbadges.io/about" className='text-gray-500 m-3 hover:text-vivid-blue'>
+              <a target="_blank "
+                onClick={() => router.push('/about')}
+
+                className='text-gray-500 m-3 hover:text-vivid-blue'>
                 About
               </a>
               <a target="_blank " href="https://docs.bitbadges.io/overview" className='text-gray-500 hover:text-vivid-blue m-3'>

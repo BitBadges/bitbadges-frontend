@@ -170,7 +170,7 @@ function PortfolioPage() {
 
     let badgesToShow = getAccountBalancesView(accountInfo, 'badgesCollected')
 
-    const allBadgeIds: {
+    let allBadgeIds: {
       collectionId: bigint
       badgeIds: UintRange<bigint>[]
     }[] = [];
@@ -192,14 +192,22 @@ function PortfolioPage() {
     }
 
     if (filteredCollections.length > 0) {
-      for (const filteredCollection of filteredCollections) {
-        const collectionId = filteredCollection.collectionId;
-        const matchingObj = allBadgeIds.find(x => x.collectionId === collectionId);
-        if (matchingObj) {
-          const [_, removed] = removeUintRangeFromUintRange(filteredCollection.badgeIds, matchingObj.badgeIds);
-          matchingObj.badgeIds = removed;
+      const filtered = [];
+      for (const badgeIdObj of allBadgeIds) {
+        for (const filteredCollection of filteredCollections) {
+          const collectionId = filteredCollection.collectionId;
+          if (badgeIdObj.collectionId === collectionId) {
+            const [_, removed] = removeUintRangeFromUintRange(badgeIdObj.badgeIds, filteredCollection.badgeIds);
+            badgeIdObj.badgeIds = removed;
+
+            filtered.push(badgeIdObj);
+          }
         }
       }
+      allBadgeIds = filtered;
+
+
+
     }
 
     for (const badgeIdObj of allBadgeIds) {
@@ -428,7 +436,7 @@ function PortfolioPage() {
             span={24}
             title="About"
           >
-            <div style={{ overflow: 'auto' }} >
+            <div style={{ overflow: 'auto' }}  >
               <div className='custom-html-style primary-text' id="description">
                 {/* <Markdown> */}
                 {reactElement}
@@ -699,7 +707,7 @@ function PortfolioPage() {
                     marginRight: 8
                   }}
                   onChange={(e) => {
-                    setNewPageTitle(e.target.value);
+                    if (e) setNewPageTitle(e.target.value);
                   }}
                 />
                 <br />
@@ -726,53 +734,7 @@ function PortfolioPage() {
               </Col>
             </div>}
 
-
-            {/* {filteredCollections.length == 0 && (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length > 0 &&
-              accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.some((collection) => collection.badgeIds.length > 0)
-              && <>
-                <InfiniteScroll
-                  dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
-                  next={async () => {
-                    if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
-                      await fetchMoreCollected(accountInfo?.address ?? '');
-                    }
-
-                    if (!groupByCollection) {
-                      if (numBadgesDisplayed + 25 > numTotalBadges) {
-                        setNumBadgesDisplayed(numBadgesDisplayed + 25);
-                      } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
-                        setNumBadgesDisplayed(numBadgesDisplayed + 100);
-                      } else {
-                        setNumBadgesDisplayed(numTotalBadges + 25);
-                      }
-                    }
-                  }}
-                  hasMore={(!groupByCollection && numBadgesDisplayed < numTotalBadges)}
-                  loader={<div>
-                    <br />
-                    <Spin size={'large'} />
-                  </div>}
-                  scrollThreshold={"300px"}
-                  endMessage={
-                    <></>
-                  }
-                  initialScrollY={0}
-                  style={{ width: '100%', overflow: 'hidden' }}
-                >
-                  <MultiCollectionBadgeDisplay
-                    collectionIds={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []}
-                    customPageBadges={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges ?? []}
-                    cardView={cardView}
-                    groupByCollection={groupByCollection}
-                    defaultPageSize={groupByCollection ? (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length : numBadgesDisplayed}
-                    hidePagination={true}
-                    addressOrUsernameToShowBalance={accountInfo.address}
-                    showCustomizeButtons={editMode}
-                  />
-                </InfiniteScroll>
-              </>
-            } */}
-            {<>
+            {badgeTab !== '' && <>
               <InfiniteScroll
                 dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
                 next={async () => {

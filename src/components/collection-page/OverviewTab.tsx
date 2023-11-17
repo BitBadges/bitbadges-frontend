@@ -58,7 +58,7 @@ export function OverviewTab({
             title={<>About</>}
             span={24}
           >
-            <div style={{ maxHeight: 400, overflow: 'auto', }} >
+            <div style={{ maxHeight: 400, overflow: 'auto', }} className='flex-center'>
               <div className='custom-html-style primary-text' id="description" >
                 {reactElement}
               </div>

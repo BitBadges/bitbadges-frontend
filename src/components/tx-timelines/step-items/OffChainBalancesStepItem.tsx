@@ -30,7 +30,14 @@ export const DistributionComponent = () => {
         collectionId={NEW_COLLECTION_ID}
         sender={'Mint'}
         originalSenderBalances={collection.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? []} //We use total balances and allow them to fetch currently minted
-        setTransfers={txTimelineContext.setTransfers}
+        setTransfers={(transfers) => {
+          if (transfers.length > 15000) {
+            alert('Too many transfers. Please keep under 15000.')
+            return;
+          }
+
+          txTimelineContext.setTransfers(transfers);
+        }}
         transfers={txTimelineContext.transfers}
         plusButton
         isOffChainBalancesUpdate
