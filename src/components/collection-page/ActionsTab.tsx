@@ -102,7 +102,7 @@ export function ActionsTab({
 
   const actions: Action[] = [];
 
-  const isBitBadgesHosted = collection && collection.offChainBalancesMetadataTimeline.length > 0 && collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges.nyc3.digitaloceanspaces.com/balances/');
+  const isBitBadgesHosted = collection && collection.offChainBalancesMetadataTimeline.length > 0 && collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/');
   const isManager = collection && getCurrentValuesForCollection(collection).manager === chain.cosmosAddress && chain.cosmosAddress;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
   const isOnChainBalances = collection && collection.balancesType == "Standard";

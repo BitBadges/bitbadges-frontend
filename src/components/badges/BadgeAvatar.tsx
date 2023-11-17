@@ -91,7 +91,7 @@ export function BadgeAvatar({
       {!!balances && <>
 
 
-        <b>
+        <b className='primary-text' >
           {showSupplys && <>
             x<span style={{ color: currBalanceAmount < 0 ? 'red' : undefined }}>
               {`${currBalanceAmount}`}

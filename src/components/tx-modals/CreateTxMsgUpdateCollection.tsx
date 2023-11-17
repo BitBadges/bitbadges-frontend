@@ -16,11 +16,15 @@ import { TxModal } from './TxModal';
 import { createBalancesMapAndAddToStorage } from './UpdateBalancesModal';
 
 export function CreateTxMsgUpdateCollectionModal(
-  { visible, setVisible, children }
+  { visible, setVisible, children,
+    msgUpdateCollection,
+
+  }
     : {
       visible: boolean,
       setVisible: (visible: boolean) => void,
-      children?: React.ReactNode
+      children?: React.ReactNode,
+      msgUpdateCollection?: MsgUpdateCollection<bigint>,
     }) {
   const chain = useChainContext();
   const router = useRouter();
@@ -29,7 +33,7 @@ export function CreateTxMsgUpdateCollectionModal(
   const collectionId = txTimelineContext.existingCollectionId ?? NEW_COLLECTION_ID;
   const collection = useCollection(NEW_COLLECTION_ID);
 
-  const msg: MsgUpdateCollection<bigint> = {
+  const msg: MsgUpdateCollection<bigint> = msgUpdateCollection ?? {
     creator: chain.cosmosAddress,
     collectionId: collectionId ? collectionId : 0n,
     defaultIncomingApprovals: collection ? collection?.defaultUserIncomingApprovals : [],
@@ -144,6 +148,8 @@ export function CreateTxMsgUpdateCollectionModal(
           for (let i = 0; i < prunedMetadata.length; i++) {
             const metadata = prunedMetadata[i];
             const result = res.badgeMetadataResults[i];
+
+
 
             newBadgeMetadataTimeline[0].badgeMetadata.push({
               uri: 'ipfs://' + result.cid,
@@ -299,7 +305,7 @@ export function CreateTxMsgUpdateCollectionModal(
       txName="Updated Collection"
       txCosmosMsg={msg}
       createTxFunction={createTxMsgUpdateCollection}
-      beforeTx={beforeTx}
+      beforeTx={!!msgUpdateCollection ? undefined : beforeTx} //If we have a template msg, we assume everything is handled
       onSuccessfulTx={async () => {
 
         if (collectionId && collectionId > 0n) {

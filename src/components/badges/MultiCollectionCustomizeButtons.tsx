@@ -1,14 +1,14 @@
-import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Typography, notification } from "antd";
+import { CheckCircleFilled, CloseCircleFilled, EditOutlined, MinusOutlined, PlusOutlined, SwapOutlined } from "@ant-design/icons";
+import { notification } from "antd";
 import { UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BitBadgesUserInfo, removeUintRangeFromUintRange, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { CheckCircleFilled, CloseCircleFilled, SwapOutlined } from "@ant-design/icons";
-import { GO_MAX_UINT_64 } from "../../utils/dates";
-import IconButton from "../display/IconButton";
+import { useState } from "react";
 import { updateAccountInfo } from "../../bitbadges-api/api";
+import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { updateAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
+import { GO_MAX_UINT_64 } from "../../utils/dates";
+import { EmptyIcon } from "../common/Empty";
+import IconButton from "../display/IconButton";
 
 export const CustomizeButtons =
   ({ accountInfo, badgeIdObj, badgeId, onlyShowCollectionOptions, showCustomizeButtons }: {
@@ -20,7 +20,7 @@ export const CustomizeButtons =
   }) => {
 
     const chain = useChainContext();
-
+    const [addToPageIsVisible, setAddToPageIsVisible] = useState(false);
 
     const isHidden = accountInfo?.hiddenBadges?.find(x => {
       if (x.badgeIds.length == 0) return false;
@@ -36,11 +36,18 @@ export const CustomizeButtons =
       return x.collectionId == badgeIdObj.collectionId && found
     }) !== undefined;
 
-    const isPinned = accountInfo?.customPages?.find(x => x.title == 'Pinned Badges')?.badges?.find(x => {
+    const isCollectionHidden = accountInfo?.hiddenBadges?.find(x => {
       if (x.badgeIds.length == 0) return false;
 
-      const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
-      return x.collectionId == badgeIdObj.collectionId && found
+      const [remaining] = removeUintRangeFromUintRange(x.badgeIds, [{ start: 1n, end: GO_MAX_UINT_64 }]);
+      return x.collectionId == badgeIdObj.collectionId && remaining.length == 0
+    }) !== undefined;
+
+    const isCollectionShown = accountInfo?.shownBadges?.find(x => {
+      if (x.badgeIds.length == 0) return false;
+
+      const [remaining] = removeUintRangeFromUintRange(x.badgeIds, [{ start: 1n, end: GO_MAX_UINT_64 }]);
+      return x.collectionId == badgeIdObj.collectionId && remaining.length == 0
     }) !== undefined;
 
     const addToArray = (arr: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[], badgeIdsToAdd: UintRange<bigint>[]) => {
@@ -86,12 +93,22 @@ export const CustomizeButtons =
       }
     }
 
+    const isOnPage = (pageTitle: string) => {
+      return accountInfo?.customPages?.find(x => x.title == pageTitle)?.badges?.find(x => {
+        if (x.badgeIds.length == 0) return false;
+
+        const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
+        return x.collectionId == badgeIdObj.collectionId && found
+      }
+      ) !== undefined;
+    }
+
     return <>{
       showCustomizeButtons &&
       <>
 
 
-        {accountInfo && ((accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden)) ?
+        {/* {accountInfo && ((accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden)) ?
           <>
             <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'center' }}>
               <CheckCircleFilled style={{ fontSize: 20, color: 'green' }} /> {' '}
@@ -105,9 +122,9 @@ export const CustomizeButtons =
               Hidden
             </Typography.Text>
           </div>
-        }
+        } */}
 
-        <div className="flex-center">
+        <div className="">
           {accountInfo &&
             <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'center' }}>
 
@@ -162,7 +179,7 @@ export const CustomizeButtons =
               <IconButton
 
                 src={<SwapOutlined />}
-                text={(accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden) ? 'Hide Collection' : 'Show Collection'}
+                text={(accountInfo.onlyShowApproved && isCollectionShown) || (!accountInfo.onlyShowApproved && !isCollectionHidden) ? 'Hide Collection' : 'Show Collection'}
                 onClick={async () => {
 
                   if (accountInfo.onlyShowApproved) {
@@ -202,55 +219,91 @@ export const CustomizeButtons =
                 }
                 } />
               <IconButton
+                src={addToPageIsVisible ? <MinusOutlined /> : <EditOutlined />}
+                text={'Pages'}
+                onClick={() => setAddToPageIsVisible(!addToPageIsVisible)}
+              />
 
-                src={<FontAwesomeIcon
-                  icon={faThumbtack}
-                />
-                }
-                text={(accountInfo.onlyShowApproved && isPinned) || (!accountInfo.onlyShowApproved && !isPinned) ? 'Pin' : 'Unpin'}
-                onClick={async () => {
-                  let pinnedPage = deepCopy(accountInfo.customPages?.find(x => x.title == 'Pinned Badges'));
 
-                  if (isPinned) {
-                    if (pinnedPage) {
-                      const newBadgeIds = removeFromArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
-                      pinnedPage.badges = newBadgeIds;
-                    }
-                  } else {
-                    if (pinnedPage) {
-                      const newBadgeIds = addToArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
-                      pinnedPage.badges = newBadgeIds;
-                    } else {
-                      pinnedPage = {
-                        title: 'Pinned Badges',
-                        description: 'Badges pinned to your profile.',
-                        badges: [
-                          { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] }
-                        ]
-                      }
-                    }
-                  }
 
-                  if (pinnedPage === undefined) return;
-                  await updateAccountInfo({
-                    customPages:
-                      accountInfo.customPages?.find(x => x.title == 'Pinned Badges') ?
-                        accountInfo.customPages?.map(x => x.title == 'Pinned Badges' && pinnedPage ? pinnedPage : x) :
-                        [...(accountInfo.customPages ?? []), pinnedPage]
-                  });
 
-                  updateAccount(deepCopy({
-                    ...accountInfo,
-                    customPages:
-                      accountInfo.customPages?.find(x => x.title == 'Pinned Badges') ?
-                        accountInfo.customPages?.map(x => x.title == 'Pinned Badges' && pinnedPage ? pinnedPage : x) :
-                        [...(accountInfo.customPages ?? []), pinnedPage]
-                  }))
-
-                }
-                } />
             </div>
           }
+          {addToPageIsVisible && <>
+
+            <br />
+            {(accountInfo?.customPages ?? [])?.length == 0 && <EmptyIcon description='No created pages yet.' />}
+            {accountInfo?.customPages?.map((x, idx) => {
+              const pageName = x.title;
+              const addedToPage = isOnPage(pageName);
+
+              return <div
+                key={idx}
+                className='flex-between primary-text' style={{ alignItems: 'center', }}>
+                <div className="flex" style={{ alignItems: 'center', }}>
+                  {addedToPage ? <CheckCircleFilled style={{ fontSize: 20, color: 'green', marginRight: 2 }} /> : <>
+                    <CloseCircleFilled style={{ fontSize: 20, color: 'red', marginRight: 2 }} />
+                  </>}
+
+                  {pageName}
+                </div>
+
+                <IconButton
+
+                  src={
+                    addedToPage ?
+                      <MinusOutlined /> :
+                      <PlusOutlined />
+                  }
+                  text={''}
+                  tooltipMessage={addedToPage ? 'Remove from page' : 'Add to page'}
+                  onClick={async () => {
+                    let pinnedPage = deepCopy(accountInfo.customPages?.find(x => x.title == pageName));
+
+                    if (addedToPage) {
+                      if (pinnedPage) {
+                        const newBadgeIds = removeFromArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
+                        pinnedPage.badges = newBadgeIds;
+                      }
+                    } else {
+                      if (pinnedPage) {
+                        const newBadgeIds = addToArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
+                        pinnedPage.badges = newBadgeIds;
+                      } else {
+                        pinnedPage = {
+                          title: pageName,
+                          description: 'Badges pinned to your profile.',
+                          badges: [
+                            { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] }
+                          ]
+                        }
+                      }
+                    }
+
+                    if (pinnedPage === undefined) return;
+                    await updateAccountInfo({
+                      customPages:
+                        accountInfo.customPages?.find(x => x.title == pageName) ?
+                          accountInfo.customPages?.map(x => x.title == pageName && pinnedPage ? pinnedPage : x) :
+                          [...(accountInfo.customPages ?? []), pinnedPage]
+                    });
+
+                    updateAccount(deepCopy({
+                      ...accountInfo,
+                      customPages:
+                        accountInfo.customPages?.find(x => x.title == pageName) ?
+                          accountInfo.customPages?.map(x => x.title == pageName && pinnedPage ? pinnedPage : x) :
+                          [...(accountInfo.customPages ?? []), pinnedPage]
+                    }))
+
+                  }
+                  } />
+              </div>
+            }
+            )}
+
+
+          </>}
         </div>
       </>
     }

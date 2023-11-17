@@ -22,9 +22,6 @@ import { useCollection } from '../../bitbadges-api/contexts/collections/Collecti
 import { useEffect } from 'react';
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
-
-//TODO: Actually support fetching the time-based metadata as well but that requires an overhaul of .badgeMetadata and .collectionMetadata
-
 export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLink, metadataOverride, isAddressListDisplay, metadataUrl }: {
   collectionId: bigint,
   badgeId?: bigint,
@@ -146,7 +143,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               </div>
             </div>} labelSpan={7} valueSpan={17} />}
 
-         
+
 
 
           {(collection?.customDataTimeline ?? []).length > 0 &&

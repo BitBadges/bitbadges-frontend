@@ -1,11 +1,14 @@
-import { Card } from 'antd';
+import { Card, Tooltip } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { DefaultPlaceholderMetadata, getBalanceForIdAndTime, getMetadataForBadgeId, isFullUintRanges } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
-import { BadgeAvatar } from './BadgeAvatar';
-import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { ClockCircleOutlined } from '@ant-design/icons';
+import { Balance } from 'bitbadgesjs-proto';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
+import { getTimeRangesString } from '../../utils/dates';
+import { BadgeAvatar } from './BadgeAvatar';
 
 export function BadgeCard({
   size = 75,
@@ -13,12 +16,16 @@ export function BadgeCard({
   hoverable,
   badgeId,
   hideCollectionLink,
+  showSupplys,
+  balances
 }: {
   badgeId: bigint;
   collectionId: bigint
   size?: number;
   hoverable?: boolean;
   hideCollectionLink?: boolean;
+  showSupplys?: boolean;
+  balances?: Balance<bigint>[]
 }) {
   const router = useRouter();
 
@@ -26,10 +33,15 @@ export function BadgeCard({
 
 
   //Calculate total, undistributed, claimable, and distributed supplys
-  const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
-  const collectionMetadata = collection?.cachedCollectionMetadata;
-  const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
 
+  const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
+  const metadata = badgeId > maxBadgeId ? DefaultPlaceholderMetadata :
+    getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
+
+  const collectionMetadata = collection?.cachedCollectionMetadata;
+
+  const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
+  const showOwnershipTimesIcon = badgeId && balances && showSupplys ? balances.some(x => !isFullUintRanges(x.ownershipTimes)) : false;
 
 
   return (
@@ -101,8 +113,34 @@ export function BadgeCard({
               >
 
                 {collection && <>
-                  ID #{`${badgeId}`} / {`${maxBadgeId}`}
+                  ID #{`${badgeId}`}
+                  <br/>
                 </>}
+                {showSupplys && <>
+                  x<span style={{ color: currBalanceAmount < 0 ? 'red' : undefined }}>
+                    {`${currBalanceAmount}`}
+                  </span></>}
+                {showOwnershipTimesIcon && showSupplys &&
+                  <Tooltip color='black' title={
+                    <div>
+                      {
+                        balances?.map((x, idx) => {
+                          return <>
+                            {idx > 0 && <br />}
+
+                            {idx > 0 && <br />}
+
+                            x{x.amount.toString()} from {getTimeRangesString(x.ownershipTimes, '', true)}
+
+                          </>
+                        })
+                      }
+                    </div>
+                  }>
+                    <ClockCircleOutlined style={{ marginLeft: 4 }} />
+                  </Tooltip>
+                }
+                {showSupplys && <>{' '}owned</>}
               </div>
             }
           />

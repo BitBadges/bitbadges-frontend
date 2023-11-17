@@ -11,17 +11,18 @@ interface IconButtonProps {
   disabled?: boolean
   children?: ReactNode
   hideText?: boolean
+  secondary?: boolean
 }
 
-const IconButton: React.FC<IconButtonProps> = ({ src, text, style, onClick, tooltipMessage, size, disabled, hideText }) => {
+const IconButton: React.FC<IconButtonProps> = ({ secondary, src, text, style, onClick, tooltipMessage, size, disabled, hideText }) => {
 
 
   return (
     <Tooltip title={tooltipMessage ?? text} color='black' placement='bottom'>
 
-      <div className='flex-center flex-column' style={{ margin: 8, width: 60 }}>
+      <div className='flex-center flex-column' style={{ margin: 8 }}>
         <Avatar
-          className='styled-icon-button'
+          className={secondary ? 'styled-button' : 'styled-icon-button'}
           src={src}
           style={{
 

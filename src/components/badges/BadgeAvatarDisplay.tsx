@@ -20,7 +20,7 @@ export function BadgeAvatarDisplay({
   selectedId,
   showIds,
   showSupplys = true,
-  defaultPageSize = 10,
+  defaultPageSize,
   maxWidth,
 
   cardView,
@@ -61,7 +61,7 @@ export function BadgeAvatarDisplay({
   const txTimelineContext = useTxTimelineContext();
   const userBalance = balance;
   const [currPage, setCurrPage] = useState<number>(1);
-  const pageSize = defaultPageSize;
+  const pageSize = defaultPageSize ?? (cardView ? 2 : 10);
 
 
   const total = useMemo(() => {
@@ -146,6 +146,8 @@ export function BadgeAvatarDisplay({
                   collectionId={collectionId}
                   badgeId={badgeId}
                   hideCollectionLink={hideCollectionLink}
+                  showSupplys={showSupplys}
+                  balances={userBalance ? getBalancesForId(badgeId, userBalance) : undefined}
                 />
               }
             </div>

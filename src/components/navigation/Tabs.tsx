@@ -1,17 +1,19 @@
 import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
 
-export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass }: {
+export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass }: {
   tab: string;
   setTab: (tab: string) => void;
   tabInfo: { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
   fullWidth?: boolean;
   theme?: MenuTheme;
   noSelectedKeys?: boolean;
+  type?: 'underline' | 'default';
   customClass?: string;
 }) {
   const widthPerTab = fullWidth
     ? `calc(100% / ${tabInfo.length})`
     : undefined;
+  const selectedTab = tab
 
   const tabs = tabInfo.map((tab,) => {
     const menuItem = (
@@ -22,7 +24,8 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, c
           minWidth: 'fit-content',
           textAlign: 'center',
           float: 'left',
-
+          backgroundColor: type == 'underline' ? 'inherit' : undefined,
+          // borderBottom: type == 'underline' ? '2px solid blue' : undefined,
         }}
         key={`${tab.key}`}
         onClick={
@@ -33,13 +36,15 @@ export function Tabs({ tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, c
             }
         }
         id={tab.key}
-        className={'primary-text inherit-bg hover:bg-vivid-blue' + (customClass ? ' ' + customClass : '')}
+        className={
+          'primary-text inherit-bg ' + (customClass ? ' ' + customClass : '')}
       >
-        <div className='primary-text'>
+        <div className={'primary-text border-vivid-blue        ' + (type == 'underline' ? ' hover:text-gray-400' : '')}
+          style={{ borderBottom: type == 'underline' && selectedTab == tab.key ? '2px solid blue' : undefined }}>
           {tab.content}
         </div>
 
-      </Menu.Item>
+      </Menu.Item >
     );
     if (tab.subMenuOverlay) {
       return (

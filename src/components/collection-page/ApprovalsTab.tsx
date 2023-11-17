@@ -535,6 +535,7 @@ export function UserApprovalsTab({
       </>}
       {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && <>
         <Tabs
+          type='underline'
           fullWidth
           tab={tab}
           theme='dark'

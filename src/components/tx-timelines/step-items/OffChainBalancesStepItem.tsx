@@ -107,7 +107,7 @@ export function OffChainBalancesStorageSelectStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  const isBitBadgesHosted = existingCollection && existingCollection.offChainBalancesMetadataTimeline.length > 0 && existingCollection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges.nyc3.digitaloceanspaces.com/balances/');
+  const isBitBadgesHosted = existingCollection && existingCollection.offChainBalancesMetadataTimeline.length > 0 && existingCollection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/');
 
   const Component = <>
 

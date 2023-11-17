@@ -62,6 +62,14 @@
   color: white;
 }
 
+.ant-picker-input > input {
+  color: black;
+}
+
+.dark .ant-picker-input > input {
+  color: white;
+}
+
 .ant-radio-inner {
   width: 40px;
   height: 40px;

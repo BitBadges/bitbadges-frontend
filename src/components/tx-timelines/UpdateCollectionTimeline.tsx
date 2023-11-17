@@ -31,6 +31,8 @@ import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadat
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { neverHasManager } from '../../bitbadges-api/utils/manager';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { CollectionTypeSelect } from './step-items/CustomVsPresetCollection';
+import { TemplateCollectionSelect } from './step-items/TemplateCollections';
 
 //See TxTimeline for explanations and documentation
 export function UpdateCollectionTimeline() {
@@ -72,6 +74,9 @@ export function UpdateCollectionTimeline() {
   const CreateAddressMappingStep = CreateAddressMappingStepItem();
   const BalanceTypeSelect = BalanceTypeSelectStepItem();
   const CodesViewStep = CodesViewStepItem();
+
+  const CustomCollectionStep = CollectionTypeSelect();
+  const TemplateSelectStep = TemplateCollectionSelect();
 
   const items: TimelineItem[] = [
     (existingCollectionId && existingCollectionId > 0n) || isUpdateAddressMapping ? EmptyStepItem : ChooseBadgeType
@@ -174,41 +179,54 @@ export function UpdateCollectionTimeline() {
       //or permissions are completely neutral
       || (Object.values(startingCollection.collectionPermissions).every(x => x.length == 0))
 
+    const toShowCollectionType = (!existingCollectionId || existingCollectionId == 0n)
+
+    const templateCollectionSelect = !txTimelineContext.customCollection;
+
     items.push(
-      toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
-      hasManager && toShowCompleteControl ? ChooseControlStepItem : EmptyStepItem,
-      !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
+      toShowCollectionType ? CustomCollectionStep : EmptyStepItem,
+    )
+    if (templateCollectionSelect) {
+      items.push(
+        TemplateSelectStep
+      )
+    } else {
+      items.push(
+        toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
+        hasManager && toShowCompleteControl ? ChooseControlStepItem : EmptyStepItem,
+        !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
 
-      toShowCreateMoreAction ? BadgeSupplySelectStep : EmptyStepItem,
-      !completeControl && hasManager && toShowCanCreateMorePermission ? CanCreateMoreStep : EmptyStepItem,
-
-
-      toShowUpdateCollectionMetadataAction ? SetCollectionMetadataStep : EmptyStepItem,
-      toShowUpdateBadgeMetadataAction ? SetBadgeMetadataStep : EmptyStepItem,
-      !completeControl && hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
-      !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
-
-      BalanceTypeSelect,
-      !isOffChainBalances && toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
-      CodesViewStep,
-
-      //TODO: We currently make some assumptions here w/ isBitBadgesHosted and on-chain permissions. Make more robust
-      isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction ? OffChainBalancesStorageStepItem : EmptyStepItem,
-      isOffChainBalances && toShowCanUpdateOffChainBalancesMetadataPermission ? CanUpdateBytesStep : EmptyStepItem,
+        toShowCreateMoreAction ? BadgeSupplySelectStep : EmptyStepItem,
+        !completeControl && hasManager && toShowCanCreateMorePermission ? CanCreateMoreStep : EmptyStepItem,
 
 
-      !isOffChainBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
-      !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
-      !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,
+        toShowUpdateCollectionMetadataAction ? SetCollectionMetadataStep : EmptyStepItem,
+        toShowUpdateBadgeMetadataAction ? SetBadgeMetadataStep : EmptyStepItem,
+        !completeControl && hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
+        !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
+
+        BalanceTypeSelect,
+        !isOffChainBalances && toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
+        CodesViewStep,
+
+        //TODO: We currently make some assumptions here w/ isBitBadgesHosted and on-chain permissions. Make more robust
+        isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction ? OffChainBalancesStorageStepItem : EmptyStepItem,
+        isOffChainBalances && toShowCanUpdateOffChainBalancesMetadataPermission ? CanUpdateBytesStep : EmptyStepItem,
 
 
-      !completeControl && hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,
-      toShowArchiveCollectionAction && existingCollectionId && existingCollectionId > 0n ? IsArchivedSelectStep : EmptyStepItem,
-      !completeControl && hasManager && toShowCanArchiveCollectionPermission ? CanArchiveCollectionStep : EmptyStepItem,
+        !isOffChainBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
+        !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
+        !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,
 
-      CollectionPreviewStep,
-      CreateCollectionStep,
-    );
+
+        !completeControl && hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,
+        toShowArchiveCollectionAction && existingCollectionId && existingCollectionId > 0n ? IsArchivedSelectStep : EmptyStepItem,
+        !completeControl && hasManager && toShowCanArchiveCollectionPermission ? CanArchiveCollectionStep : EmptyStepItem,
+
+        CollectionPreviewStep,
+        CreateCollectionStep,
+      );
+    }
   } else {
     items.push(
       AddressMappingSelectItem,

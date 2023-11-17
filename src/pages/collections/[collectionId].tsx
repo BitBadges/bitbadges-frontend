@@ -79,14 +79,15 @@ function CollectionPage({
   useEffect(() => {
 
 
-    // if (currCollection.cachedCollectionMetadata?._isUpdating || currCollection.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
-    if (!warned && !isPreview) {
-      notification.warn({
-        message: collection?.balancesType === "Off-Chain" ? `Metadata for this collection is currently being refreshed.` : `Metadata and balances for this collection are currently being refreshed.`,
-        description: 'Certain metadata may be empty or not up to date until the sync is complete.',
-      });
+    if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
+      if (!warned && !isPreview) {
+        notification.warn({
+          message: collection?.balancesType === "Off-Chain" ? `Metadata for this collection is currently being refreshed.` : `Metadata and balances for this collection are currently being refreshed.`,
+          description: 'Certain metadata may be empty or not up to date until the sync is complete.',
+        });
 
-      setWarned(true);
+        setWarned(true);
+      }
     }
   }, [collection, warned, isPreview])
 

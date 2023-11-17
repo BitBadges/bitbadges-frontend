@@ -2,8 +2,6 @@ import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useLayoutEffect, useState } from 'react';
 
-import { faThumbtack } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
 import { AddressListCard } from '../components/badges/AddressListCard';
 import { MultiCollectionBadgeDisplay } from "../components/badges/MultiCollectionBadgeDisplay";
@@ -117,7 +115,7 @@ function BrowsePage() {
                           hideButtons
                         />
                       </div>
-
+                      {/* 
 
                       <b>Pinned <FontAwesomeIcon
                         icon={faThumbtack}
@@ -135,7 +133,7 @@ function BrowsePage() {
                         // size={75}
                         hidePagination
                         defaultPageSize={3}
-                      />
+                      /> */}
 
 
                       <div style={{ marginTop: '1rem' }}></div>

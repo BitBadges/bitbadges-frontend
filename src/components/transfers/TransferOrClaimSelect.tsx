@@ -237,19 +237,21 @@ export function TransferSelect({
     <div style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='primary-text'>
 
       {!hideRemaining && <Row style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
-        <InformationDisplayCard title='Balances' md={24} sm={24} xs={24} style={{ alignItems: 'normal' }}>
-          <div className='flex-center'>
-            <AddressDisplay
-              addressOrUsername={sender}
-            />
-          </div>
+        <InformationDisplayCard title='' md={24} sm={24} xs={24} style={{ alignItems: 'normal' }} noBorder inheritBg>
+
           {isOffChainBalancesUpdate &&
             <div className="secondary-text">
               <InfoCircleOutlined /> Assign the badges you have created to the intended recipients. This is done off-chain so will not increase your transaction fee.
             </div>}
           <br />
           <div className='flex'>
-            <InformationDisplayCard title='Balances' style={{ alignItems: 'normal' }} md={12} sm={24} xs={24}>
+            <InformationDisplayCard title='Balances' style={{ alignItems: 'normal' }} md={12} sm={24} xs={24} subtitle={
+              <div className='flex-center'>
+                <AddressDisplay
+                  addressOrUsername={sender}
+                />
+              </div>}>
+              <br />
               <Radio.Group
                 buttonStyle='solid'
                 onChange={(e) => {

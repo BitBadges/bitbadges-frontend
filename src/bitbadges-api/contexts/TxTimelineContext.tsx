@@ -50,6 +50,9 @@ export interface CreateAndDistributeMsg<T extends NumberType> {
 
   mintType: MintType
   setMintType: (mintType: MintType) => void
+
+  customCollection: boolean;
+  setCustomCollection: (customCollection: boolean) => void
 }
 
 export interface CreateAddressMappingMsg {
@@ -140,6 +143,9 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   badgesToCreate: [],
   setBadgesToCreate: () => { },
 
+  customCollection: true,
+  setCustomCollection: () => { },
+
   //Update flags
   updateCollectionPermissions: true,
   setUpdateCollectionPermissions: () => { },
@@ -223,6 +229,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [badgesToCreate, setBadgesToCreate] = useState<Balance<bigint>[]>([]);
   const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
   const [completeControl, setCompleteControl] = useState(false);
+  const [customCollection, setCustomCollection] = useState(true);
 
   const [mintType, setMintType] = useState<MintType>(MintType.BitBadge);
 
@@ -440,7 +447,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         let existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
 
         if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
-          
+
           await fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
         }
 
@@ -543,6 +550,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
     mintType,
     setMintType,
+    customCollection,
+    setCustomCollection,
     addressMapping,
     setAddressMapping,
 

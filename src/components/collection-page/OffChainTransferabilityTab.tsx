@@ -17,7 +17,7 @@ export function OffChainTransferabilityTab({ collectionId }: {
 
   if (!collection) return <></>;
 
-  const isBitBadgesHosted = collection && collection.offChainBalancesMetadataTimeline.length > 0 && collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges.nyc3.digitaloceanspaces.com/balances/');
+  const isBitBadgesHosted = collection && collection.offChainBalancesMetadataTimeline.length > 0 && collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/');
   const usesPermanentStorage = collection?.offChainBalancesMetadataTimeline.every(x => x.offChainBalancesMetadata.uri.startsWith('ipfs://'));
   const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateOffChainBalancesMetadata), TimedUpdatePermissionUsedFlags, neverHasManager(collection));
   const updatable = permissionDetails.hasPermittedTimes || permissionDetails.hasNeutralTimes

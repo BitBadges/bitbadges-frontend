@@ -1,9 +1,7 @@
-import { CloseCircleOutlined, DownOutlined } from '@ant-design/icons';
-import { faThumbTack } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Divider, Dropdown, Empty, Input, Layout, Select, Spin, Tag, Typography } from 'antd';
-import { UintRange } from 'bitbadgesjs-proto';
-import { AccountViewKey, Numberify, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { CloseCircleOutlined, DeleteOutlined, DownOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { Col, Divider, Dropdown, Empty, Input, Layout, Select, Spin, Tag, Typography, notification } from 'antd';
+import { UintRange, deepCopy } from 'bitbadgesjs-proto';
+import { AccountViewKey, Numberify, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
@@ -12,17 +10,17 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 
-import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountBalancesView, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountBalancesView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { getTotalNumberOfBadgeIds } from '../../bitbadges-api/utils/badges';
+import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { AddressListCard } from '../../components/badges/AddressListCard';
 import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay";
-import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { DevMode } from '../../components/common/DevMode';
+import IconButton from '../../components/display/IconButton';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { SearchDropdown } from '../../components/navigation/SearchDropdown';
 import { Tabs } from '../../components/navigation/Tabs';
@@ -44,8 +42,36 @@ function PortfolioPage() {
   const { addressOrUsername } = router.query;
   const accountInfo = useAccount(addressOrUsername as string);
   const [tab, setTab] = useState(accountInfo?.readme ? 'overview' : 'collected');
+  const [addPageIsVisible, setAddPageIsVisible] = useState(false);
 
-  const badgeTab = 'Pinned Badges';
+  const [newPageTitle, setNewPageTitle] = useState('');
+  const [warned, setWarned] = useState(false);
+
+  useEffect(() => {
+    if (tab === 'managing' || tab === 'createdBy') {
+      setEditMode(false);
+    }
+    setNumBadgesDisplayed(25);
+  }, [tab]);
+
+  useEffect(() => {
+    if (accountInfo?.cosmosAddress === chain.cosmosAddress && !chain.loggedIn && chain.cosmosAddress && !warned) {
+      notification.info({
+        message: 'Note that you must sign in to customize your portfolio.',
+      });
+      setWarned(true);
+    }
+  }, [accountInfo, chain, warned]);
+
+  const [badgeTab, setBadgeTab] = useState('All');
+
+  useEffect(() => {
+    if (badgeTab !== '') {
+      setAddPageIsVisible(false);
+    }
+    setNumBadgesDisplayed(25);
+  }, [badgeTab]);
+
   const [cardView, setCardView] = useState(true);
   const [filteredCollections, setFilteredCollections] = useState<{
     collectionId: bigint,
@@ -54,8 +80,6 @@ function PortfolioPage() {
   const [groupByCollection, setGroupByCollection] = useState(false);
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
-  const [hiddenBadgesDisplayed, setHiddenBadgesDisplayed] = useState<number>(25);
-
   const [editMode, setEditMode] = useState(false);
   const [listsTab, setListsTab] = useState<AccountViewKey>('addressMappings');
   const [searchValue, setSearchValue] = useState<string>('');
@@ -67,7 +91,7 @@ function PortfolioPage() {
   }
 
   tabInfo.push(
-    { key: 'collected', content: 'Collected', disabled: false },
+    { key: 'collected', content: 'Badges', disabled: false },
     { key: 'lists', content: 'Lists' },
     { key: 'managing', content: 'Managing', disabled: false },
     { key: 'createdBy', content: 'Created', disabled: false },
@@ -75,11 +99,7 @@ function PortfolioPage() {
     { key: 'reputation', content: 'Reviews' },
   )
 
-  if (accountInfo?.address === chain.address) {
-    tabInfo.push(
-      { key: 'hidden', content: 'Hidden', disabled: false },
-    )
-  }
+
 
   const badgePageTabInfo = [
     { key: 'collected', content: 'All', disabled: false },
@@ -148,59 +168,59 @@ function PortfolioPage() {
 
   let badgesToShow = useMemo(() => {
 
-    let badgesToShow = getAccountBalancesView(accountInfo, editMode ? 'badgesCollectedWithHidden' : 'badgesCollected')
+    let badgesToShow = getAccountBalancesView(accountInfo, 'badgesCollected')
 
-    if (filteredCollections.length > 0) {
-      badgesToShow = [];
-      for (const filteredCollection of filteredCollections) {
-        const balanceInfo = accountInfo?.collected.find(x => x.collectionId === filteredCollection.collectionId);
-        if (balanceInfo) {
-          const balancesToAdd = [];
-          for (const balance of balanceInfo.balances) {
-            const [, removed] = removeUintRangeFromUintRange(filteredCollection.badgeIds, balance.badgeIds);
-            if (removed.length > 0) {
-              balancesToAdd.push({
-                ...balance,
-                badgeIds: removed
-              });
-            }
-          }
-
-          if (balancesToAdd.length > 0) {
-            badgesToShow.push({
-              ...balanceInfo,
-              balances: balancesToAdd
-            });
-          }
-        }
-      }
-    }
-
-    return badgesToShow;
-  }, [accountInfo, editMode, filteredCollections]);
-
-  const numTotalBadges = useMemo(() => {
-
-    //Calculate badge IDs for each collection
     const allBadgeIds: {
       collectionId: bigint
       badgeIds: UintRange<bigint>[]
     }[] = [];
-    for (const balanceInfo of badgesToShow) {
-      if (!balanceInfo) {
-        continue;
+    if (badgeTab === 'Hidden') {
+      allBadgeIds.push(...deepCopy(accountInfo?.hiddenBadges ?? []));
+    } else if (badgeTab === 'All') {
+      for (const balanceInfo of badgesToShow) {
+        if (!balanceInfo) {
+          continue;
+        }
+
+        allBadgeIds.push(deepCopy({
+          badgeIds: balanceInfo.balances.map(balance => balance.badgeIds).flat() || [],
+          collectionId: balanceInfo.collectionId
+        }));
       }
-
-      allBadgeIds.push({
-        badgeIds: balanceInfo.balances.map(balance => balance.badgeIds).flat() || [],
-        collectionId: balanceInfo.collectionId
-      })
-
+    } else {
+      allBadgeIds.push(...deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []))
     }
+
+    if (filteredCollections.length > 0) {
+      for (const filteredCollection of filteredCollections) {
+        const collectionId = filteredCollection.collectionId;
+        const matchingObj = allBadgeIds.find(x => x.collectionId === collectionId);
+        if (matchingObj) {
+          const [_, removed] = removeUintRangeFromUintRange(filteredCollection.badgeIds, matchingObj.badgeIds);
+          matchingObj.badgeIds = removed;
+        }
+      }
+    }
+
+    for (const badgeIdObj of allBadgeIds) {
+      const collection = getCollection(badgeIdObj.collectionId);
+      if (!collection) continue;
+      const maxBadgeId = getTotalNumberOfBadges(collection);
+      const [remaining] = removeUintRangeFromUintRange([{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }], badgeIdObj.badgeIds);
+      badgeIdObj.badgeIds = remaining;
+    }
+
+    return allBadgeIds.filter(x => x.badgeIds.length > 0);
+  }, [accountInfo, badgeTab, filteredCollections]);
+
+  const numTotalBadges = useMemo(() => {
+
+    //Calculate badge IDs for each collection
+
 
     //Calculate total number of badge IDs
     let total = 0n;
-    for (const obj of allBadgeIds) {
+    for (const obj of badgesToShow) {
       for (const range of obj.badgeIds) {
         const numBadgesInRange = range.end - range.start + 1n;
         total += numBadgesInRange;
@@ -288,6 +308,93 @@ function PortfolioPage() {
     setReactElement(reactElement);
   }, [accountInfo?.readme]);
 
+  const [customizeSearchValue, setCustomizeSearchValue] = useState<string>('');
+
+  interface BadgeIdObj {
+    collectionId: bigint,
+    badgeIds: UintRange<bigint>[]
+  }
+  const addToArray = (arr: BadgeIdObj[], badgeIdObjsToAdd: BadgeIdObj[]) => {
+    for (const badgeIdObj of badgeIdObjsToAdd) {
+      const badgeIdsToAdd = badgeIdObj.badgeIds;
+      const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
+      if (existingIdx != -1) {
+        arr[existingIdx].badgeIds = sortUintRangesAndMergeIfNecessary([...arr[existingIdx].badgeIds, ...badgeIdsToAdd], true)
+      } else {
+        arr.push({
+          collectionId: badgeIdObj.collectionId,
+          badgeIds: badgeIdsToAdd
+        })
+      }
+    }
+
+    return arr.filter(x => x.badgeIds.length > 0);
+  }
+
+  const CustomizeSearchBar = <Input
+    defaultValue=""
+    placeholder="Add by searching a collection or badge"
+    value={customizeSearchValue}
+    onChange={async (e) => {
+      setCustomizeSearchValue(e.target.value);
+    }}
+    className='form-input'
+    style={{}}
+  />;
+
+  const CustomizeSearchDropdown = <Dropdown
+    open={customizeSearchValue !== ''}
+    placement="bottom"
+    overlay={
+      <SearchDropdown
+        onlyCollections
+        onSearch={async (searchValue: any, _isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
+          if (typeof searchValue === 'string') {
+            let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
+              deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
+
+
+
+            if (isCollection) {
+              currCustomPageBadges = addToArray(currCustomPageBadges, [{
+                collectionId: BigInt(searchValue),
+                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }]
+              }]);
+            } else if (isBadge) {
+              const collectionId = BigInt(searchValue.split('/')[0]);
+              const badgeId = BigInt(searchValue.split('/')[1]);
+
+              currCustomPageBadges = addToArray(currCustomPageBadges, [{
+                collectionId,
+                badgeIds: [{ start: badgeId, end: badgeId }]
+              }]);
+            }
+
+            if (badgeTab == 'Hidden') {
+              await updateProfileInfo(chain.address, {
+                hiddenBadges: currCustomPageBadges
+              });
+            } else {
+              const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
+              if (!currCustomPage) return;
+
+              await updateProfileInfo(chain.address, {
+                customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
+              });
+            }
+
+            setCustomizeSearchValue('');
+          }
+        }}
+        searchValue={customizeSearchValue}
+      />
+    }
+    overlayClassName='primary-text inherit-bg'
+    className='inherit-bg'
+    trigger={['hover', 'click']}
+  >
+    {CustomizeSearchBar}
+  </Dropdown >
 
 
   if (!accountInfo) {
@@ -362,8 +469,8 @@ function PortfolioPage() {
                     />
                   }
                 >
-                  <Select.Option value="none">View as Normal User</Select.Option>
-                  <Select.Option value="edit">Customize Mode</Select.Option>
+                  <Select.Option value="none">Normal User</Select.Option>
+                  <Select.Option value="edit">Customize</Select.Option>
                 </Select>
               </div>
             )}
@@ -503,144 +610,245 @@ function PortfolioPage() {
           </div>
 
 
-          <Divider />
         </>)}
 
         {/* Tab Content */}
         {tab === 'collected' && (<>
-          <div className='flex-center flex-wrap'>
-            {filteredCollections.length == 0 && !editMode && (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length > 0 &&
+          <div className=''>
+            <div className='flex-center flex-wrap'>
+              {((accountInfo.customPages?.filter(x => x.badges.length > 0) ?? [])?.length > 0 || editMode) &&
+                <Tabs
+                  tabInfo={
+                    [
+                      {
+                        key: 'All', content: 'All', disabled: false
+                      },
+
+                      ...(editMode ? [{
+                        key: 'Hidden', content: 'Hidden', disabled: false
+                      }] : []),
+                      ...(accountInfo.customPages?.filter(x => editMode || x.badges.length > 0) ?? [])?.map((customPage) => {
+                        return {
+                          key: customPage.title, content:
+                            <div className='flex-center' style={{ marginLeft: editMode ? 8 : undefined }}>
+                              {customPage.title}
+                              {editMode && badgeTab !== 'All' && badgeTab !== 'Hidden' && badgeTab !== '' && badgeTab === customPage.title && <>
+
+
+                                <IconButton
+                                  text=''
+                                  onClick={async () => {
+                                    if (!confirm('Are you sure you want to delete this page?')) {
+                                      return
+                                    }
+
+                                    const newCustomPages = deepCopy(accountInfo.customPages ?? []);
+                                    newCustomPages.splice(newCustomPages.findIndex(x => x.title === badgeTab), 1);
+
+                                    await updateProfileInfo(chain.address, {
+                                      customPages: newCustomPages
+                                    });
+
+                                    setBadgeTab('All');
+                                  }}
+                                  src={<DeleteOutlined />}
+                                />
+                              </>}
+                            </div>, disabled: false
+                        }
+                      }) ?? [],
+                    ]
+                  }
+
+                  tab={badgeTab}
+                  setTab={setBadgeTab}
+                  type={'underline'}
+                />}
+              {editMode && <IconButton src={<PlusOutlined />}
+                text=''
+                tooltipMessage='Add a new page to your portfolio.'
+                onClick={() => {
+                  setAddPageIsVisible(true);
+                  setBadgeTab(''); //Reset tab
+                }} />}
+            </div>
+
+            {badgeTab === 'Hidden' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+              <InfoCircleOutlined /> Hidden badges will be automatically filtered out from standard views and not shown by default.
+            </div>}
+
+            <br />
+
+            {badgeTab != 'All' && badgeTab != '' && editMode && <>
+              <div className='flex-center'>
+                <Col md={12} xs={24} style={{ marginBottom: 8 }}>
+                  {CustomizeSearchDropdown}
+                </Col>
+
+              </div> <Divider /></>}
+
+            {addPageIsVisible && <div className='flex-center '>
+              <Col md={12} xs={24} style={{ marginBottom: 8 }}>
+                <Input
+
+                  defaultValue=""
+                  placeholder="Page Name"
+                  className='form-input'
+                  style={{
+                    maxWidth: 300,
+                    marginRight: 8
+                  }}
+                  onChange={(e) => {
+                    setNewPageTitle(e.target.value);
+                  }}
+                />
+                <br />
+                <br />
+                <div className='flex-center'>
+                  <button className='landing-button' onClick={async () => {
+                    const newCustomPages = deepCopy(accountInfo.customPages ?? []);
+                    newCustomPages.push({
+                      title: newPageTitle,
+                      description: '',
+                      badges: []
+                    });
+
+                    await updateProfileInfo(chain.address, {
+                      customPages: newCustomPages
+                    });
+
+                    setAddPageIsVisible(false);
+                    setBadgeTab(newPageTitle);
+                  }}>
+                    Add Page
+                  </button>
+                </div>
+              </Col>
+            </div>}
+
+
+            {/* {filteredCollections.length == 0 && (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length > 0 &&
               accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.some((collection) => collection.badgeIds.length > 0)
               && <>
-                <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>
-                  <FontAwesomeIcon
-                    icon={faThumbTack}
-                    style={{ marginRight: 4 }}
-                  />
-                  Pinned
-                </Typography.Text>
+                <InfiniteScroll
+                  dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
+                  next={async () => {
+                    if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
+                      await fetchMoreCollected(accountInfo?.address ?? '');
+                    }
 
+                    if (!groupByCollection) {
+                      if (numBadgesDisplayed + 25 > numTotalBadges) {
+                        setNumBadgesDisplayed(numBadgesDisplayed + 25);
+                      } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
+                        setNumBadgesDisplayed(numBadgesDisplayed + 100);
+                      } else {
+                        setNumBadgesDisplayed(numTotalBadges + 25);
+                      }
+                    }
+                  }}
+                  hasMore={(!groupByCollection && numBadgesDisplayed < numTotalBadges)}
+                  loader={<div>
+                    <br />
+                    <Spin size={'large'} />
+                  </div>}
+                  scrollThreshold={"300px"}
+                  endMessage={
+                    <></>
+                  }
+                  initialScrollY={0}
+                  style={{ width: '100%', overflow: 'hidden' }}
+                >
+                  <MultiCollectionBadgeDisplay
+                    collectionIds={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []}
+                    customPageBadges={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges ?? []}
+                    cardView={cardView}
+                    groupByCollection={groupByCollection}
+                    defaultPageSize={groupByCollection ? (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length : numBadgesDisplayed}
+                    hidePagination={true}
+                    addressOrUsernameToShowBalance={accountInfo.address}
+                    showCustomizeButtons={editMode}
+                  />
+                </InfiniteScroll>
+              </>
+            } */}
+            {<>
+              <InfiniteScroll
+                dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
+                next={async () => {
+                  if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
+                    await fetchMoreCollected(accountInfo?.address ?? '');
+                  }
+
+                  if (!groupByCollection) {
+                    if (numBadgesDisplayed + 25 > numTotalBadges) {
+                      setNumBadgesDisplayed(numBadgesDisplayed + 25);
+                    } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
+                      setNumBadgesDisplayed(numBadgesDisplayed + 100);
+                    } else {
+                      setNumBadgesDisplayed(numTotalBadges + 25);
+                    }
+                  }
+                }}
+                hasMore={collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)}
+                loader={<div>
+                  <br />
+                  <Spin size={'large'} />
+                </div>}
+                scrollThreshold={"300px"}
+                endMessage={
+                  <></>
+                }
+                initialScrollY={0}
+                style={{ width: '100%', overflow: 'hidden' }}
+              >
                 <MultiCollectionBadgeDisplay
-                  collectionIds={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []}
-                  customPageBadges={accountInfo.customPages?.find(x => x.title === badgeTab)?.badges ?? []}
+                  collectionIds={badgesToShow.map((collection) => collection.collectionId)}
+                  addressOrUsernameToShowBalance={accountInfo.address}
+                  customPageBadges={badgesToShow}
                   cardView={cardView}
                   groupByCollection={groupByCollection}
-                  defaultPageSize={groupByCollection ? (accountInfo.customPages?.find(x => x.title === badgeTab)?.badges.map((collection) => collection.collectionId) ?? []).length : numBadgesDisplayed}
+                  defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
                   hidePagination={true}
-
                   showCustomizeButtons={editMode}
                 />
-                <Divider />
-                {badgesToShow.length > 0 &&
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>All</Typography.Text>}
-              </>
-            }
+              </InfiniteScroll>
 
-            <InfiniteScroll
-              dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
-              next={async () => {
-                if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
-                  await fetchMoreCollected(accountInfo?.address ?? '');
-                }
-
-                if (!groupByCollection) {
-                  if (numBadgesDisplayed + 25 > numTotalBadges) {
-                    setNumBadgesDisplayed(numBadgesDisplayed + 25);
-                  } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
-                    setNumBadgesDisplayed(numBadgesDisplayed + 100);
-                  } else {
-                    setNumBadgesDisplayed(numTotalBadges + 25);
+              {badgesToShow.every((collection) => collection.badgeIds.length === 0) && !collectedHasMore && (
+                <Empty
+                  className='primary-text'
+                  description={
+                    <span>
+                      No badges found.
+                    </span>
                   }
-                }
-              }}
-              hasMore={collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)}
-              loader={<div>
-                <br />
-                <Spin size={'large'} />
-              </div>}
-              scrollThreshold={"300px"}
-              endMessage={
-                <></>
-              }
-              initialScrollY={0}
-              style={{ width: '100%', overflow: 'hidden' }}
-            >
-              <MultiCollectionBadgeDisplay
-                collectionIds={badgesToShow.map((collection) => collection.collectionId)}
-                addressOrUsernameToShowBalance={accountInfo.address}
-                customPageBadges={filteredCollections.length > 0 ? badgesToShow.map(x => {
-                  return {
-                    collectionId: x.collectionId,
-                    badgeIds: x.balances.map(balance => {
-                      return balance.badgeIds
-                    }).flat()
-                  }
-                }) : undefined}
-                cardView={cardView}
-                groupByCollection={groupByCollection}
-                defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                hidePagination={true}
-                showCustomizeButtons={editMode}
-              />
-            </InfiniteScroll>
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
 
-            {badgesToShow.every((collection) => collection.balances.length === 0) && !collectedHasMore && (
-              <Empty
-                className='primary-text'
-                description={
-                  <span>
-                    No badges found.
-                  </span>
-                }
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            )}
+
+            </>}
           </div>
         </>)}
 
         {tab === 'lists' && (<>
           <br />
-          <div className='primary-text inherit-bg'
-            style={{
-              float: 'right',
-              display: 'flex',
-              alignItems: 'center',
-              marginLeft: 16,
-              marginRight: 16,
-              marginTop: 5,
-              textAlign: 'right'
-            }}>
-            View:
-
-            <Select
-              className="selector primary-text inherit-bg"
-              value={listsTab}
-              placeholder="Default: None"
-              onChange={(e: any) => {
-                setListsTab(e)
-              }}
-              style={{
-                float: 'right',
-                marginLeft: 8,
-
-              }}
-              dropdownStyle={{
-                minWidth: 150
-              }}
-              placement='bottomRight'
-              suffixIcon={
-                <DownOutlined
-                  className='primary-text'
-                />
+          <div className='flex-center'>
+            <Tabs
+              tabInfo={
+                [
+                  { key: 'addressMappings', content: 'All', disabled: false },
+                  { key: 'explicitlyIncludedAddressMappings', content: 'Included', disabled: false },
+                  { key: 'explicitlyExcludedAddressMappings', content: 'Excluded', disabled: false },
+                ]
               }
-            >
-              <Select.Option value="addressMappings">All</Select.Option>
-              <Select.Option value="explicitlyIncludedAddressMappings" >Included</Select.Option>
-              <Select.Option value="explicitlyExcludedAddressMappings">Excluded</Select.Option>
-
-            </Select>
+              tab={listsTab} setTab={(e) => {
+                setListsTab(e as AccountViewKey);
+              }}
+              type='underline'
+            />
           </div>
-          <Divider />
+          <br />
           <div className='flex-center flex-wrap'>
             <InfiniteScroll
               dataLength={listsView.length}
@@ -797,58 +1005,6 @@ function PortfolioPage() {
           </div>
         </>)}
 
-        {tab === 'hidden' && (<>
-          {!chain.loggedIn ? <BlockinDisplay /> :
-            <div className='flex-center flex-wrap'>
-              <InfiniteScroll
-                dataLength={!groupByCollection ? hiddenBadgesDisplayed : accountInfo.hiddenBadges?.length ?? 0}
-                next={async () => {
-                  setHiddenBadgesDisplayed(hiddenBadgesDisplayed + 25);
-                }}
-                hasMore={(!groupByCollection && hiddenBadgesDisplayed < (getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0))}
-                loader={<div>
-                  <br />
-                  <Spin size={'large'} />
-                </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
-                }
-                initialScrollY={0}
-                style={{ width: '100%', overflow: 'hidden' }}
-              >
-                {(getTotalNumberOfBadgeIds(accountInfo?.hiddenBadges?.map(x => x.badgeIds).flat() ?? []) ?? 0) > 0 &&
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20, marginRight: 4 }}>Hidden</Typography.Text>}
-                <MultiCollectionBadgeDisplay
-                  collectionIds={accountInfo.hiddenBadges?.map((collection) => collection.collectionId) ?? []}
-                  addressOrUsernameToShowBalance={accountInfo.address}
-                  customPageBadges={accountInfo.hiddenBadges ?? []}
-                  cardView={cardView}
-                  groupByCollection={groupByCollection}
-                  defaultPageSize={groupByCollection ? 1 : hiddenBadgesDisplayed}
-                  hidePagination={true}
-                  showCustomizeButtons={editMode}
-                />
-              </InfiniteScroll>
-
-              {((accountInfo.hiddenBadges ?? [])?.length == 0 ||
-                (accountInfo.hiddenBadges ?? []).every((collection) => collection.badgeIds.length === 0))
-                && (
-                  <Empty
-                    className='primary-text'
-                    description={
-                      <span>
-                        No badges found.
-                      </span>
-                    }
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  />
-                )}
-
-
-            </div>
-          }
-        </>)}
       </div>
       <DevMode obj={accountInfo} />
       <Divider />

@@ -32,8 +32,6 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
 
   const approvalItem = numActiveClaims > currPage - 1 ? currApproval : undefined;
   const approvalCriteria = approvalItem?.approvalCriteria
-
-  //TODO: This is hardcoded for only one merkle challenge. Technically an assumption, although it is a rare case where they may have more than one.
   const claimItem = approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
 
 

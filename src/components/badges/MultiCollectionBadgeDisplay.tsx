@@ -39,8 +39,6 @@ export const filterBadgeIdsFromBalances = (balances: Balance<bigint>[], badgeIds
 export function CollectionDisplayWithBadges({
   badgeObj,
   accountInfo,
-  badgesToShow,
-  defaultPageSize = 10,
   hideAddress = true,
   cardView,
   showCustomizeButtons,
@@ -50,8 +48,6 @@ export function CollectionDisplayWithBadges({
 }: {
   badgeObj: { collectionId: bigint, badgeIds: UintRange<bigint>[] }
   accountInfo?: BitBadgesUserInfo<bigint>
-  badgesToShow?: BalanceInfo<bigint>[]
-  defaultPageSize?: number
   hideAddress?: boolean
   cardView?: boolean
   showCustomizeButtons?: boolean
@@ -62,13 +58,10 @@ export function CollectionDisplayWithBadges({
   const router = useRouter();
   const collectionId = badgeObj.collectionId;
   const collection = useCollection(collectionId);
+  const account = useAccount(addressOrUsernameToShowBalance);
 
-  const balances = accountInfo ? badgesToShow?.find(collected => collected.collectionId == collectionId)?.balances ?? []
+  const balances = accountInfo ? account?.collected.find(collected => collected.collectionId == collectionId)?.balances ?? []
     : collection?.owners.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
-
-
-
-  if (balances.length == 0) return <></>;
 
 
 
@@ -103,12 +96,12 @@ export function CollectionDisplayWithBadges({
 
     <BadgeAvatarDisplay
       collectionId={collectionId}
-      defaultPageSize={defaultPageSize}
       cardView={cardView}
       balance={addressOrUsernameToShowBalance ? balances : undefined}
-      badgeIds={balances.map((x) => x.badgeIds).flat()}
+      badgeIds={badgeObj.badgeIds}
       hideCollectionLink={hideCollectionLink}
       showIds
+      showSupplys
       showOnSinglePage
       fromMultiCollectionDisplay
     />
@@ -275,8 +268,6 @@ export function MultiCollectionBadgeDisplay({
             return <CollectionDisplayWithBadges
               badgeObj={badgeObj}
               accountInfo={accountInfo}
-              badgesToShow={badgesToShow}
-              defaultPageSize={defaultPageSize}
               hideAddress={hideAddress}
               cardView={cardView}
               showCustomizeButtons={showCustomizeButtons}
@@ -313,6 +304,10 @@ export function MultiCollectionBadgeDisplay({
                             badgeId={badgeId}
                             hideCollectionLink={hideCollectionLink}
                             key={idx}
+                            showSupplys={!!addressOrUsernameToShowBalance}
+                            balances={
+                              getBalancesForId(badgeId, (badgesToShow.find(collected => collected.collectionId == badgeIdObj.collectionId)?.balances) ?? [])
+                            }
                           />
                           <CustomizeButtons
                             badgeIdObj={badgeIdObj}
@@ -320,7 +315,6 @@ export function MultiCollectionBadgeDisplay({
                             showCustomizeButtons={showCustomizeButtons}
                             accountInfo={accountInfo}
                           />
-
                         </div>
                       </>
                         :
