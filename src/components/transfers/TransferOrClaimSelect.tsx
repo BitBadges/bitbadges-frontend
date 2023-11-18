@@ -270,7 +270,7 @@ export function TransferSelect({
               </Radio.Group>
               <br />
               {balanceTab === 'remaining' && <div className='secondary-text'>
-                <InfoCircleOutlined /> The remaining balances after transfers are applied{addTransferIsVisible && <> (including the current transfer)</>}.
+                <InfoCircleOutlined /> The remaining balances after the transfers are applied{addTransferIsVisible && <> (including the current transfer)</>}.
                 <br />
                 <br />
                 <BalanceDisplay

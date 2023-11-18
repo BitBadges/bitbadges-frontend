@@ -53,6 +53,7 @@ export function ClaimMetadataSelectSelectStep(
               </>}
             >
               <Input
+                placeholder='Give this approval a name'
                 defaultValue={name}
                 value={name}
                 onChange={(e) => {

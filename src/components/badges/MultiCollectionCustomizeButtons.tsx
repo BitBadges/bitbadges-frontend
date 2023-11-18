@@ -1,4 +1,4 @@
-import { CheckCircleFilled, CloseCircleFilled, EditOutlined, MinusOutlined, PlusOutlined, SwapOutlined } from "@ant-design/icons";
+import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, EditOutlined, MinusOutlined, PlusOutlined, SwapOutlined } from "@ant-design/icons";
 import { notification } from "antd";
 import { UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BitBadgesUserInfo, removeUintRangeFromUintRange, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
@@ -136,24 +136,7 @@ export const CustomizeButtons =
                   onClick={async () => {
                     // if (!accountInfo.views.badgesCollectedWithHidden || !accountInfo.views.badgesCollected) return;
 
-                    if (accountInfo.onlyShowApproved) {
-                      const shownBadge = isShown ? removeFromArray(deepCopy(accountInfo.shownBadges ?? []), [{ start: badgeId, end: badgeId }]) : addToArray(deepCopy(accountInfo.shownBadges ?? []), [{ start: badgeId, end: badgeId }]);
-
-                      await updateAccountInfo({
-                        shownBadges: shownBadge
-                      });
-
-                      updateAccount(deepCopy({
-                        ...accountInfo,
-                        shownBadges: shownBadge,
-                        views: getNewViews(accountInfo)
-                      }))
-
-                      notification.success({
-                        message: "This badge will now be" + (isShown ? ' hidden' : ' shown') + " for your profile."
-                      })
-
-                    } else {
+                    
                       const hiddenBadge = isHidden ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]);
 
                       await updateAccountInfo(deepCopy({
@@ -170,7 +153,7 @@ export const CustomizeButtons =
                       notification.success({
                         message: "This badge will now be" + (!isHidden ? ' hidden' : ' shown') + " for your profile."
                       })
-                    }
+                    
                   }
                   } />
 
@@ -182,23 +165,7 @@ export const CustomizeButtons =
                 text={(accountInfo.onlyShowApproved && isCollectionShown) || (!accountInfo.onlyShowApproved && !isCollectionHidden) ? 'Hide Collection' : 'Show Collection'}
                 onClick={async () => {
 
-                  if (accountInfo.onlyShowApproved) {
-                    const shownBadge = isShown ? removeFromArray(deepCopy(accountInfo.shownBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.shownBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
-
-                    await updateAccountInfo({
-                      shownBadges: shownBadge
-                    });
-
-                    updateAccount(deepCopy({
-                      ...accountInfo,
-                      shownBadges: shownBadge,
-                      views: getNewViews(accountInfo)
-                    }))
-
-                    notification.success({
-                      message: "All badges from this collection will now be" + (isShown ? ' hidden' : ' shown') + " for your profile."
-                    })
-                  } else {
+                  
                     const hiddenBadge = isHidden ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
 
                     await updateAccountInfo(deepCopy({
@@ -215,7 +182,7 @@ export const CustomizeButtons =
                     notification.success({
                       message: "All badges from this collection will now be" + (!isHidden ? ' hidden' : ' shown') + " for your profile."
                     })
-                  }
+                  
                 }
                 } />
               <IconButton
@@ -239,7 +206,7 @@ export const CustomizeButtons =
 
               return <div
                 key={idx}
-                className='flex-between primary-text' style={{ alignItems: 'center', }}>
+                className='flex-between primary-text' style={{ alignItems: 'center', borderBottom: '1px solid #e8e8e8', padding: 10 }}>
                 <div className="flex" style={{ alignItems: 'center', }}>
                   {addedToPage ? <CheckCircleFilled style={{ fontSize: 20, color: 'green', marginRight: 2 }} /> : <>
                     <CloseCircleFilled style={{ fontSize: 20, color: 'red', marginRight: 2 }} />
@@ -252,7 +219,7 @@ export const CustomizeButtons =
 
                   src={
                     addedToPage ?
-                      <MinusOutlined /> :
+                      <DeleteOutlined /> :
                       <PlusOutlined />
                   }
                   text={''}

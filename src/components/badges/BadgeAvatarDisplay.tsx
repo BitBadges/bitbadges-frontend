@@ -122,7 +122,7 @@ export function BadgeAvatarDisplay({
     />
 
 
-    <div key={currPage} className='flex-center flex-wrap full-width primary-text'>
+    <div key={currPage} className='flex-center flex-wrap full-width primary-text' style={{ alignItems: 'normal' }}>
       {
         badgeIdsToDisplay.map((badgeUintRange) => {
           const badgeIds: bigint[] = [];
@@ -131,7 +131,7 @@ export function BadgeAvatarDisplay({
           }
 
           return badgeIds.map((badgeId, idx) => {
-            return <div key={idx} className='flex-center flex-wrap' style={{ margin: 0, flexWrap: 'wrap' }}>
+            return <div key={idx} className='flex-center flex-wrap' style={{ margin: 0, flexWrap: 'wrap', alignItems: 'normal' }}>
               {!cardView ?
                 <BadgeAvatar
                   size={selectedId === badgeId ? 50 * 1.5 : size}

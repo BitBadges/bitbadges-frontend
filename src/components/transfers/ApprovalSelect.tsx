@@ -16,7 +16,6 @@ import { BadgeIdRangesInput } from '../inputs/BadgeIdRangesInput';
 import { BalanceInput } from '../inputs/BalanceInput';
 import { DateRangeInput } from '../inputs/DateRangeInput';
 import { NumberInput } from '../inputs/NumberInput';
-import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
 import { AddressMappingSelectComponent } from './ApprovalSelectHelpers/AddressMappingSelectComponent';
 import { ApprovalAmounts as ApprovalAmountsComponent } from './ApprovalSelectHelpers/ApprovalAmountsSelectComponent';
 import { MaxUses } from './ApprovalSelectHelpers/MaxUsesSelectComponent';
@@ -336,10 +335,13 @@ export function ApprovalSelect({
     {!claimPassword && <div style={{ color: 'red' }}>Password cannot be empty.</div>}
   </div>
 
+  const str = codeType == CodeType.Unique ? "Codes will be uniquely generated and one-time use only. You can distribute these codes how you would like." :
+    "You enter a custom password that is to be used by all claimees (e.g. attendance code). Limited to one use per address.";
+
   const LearnMore = <div style={{ textAlign: 'center' }} className='secondary-text'>
     <br />
     <p>
-      <InfoCircleOutlined /> Note that this is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you can store your own codes and interact directly with the blockchain (see documentation).">
+      <InfoCircleOutlined /> {str} Note that this is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you can store your own codes and interact directly with the blockchain (see documentation).">
         Hover to learn more.
       </Tooltip>
     </p>
@@ -479,17 +481,16 @@ export function ApprovalSelect({
           {showMintingOnlyFeatures && !initiatedByMappingLocked &&
             <TableRow labelSpan={16} valueSpan={8} label={
               <>
-                Gate who initiates with secret codes or a password?
-
-
+                Gate with codes?
               </>
             } value={<>
               <div>
                 <Switch
-                  disabled={distributionMethod === DistributionMethod.Whitelist}
-                  checked={distributionMethod === DistributionMethod.Codes}
+                  disabled={distributionMethod === DistributionMethod.Whitelist || (distributionMethod === DistributionMethod.Codes && codeType == CodeType.Reusable)}
+                  checked={distributionMethod === DistributionMethod.Codes && codeType == CodeType.Unique}
                   onChange={(checked) => {
                     if (checked) {
+                      setCodeType(CodeType.Unique);
                       setDistributionMethod(DistributionMethod.Codes);
                       setAmountType(AmountType.Tally);
                       setPredeterminedType(PredeterminedType.Same);
@@ -508,6 +509,44 @@ export function ApprovalSelect({
                     } else {
                       setDistributionMethod(DistributionMethod.None);
                     }
+                    setClaimPassword('');
+                  }}
+                />
+              </div>
+            </>
+            } />}
+          {showMintingOnlyFeatures && !initiatedByMappingLocked &&
+            <TableRow labelSpan={16} valueSpan={8} label={
+              <>
+                Gate with a password?
+              </>
+            } value={<>
+              <div>
+                <Switch
+                  disabled={distributionMethod === DistributionMethod.Whitelist || (distributionMethod === DistributionMethod.Codes && codeType == CodeType.Unique)}
+                  checked={distributionMethod === DistributionMethod.Codes && codeType == CodeType.Reusable}
+                  onChange={(checked) => {
+                    if (checked) {
+                      setCodeType(CodeType.Reusable);
+                      setDistributionMethod(DistributionMethod.Codes);
+                      setAmountType(AmountType.Tally);
+                      setPredeterminedType(PredeterminedType.Same);
+                      setApprovalToAdd({
+                        ...approvalToAdd,
+                        approvalCriteria: {
+                          ...approvalToAdd.approvalCriteria,
+                          maxNumTransfers: {
+                            ...approvalToAdd.approvalCriteria.maxNumTransfers,
+                            overallMaxNumTransfers: 1n,
+                            perInitiatedByAddressMaxNumTransfers: 1n,
+                          }
+                        }
+
+                      });
+                    } else {
+                      setDistributionMethod(DistributionMethod.None);
+                    }
+                    setClaimPassword('');
                   }}
                 />
               </div>
@@ -527,55 +566,29 @@ export function ApprovalSelect({
           {distributionMethod !== DistributionMethod.Codes && <MaxUses approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses per approver'} type='initiatedBy' disabled={initiatedByMappingLocked} />}
           {distributionMethod === DistributionMethod.Codes && <>
             {distributionMethod === DistributionMethod.Codes && LearnMore}
-            <SwitchForm
-              fullWidthCards
-              options={[{
-                title: 'Unique Codes',
-                message: 'Codes will be uniquely generated and one-time use only. You can distribute these codes how you would like.',
-                isSelected: codeType === CodeType.Unique,
-                additionalNode: <div className='flex-center flex-wrap flex-column'>
-                  <MaxUses isCodeDisplay approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses (all cumulatively)'} type='overall' disabled={initiatedByMappingLocked} />
-                  <br />
-                  <MaxUses approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses per approver'} type='initiatedBy' disabled={distributionMethod === DistributionMethod.Codes && codeType === CodeType.Reusable || initiatedByMappingLocked} />
+            {codeType == CodeType.Unique && <>
+              <div className='flex-center flex-wrap flex-column'>
+                <MaxUses isCodeDisplay approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses (all cumulatively)'} type='overall' disabled={initiatedByMappingLocked} />
+                <br />
+                <MaxUses approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses per approver'} type='initiatedBy' disabled={distributionMethod === DistributionMethod.Codes || initiatedByMappingLocked} />
 
-                </div>,
-              },
-              {
-                title: 'Password',
-                message: `You enter a custom password that is to be used by all claimees (e.g. attendance code). Limited to one use per address.`,
-                isSelected: codeType === CodeType.Reusable,
-                additionalNode: <>
-                  <MaxUses isPasswordDisplay approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses (all cumulatively)'} type='overall' disabled={initiatedByMappingLocked} />
-                  <br />
-                  <MaxUses approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses per approver'} type='initiatedBy' disabled={distributionMethod === DistributionMethod.Codes && codeType === CodeType.Reusable || initiatedByMappingLocked} />
+              </div>
+            </>}
 
-                  {PasswordSelect}
-                </>
-              }]}
-              onSwitchChange={(option, _title) => {
-                if (option === 0) {
-                  setCodeType(CodeType.Unique);
-                } else {
-                  setCodeType(CodeType.Reusable);
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    approvalCriteria: {
-                      ...approvalToAdd.approvalCriteria,
-                      maxNumTransfers: {
-                        ...approvalToAdd.approvalCriteria.maxNumTransfers,
-                        perInitiatedByAddressMaxNumTransfers: 1n,
-                      }
-                    }
-                  });
-                }
-                setClaimPassword('');
-              }}
+            {codeType == CodeType.Reusable &&
+              <>
+                {PasswordSelect}
+                <br />
+                <MaxUses isPasswordDisplay approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses (all cumulatively)'} type='overall' disabled={initiatedByMappingLocked} />
+                <br />
+                <MaxUses approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses per approver'} type='initiatedBy' disabled={distributionMethod === DistributionMethod.Codes && codeType === CodeType.Reusable || initiatedByMappingLocked} />
 
-            />
+
+              </>}
+
+
           </>}
-
-
-          <TableRow labelSpan={16} valueSpan={8} label={<>Must own badges?</>}
+          <TableRow labelSpan={16} valueSpan={8} label={<>Must own specific badges?</>}
             value={<>
               <Switch
                 checked={mustOwnBadges.length > 0 || showMustOwnBadges}
@@ -659,39 +672,14 @@ export function ApprovalSelect({
 
         <InformationDisplayCard md={8} xs={24} sm={24} title='Ownership Times' subtitle='Which ownership times for the badges are approved to be transferred?'>
           <br />
-          <SwitchForm
-            fullWidthCards
-            options={[
-              {
-                title: "All Times",
-                message: "Approve transferring ownership for all times.",
-                isSelected: isFullUintRanges(approvalToAdd.ownershipTimes),
-
-              },
-              {
-                title: "Custom",
-                message: "Approve transferring ownership only for the selected times.",
-                isSelected: !(isFullUintRanges(approvalToAdd.ownershipTimes)),
-                additionalNode: <>
-                  {isFullUintRanges(approvalToAdd.ownershipTimes) ? <></> : <>
-                    {approvalToAdd.ownershipTimes.length == 0 && <div style={{ color: 'red' }}>
-                      <WarningOutlined /> Ownership times cannot be empty.
-                    </div>}
-                    <DateRangeInput
-                      timeRanges={approvalToAdd.ownershipTimes}
-                      setTimeRanges={(ownershipTimes) => {
-                        setApprovalToAdd({
-                          ...approvalToAdd,
-                          ownershipTimes,
-                        });
-                      }}
-                    />
-                  </>
-                  }</>
-              },
-            ]}
-            onSwitchChange={(value) => {
-              if (value === 0) {
+          <b>Select Ownership Times</b>
+          <br />
+          <Switch
+            checked={isFullUintRanges(approvalToAdd.ownershipTimes)}
+            checkedChildren="All Times"
+            unCheckedChildren="Custom"
+            onChange={(checked) => {
+              if (checked) {
                 setApprovalToAdd({
                   ...approvalToAdd,
                   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -704,6 +692,25 @@ export function ApprovalSelect({
               }
             }}
           />
+          <br />
+          <br />
+
+          <>
+            {isFullUintRanges(approvalToAdd.ownershipTimes) ? <></> : <>
+              {approvalToAdd.ownershipTimes.length == 0 && <div style={{ color: 'red' }}>
+                <WarningOutlined /> Ownership times cannot be empty.
+              </div>}
+              <DateRangeInput
+                timeRanges={approvalToAdd.ownershipTimes}
+                setTimeRanges={(ownershipTimes) => {
+                  setApprovalToAdd({
+                    ...approvalToAdd,
+                    ownershipTimes,
+                  });
+                }}
+              />
+            </>
+            }</>
 
         </InformationDisplayCard>
         <InformationDisplayCard md={8} xs={24} sm={24} title='Amounts' subtitle='Select the amounts to approve.'>
@@ -868,7 +875,6 @@ export function ApprovalSelect({
                 </>}
               </>}
               {amountType === AmountType.Predetermined && <>
-                <br />
 
                 {predeterminedType === PredeterminedType.Dynamic &&
                   <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
@@ -939,40 +945,16 @@ export function ApprovalSelect({
 
 
       <div className='flex flex-wrap full-width'>
-        <InformationDisplayCard title='Transfer Times' md={8} xs={24} sm={24} subtitle='When is this approval valid?'>
-          <SwitchForm
-            fullWidthCards
-            options={[
-              {
-                title: "All Times",
-                message: "This approval is valid at all timess.",
-                isSelected: isFullUintRanges(approvalToAdd.transferTimes),
-
-              },
-              {
-                title: "Custom",
-                message: "This approval is valid only at the selected times.",
-                isSelected: !(isFullUintRanges(approvalToAdd.transferTimes)),
-                additionalNode: <>
-                  {isFullUintRanges(approvalToAdd.transferTimes) ? <></> : <>
-                    {approvalToAdd.transferTimes.length == 0 && <div style={{ color: 'red' }}>
-                      <WarningOutlined /> Transfer times cannot be empty.
-                    </div>}
-                    <DateRangeInput
-                      timeRanges={approvalToAdd.transferTimes}
-                      setTimeRanges={(transferTimes) => {
-                        setApprovalToAdd({
-                          ...approvalToAdd,
-                          transferTimes,
-                        });
-                      }}
-                    />
-                  </>
-                  }</>
-              },
-            ]}
-            onSwitchChange={(value) => {
-              if (value === 0) {
+        <InformationDisplayCard title='Transfer Times' md={8} xs={24} sm={24} subtitle='When can this approval be used?'>
+          <br />
+          <b>Select Transfer Times</b>
+          <br />
+          <Switch
+            checked={isFullUintRanges(approvalToAdd.transferTimes)}
+            checkedChildren="All Times"
+            unCheckedChildren="Custom"
+            onChange={(checked) => {
+              if (checked) {
                 setApprovalToAdd({
                   ...approvalToAdd,
                   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -985,6 +967,23 @@ export function ApprovalSelect({
               }
             }}
           />
+          <br /> <br />
+          <>
+            {isFullUintRanges(approvalToAdd.transferTimes) ? <></> : <>
+              {approvalToAdd.transferTimes.length == 0 && <div style={{ color: 'red' }}>
+                <WarningOutlined /> Transfer times cannot be empty.
+              </div>}
+              <DateRangeInput
+                timeRanges={approvalToAdd.transferTimes}
+                setTimeRanges={(transferTimes) => {
+                  setApprovalToAdd({
+                    ...approvalToAdd,
+                    transferTimes,
+                  });
+                }}
+              />
+            </>
+            }</>
 
         </InformationDisplayCard>
         <InformationDisplayCard title='Approval Info' md={8} xs={24} sm={24} subtitle='Provide optional metadata for the approval. Explain what it is for, how to get approved, etc.'>
@@ -1095,7 +1094,7 @@ export function ApprovalSelect({
           </>}
         </InformationDisplayCard >
       </div>
-    </Row>
+    </Row >
     < button className='landing-button' style={{ width: '100%', marginTop: 16 }
     }
       disabled={isAddressMappingEmpty(approvalToAdd.fromMapping) || isAddressMappingEmpty(approvalToAdd.toMapping) || isAddressMappingEmpty(approvalToAdd.initiatedByMapping)
@@ -1273,9 +1272,11 @@ export function ApprovalSelect({
       }>
       {plusButton ? <PlusOutlined /> : isEdit ? 'Edit Approval' : 'Set Approval'}
     </button >
-    {isEdit && <div className='flex-center secondary-text'>
-      <InfoCircleOutlined /> This will overwrite the approval you selected to edit.
-    </div>}
+    {
+      isEdit && <div className='flex-center secondary-text'>
+        <InfoCircleOutlined /> This will overwrite the approval you selected to edit.
+      </div>
+    }
     <br />
 
   </>

@@ -962,19 +962,12 @@ export function TransferabilityRow({
     </tr >
   }
 
-  let isRefreshing = false;
-  if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
-    isRefreshing = true;
-  }
 
   if (isIncomingDisplay || isOutgoingDisplay) {
     hideActions = true;
   }
 
-
   const isMint = approval.fromMappingId === 'Mint'
-
-
 
   const WideViewContent = () => {
     return <div className='overflow-x-auto'>
@@ -1017,8 +1010,7 @@ export function TransferabilityRow({
               setEditIsVisible(!editIsVisible);
               setShowMoreIsVisible(false);
 
-            }
-            }
+            }}
             text={editIsVisible ? 'Cancel Edit' : 'Edit'}
             size={40}
             disabled={transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming'}
@@ -1045,13 +1037,6 @@ export function TransferabilityRow({
 
     return <>
       <br />
-      {isRefreshing && <>
-        <div className='flex-center primary-text' style={{ textAlign: 'center' }}>
-          <WarningOutlined style={{ marginRight: '8px', color: '#FF5733' }} />
-          The metadata for this claim is currently being refreshed. Certain information may be incomplete or not up to date.
-        </div>
-        <br />
-      </>}
       <div className='flex-center flex-wrap'>
 
         <InformationDisplayCard title={transfer.details?.name ?? ''} md={24} xs={24} sm={24}>
@@ -1105,7 +1090,11 @@ export function TransferabilityRow({
               {!disapproved &&
                 <IconButton
                   src={showMoreIsVisible ? <MenuFoldOutlined size={40} /> : <MenuUnfoldOutlined size={40} />}
-                  onClick={() => setShowMoreIsVisible(!showMoreIsVisible)}
+                  onClick={() => {
+                    setShowMoreIsVisible(!showMoreIsVisible)
+                    setEditIsVisible(false);
+                  }}
+                  disabled={editIsVisible}
                   text={showMoreIsVisible ? 'Hide Details' : 'Show Details'}
                   tooltipMessage={showMoreIsVisible ? 'Hide Details' : 'Show Details'}
                   size={40}
@@ -1221,6 +1210,7 @@ export function TransferabilityRow({
                       collectionId={collectionId}
                       hideSelect={transfer.fromMapping?.addresses.length === 1 && transfer.fromMapping.includeAddresses}
                       defaultAddress={transfer.fromMapping?.addresses.length >= 1 && transfer.fromMapping.includeAddresses ? transfer.fromMapping?.addresses[0] : undefined}
+
                     />
                   </>}
                   {balanceTab === 'current' && <>

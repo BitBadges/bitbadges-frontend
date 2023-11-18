@@ -284,7 +284,7 @@ export function MultiCollectionBadgeDisplay({
   } else {
 
     return <>
-      <div className="flex-center flex-wrap full-width">
+      <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
 
         {
           badgeIdsToDisplay.map((badgeIdObj) => {
@@ -298,7 +298,7 @@ export function MultiCollectionBadgeDisplay({
                   {badgeIds.map((badgeId) => {
                     return <>
                       {cardView ? <>
-                        <div className="flex-center flex-column">
+                        <div className="" style={{ alignItems: 'normal' }}>
                           <BadgeCard
                             collectionId={badgeIdObj.collectionId}
                             badgeId={badgeId}

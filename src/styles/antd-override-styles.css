@@ -266,13 +266,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dark .custom-html-style {  
-  margin: 15px;
-  text-align: left !important;
   color: white !important;
 }
 .custom-html-style {  
-  margin: 15px;
-  text-align: left !important;
 }
 
 .ant-collapse-expand-icon {

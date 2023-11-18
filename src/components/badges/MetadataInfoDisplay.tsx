@@ -96,7 +96,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                     <>
                       <TimelineFieldWrapper
                         createNode={(timelineVal: OffChainBalancesMetadataTimeline<bigint>) => {
-                          return <a href={timelineVal?.offChainBalancesMetadata.uri.startsWith('ipfs://') ? `https://ipfs.io/ipfs/${timelineVal?.offChainBalancesMetadata.uri.substring(7)}` : timelineVal?.offChainBalancesMetadata.uri
+                          return <a href={timelineVal?.offChainBalancesMetadata.uri.startsWith('ipfs://') ? `https://bitbadges-ipfs.infura-ipfs.io/ipfs/${timelineVal?.offChainBalancesMetadata.uri.substring(7)}` : timelineVal?.offChainBalancesMetadata.uri
                           } target='_blank' rel='noreferrer'>Off-Chain</a>
                         }}
                         emptyNode={
@@ -201,7 +201,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
       >
         {isAddressListDisplay && <TableRow label={"Metadata URL"} value={
           <><Tooltip placement='bottom' title={metadataUrl}>
-            <a href={metadataUrl?.startsWith('ipfs://') ? `https://ipfs.io/ipfs/${metadataUrl?.substring(7)}` : metadataUrl
+            <a href={metadataUrl?.startsWith('ipfs://') ? `https://bitbadges-ipfs.infura-ipfs.io/ipfs/${metadataUrl?.substring(7)}` : metadataUrl
 
             } target="_blank" rel="noreferrer">
               View
@@ -224,7 +224,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               <TimelineFieldWrapper
                 createNode={(timelineVal: CollectionMetadataTimeline<bigint>) => {
                   return <><Tooltip placement='bottom' title={timelineVal.collectionMetadata.uri}>
-                    <a href={timelineVal.collectionMetadata.uri.startsWith('ipfs://') ? `https://ipfs.io/ipfs/${timelineVal.collectionMetadata.uri.slice(7)}` : timelineVal.collectionMetadata.uri
+                    <a href={timelineVal.collectionMetadata.uri.startsWith('ipfs://') ? `https://bitbadges-ipfs.infura-ipfs.io/ipfs/${timelineVal.collectionMetadata.uri.slice(7)}` : timelineVal.collectionMetadata.uri
                     } target="_blank" rel="noreferrer">
                       View
                       <LinkOutlined style={{ marginLeft: 4 }} /></a>
@@ -262,7 +262,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                   }
 
                   return <Tooltip placement='bottom' title={uri}>
-                    <a href={(uri.startsWith('ipfs://') ? `https://ipfs.io/ipfs/${uri.slice(7)}` : uri).replace("{id}", badgeId.toString())
+                    <a href={(uri.startsWith('ipfs://') ? `https://bitbadges-ipfs.infura-ipfs.io/ipfs/${uri.slice(7)}` : uri).replace("{id}", badgeId.toString())
                     } target="_blank" rel="noreferrer">
                       View
                       <LinkOutlined style={{ marginLeft: 4 }} /></a>
@@ -282,7 +282,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
         {metadata?.externalUrl && <TableRow label={"Website"} value={
           <div>
             <Tooltip placement='bottom' title={`${metadata.externalUrl}`}>
-              <a href={`${metadata.externalUrl.startsWith('ipfs://') ? `https://ipfs.io/ipfs/${metadata.externalUrl.slice(7)}` : metadata.externalUrl}`} target="_blank" rel="noreferrer">
+              <a href={`${metadata.externalUrl.startsWith('ipfs://') ? `https://bitbadges-ipfs.infura-ipfs.io/ipfs/${metadata.externalUrl.slice(7)}` : metadata.externalUrl}`} target="_blank" rel="noreferrer">
                 View
                 <LinkOutlined style={{ marginLeft: 4 }} /></a>
             </Tooltip>

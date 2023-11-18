@@ -5,7 +5,7 @@ export const GO_MAX_UINT_64 = 18446744073709551615n;
 
 export const FOREVER_THRESHOLD = 7277881234n * 1000n;
 
-export function getTimeRangesElement(validFrom?: UintRange<bigint>[], prefix = "Valid from", includeTime = false, futureOnly = false, numbersOnly?: boolean): JSX.Element {
+export function getTimeRangesElement(validFrom?: UintRange<bigint>[], prefix = "", includeTime = false, futureOnly = false, numbersOnly?: boolean): JSX.Element {
   let strWithTime = getTimeRangesString(validFrom, prefix, true, futureOnly, numbersOnly);
   let strWithoutTime = getTimeRangesString(validFrom, prefix, false, futureOnly, numbersOnly);
 
@@ -19,7 +19,7 @@ export function getTimeRangesElement(validFrom?: UintRange<bigint>[], prefix = "
   }
 }
 
-export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "Valid from", includeTime = false, futureOnly = false, numbersOnly?: boolean): string {
+export function getTimeRangesString(validFrom?: UintRange<bigint>[], prefix = "", includeTime = false, futureOnly = false, numbersOnly?: boolean): string {
 
   if (!validFrom) return prefix + " forever!";
 

@@ -569,7 +569,7 @@ export function MetadataForm({
                         }}
                       >
                         <img
-                          src={item.value.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                          src={item.value.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/')}
 
                           style={{ paddingRight: 10, height: 20 }}
                           alt="Label"

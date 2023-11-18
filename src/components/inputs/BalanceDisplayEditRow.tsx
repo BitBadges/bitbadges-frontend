@@ -1,5 +1,5 @@
-import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
-import { Row } from "antd";
+import { DeleteOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
+import { Row, Switch } from "antd";
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { checkIfUintRangesOverlap, invertUintRanges, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { ReactNode, useState } from "react";
@@ -225,34 +225,12 @@ export function BalanceDisplayEditRow({
               <>
                 <b>Select Ownership Times</b>
                 <div>
-                  <SwitchForm
-                    fullWidthCards
-                    options={[
-                      {
-                        title: "All Times",
-                        message: message == "Circulating Supplys" ? "Badges can be owned at all times." : "Ownership of the selected badges is to be transferred for all times.",
-                        isSelected: isFullUintRanges(currentSupply.ownershipTimes),
-
-                      },
-                      {
-                        title: "Custom",
-                        message: message == "Circulating Supplys" ? "Badges can be owned only at custom times." : "Ownership of the selected badges is to be transferred only for custom times.",
-                        isSelected: !(isFullUintRanges(currentSupply.ownershipTimes)),
-                        additionalNode: <>
-                          {isFullUintRanges(currentSupply.ownershipTimes) ? <></> : <>
-
-                            <DateRangeInput
-                              timeRanges={currentSupply.ownershipTimes}
-                              setTimeRanges={(timeRanges) => {
-                                setCurrentSupply({ ...currentSupply, ownershipTimes: timeRanges });
-                              }}
-                              suggestedTimeRanges={defaultBalancesToShow?.map(x => x.ownershipTimes).flat()}
-                            />
-                          </>}</>
-                      },
-                    ]}
-                    onSwitchChange={(value) => {
-                      if (value === 0) {
+                  <Switch
+                    checked={isFullUintRanges(currentSupply.ownershipTimes)}
+                    checkedChildren="All Times"
+                    unCheckedChildren="Custom"
+                    onChange={(checked) => {
+                      if (checked) {
                         setCurrentSupply({
                           ...currentSupply,
                           ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -265,6 +243,24 @@ export function BalanceDisplayEditRow({
                       }
                     }}
                   />
+                  <br /><br />
+                  <div className="secondary-text">
+                    <InfoCircleOutlined />{' '}
+                    {isFullUintRanges(currentSupply.ownershipTimes) && (message == "Circulating Supplys" ? "Badges are ownable (circulating) at all times." : "Ownership of the selected badges is to be transferred for all times.")}
+                    {!isFullUintRanges(currentSupply.ownershipTimes) && (message == "Circulating Supplys" ? "Badges are ownable (circulating) only at custom times." : "Ownership of the selected badges is to be transferred only for custom times.")}
+                  </div>
+                  <br />
+                  <>
+                    {isFullUintRanges(currentSupply.ownershipTimes) ? <></> : <>
+
+                      <DateRangeInput
+                        timeRanges={currentSupply.ownershipTimes}
+                        setTimeRanges={(timeRanges) => {
+                          setCurrentSupply({ ...currentSupply, ownershipTimes: timeRanges });
+                        }}
+                        suggestedTimeRanges={defaultBalancesToShow?.map(x => x.ownershipTimes).flat()}
+                      />
+                    </>}</>
                 </div>
               </>
 

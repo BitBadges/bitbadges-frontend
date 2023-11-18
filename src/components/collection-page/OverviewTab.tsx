@@ -15,8 +15,10 @@ const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 export function OverviewTab({
   collectionId,
+  setTab
 }: {
   collectionId: bigint,
+  setTab: (tab: string) => void,
 }) {
 
   const collection = useCollection(collectionId)
@@ -94,6 +96,7 @@ export function OverviewTab({
             <div className='flex'>
               <BalanceOverview
                 collectionId={collectionId}
+                setTab={setTab}
               />
             </div>
           </InformationDisplayCard>

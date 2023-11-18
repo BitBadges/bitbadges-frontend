@@ -204,8 +204,7 @@ export function FreezeSelectStepItem() {
           {badgesIdsWithUnlockedSupply.length > 0 && <>
             <div className='' style={{ color: '#FF5733', textAlign: 'center' }}>
               <InfoCircleOutlined style={{ marginRight: 4 }} /> You have selected to be able to increment supply / create more of the following badges: {getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
-              Please make sure the transferability of these badges is either a) set to not frozen or b) you pre-handled the future transferability for these badges when you previously selected transferability.
-
+              Please make sure the transferability of these badges is either a) set to updatable or b) you have already accounted for and handled the future transferability of these badges in the prior steps.
             </div>
             <br />
           </>}

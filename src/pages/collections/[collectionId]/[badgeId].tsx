@@ -173,6 +173,7 @@ export function BadgePage({ collectionPreview }
                   {collection && <OwnersTab
                     collectionId={collectionIdNumber}
                     badgeId={badgeIdNumber}
+                    setTab={setTab}
                   />}
                 </Col>
               </Row>

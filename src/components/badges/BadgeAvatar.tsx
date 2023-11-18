@@ -1,12 +1,12 @@
-import { ClockCircleOutlined, CloudSyncOutlined } from "@ant-design/icons";
-import { Avatar, Badge, Spin, Tooltip } from "antd";
+import { ClockCircleOutlined } from "@ant-design/icons";
+import { Avatar, Spin, Tooltip } from "antd";
 import { Balance } from "bitbadgesjs-proto";
 import { DefaultPlaceholderMetadata, Metadata, getBalanceForIdAndTime, getMetadataForBadgeId, isFullUintRanges } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 
-import { getTimeRangesString } from "../../utils/dates";
-import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
+import { getTimeRangesString } from "../../utils/dates";
 
 export function BadgeAvatar({
   collectionId,
@@ -52,7 +52,7 @@ export function BadgeAvatar({
     }}
     className={badgeId && !noHover ? 'badge-avatar' : undefined}
     src={metadata?.image
-      ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')
+      ? metadata.image.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/')
       : metadata && !metadata.image ? DefaultPlaceholderMetadata.image : <Spin />}
     size={size ? size : 45}
     onClick={() => {
@@ -75,15 +75,8 @@ export function BadgeAvatar({
         title={`${metadata?.name ? metadata.name : ''} ${badgeId ? `(#${badgeId})` : ''}`}
       >
         <div style={{ textAlign: 'center' }}>
-          <Badge
-            count={metadata?._isUpdating ? <Tooltip title={`This collection\'s metadata${collection && collection.balancesType === "Off-Chain" ? ' and balances are' : ' is'} currently being refreshed.`}>
-              <CloudSyncOutlined className='primary-text' size={30} style={{ fontSize: 20 }} />
-            </Tooltip> : <></>
-            }
-            style={{ backgroundColor: 'blue' }}
-          >
-            {avatar}
-          </Badge>
+
+          {avatar}
         </div>
       </Tooltip>}
     <div style={{ textAlign: 'center' }}>

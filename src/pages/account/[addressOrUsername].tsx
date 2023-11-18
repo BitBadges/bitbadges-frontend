@@ -322,6 +322,7 @@ function PortfolioPage() {
     collectionId: bigint,
     badgeIds: UintRange<bigint>[]
   }
+
   const addToArray = (arr: BadgeIdObj[], badgeIdObjsToAdd: BadgeIdObj[]) => {
     for (const badgeIdObj of badgeIdObjsToAdd) {
       const badgeIdsToAdd = badgeIdObj.badgeIds;
@@ -339,9 +340,27 @@ function PortfolioPage() {
     return arr.filter(x => x.badgeIds.length > 0);
   }
 
+  const removeFromArray = (arr: BadgeIdObj[], badgeIdObjsToRemove: BadgeIdObj[]) => {
+    for (const badgeIdObj of badgeIdObjsToRemove) {
+      const badgeIdsToRemove = badgeIdObj.badgeIds;
+
+
+      const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
+      if (existingIdx != -1) {
+        const [remaining,] = removeUintRangeFromUintRange(badgeIdsToRemove, arr[existingIdx].badgeIds);
+        arr[existingIdx].badgeIds = remaining;
+      }
+    }
+
+    return arr.filter(x => x.badgeIds.length > 0);
+  }
+
+  const [selectedBadge, setSelectedBadge] = useState<BadgeIdObj | null>(null);
+
   const CustomizeSearchBar = <Input
     defaultValue=""
-    placeholder="Add by searching a collection or badge"
+    placeholder={"Add or remove by searching a collection or badge"}
+
     value={customizeSearchValue}
     onChange={async (e) => {
       setCustomizeSearchValue(e.target.value);
@@ -358,38 +377,21 @@ function PortfolioPage() {
         onlyCollections
         onSearch={async (searchValue: any, _isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
           if (typeof searchValue === 'string') {
-            let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
-              deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
-
-
-
             if (isCollection) {
-              currCustomPageBadges = addToArray(currCustomPageBadges, [{
+              setSelectedBadge({
                 collectionId: BigInt(searchValue),
                 badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }]
-              }]);
+              });
             } else if (isBadge) {
               const collectionId = BigInt(searchValue.split('/')[0]);
               const badgeId = BigInt(searchValue.split('/')[1]);
 
-              currCustomPageBadges = addToArray(currCustomPageBadges, [{
+              setSelectedBadge({
                 collectionId,
                 badgeIds: [{ start: badgeId, end: badgeId }]
-              }]);
-            }
-
-            if (badgeTab == 'Hidden') {
-              await updateProfileInfo(chain.address, {
-                hiddenBadges: currCustomPageBadges
-              });
-            } else {
-              const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
-              if (!currCustomPage) return;
-
-              await updateProfileInfo(chain.address, {
-                customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
               });
             }
+
 
             setCustomizeSearchValue('');
           }
@@ -407,6 +409,52 @@ function PortfolioPage() {
 
   if (!accountInfo) {
     return <></>
+  }
+
+  const BadgeIdObjTag = ({ badgeIdObj, onClose, }: { badgeIdObj: BadgeIdObj, onClose?: () => void }) => {
+    const collection = getCollection(badgeIdObj.collectionId);
+    const metadata = isFullUintRanges(badgeIdObj.badgeIds) ? collection?.cachedCollectionMetadata
+      : getMetadataForBadgeId(badgeIdObj.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
+    return <Tag
+      className='primary-text inherit-bg flex-between'
+      style={{ alignItems: 'center', marginBottom: 8 }}
+      closable
+      closeIcon={onClose ? <CloseCircleOutlined
+        className='primary-text styled-button flex-center'
+        style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
+        size={50}
+      /> : <></>}
+      onClose={onClose}
+    >
+      <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
+        <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
+          <div>
+            <BadgeAvatar
+              size={30}
+              noHover
+              collectionId={badgeIdObj.collectionId}
+              metadataOverride={metadata}
+            />
+          </div>
+          <Typography.Text className="primary-text" style={{ fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
+            <div style={{ marginBottom: 4 }}>
+              {metadata?.name}
+            </div>
+            <div style={{ fontSize: 12 }}>
+              Collection ID: {badgeIdObj.collectionId.toString()}
+              <br />
+
+              {isFullUintRanges(badgeIdObj.badgeIds) ? 'All' : `Badge IDs: ${badgeIdObj.badgeIds.map(x =>
+                x.start === x.end ? `${x.start}` :
+                  `${x.start}-${x.end}`).join(', ')}`}
+            </div>
+          </Typography.Text>
+        </div>
+      </div>
+      <br />
+
+
+    </Tag>
   }
 
 
@@ -568,52 +616,9 @@ function PortfolioPage() {
 
           <div className='full-width flex-center flex-wrap'>
             {filteredCollections.map((filteredCollection, idx) => {
-              const collection = getCollection(filteredCollection.collectionId);
-              const metadata = isFullUintRanges(filteredCollection.badgeIds) ? collection?.cachedCollectionMetadata
-                : getMetadataForBadgeId(filteredCollection.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
-              return <Tag
-                className='primary-text inherit-bg flex-between'
-                style={{ alignItems: 'center', marginBottom: 8 }}
-                key={idx}
-                closable
-                closeIcon={<CloseCircleOutlined
-                  className='primary-text styled-button flex-center'
-                  style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
-                  size={50}
-                />}
-                onClose={() => {
-                  setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
-                }}
-              >
-                <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
-                  <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
-                    <div>
-                      <BadgeAvatar
-                        size={30}
-                        noHover
-                        collectionId={filteredCollection.collectionId}
-                        metadataOverride={metadata}
-                      />
-                    </div>
-                    <Typography.Text className="primary-text" style={{ fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
-                      <div style={{ marginBottom: 4 }}>
-                        {metadata?.name}
-                      </div>
-                      <div style={{ fontSize: 12 }}>
-                        Collection ID: {filteredCollection.collectionId.toString()}
-                        <br />
-
-                        {isFullUintRanges(filteredCollection.badgeIds) ? 'All' : `Badge IDs: ${filteredCollection.badgeIds.map(x =>
-                          x.start === x.end ? `${x.start}` :
-                            `${x.start}-${x.end}`).join(', ')}`}
-                      </div>
-                    </Typography.Text>
-                  </div>
-                </div>
-                <br />
-
-
-              </Tag>
+              return <BadgeIdObjTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
+                setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
+              }} />
             })}
           </div>
 
@@ -688,10 +693,86 @@ function PortfolioPage() {
             <br />
 
             {badgeTab != 'All' && badgeTab != '' && editMode && <>
+              {/* <div className='flex-center'>
+                <IconButton
+                  src={<SearchOutlined />}
+                  text='Add via Search'
+                />
+                <IconButton
+                  src={<SearchOutlined />}
+                  text='Remove via Search'
+                />
+              </div> */}
               <div className='flex-center'>
-                <Col md={12} xs={24} style={{ marginBottom: 8 }}>
-                  {CustomizeSearchDropdown}
-                </Col>
+
+
+                <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedBadge} inheritBg={!selectedBadge}>
+                  <div className='flex'>
+                    {CustomizeSearchDropdown}
+
+                  </div>
+
+                  {selectedBadge && <>
+                    <br />
+                    <div className='flex-center'>
+                      <BadgeIdObjTag badgeIdObj={selectedBadge} onClose={() => { setSelectedBadge(null) }} />
+                    </div>
+                    <br />
+                  </>}
+
+                  {selectedBadge &&
+                    <div className='flex-center flex-wrap'>
+                      <button className='landing-button' onClick={async () => {
+                        if (!selectedBadge) return;
+
+                        let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
+                          deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
+                        currCustomPageBadges = addToArray(currCustomPageBadges, [selectedBadge]);
+
+                        if (badgeTab == 'Hidden') {
+                          await updateProfileInfo(chain.address, {
+                            hiddenBadges: currCustomPageBadges
+                          });
+                        } else {
+                          const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
+                          if (!currCustomPage) return;
+
+                          await updateProfileInfo(chain.address, {
+                            customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
+                          });
+                        }
+
+                        setSelectedBadge(null);
+                      }}>
+                        Add
+                      </button>
+
+                      <button className='landing-button' onClick={async () => {
+                        if (!selectedBadge) return;
+
+                        let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
+                          deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
+                        currCustomPageBadges = removeFromArray(currCustomPageBadges, [selectedBadge]);
+
+                        if (badgeTab == 'Hidden') {
+                          await updateProfileInfo(chain.address, {
+                            hiddenBadges: currCustomPageBadges
+                          });
+                        } else {
+                          const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
+                          if (!currCustomPage) return;
+
+                          await updateProfileInfo(chain.address, {
+                            customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
+                          });
+                        }
+
+                        setSelectedBadge(null);
+                      }}>
+                        Remove
+                      </button>
+                    </div>}
+                </InformationDisplayCard>
 
               </div> <Divider /></>}
 

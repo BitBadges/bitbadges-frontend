@@ -4,7 +4,7 @@ import { CollectionApprovalWithDetails, convertToCosmosAddress, isInAddressMappi
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
-import { getMerkleChallengeCodeViaPassword } from '../../bitbadges-api/api';
+import { getCodeForPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 import { InfoCircleOutlined } from '@ant-design/icons';
@@ -174,7 +174,7 @@ export function CreateTxMsgClaimBadgeModal(
         }
         if (code) {
           try {
-            const res = await getMerkleChallengeCodeViaPassword(collectionId, claimItemCid, code);
+            const res = await getCodeForPassword(collectionId, claimItemCid, code);
             setPasswordCodeToSubmit(res.code);
           } catch (e) {
 

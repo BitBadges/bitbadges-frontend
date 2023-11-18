@@ -153,7 +153,7 @@ export function SearchDropdown({
               }}>
                 <div className='flex-between primary-text'>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
-                    <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                    <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
                     {result.cachedCollectionMetadata?.name}
                   </div>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
@@ -200,7 +200,7 @@ export function SearchDropdown({
                       }}>
                         <div className='flex-between primary-text'>
                           <div className='flex-center' style={{ alignItems: 'center' }}>
-                            <Avatar src={metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                            <Avatar src={metadata?.image?.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
                             {metadata?.name}
                           </div>
                           <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>
@@ -241,7 +241,7 @@ export function SearchDropdown({
               }}>
                 <div className='flex-between primary-text'>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
-                    <Avatar src={result.metadata?.image?.replace('ipfs://', 'https://ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                    <Avatar src={result.metadata?.image?.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
                     {result.metadata?.name}
                   </div>
                   <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>

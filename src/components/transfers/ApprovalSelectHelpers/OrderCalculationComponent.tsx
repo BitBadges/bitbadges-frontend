@@ -80,7 +80,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
       <div style={{ textAlign: 'start', marginLeft: 10, marginBottom: 10 }}>
         <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
           <InfoCircleOutlined />
-          {keyId == 'useOverallNumTransfers' ? ' First use of this approval will be assigned partition #1, second use of this approval partition #2, and so on regardless of who sends, receives, or initiates.' : ''}
+          {keyId == 'useOverallNumTransfers' ? ' First use of this approval by any user will be assigned partition #1, second use of this approval partition #2, and so on regardless of who sends, receives, or initiates.' : ''}
           {keyId == 'usePerFromAddressNumTransfers' ? ' Each unique sender will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
           {keyId == 'usePerInitiatedByAddressNumTransfers' ? ' Each unique approver will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
           {keyId == 'usePerToAddressNumTransfers' ? ' Each unique recipient will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}

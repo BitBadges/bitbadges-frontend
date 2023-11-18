@@ -14,11 +14,12 @@ import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 
 
 
-export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddress }: {
+export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddress, setTab }: {
   collectionId: bigint;
   badgeId?: bigint
   hideSelect?: boolean;
   defaultAddress?: string;
+  setTab?: (tab: string) => void;
 }) {
   const chain = useChainContext();
 
@@ -72,14 +73,31 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
 
   if (!collection) return <></>;
 
+  const balancesToShow = currBalances?.map(x => {
+    if (!badgeId) return x;
+
+    const filteredBadgeIds = [];
+    const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
+    if (found) {
+      filteredBadgeIds.push({ start: badgeId, end: badgeId });
+    }
+
+    return {
+      ...x,
+      badgeIds: filteredBadgeIds
+    }
+  }) ?? []
+
   return (<div className='full-width flex-column'>
     <div className='full-width flex-center flex-column'>
       {<>
         <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} disabled={hideSelect} />
       </>}
     </div>
+
+
     <div
-      className='primary-text flex-center full-width'
+      className='primary-text full-width'
       style={{ marginTop: 16 }}
     >
       {isPreview && <>
@@ -92,24 +110,21 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
       {
         currBalances && !isPreview && <div>
           <BalanceDisplay
+            hideMessage
             collectionId={collectionId}
-            balances={currBalances.map(x => {
-              if (!badgeId) return x;
-
-              const filteredBadgeIds = [];
-              const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
-              if (found) {
-                filteredBadgeIds.push({ start: badgeId, end: badgeId });
-              }
-
-              return {
-                ...x,
-                badgeIds: filteredBadgeIds
-              }
-            })}
+            balances={balancesToShow}
           />
+
         </div>
+
       }
+      {!!setTab && <>
+        <span className='secondary-text'>Head over to the <a
+          onClick={() => { setTab('transferability') }}
+
+        >Transferability</a> tab to see how this badge is distributed.</span>
+        <br /><br />
+      </>}
     </div>
   </div>
   );

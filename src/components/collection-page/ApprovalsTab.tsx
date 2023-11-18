@@ -89,6 +89,11 @@ export const ApprovalSelectWrapper: FC<{
       getReservedAddressMapping(approverAddress)
       : isPostMintDisplay ? getReservedAddressMapping("AllWithoutMint") : getReservedAddressMapping("All")
     }
+    defaultInitiatedByMapping={{
+      ...getReservedAddressMapping("All"),
+      mappingId: "",
+      includeAddresses: true
+    }}
     defaultApproval={defaultApproval}
     collectionId={collection.collectionId}
     hideTransferDisplay={true}
