@@ -19,7 +19,8 @@ export function TransferDisplay({
   hideBalances,
   setTransfers,
   initiatedBy,
-  deletable
+  deletable,
+  doNotCalculate
 }: {
   collectionId: bigint;
   transfers: TransferWithIncrements<bigint>[],
@@ -28,6 +29,7 @@ export function TransferDisplay({
   setTransfers?: (transfers: TransferWithIncrements<bigint>[]) => void;
   deletable?: boolean;
   initiatedBy?: string
+  doNotCalculate?: boolean
 }) {
 
   const collection = useCollection(collectionId)
@@ -52,6 +54,7 @@ export function TransferDisplay({
     {!hideBalances && transfer && toLength > 0 && <div className="full-width">
       {collection &&
         <BalanceDisplay
+          doNotCalculate={doNotCalculate}
           message={'All Badges Transferred'}
           hideMessage
           collectionId={collectionId}

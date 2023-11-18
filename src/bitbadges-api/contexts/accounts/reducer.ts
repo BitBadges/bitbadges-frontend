@@ -253,7 +253,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
         if (!val) continue;
 
         newViews[key] = {
-          ids: [...new Set([...(newViews[key]?.ids || []), ...(val.ids || [])])],
+          ids: [...new Set([...(val?.ids || []), ...(newViews[key]?.ids || [])])].filter((x, index, self) => index === self.findIndex((t) => (t === x))),
           pagination: {
             ...val.pagination,
             total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,

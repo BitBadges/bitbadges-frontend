@@ -97,6 +97,7 @@ function CollectionPage({
     if (code || password || claimsTab) setTab('transferability');
   }, [code, password, claimsTab])
 
+
   return (
     <Content
       style={{

@@ -3,9 +3,10 @@ import { Divider, Modal, Spin, notification } from 'antd';
 import { OffChainBalancesMap, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils/dist/distribution';
 import React, { useEffect } from 'react';
-import { addBalancesToOffChainStorage, refreshMetadata } from '../../bitbadges-api/api';
+import { addBalancesToOffChainStorage } from '../../bitbadges-api/api';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { DistributionComponent } from '../tx-timelines/step-items/OffChainBalancesStepItem';
+import { DisconnectedWrapper } from '../wrappers/DisconnectedWrapper';
 
 export const createBalancesMapAndAddToStorage = async (collectionId: bigint, transfers: TransferWithIncrements<bigint>[], method: 'ipfs' | 'centralized', notify: boolean) => {
   const _balanceMap = await createBalanceMapForOffChainBalances(transfers);
@@ -17,8 +18,6 @@ export const createBalancesMapAndAddToStorage = async (collectionId: bigint, tra
   }
 
   const res = await addBalancesToOffChainStorage({ balances: balanceMap, method, collectionId: collectionId, });
-
-  if (collectionId > 0n) await refreshMetadata(collectionId);
 
   if (notify) {
     notification.success({
@@ -45,6 +44,7 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
   }, [collectionId]);
 
   return (
+
     <Modal
       title={<div className='primary-text inherit-bg'><b>{'Distribute'}</b></div>}
       open={visible}
@@ -58,24 +58,30 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
       destroyOnClose={true}
       className='primary-text'
     >
-      {!txTimelineContext.initialLoad ? <Spin /> : <>
-        <DistributionComponent />
-        <Divider />
-        <Divider />
-        <button
-          disabled={txTimelineContext.transfers.length == 0 || loading}
-          className='landing-button'
-          style={{ width: '100%', marginTop: 20 }}
-          onClick={async () => {
-            setLoading(true);
-            await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, 'centralized', true);
-            setLoading(false);
-            setVisible(false);
-          }}>
-          Update Balances {loading && <Spin />}
-        </button>
-        {children}
-      </>}
+      <DisconnectedWrapper
+        requireLogin
+        message='Please connect and sign in to your wallet to distribute badges.'
+        node={<>
+          {!txTimelineContext.initialLoad ? <Spin /> : <>
+            <DistributionComponent />
+            <Divider />
+            <Divider />
+            <button
+              disabled={txTimelineContext.transfers.length == 0 || loading}
+              className='landing-button'
+              style={{ width: '100%', marginTop: 20 }}
+              onClick={async () => {
+                setLoading(true);
+                await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, 'centralized', true);
+                setLoading(false);
+                setVisible(false);
+              }}>
+              Update Balances {loading && <Spin />}
+            </button>
+            {children}
+          </>}
+        </>}
+      />
     </Modal>
   );
 }

@@ -134,12 +134,12 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                     <Row>
                       <Col span={24}>
                         {activity.balances.length == 0 && <div className='secondary-text'>
-                          <InfoCircleOutlined /> This user previously owned badges, and their balance was updated to own none.
+                          <InfoCircleOutlined /> This user previously owned badges in this collection, but their balance has now been updated to own none.
                         </div>}
 
                         <TransferDisplay
                           key={idx}
-
+                          doNotCalculate
                           collectionId={collectionId}
                           initiatedBy={activity.initiatedBy}
                           transfers={[

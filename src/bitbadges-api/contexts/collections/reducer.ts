@@ -236,13 +236,14 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
         if (!val) continue;
 
         newViews[key] = {
-          ids: [...(newViews[key]?.ids || []), ...(val?.ids || []),],
+          ids: [...(val?.ids || []), ...(newViews[key]?.ids || []),].filter((val, index, self) => self.findIndex(x => x === val) === index),
           pagination: {
             ...val.pagination,
             total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
           },
           type: val.type
         }
+
       }
     }
 
@@ -285,7 +286,6 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
     cachedCollection.reviews = cachedCollection.reviews.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
     cachedCollection.announcements = cachedCollection.announcements.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
     cachedCollection.updateHistory = cachedCollection.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? -1 : 1)
-
 
     //Only update if anything has changed
     if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
@@ -475,10 +475,10 @@ export const fetchMetadataForPreviewRedux = (existingCollectionId: DesiredNumber
           }
 
           await dispatch(fetchAndUpdateMetadataRedux(existingCollectionId, { badgeIds: next250Badges }));
-      
+
           const res = getCollection(getState().collections, existingCollectionId);
           if (!res) throw new Error('Collection does not exist');
-          
+
 
 
           //Just a note for the future: I had a lot of trouble with synchronizing existing and preview metadata
@@ -663,8 +663,8 @@ export const collectionReducer = (state = initialState, action: { type: string; 
     case 'FETCH_COLLECTIONS_FAILURE':
     // return { ...state, loading: false, error: action.payload };
     case 'FETCH_COLLECTIONS_SUCCESS':
-      // return state;
-      // console.log('new fetching', state.fetching, state.fetching.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))));
+    // return state;
+    // console.log('new fetching', state.fetching, state.fetching.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))));
     // return { ...state, loading: false, error: '', fetching: state.fetching.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))) };
     default:
       return state;

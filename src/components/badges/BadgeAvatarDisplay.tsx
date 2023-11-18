@@ -19,7 +19,7 @@ export function BadgeAvatarDisplay({
   size,
   selectedId,
   showIds,
-  showSupplys = true,
+  showSupplys,
   defaultPageSize,
   maxWidth,
 

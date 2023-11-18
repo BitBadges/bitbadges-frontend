@@ -37,10 +37,11 @@ export function OwnersTab({ collectionId, badgeId }: {
   });
 
   const totalNumOwners = pagination.total ? Numberify(pagination.total) : 0;
-  const fetchMore = useCallback(async (bookmark: string) => {
+  const fetchMore = useCallback(async (bookmark?: string) => {
     if (isPreview) return;
 
     const ownersRes = await getOwnersForBadge(collectionId, badgeId, { bookmark: bookmark });
+
     const badgeOwners = [...ownersRes.owners.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total')]
     setOwners(owners => [...owners, ...badgeOwners].filter((x, idx, self) => self.findIndex(y => y.cosmosAddress === x.cosmosAddress) === idx));
     setPagination({
@@ -53,7 +54,7 @@ export function OwnersTab({ collectionId, badgeId }: {
     if (INFINITE_LOOP_MODE) console.log('useEffect: ');
     if (isPreview) return;
 
-    fetchMore('');
+    fetchMore();
     setLoaded(true);
   }, [fetchMore, isPreview])
 

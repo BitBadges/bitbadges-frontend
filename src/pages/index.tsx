@@ -134,7 +134,7 @@ const Home: NextPage = () => {
             }}><span className='mr-2'>Collect {' '}</span><img src='/images/bitbadgeslogotext.png' alt='BitBadges Logo' className='inline-logo primary-pink' />
               {' '} to build your digital identity!</div>
             <br />
-            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles will be migrated to mainnet once launched. $BADGE will be redistributed via an airdrop based on betanet contributions.</p>
+            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can be migrated to mainnet once launched. $BADGE will be redistributed via an airdrop based on betanet contributions.</p>
             <div className='flex flex-wrap full-width mt-3'>
               <Button
                 size='large'

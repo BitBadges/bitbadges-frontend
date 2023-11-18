@@ -35,7 +35,8 @@ export function BalanceDisplay({
   onRemoveAll,
   sequentialOnly,
   fullWidthCards,
-  setIncrementBadgeIdsBy
+  setIncrementBadgeIdsBy,
+  doNotCalculate
 }: {
   mustOwnBadges?: MustOwnBadges<bigint>[]
   collectionId: bigint;
@@ -63,6 +64,7 @@ export function BalanceDisplay({
   sequentialOnly?: boolean
   fullWidthCards?: boolean
   setIncrementBadgeIdsBy?: (incrementBadgeIdsBy: bigint) => void
+  doNotCalculate?: boolean
 }) {
   const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
   const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
@@ -74,26 +76,27 @@ export function BalanceDisplay({
     if (INFINITE_LOOP_MODE) console.log("BalanceDisplay useEffect", { balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy })
     // console.log("BalanceDisplay useEffect", { balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy })
 
-    const allBalances = !isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
-      {
-        from: '',
-        merkleProofs: [],
-        precalculateBalancesFromApproval: {
-          approvalId: '',
-          approvalLevel: '',
-          approverAddress: '',
-        },
-        memo: '',
-        prioritizedApprovals: [],
-        onlyCheckPrioritizedApprovals: false,
+    const allBalances = doNotCalculate ? balances :
+      !isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
+        {
+          from: '',
+          merkleProofs: [],
+          precalculateBalancesFromApproval: {
+            approvalId: '',
+            approvalLevel: '',
+            approverAddress: '',
+          },
+          memo: '',
+          prioritizedApprovals: [],
+          onlyCheckPrioritizedApprovals: false,
 
-        balances: balances,
-        toAddressesLength: numIncrements > 0 ? numIncrements : 1n,
-        toAddresses: [],
-        incrementBadgeIdsBy: incrementBadgeIdsBy > 0 ? incrementBadgeIdsBy : 0n,
-        incrementOwnershipTimesBy: incrementOwnershipTimesBy > 0 ? incrementOwnershipTimesBy : 0n,
-      }
-    ], true) : balances.map(x => { return { ...x, ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] } });
+          balances: balances,
+          toAddressesLength: numIncrements > 0 ? numIncrements : 1n,
+          toAddresses: [],
+          incrementBadgeIdsBy: incrementBadgeIdsBy > 0 ? incrementBadgeIdsBy : 0n,
+          incrementOwnershipTimesBy: incrementOwnershipTimesBy > 0 ? incrementOwnershipTimesBy : 0n,
+        }
+      ], true) : balances.map(x => { return { ...x, ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] } });
 
 
     const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
@@ -102,7 +105,7 @@ export function BalanceDisplay({
     setAllBalances(allBalances);
     setAllBadgeIdsArr(allBadgeIdsArr);
 
-  }, [balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy, isMustOwnBadgesInput])
+  }, [balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy, isMustOwnBadgesInput, doNotCalculate]);
 
   const EditRowComponent = <BalanceDisplayEditRow
     collectionId={collectionId}

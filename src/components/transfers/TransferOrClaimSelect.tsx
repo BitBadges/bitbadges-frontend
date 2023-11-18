@@ -241,7 +241,7 @@ export function TransferSelect({
 
           {isOffChainBalancesUpdate &&
             <div className="secondary-text">
-              <InfoCircleOutlined /> Assign the badges you have created to the intended recipients. This is done off-chain so will not increase your transaction fee.
+              <InfoCircleOutlined /> Assign the badges you have created to the intended recipients. This is facilitated off-chain.
             </div>}
           <br />
           <div className='flex'>
