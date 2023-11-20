@@ -399,7 +399,7 @@ const Home: NextPage = () => {
                       /> and Cosmos <Avatar
                         src={COSMOS_LOGO}
                         size={25}
-                      /> users.
+                      /> users, with more to come.
                     </Typography.Text></>
                 }
               />

@@ -1,6 +1,6 @@
 import { DownOutlined, WarningOutlined } from '@ant-design/icons';
 import { Col, Divider, Input, Row, Select, Typography } from 'antd';
-import { BigIntify, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUpdateCollection, convertMsgUpdateUserApprovals, createTxMsgCreateAddressMappings, createTxMsgDeleteCollection, createTxMsgTransferBadges, createTxMsgUpdateCollection, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
+import { BigIntify, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertMsgUpdateUserApprovals, createTxMsgCreateAddressMappings, createTxMsgDeleteCollection, createTxMsgTransferBadges, createTxMsgUniversalUpdateCollection, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
 import { useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
@@ -9,22 +9,22 @@ import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapp
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 const style = require('react-syntax-highlighter/dist/cjs/styles/prism').oneDark;
 
-const sampleMsgUpdateCollection = require('./sample-msgupdate.json');
+const sampleMsgUniversalUpdateCollection = require('./sample-msgupdate.json');
 const sampleMsgDeleteCollection = require('./sample-msgdelete.json');
 const sampleMsgCreateAddressMappings = require('./sample-msgcreateaddress.json');
 const sampleMsgUpdateUserApprovals = require('./sample-msgupdateapprovals.json');
 const sampleMsgTransferBadges = require('./sample-msgtransfer.json');
 
 function Broadcast() {
-  const [msg, setMsg] = useState<object>(convertMsgUpdateCollection(sampleMsgUpdateCollection, BigIntify));
+  const [msg, setMsg] = useState<object>(convertMsgUniversalUpdateCollection(sampleMsgUniversalUpdateCollection, BigIntify));
   const [visible, setVisible] = useState(false);
   const [err, setErr] = useState<Error | null>();
   const chain = useChainContext();
 
-  const [txType, setTxType] = useState('MsgUpdateCollection');
-  const [inputMsg, setInputMsg] = useState(JSON.stringify(sampleMsgUpdateCollection, null, 2));
+  const [txType, setTxType] = useState('MsgUniversalUpdateCollection');
+  const [inputMsg, setInputMsg] = useState(JSON.stringify(sampleMsgUniversalUpdateCollection, null, 2));
 
-  const convertFunction = txType === 'MsgUpdateCollection' ? createTxMsgUpdateCollection
+  const convertFunction = txType === 'MsgUniversalUpdateCollection' ? createTxMsgUniversalUpdateCollection
     : txType === 'MsgDeleteCollection' ? createTxMsgDeleteCollection
       : txType === 'MsgCreateAddressMappings' ? createTxMsgCreateAddressMappings
         : txType === 'MsgUpdateUserApprovals' ? createTxMsgUpdateUserApprovals
@@ -32,7 +32,7 @@ function Broadcast() {
             : undefined
 
   const getJSON = (txType: string) => {
-    return txType === 'MsgUpdateCollection' ? sampleMsgUpdateCollection
+    return txType === 'MsgUniversalUpdateCollection' ? sampleMsgUniversalUpdateCollection
       : txType === 'MsgDeleteCollection' ? sampleMsgDeleteCollection
         : txType === 'MsgCreateAddressMappings' ? sampleMsgCreateAddressMappings
           : txType === 'MsgUpdateUserApprovals' ? sampleMsgUpdateUserApprovals
@@ -87,8 +87,8 @@ function Broadcast() {
                 />
               }
             >
-              <Select.Option key={0} value={'MsgUpdateCollection'}>
-                MsgUpdateCollection
+              <Select.Option key={0} value={'MsgUniversalUpdateCollection'}>
+                MsgUniversalUpdateCollection
               </Select.Option>
               <Select.Option key={1} value={'MsgDeleteCollection'}>
                 MsgDeleteCollection
@@ -123,9 +123,9 @@ function Broadcast() {
                     setInputMsg(e.target.value);
                     const msg = JSON.parse(e.target.value);
 
-                    
 
-                    if (txType === 'MsgUpdateCollection') setMsg(convertMsgUpdateCollection(msg, BigIntify));
+
+                    if (txType === 'MsgUniversalUpdateCollection') setMsg(convertMsgUniversalUpdateCollection(msg, BigIntify));
                     else if (txType === 'MsgDeleteCollection') setMsg(convertMsgDeleteCollection(msg, BigIntify));
                     else if (txType === 'MsgCreateAddressMappings') setMsg(msg);
                     else if (txType === 'MsgUpdateUserApprovals') setMsg(convertMsgUpdateUserApprovals(msg, BigIntify));

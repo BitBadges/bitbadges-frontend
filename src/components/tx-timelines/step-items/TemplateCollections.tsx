@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { SubmitMsgNewCollection } from "../form-items/SubmitMsgUpdateCollection";
-import { BigIntify, convertMsgUpdateCollection } from "bitbadgesjs-proto";
+import { SubmitMsgNewCollection } from "../form-items/SubmitMsgUniversalUpdateCollection";
+import { BigIntify, convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 
@@ -42,7 +42,7 @@ export function TemplateCollectionSelect() {
             isSelected: selectedIdx === 0,
             additionalNode: <>
               <SubmitMsgNewCollection
-                msgUpdateCollection={convertMsgUpdateCollection({
+                MsgUniversalUpdateCollection={convertMsgUniversalUpdateCollection({
                   ...template1,
                   creator: chain.cosmosAddress,
                   //TODO: manager timeline?

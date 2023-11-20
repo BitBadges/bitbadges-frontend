@@ -1,6 +1,6 @@
 import { Divider, Spin } from 'antd';
 import { useEffect } from 'react';
-import { MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { MsgUniversalUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
 
@@ -11,7 +11,7 @@ export function TxTimeline({
 }: {
   txType: 'UpdateCollection'
   collectionId?: bigint,
-  onFinish?: ((props: MsgUpdateCollectionProps) => void),
+  onFinish?: ((props: MsgUniversalUpdateCollectionProps) => void),
   addressMappingId?: string,
 }) {
   const txTimelineContext = useTxTimelineContext();

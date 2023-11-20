@@ -24,6 +24,7 @@ export function DistributionOverview({
   lg,
   xl,
   xxl,
+  hideTitle
 }: {
   collectionId: bigint
   span?: number
@@ -36,6 +37,7 @@ export function DistributionOverview({
   xl?: number
   xxl?: number
   style?: React.CSSProperties
+  hideTitle?: boolean
 }) {
 
   const collection = useCollection(collectionId);
@@ -52,7 +54,7 @@ export function DistributionOverview({
 
   const lastFetchedAt = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAt ?? 0n
 
-  return <InformationDisplayCard title={'Distribution'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
+  return <InformationDisplayCard title={hideTitle ? '' : 'Distribution'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
     <>
       {collection && <TableRow label={"Circulating (Total)"} value={
         <div style={{ float: 'right' }}>

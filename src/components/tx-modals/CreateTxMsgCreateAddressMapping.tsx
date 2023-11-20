@@ -6,7 +6,7 @@ import React from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
-import { NEW_COLLECTION_ID, MsgUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { NEW_COLLECTION_ID, MsgUniversalUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { TxModal } from './TxModal';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
@@ -16,7 +16,7 @@ export function CreateTxMsgCreateAddressMappingModal(
       visible: boolean,
       setVisible: (visible: boolean) => void,
       children?: React.ReactNode,
-      inheritedTxState?: MsgUpdateCollectionProps
+      inheritedTxState?: MsgUniversalUpdateCollectionProps
     }) {
   const chain = useChainContext();
   const router = useRouter();
@@ -48,7 +48,7 @@ export function CreateTxMsgCreateAddressMappingModal(
       uri = 'ipfs://' + res.collectionMetadataResult?.cid;
     }
 
-    const msgUpdateCollection: MsgCreateAddressMappings = {
+    const MsgUniversalUpdateCollection: MsgCreateAddressMappings = {
       ...msg,
       creator: chain.cosmosAddress,
       addressMappings: [{
@@ -58,9 +58,9 @@ export function CreateTxMsgCreateAddressMappingModal(
       }]
     }
 
-    console.log("FINAL MSG", msgUpdateCollection);
+    console.log("FINAL MSG", MsgUniversalUpdateCollection);
 
-    return msgUpdateCollection;
+    return MsgUniversalUpdateCollection;
   }
 
   const msgSteps: any[] = [];

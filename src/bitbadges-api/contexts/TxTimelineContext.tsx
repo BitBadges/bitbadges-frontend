@@ -95,7 +95,7 @@ export interface UpdateFlags {
   setUpdateIsArchivedTimeline: (value: boolean) => void;
 }
 
-export type MsgUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressMappingMsg & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
+export type MsgUniversalUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressMappingMsg & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
 
 export interface BaseTxTimelineProps {
   txType: 'UpdateCollection'
@@ -125,7 +125,7 @@ export interface BaseTxTimelineProps {
   setShowAdvancedOptions: (showAdvancedOptions: boolean) => void
 }
 
-export type TxTimelineContextType = MsgUpdateCollectionProps;
+export type TxTimelineContextType = MsgUniversalUpdateCollectionProps;
 
 const TxTimelineContext = createContext<TxTimelineContextType>({
   txType: 'UpdateCollection',

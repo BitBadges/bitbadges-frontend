@@ -23,6 +23,7 @@ import { INFINITE_LOOP_MODE } from '../../../constants';
 import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { fetchAccounts } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchAndUpdateMetadata, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { OffChainTransferabilityTab } from '../../../components/collection-page/OffChainTransferabilityTab';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -69,23 +70,23 @@ export function BadgePage({ collectionPreview }
     fetchAccounts([collection.createdBy, ...managers]);
   }, [collection, isPreview]);
 
-  const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
+  // const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
 
   const tabInfo = []
-  if (!isOffChainBalances) {
-    tabInfo.push(
-      { key: 'overview', content: 'Overview' },
-      { key: 'transferability', content: 'Transferability' },
-      { key: 'activity', content: 'Activity' },
-      { key: 'actions', content: 'Actions' },
-    );
-  } else {
-    tabInfo.push(
-      { key: 'overview', content: 'Overview' },
-      { key: 'activity', content: 'Activity' },
-      { key: 'actions', content: 'Actions' },
-    );
-  }
+  // if (!isOffChainBalances) {
+  tabInfo.push(
+    { key: 'overview', content: 'Overview' },
+    { key: 'transferability', content: 'Transferability' },
+    { key: 'activity', content: 'Activity' },
+    { key: 'actions', content: 'Actions' },
+  );
+  // } else {
+  //   tabInfo.push(
+  //     { key: 'overview', content: 'Overview' },
+  //     { key: 'activity', content: 'Activity' },
+  //     { key: 'actions', content: 'Actions' },
+  //   );
+  // }
 
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
@@ -121,8 +122,8 @@ export function BadgePage({ collectionPreview }
           />
         </>}
         {tab === 'transferability' && (
-          <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />
-        )}
+          <>{collection?.balancesType == 'Off-Chain' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
+          </>)}
 
 
         {tab === 'overview' && (<>

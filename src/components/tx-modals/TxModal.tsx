@@ -315,7 +315,7 @@ export function TxModal(
 
 
       //If it is a new collection, redirect to collection page
-      if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/badges.MsgUpdateCollection") {
+      if (msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.key === "action" && msgResponse.tx_response.logs[0]?.events[0]?.attributes[0]?.value === "/badges.MsgUniversalUpdateCollection") {
         const collectionIdStr = msgResponse.tx_response.logs[0]?.events[1].attributes.find((attr: any) => attr.key === "collectionId")?.value;
         if (collectionIdStr) {
           const collectionId = Numberify(collectionIdStr)

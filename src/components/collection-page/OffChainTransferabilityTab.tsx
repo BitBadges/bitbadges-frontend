@@ -51,7 +51,7 @@ export function OffChainTransferabilityTab({ collectionId }: {
         </div>
         <br />
         <div className='flex-center'>
-          <DistributionOverview collectionId={collectionId} md={18} xs={24} sm={24} /></div>
+          <DistributionOverview collectionId={collectionId} md={18} xs={24} sm={24} hideTitle /></div>
 
       </InformationDisplayCard>
     </>

@@ -1,4 +1,4 @@
-import { BadgeMetadataTimeline, CollectionApproval, MsgUpdateCollection, createTxMsgUpdateCollection } from 'bitbadgesjs-proto';
+import { BadgeMetadataTimeline, CollectionApproval, MsgUniversalUpdateCollection, createTxMsgUniversalUpdateCollection } from 'bitbadgesjs-proto';
 import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -15,16 +15,16 @@ import { isCompletelyForbidden } from '../tx-timelines/step-items/CanUpdateOffCh
 import { TxModal } from './TxModal';
 import { createBalancesMapAndAddToStorage } from './UpdateBalancesModal';
 
-export function CreateTxMsgUpdateCollectionModal(
+export function CreateTxMsgUniversalUpdateCollectionModal(
   { visible, setVisible, children,
-    msgUpdateCollection,
+    MsgUniversalUpdateCollection,
 
   }
     : {
       visible: boolean,
       setVisible: (visible: boolean) => void,
       children?: React.ReactNode,
-      msgUpdateCollection?: MsgUpdateCollection<bigint>,
+      MsgUniversalUpdateCollection?: MsgUniversalUpdateCollection<bigint>,
     }) {
   const chain = useChainContext();
   const router = useRouter();
@@ -33,7 +33,7 @@ export function CreateTxMsgUpdateCollectionModal(
   const collectionId = txTimelineContext.existingCollectionId ?? NEW_COLLECTION_ID;
   const collection = useCollection(NEW_COLLECTION_ID);
 
-  const msg: MsgUpdateCollection<bigint> = msgUpdateCollection ?? {
+  const msg: MsgUniversalUpdateCollection<bigint> = MsgUniversalUpdateCollection ?? {
     creator: chain.cosmosAddress,
     collectionId: collectionId ? collectionId : 0n,
     defaultIncomingApprovals: collection ? collection?.defaultUserIncomingApprovals : [],
@@ -278,7 +278,7 @@ export function CreateTxMsgUpdateCollectionModal(
     }) || [];
 
 
-    const msgUpdateCollection: MsgUpdateCollection<bigint> = {
+    const MsgUniversalUpdateCollection: MsgUniversalUpdateCollection<bigint> = {
       ...msg,
       creator: chain.cosmosAddress,
       collectionId: collectionId ? collectionId : 0n,
@@ -289,8 +289,8 @@ export function CreateTxMsgUpdateCollectionModal(
       offChainBalancesMetadataTimeline: offChainBalancesMetadataTimeline,
     }
 
-    console.log("FINAL MSG", msgUpdateCollection);
-    return msgUpdateCollection;
+    console.log("FINAL MSG", MsgUniversalUpdateCollection);
+    return MsgUniversalUpdateCollection;
   }
 
   const beforeTx = async (simulate: boolean) => {
@@ -304,8 +304,8 @@ export function CreateTxMsgUpdateCollectionModal(
       setVisible={setVisible}
       txName="Updated Collection"
       txCosmosMsg={msg}
-      createTxFunction={createTxMsgUpdateCollection}
-      beforeTx={!!msgUpdateCollection ? undefined : beforeTx} //If we have a template msg, we assume everything is handled
+      createTxFunction={createTxMsgUniversalUpdateCollection}
+      beforeTx={!!MsgUniversalUpdateCollection ? undefined : beforeTx} //If we have a template msg, we assume everything is handled
       onSuccessfulTx={async () => {
 
         if (collectionId && collectionId > 0n) {
