@@ -63,6 +63,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
   const account = useAccount(cosmosAddress)
 
   const getProvider = () => {
+
     if ('phantom' in window) {
       const phantomWindow = window as any;
       const provider = phantomWindow.phantom?.solana;
@@ -168,7 +169,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
         console.error(e);
         notification.error({
           message: 'Error connecting to wallet',
-          description: 'Make sure you have a compatible Ethereum wallet installed (such as MetaMask) and that you are signed in to it.',
+          description: 'Make sure you have Phantom installed and are logged in.',
         })
       }
     }
