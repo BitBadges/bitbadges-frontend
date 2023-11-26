@@ -1,10 +1,10 @@
 import { BigIntify, CollectionPermissions, NumberType, UintRange, convertUintRange, deepCopy } from "bitbadgesjs-proto";
-import { BadgeMetadataDetails, BitBadgesCollection, CollectionViewKey, DesiredNumberType, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, batchUpdateBadgeMetadata, convertBitBadgesCollection, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
+import { BadgeMetadataDetails, BitBadgesCollection, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, batchUpdateBadgeMetadata, convertBitBadgesCollection, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
 import Joi from "joi";
 import { ThunkAction } from "redux-thunk";
 import { AppDispatch, CollectionReducerState, GlobalReduxState } from "../../../pages/_app";
 import { compareObjects } from "../../../utils/compare";
-import { fetchMetadataDirectly, getCollections } from "../../api";
+import { fetchMetadataDirectly, getCollections, DesiredNumberType } from "../../api";
 import { getCurrentMetadata } from "../../utils/metadata";
 import { NEW_COLLECTION_ID } from "../TxTimelineContext";
 import { initialState } from "./CollectionsContext";

@@ -1,9 +1,9 @@
 import { deepCopy } from "bitbadgesjs-proto";
-import { AccountMap, AccountViewKey, BigIntify, BitBadgesUserInfo, DesiredNumberType, GetAccountsRouteRequestBody, MINT_ACCOUNT, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from "bitbadgesjs-utils";
+import { AccountMap, AccountViewKey, BigIntify, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from "bitbadgesjs-utils";
 import { ThunkAction } from 'redux-thunk';
 import { AccountReducerState, AppDispatch, GlobalReduxState } from "../../../pages/_app";
 import { compareObjects } from "../../../utils/compare";
-import { getAccounts } from "../../api";
+import { getAccounts, DesiredNumberType } from "../../api";
 import { initialState, reservedNames } from "./AccountsContext";
 
 interface UpdateAccountsReduxAction {

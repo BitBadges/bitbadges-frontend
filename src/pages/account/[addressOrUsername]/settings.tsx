@@ -45,8 +45,6 @@ export function AccountSettings() {
   const setReadme = (readme: string) => { setNewAccount({ ...newAccount, readme }) };
   const setCustomLinks = (customLinks: any[]) => { setNewAccount({ ...newAccount, customLinks }) };
 
-  const showAllByDefault = newAccount?.onlyShowApproved ? false : true;
-  const shownBadges = newAccount?.shownBadges ? newAccount.shownBadges : [];
   const hiddenBadges = newAccount?.hiddenBadges ? newAccount.hiddenBadges : [];
   const customPages = newAccount?.customPages ? newAccount.customPages : [];
   const username = newAccount?.username ? newAccount.username : '';
@@ -400,8 +398,6 @@ export function AccountSettings() {
                         telegram,
                         // name,
                         readme,
-                        onlyShowApproved: !showAllByDefault,
-                        shownBadges,
                         hiddenBadges,
                         customLinks,
                         customPages,

@@ -29,21 +29,7 @@ export const CustomizeButtons =
       return x.collectionId == badgeIdObj.collectionId && found
     }) !== undefined;
 
-    const isShown = accountInfo?.shownBadges?.find(x => {
-      if (x.badgeIds.length == 0) return false;
-
-      const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
-      return x.collectionId == badgeIdObj.collectionId && found
-    }) !== undefined;
-
     const isCollectionHidden = accountInfo?.hiddenBadges?.find(x => {
-      if (x.badgeIds.length == 0) return false;
-
-      const [remaining] = removeUintRangeFromUintRange(x.badgeIds, [{ start: 1n, end: GO_MAX_UINT_64 }]);
-      return x.collectionId == badgeIdObj.collectionId && remaining.length == 0
-    }) !== undefined;
-
-    const isCollectionShown = accountInfo?.shownBadges?.find(x => {
       if (x.badgeIds.length == 0) return false;
 
       const [remaining] = removeUintRangeFromUintRange(x.badgeIds, [{ start: 1n, end: GO_MAX_UINT_64 }]);
@@ -132,7 +118,7 @@ export const CustomizeButtons =
                 <IconButton
 
                   src={<SwapOutlined />}
-                  text={(accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden) ? 'Hide' : 'Show'}
+                  text={(!isHidden) ? 'Hide' : 'Show'}
                   onClick={async () => {
                     // if (!accountInfo.views.badgesCollectedWithHidden || !accountInfo.views.badgesCollected) return;
 
@@ -162,7 +148,7 @@ export const CustomizeButtons =
               <IconButton
 
                 src={<SwapOutlined />}
-                text={(accountInfo.onlyShowApproved && isCollectionShown) || (!accountInfo.onlyShowApproved && !isCollectionHidden) ? 'Hide Collection' : 'Show Collection'}
+                text={(!isCollectionHidden) ? 'Hide Collection' : 'Show Collection'}
                 onClick={async () => {
 
                   

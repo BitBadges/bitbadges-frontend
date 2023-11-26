@@ -167,16 +167,7 @@ export function MultiCollectionBadgeDisplay({
     } else if (accountInfo) {
       for (const collectionId of collectionIds) {
         let balances = deepCopy(badgesToShow.flat() ?? []);
-        if (!showCustomizeButtons) {
-          const onlyShowApproved = accountInfo.onlyShowApproved;
-          const hiddenBadges = deepCopy(accountInfo.hiddenBadges ?? []);
-          const shownBadges = deepCopy(accountInfo.shownBadges ?? []);
-          if (onlyShowApproved) {
-            balances = filterBadgeIdsFromBalanceInfos(balances, hiddenBadges.map(x => x.badgeIds).flat(), false);
-          } else {
-            balances = filterBadgeIdsFromBalanceInfos(balances, shownBadges.map(x => x.badgeIds).flat(), true);
-          }
-        }
+        
 
         if (balances) {
           const balanceInfo = balances.find(balance => balance.collectionId == collectionId);
@@ -205,7 +196,7 @@ export function MultiCollectionBadgeDisplay({
     }
 
     return allBadgeIds;
-  }, [accountInfo, badgesToShow, collectionIds, customPageBadges, showCustomizeButtons, groupByCollection, defaultPageSize]);
+  }, [accountInfo, badgesToShow, collectionIds, customPageBadges, groupByCollection, defaultPageSize]);
 
   const badgeIdsToDisplay = useMemo(() => {
     if (!groupByCollection) {

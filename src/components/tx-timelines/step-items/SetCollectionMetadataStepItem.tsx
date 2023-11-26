@@ -52,7 +52,6 @@ export function SetCollectionMetadataStepItem() {
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
       || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0)
         || (collection.badgeMetadataTimeline.length == 0)))
-      || (addMethod === MetadataAddMethod.CSV && !(collectionMetadata?.name))
       || !!err,
   }
 }
