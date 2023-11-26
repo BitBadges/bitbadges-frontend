@@ -35,6 +35,9 @@ export function getChainLogo(chain: string) {
     case SupportedChain.COSMOS:
       chainLogo = COSMOS_LOGO;
       break;
+    case SupportedChain.SOLANA:
+      chainLogo = SOLANA_LOGO;
+      break;
     default:
       chainLogo = ETH_LOGO;
       break;

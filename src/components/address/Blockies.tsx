@@ -12,7 +12,7 @@ export function BlockiesAvatar({
   fontSize?: number,
   shape?: 'circle' | 'square',
 }) {
-
+  
   if (avatar) {
     return <Avatar shape={shape ? shape : 'square'} src={avatar} size={fontSize ? fontSize : 20} />
   } else {

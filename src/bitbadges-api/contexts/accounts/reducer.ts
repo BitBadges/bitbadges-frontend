@@ -197,7 +197,6 @@ export const fetchAccountsRedux = (
       // Dispatch success action with fetched data
       if (batchRequestBody.accountsToFetch.length > 0) {
 
-
         const res = await getAccounts(batchRequestBody);
         // console.log('ACCOUNTS RES', batchRequestBody, res);
 
@@ -347,7 +346,7 @@ export const accountReducer = (state = initialState, action: { type: string; pay
         }
       }
       return { ...state, accounts, cosmosAddressesByUsernames };
-      
+
     // return { ...state, loading: true, error: '', queue: [...state.queue, ...action.payload] };
     // case 'FETCH_ACCOUNTS_START':
     //   return { ...state, loading: false, error: '', queue: [], fetching: [...state.fetching, ...action.payload] }

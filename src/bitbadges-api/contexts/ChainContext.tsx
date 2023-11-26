@@ -5,6 +5,7 @@ import { Dispatch, SetStateAction, createContext, useContext, useEffect, useStat
 import { useCosmosContext } from './chains/CosmosContext';
 import { useEthereumContext } from './chains/EthereumContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { useSolanaContext } from './chains/SolanaContext';
 
 export type SignChallengeResponse = {
   originalBytes?: Uint8Array;
@@ -79,11 +80,12 @@ type Props = {
 };
 
 export const ChainContextProvider: React.FC<Props> = ({ children }) => {
+  //TODO: default based on cookie of last signed in chain
   const [chain, setChain] = useState<SupportedChain>(SupportedChain.ETH);
-
 
   const ethereumContext = useEthereumContext();
   const cosmosContext = useCosmosContext();
+  const solanaContext = useSolanaContext();
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: chainContext');
@@ -96,6 +98,8 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
   let currentChainContext: ChainSpecificContextType;
   if (chain?.startsWith('Cosmos')) {
     currentChainContext = cosmosContext;
+  } else if (chain?.startsWith('Solana')) {
+    currentChainContext = solanaContext;
   } else {
     currentChainContext = ethereumContext;
   }

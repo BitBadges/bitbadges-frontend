@@ -1,13 +1,25 @@
 import { CloseOutlined, PlusOutlined, WarningOutlined } from "@ant-design/icons";
 import { Switch } from "antd";
 import { AddressMapping } from "bitbadgesjs-proto";
-import { convertToCosmosAddress, isAddressMappingEmpty } from "bitbadgesjs-utils";
+import { isAddressMappingEmpty } from "bitbadgesjs-utils";
 import { useState } from "react";
+import { getReservedMappingId } from "../../bitbadges-api/utils/mappings";
 import IconButton from "../display/IconButton";
 import { AddressDisplayList } from "./AddressDisplayList";
 import { AddressListSelect } from "./AddressListSelect";
 
 
+export const addMappingId = (addressMapping: AddressMapping): AddressMapping => {
+  const mappingId = getReservedMappingId(addressMapping);
+
+  // Create a new AddressMapping with the calculated mappingId
+  const updatedAddressMapping: AddressMapping = {
+    ...addressMapping,
+    mappingId: mappingId,
+  };
+
+  return updatedAddressMapping;
+};
 
 export function AddressMappingSelect({
   addressMapping,
@@ -24,34 +36,7 @@ export function AddressMappingSelect({
 }) {
   const [visible, setVisible] = useState(false);
 
-  const addMappingId = (addressMapping: AddressMapping): AddressMapping => {
-    let mappingId = '';
 
-    // Logic to determine the mappingId based on the properties of addressMapping
-    if (addressMapping.includeAddresses) {
-      if (addressMapping.addresses.length > 0) {
-        const addresses = addressMapping.addresses.map(x => convertToCosmosAddress(x)).join(':');
-        mappingId = `${addresses}`;
-      } else {
-        mappingId = 'None';
-      }
-    } else {
-      if (addressMapping.addresses.length > 0) {
-        const addresses = addressMapping.addresses.map(x => convertToCosmosAddress(x)).join(':');
-        mappingId = `AllWithout${addresses}`;
-      } else {
-        mappingId = 'All';
-      }
-    }
-
-    // Create a new AddressMapping with the calculated mappingId
-    const updatedAddressMapping: AddressMapping = {
-      ...addressMapping,
-      mappingId: mappingId,
-    };
-
-    return updatedAddressMapping;
-  };
 
   return <div className="primary-text full-width flex-column" style={{ width: '100%', maxWidth: 500, }}>
     <div >
@@ -80,17 +65,17 @@ export function AddressMappingSelect({
       </div>
       <br />
       <div className='flex-center'>
-      <AddressDisplayList
-        users={addressMapping.addresses}
-        allExcept={!addressMapping.includeAddresses}
-        setUsers={(users) => {
-          setAddressMapping(addMappingId({
-            ...addressMapping,
-            addresses: users,
-          }));
-        }}
-        hideIcons={disabled}
-      /></div></div>
+        <AddressDisplayList
+          users={addressMapping.addresses}
+          allExcept={!addressMapping.includeAddresses}
+          setUsers={(users) => {
+            setAddressMapping(addMappingId({
+              ...addressMapping,
+              addresses: users,
+            }));
+          }}
+          hideIcons={disabled}
+        /></div></div>
     {!disabled && <><br />
       <div className='flex-center'>
 

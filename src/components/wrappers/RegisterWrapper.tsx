@@ -7,7 +7,6 @@ import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContex
 export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {
   const chain = useChainContext();
   const signedInAccount = useAccount(chain.address);
-  
   const airdropped = signedInAccount?.airdropped;
   const fetched = signedInAccount?.fetchedProfile;
 

@@ -1,5 +1,5 @@
 import { Empty, Spin } from 'antd';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
+import { cosmosToEth } from 'bitbadgesjs-utils';
 import { BalanceInfo, Numberify, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
 import { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';

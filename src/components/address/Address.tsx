@@ -1,5 +1,5 @@
 import { Spin, Tooltip, Typography } from 'antd';
-import { cosmosToEth } from 'bitbadgesjs-address-converter';
+import { cosmosToEth } from 'bitbadgesjs-utils';
 import { BigIntify, MINT_ACCOUNT, SupportedChain, convertBitBadgesUserInfo, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
@@ -117,6 +117,38 @@ export function Address({
                   {getChainForAddress(address) === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
                     <AddressDisplay
                       addressOrUsername={cosmosToEth(address)}
+                      overrideChain={SupportedChain.ETH}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
+                    <br />
+                  </div>}
+
+                  {(getChainForAddress(address) === SupportedChain.COSMOS || getChainForAddress(address) === SupportedChain.ETH)
+                    && isAddressValid(address) && userInfo.solAddress && <div className='flex-center'>
+                      <AddressDisplay
+                        addressOrUsername={userInfo.solAddress}
+                        overrideChain={SupportedChain.SOLANA}
+                        hidePortfolioLink
+                        hideTooltip
+                        doNotShowName
+                      />
+                      <br />
+                    </div>}
+                  {getChainForAddress(address) === SupportedChain.SOLANA && isAddressValid(address) && <div className='flex-center'>
+                    <AddressDisplay
+                      addressOrUsername={convertToCosmosAddress(address)}
+                      overrideChain={SupportedChain.COSMOS}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
+                    <br />
+                  </div>}
+                  {getChainForAddress(address) === SupportedChain.SOLANA && isAddressValid(address) && <div className='flex-center'>
+                    <AddressDisplay
+                      addressOrUsername={cosmosToEth(convertToCosmosAddress(address))}
                       overrideChain={SupportedChain.ETH}
                       hidePortfolioLink
                       hideTooltip

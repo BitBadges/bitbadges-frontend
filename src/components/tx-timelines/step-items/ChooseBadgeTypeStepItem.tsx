@@ -28,7 +28,7 @@ export function ChooseBadgeTypeStepItem() {
             isSelected: mintType === MintType.AddressList,
             additionalNode: <>
               <b>Example</b>
-              <AddressDisplayList users={[chain.address, "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x", "0xb48B65D09aaCe9d3EBDE4De409Ef18556eb53085"]} />
+              <AddressDisplayList users={[chain.address, "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x", "0xb48B65D09aaCe9d3EBDE4De409Ef18556eb53085", "6H2af68Yyg6j7N4XeQKmkZFocYQgv6yYoU3Xk491efa5",]} />
             </>
           },
           {

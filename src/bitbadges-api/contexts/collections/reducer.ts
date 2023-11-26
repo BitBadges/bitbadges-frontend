@@ -607,6 +607,7 @@ export const fetchCollectionsRedux = (
       }
 
       const res = await getCollections(batchRequestBody);
+      // console.log("COLLECTIONS RES", res);
 
       //Update collections map
       for (let i = 0; i < res.collections.length; i++) {

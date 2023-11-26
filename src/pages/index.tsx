@@ -5,7 +5,7 @@ import { NextPage } from 'next/types';
 import { useEffect, useState } from 'react';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
-import { COSMOS_LOGO, ETH_LOGO } from '../constants';
+import { COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
 import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collections/CollectionsContext';
 
 
@@ -382,6 +382,11 @@ const Home: NextPage = () => {
                         size={48}
                         style={{ marginRight: 8 }}
                       />
+                      <Avatar
+                        src={SOLANA_LOGO}
+                        size={48}
+                        style={{ marginRight: 8 }}
+                      />
                     </div>
                     <br />
 
@@ -396,7 +401,10 @@ const Home: NextPage = () => {
                       The same badge can be owned by users from different blockchain ecosystems. We currently support Ethereum  <Avatar
                         src={ETH_LOGO}
                         size={25}
-                      /> and Cosmos <Avatar
+                      />, Solana <Avatar
+                        src={SOLANA_LOGO}
+                        size={25}
+                      />, and Cosmos <Avatar
                         src={COSMOS_LOGO}
                         size={25}
                       /> users, with more to come.

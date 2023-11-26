@@ -29,18 +29,27 @@ export function AddressWithBlockies({
 
   const userInfo = fetchedAccount ? convertBitBadgesUserInfo({
     ...fetchedAccount,
-    address: chainContext.cosmosAddress == fetchedAccount.address ? chainContext.address : fetchedAccount.address,
-    chain: chainContext.cosmosAddress == fetchedAccount.address ? chainContext.chain : fetchedAccount.chain
+    address:
+      overrideChain ?
+        overrideChain === SupportedChain.COSMOS ?
+          fetchedAccount.cosmosAddress :
+          overrideChain === SupportedChain.ETH ?
+            fetchedAccount.ethAddress
+            : fetchedAccount.solAddress
+        : chainContext.cosmosAddress == fetchedAccount.address ? chainContext.address : fetchedAccount.address,
+    chain: overrideChain ? overrideChain : chainContext.cosmosAddress == fetchedAccount.address ? chainContext.chain : fetchedAccount.chain
   }, BigIntify) : undefined; //deep copy
+  const address = userInfo?.address || addressOrUsername || '';
+  const chainLogo = getChainLogo(overrideChain ?? getChainForAddress(address));
 
-  if (userInfo?.chain === SupportedChain.UNKNOWN && overrideChain) {
-    overrideChain = undefined;
-    // throw new Error(`Cannot call overrideChain with UNKNOWN chain`);
+  if (overrideChain) {
+    if (userInfo?.chain === SupportedChain.UNKNOWN) {
+      overrideChain = undefined;
+      // throw new Error(`Cannot call overrideChain with UNKNOWN chain`);
+    }
   }
 
 
-  const address = userInfo?.address || addressOrUsername || '';
-  const chainLogo = getChainLogo(overrideChain ?? getChainForAddress(address));
 
   return <div style={{ display: 'inline-flex', alignItems: 'center' }}>
     {address !== 'Mint' && address !== 'All' &&

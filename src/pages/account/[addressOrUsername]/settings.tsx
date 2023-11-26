@@ -24,7 +24,7 @@ export function AccountSettings() {
   const router = useRouter();
   const chain = useChainContext();
 
-  const signedInAccount = useAccount(chain.cosmosAddress);
+  const signedInAccount = useAccount(chain.address);
 
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -119,7 +119,7 @@ export function AccountSettings() {
 
               <AccountButtonDisplay
                 hideButtons
-                addressOrUsername={chain.cosmosAddress}
+                addressOrUsername={chain.address}
                 profilePic={newAccount?.profilePicUrl}
               />
               <Divider></Divider>

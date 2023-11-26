@@ -1,4 +1,4 @@
-import { BroadcastMode, TxToSend, generatePostBodyBroadcast } from "bitbadgesjs-provider";
+import { BroadcastMode, TxToSend, generatePostBodyBroadcast } from "bitbadgesjs-utils";
 import { broadcastTx } from "../api";
 import { DEV_MODE } from "../../constants";
 

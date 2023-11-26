@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
 import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { INFINITE_LOOP_MODE } from "../../constants";
+import { INFINITE_LOOP_MODE, SOLANA_LOGO } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
@@ -157,7 +157,14 @@ export const BlockinDisplay = ({
             // { name: 'Polygon' },
             // { name: 'Avalanche' },
             { name: 'Cosmos' },
+            {
+              name: 'Solana',
+              logo: SOLANA_LOGO,
+              abbreviation: 'SOL',
+              getAddressExplorerUrl: (address: string) => `https://explorer.solana.com/address/${address}`,
+            }
           ]}
+          
           address={address}
           selectedChainInfo={selectedChainInfo}
           onChainUpdate={handleUpdateChain}

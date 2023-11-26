@@ -1,6 +1,6 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
-import { generatePostBodyBroadcast } from 'bitbadgesjs-provider';
+import { generatePostBodyBroadcast } from 'bitbadgesjs-utils';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';

@@ -24,6 +24,7 @@ import { TxTimelineContextProvider } from '../bitbadges-api/contexts/TxTimelineC
 import { AccountRequestParams, accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
 import { CosmosContextProvider } from '../bitbadges-api/contexts/chains/CosmosContext';
 import { EthereumContextProvider } from '../bitbadges-api/contexts/chains/EthereumContext';
+import { SolanaContextProvider } from '../bitbadges-api/contexts/chains/SolanaContext';
 import { CollectionRequestParams, collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
 import { WalletFooter } from '../components/navigation/WebsiteFooter';
 import { WalletHeader } from '../components/navigation/WebsiteHeader';
@@ -232,27 +233,28 @@ const App = ({ Component, pageProps }: AppProps) => {
       <Provider store={store}>
         <CosmosContextProvider>
           <EthereumContextProvider>
-            <ChainContextProvider>
-              <BrowseContextProvider>
-                <StatusContextProvider>
-                  <TxTimelineContextProvider>
-                    <Head>
+            <SolanaContextProvider>
+              <ChainContextProvider>
+                <BrowseContextProvider>
+                  <StatusContextProvider>
+                    <TxTimelineContextProvider>
+                      <Head>
 
-                      <meta property="og:title" content="iPhone" />
-                      <meta property="og:image" content="%PUBLIC_URL%/logo192.png" />
-                      <meta
-                        name="description"
-                        content="Create, collect, and share digital badges and credentials with BitBadges."
-                      />
-                      <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-                      <link rel="manifest" href="/manifest.json" />
-                      <title>BitBadges</title>
-                    </Head>
+                        <meta property="og:title" content="iPhone" />
+                        <meta property="og:image" content="%PUBLIC_URL%/logo192.png" />
+                        <meta
+                          name="description"
+                          content="Create, collect, and share digital badges and credentials with BitBadges."
+                        />
+                        <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+                        <link rel="manifest" href="/manifest.json" />
+                        <title>BitBadges</title>
+                      </Head>
 
-                    <div className="">
-                      <div className="layout gradient-bg">
-                        <WalletHeader />
-                        {/* {topPopupIsVisible &&
+                      <div className="">
+                        <div className="layout gradient-bg">
+                          <WalletHeader />
+                          {/* {topPopupIsVisible &&
                           <PopupContent>
                             <div style={{ textAlign: 'center' }}>Important announcement</div>
                            
@@ -260,15 +262,16 @@ const App = ({ Component, pageProps }: AppProps) => {
                               Close
                             </Button>
                           </PopupContent>} */}
-                        <Component {...pageProps} />
-                        <CookiePopup visible={myCookieValue !== 'accepted'} onClose={() => handleCookieResponse(true)} placement='bottom' />
-                        <WalletFooter />
+                          <Component {...pageProps} />
+                          <CookiePopup visible={myCookieValue !== 'accepted'} onClose={() => handleCookieResponse(true)} placement='bottom' />
+                          <WalletFooter />
+                        </div>
                       </div>
-                    </div>
-                  </TxTimelineContextProvider>
-                </StatusContextProvider>
-              </BrowseContextProvider>
-            </ChainContextProvider>
+                    </TxTimelineContextProvider>
+                  </StatusContextProvider>
+                </BrowseContextProvider>
+              </ChainContextProvider>
+            </SolanaContextProvider>
           </EthereumContextProvider>
         </CosmosContextProvider>
       </Provider>

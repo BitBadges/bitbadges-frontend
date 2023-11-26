@@ -1,4 +1,4 @@
-import { Button, Divider, Input, Typography } from 'antd';
+import { Divider, Input, Tooltip, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { addMetadataToIpfs, updateAddressMappings } from '../../../bitbadges-api/api';
@@ -7,8 +7,12 @@ import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
 
-import { SwitchForm } from './SwitchForm';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { deepCopy } from 'bitbadgesjs-proto';
+import { getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { addMappingId } from '../../address/AddressMappingSelect';
+import { SwitchForm } from './SwitchForm';
 
 export function SubmitMsgCreateAddressMapping() {
   const chain = useChainContext();
@@ -24,6 +28,7 @@ export function SubmitMsgCreateAddressMapping() {
 
   const [onChainStorage, setOnChainStorage] = useState<boolean>(false);
   const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressMapping);
+  const [mappingId, setMappingId] = useState<string>('');
 
 
   const collection = useCollection(NEW_COLLECTION_ID);
@@ -65,8 +70,9 @@ export function SubmitMsgCreateAddressMapping() {
         <Input
           defaultValue={addressMapping.mappingId}
           placeholder="Enter a unique identifier for your list."
-          value={addressMapping.mappingId}
+          value={mappingId}
           onChange={async (e) => {
+            setMappingId(e.target.value);
             setAddressMapping({
               ...addressMapping,
               mappingId: e.target.value,
@@ -75,14 +81,20 @@ export function SubmitMsgCreateAddressMapping() {
           className='form-input'
           size='large'
         />
+        {clicked && onChainStorage &&
+          <div className='secondary-text' style={{ fontSize: 14, marginTop: 4 }}>
+            <InfoCircleOutlined /> This combination of addresses is already stored on-chain without any metadata at the mapping ID:{' '}
+            <Tooltip title={addMappingId(deepCopy(addressMapping)).mappingId} style={{}}>
+              <span style={{ marginLeft: 2 }}> {getAbbreviatedAddress(addMappingId(deepCopy(addressMapping)).mappingId)}</span>
+            </Tooltip>
+          </div>}
         <Divider />
       </>}
     </>}
     <br />
-    <Button
-      type="primary"
-      loading={loading}
-      disabled={loading || !clicked || !addressMapping.mappingId}
+    <button
+      className='landing-button'
+      disabled={loading || !clicked || !addressMapping.mappingId || !mappingId}
       style={{ width: '100%' }}
       onClick={async () => {
         if (!collection) return;
@@ -111,7 +123,7 @@ export function SubmitMsgCreateAddressMapping() {
       }}
     >
       Submit
-    </Button>
+    </button>
     <CreateTxMsgCreateAddressMappingModal
       visible={visible}
       setVisible={setVisible}
