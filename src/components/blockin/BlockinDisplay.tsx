@@ -13,6 +13,7 @@ import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
+import { GO_MAX_UINT_64 } from "../../utils/dates";
 
 const { Text } = Typography;
 
@@ -108,6 +109,7 @@ export const BlockinDisplay = ({
       signChallengeResponse.signatureBytes,
       constructChallengeObjectFromString(challenge, BigIntify)
     );
+    console.log(challenge);
 
     return verifyChallengeResponse;
   }
@@ -152,10 +154,6 @@ export const BlockinDisplay = ({
           chainOptions={[
             //These should match what ChainDrivers are implemented in your backend.
             { name: 'Ethereum' },
-            // { name: 'Algorand Testnet', },
-            // { name: 'Algorand Mainnet', },
-            // { name: 'Polygon' },
-            // { name: 'Avalanche' },
             { name: 'Cosmos' },
             {
               name: 'Solana',
@@ -164,7 +162,7 @@ export const BlockinDisplay = ({
               getAddressExplorerUrl: (address: string) => `https://explorer.solana.com/address/${address}`,
             }
           ]}
-          
+
           address={address}
           selectedChainInfo={selectedChainInfo}
           onChainUpdate={handleUpdateChain}
@@ -184,7 +182,7 @@ export const BlockinDisplay = ({
               assetIds: [{ start: 8, end: 8 }],
               mustOwnAmounts: { start: 0, end: 0 },
               name: 'General Access',
-              description: 'Gain general access to this website. You will not be allowed access if you own a scammer badge.',
+              description: 'Gain general access to this website. You will not be allowed access if you own a scammer badge. This is to prevent spam and unwanted visitors.',
               frozen: true,
               defaultSelected: true,
               additionalDisplay: <div>
@@ -192,31 +190,38 @@ export const BlockinDisplay = ({
                   collectionId={1n}
                   badgeIds={[{ start: 8n, end: 8n }]}
                   size={100}
+                  showSupplys
+                  balance={[{
+                    amount: 0n,
+                    badgeIds: [{ start: 8n, end: 8n }],
+                    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  }]}
                 /></div>
             },
-            {
-              collectionId: 1,
-              chain: 'BitBadges',
-              assetIds: [{ start: 1, end: 1 }, { start: 3, end: 3 }],
-              mustOwnAmounts: { start: 1, end: 10000 },
-              name: 'Premium Features',
-              description: 'Premium features are restricted to people who own the gold membership badge and verified badge. Note this is just an example to show off BitBadges features. There are no gated premium features on this website.',
-              frozen: false,
-              defaultSelected: false,
-              // additionalCriteria: "HELLO!",
-              additionalDisplay: <div>
-                <BadgeAvatarDisplay
-                  collectionId={1n}
-                  size={100}
-                  badgeIds={[{ start: 1n, end: 1n }, { start: 3n, end: 3n }]}
-                // showIds
-                />
-              </div>
-            },
+            // {
+            //   collectionId: 1,
+            //   chain: 'BitBadges',
+            //   assetIds: [{ start: 1, end: 1 }, { start: 3, end: 3 }],
+            //   mustOwnAmounts: { start: 1, end: 10000 },
+            //   name: 'Premium Features',
+            //   description: 'Premium features are restricted to people who own the gold membership badge and verified badge. Note this is just an example to show off BitBadges features. There are no gated premium features on this website.',
+            //   frozen: false,
+            //   defaultSelected: false,
+            //   // additionalCriteria: "HELLO!",
+            //   additionalDisplay: <div>
+            //     <BadgeAvatarDisplay
+            //       collectionId={1n}
+            //       size={100}
+            //       badgeIds={[{ start: 1n, end: 1n }, { start: 3n, end: 3n }]}
+
+            //     // showIds
+            //     />
+            //   </div>
+            // },
           ]}
           signAndVerifyChallenge={signAndVerifyChallenge}
           hideConnectVsSignInHelper={hideLogin}
-          maxTimeInFuture={168 * 60 * 60 * 1000}
+          maxTimeInFuture={168 * 60 * 60 * 1000} //1 week
         />
       }
 

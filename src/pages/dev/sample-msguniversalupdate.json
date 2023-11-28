@@ -1,6 +1,17 @@
 {
   "creator": "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x",
-  "collectionId": "1",
+  "collectionId": "0",
+  "balancesType": "Standard",
+  "defaultOutgoingApprovals": [],
+  "defaultAutoApproveSelfInitiatedOutgoingTransfers": true,
+  "defaultAutoApproveSelfInitiatedIncomingTransfers": true,
+  "defaultIncomingApprovals": [],
+  "defaultUserPermissions": {
+    "canUpdateIncomingApprovals": [],
+    "canUpdateOutgoingApprovals": [],
+    "canUpdateAutoApproveSelfInitiatedIncomingTransfers": [],
+    "canUpdateAutoApproveSelfInitiatedOutgoingTransfers": []
+  },
   "badgesToCreate": [
     {
       "amount": "1",

@@ -191,7 +191,7 @@ const Home: NextPage = () => {
             {/* <div style={{ maxWidth: 400, justifyContent: 'center' }}>
                   <img src="/images/bitbadgeslogo.png" alt="BitBadges Logo" className='landing-logo' />
                 </div> */}
-            <div style={{ paddingRight: 4, paddingLeft: 4, alignItems: 'normal' }} className='flex-center full-width' >
+            <div style={{ paddingRight: 4, paddingLeft: 4, alignItems: 'normal', maxHeight: 400, overflowY: 'auto' }} className='flex-center full-width' >
 
               <div className='flex-center flex-wrap full-width primary-text '>
                 {

@@ -1,6 +1,6 @@
 import { DownOutlined, WarningOutlined } from '@ant-design/icons';
 import { Col, Divider, Input, Row, Select, Typography } from 'antd';
-import { BigIntify, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertMsgUpdateUserApprovals, createTxMsgCreateAddressMappings, createTxMsgDeleteCollection, createTxMsgTransferBadges, createTxMsgUniversalUpdateCollection, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
+import { BigIntify, convertMsgCreateCollection, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertMsgUpdateCollection, convertMsgUpdateUserApprovals, createTxMsgCreateAddressMappings, createTxMsgCreateCollection, createTxMsgDeleteCollection, createTxMsgTransferBadges, createTxMsgUniversalUpdateCollection, createTxMsgUpdateCollection, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
 import { useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
@@ -9,11 +9,13 @@ import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapp
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 const style = require('react-syntax-highlighter/dist/cjs/styles/prism').oneDark;
 
-const sampleMsgUniversalUpdateCollection = require('./sample-msgupdate.json');
+const sampleMsgUpdateCollection = require('./sample-msgupdate.json');
 const sampleMsgDeleteCollection = require('./sample-msgdelete.json');
 const sampleMsgCreateAddressMappings = require('./sample-msgcreateaddress.json');
 const sampleMsgUpdateUserApprovals = require('./sample-msgupdateapprovals.json');
 const sampleMsgTransferBadges = require('./sample-msgtransfer.json');
+const sampleMsgUniversalUpdateCollection = require('./sample-msguniversalupdate.json');
+const sampleMsgCreateCollection = require('./sample-msgcreate.json');
 
 function Broadcast() {
   const [msg, setMsg] = useState<object>(convertMsgUniversalUpdateCollection(sampleMsgUniversalUpdateCollection, BigIntify));
@@ -21,7 +23,7 @@ function Broadcast() {
   const [err, setErr] = useState<Error | null>();
   const chain = useChainContext();
 
-  const [txType, setTxType] = useState('MsgUniversalUpdateCollection');
+  const [txType, setTxType] = useState('MsgCreateCollection');
   const [inputMsg, setInputMsg] = useState(JSON.stringify(sampleMsgUniversalUpdateCollection, null, 2));
 
   const convertFunction = txType === 'MsgUniversalUpdateCollection' ? createTxMsgUniversalUpdateCollection
@@ -29,7 +31,9 @@ function Broadcast() {
       : txType === 'MsgCreateAddressMappings' ? createTxMsgCreateAddressMappings
         : txType === 'MsgUpdateUserApprovals' ? createTxMsgUpdateUserApprovals
           : txType === 'MsgTransferBadges' ? createTxMsgTransferBadges
-            : undefined
+            : txType === 'MsgCreateCollection' ? createTxMsgCreateCollection
+              : txType === 'MsgUpdateCollection' ? createTxMsgUpdateCollection
+                : undefined
 
   const getJSON = (txType: string) => {
     return txType === 'MsgUniversalUpdateCollection' ? sampleMsgUniversalUpdateCollection
@@ -37,7 +41,9 @@ function Broadcast() {
         : txType === 'MsgCreateAddressMappings' ? sampleMsgCreateAddressMappings
           : txType === 'MsgUpdateUserApprovals' ? sampleMsgUpdateUserApprovals
             : txType === 'MsgTransferBadges' ? sampleMsgTransferBadges
-              : undefined
+              : txType === 'MsgCreateCollection' ? sampleMsgCreateCollection
+                : txType === 'MsgUpdateCollection' ? sampleMsgUpdateCollection
+                  : undefined
   }
 
   return (
@@ -87,8 +93,11 @@ function Broadcast() {
                 />
               }
             >
-              <Select.Option key={0} value={'MsgUniversalUpdateCollection'}>
-                MsgUniversalUpdateCollection
+              <Select.Option key={5} value={'MsgCreateCollection'}>
+                MsgCreateCollection
+              </Select.Option>
+              <Select.Option key={6} value={'MsgUpdateCollection'}>
+                MsgUpdateCollection
               </Select.Option>
               <Select.Option key={1} value={'MsgDeleteCollection'}>
                 MsgDeleteCollection
@@ -102,6 +111,10 @@ function Broadcast() {
               <Select.Option key={4} value={'MsgTransferBadges'}>
                 MsgTransferBadges
               </Select.Option>
+              <Select.Option key={0} value={'MsgUniversalUpdateCollection'}>
+                MsgUniversalUpdateCollection
+              </Select.Option>
+
             </Select>
 
             <br />
@@ -130,6 +143,9 @@ function Broadcast() {
                     else if (txType === 'MsgCreateAddressMappings') setMsg(msg);
                     else if (txType === 'MsgUpdateUserApprovals') setMsg(convertMsgUpdateUserApprovals(msg, BigIntify));
                     else if (txType === 'MsgTransferBadges') setMsg(convertMsgTransferBadges(msg, BigIntify));
+                    else if (txType === 'MsgCreateCollection') setMsg(convertMsgCreateCollection(msg, BigIntify));
+                    else if (txType === 'MsgUpdateCollection') setMsg(convertMsgUpdateCollection(msg, BigIntify));
+                    else setMsg(msg);
                   } catch (e: any) {
                     console.error(e);
                     setErr(e.message);

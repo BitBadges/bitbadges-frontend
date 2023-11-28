@@ -1,7 +1,18 @@
 {
   "creator": "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x",
-  "collectionId": "1",
-  "badgesToCreate": [
+  "collectionId": "0",
+  "balancesType": "Standard",
+  "defaultOutgoingApprovals": [],
+  "defaultAutoApproveSelfInitiatedOutgoingTransfers": true,
+  "defaultAutoApproveSelfInitiatedIncomingTransfers": true,
+  "defaultIncomingApprovals": [],
+  "defaultUserPermissions": {
+    "canUpdateIncomingApprovals": [],
+    "canUpdateOutgoingApprovals": [],
+    "canUpdateAutoApproveSelfInitiatedIncomingTransfers": [],
+    "canUpdateAutoApproveSelfInitiatedOutgoingTransfers": []
+  },
+  "badgesToCreate": [ 
     {
       "amount": "1",
       "ownershipTimes": [
@@ -18,7 +29,6 @@
       ]
     }
   ],
-  "updateCollectionPermissions": true,
   "collectionPermissions": {
     "canDeleteCollection": [],
     "canArchiveCollection": [],
@@ -31,9 +41,7 @@
     "canUpdateBadgeMetadata": [],
     "canUpdateCollectionApprovals": []
   },
-  "updateManagerTimeline": false,
   "managerTimeline": [],
-  "updateCollectionMetadataTimeline": true,
   "collectionMetadataTimeline": [
     {
       "collectionMetadata": {
@@ -48,7 +56,6 @@
       ]
     }
   ],
-  "updateBadgeMetadataTimeline": true,
   "badgeMetadataTimeline": [
     {
       "badgeMetadata": [
@@ -171,14 +178,9 @@
       ]
     }
   ],
-  "updateOffChainBalancesMetadataTimeline": true,
   "offChainBalancesMetadataTimeline": [],
-  "updateCustomDataTimeline": true,
   "customDataTimeline": [],
-  "updateCollectionApprovals": true,
   "collectionApprovals": [],
-  "updateStandardsTimeline": true,
   "standardsTimeline": [],
-  "updateIsArchivedTimeline": true,
   "isArchivedTimeline": []
 }

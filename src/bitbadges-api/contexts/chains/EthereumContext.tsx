@@ -176,7 +176,10 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     setPublicKey(cosmosAddress, base64PubKey);
     setCookies('pub_key', `${cosmosAddress}-${base64PubKey}`, { path: '/' });
 
-    return { originalBytes: new Uint8Array(Buffer.from(msg, 'utf8')), signatureBytes: new Uint8Array(Buffer.from(sign, 'utf8')), message: 'Success' }
+    return {
+      hexSignature: sign,
+      originalBytes: new Uint8Array(Buffer.from(msg, 'utf8')), signatureBytes: new Uint8Array(Buffer.from(sign, 'utf8')), message: 'Success'
+    }
   }
 
   const signTxn = async (txn: any, simulate: boolean) => {
