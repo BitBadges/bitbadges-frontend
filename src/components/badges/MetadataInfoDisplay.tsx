@@ -211,7 +211,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
               ? <Tooltip placement='bottom' title='This metadata URL uses permanent storage, meaning this URL will always return the same metadata.'>
                 <LockOutlined style={{ marginLeft: 4 }} />
               </Tooltip> :
-              <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the metadata is free to be changed by whoever controls the URL.'>
+              <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the data is free to be changed by whoever controls the URL.'>
                 <EditOutlined style={{ marginLeft: 4 }} />
               </Tooltip>
             }
@@ -233,7 +233,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                       ? <Tooltip placement='bottom' title='This metadata URL uses permanent storage, meaning this URL will always return the same metadata.'>
                         <LockOutlined style={{ marginLeft: 4 }} />
                       </Tooltip> :
-                      <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the metadata is free to be changed by whoever controls the URL.'>
+                      <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the data is free to be changed by whoever controls the URL.'>
                         <EditOutlined style={{ marginLeft: 4 }} />
                       </Tooltip>
                     }

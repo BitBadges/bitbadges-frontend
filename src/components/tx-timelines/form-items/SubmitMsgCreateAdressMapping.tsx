@@ -1,4 +1,4 @@
-import { Divider, Input, Tooltip, Typography } from 'antd';
+import { Divider, Input, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { addMetadataToIpfs, updateAddressMappings } from '../../../bitbadges-api/api';
@@ -7,11 +7,7 @@ import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
 
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { deepCopy } from 'bitbadgesjs-proto';
-import { getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { addMappingId } from '../../address/AddressMappingSelect';
 import { SwitchForm } from './SwitchForm';
 
 export function SubmitMsgCreateAddressMapping() {
@@ -81,13 +77,13 @@ export function SubmitMsgCreateAddressMapping() {
           className='form-input'
           size='large'
         />
-        {clicked && onChainStorage &&
+        {/* {clicked && onChainStorage &&
           <div className='secondary-text' style={{ fontSize: 14, marginTop: 4 }}>
-            <InfoCircleOutlined /> This combination of addresses is already stored on-chain without any metadata at the mapping ID:{' '}
+            <InfoCircleOutlined /> This combination of addresses can already be reference b at the mapping ID:{' '}
             <Tooltip title={addMappingId(deepCopy(addressMapping)).mappingId} style={{}}>
               <span style={{ marginLeft: 2 }}> {getAbbreviatedAddress(addMappingId(deepCopy(addressMapping)).mappingId)}</span>
             </Tooltip>
-          </div>}
+          </div>} */}
         <Divider />
       </>}
     </>}

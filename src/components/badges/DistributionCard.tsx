@@ -117,7 +117,7 @@ export function DistributionOverview({
                     ? <Tooltip placement='bottom' title='This metadata URL uses permanent storage, meaning this URL will always return the same metadata.'>
                       <LockOutlined style={{ marginLeft: 4 }} />
                     </Tooltip> :
-                    <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the metadata may change.'>
+                    <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the data may change.'>
                       <EditOutlined style={{ marginLeft: 4 }} />
                     </Tooltip>
                   }
