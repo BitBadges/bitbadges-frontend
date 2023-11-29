@@ -149,8 +149,6 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
             const metadata = prunedMetadata[i];
             const result = res.badgeMetadataResults[i];
 
-
-
             newBadgeMetadataTimeline[0].badgeMetadata.push({
               uri: 'ipfs://' + result.cid,
               badgeIds: metadata.badgeIds,
