@@ -57,17 +57,16 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
           </b>
         </div>
         <div
-          className='primary-text'
+          className='secondary-text'
           style={{
             marginTop: 4,
             fontSize: 14,
-            fontWeight: 'bolder',
             whiteSpace: 'normal',
             textAlign: 'left',
           }}
 
         >
-          <a onClick={(e) => {
+          <a style={{ fontWeight: 'bolder' }} onClick={(e) => {
             router.push(`/collections/${activity.collectionId}`);
             e.stopPropagation();
           }}>
