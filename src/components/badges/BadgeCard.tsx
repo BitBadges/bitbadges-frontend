@@ -43,13 +43,20 @@ export function BadgeCard({
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n;
   const showOwnershipTimesIcon = badgeId && balances && showSupplys ? balances.some(x => !isFullUintRanges(x.ownershipTimes)) : false;
 
+  // <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 3xl:grid-cols-7">
+  // </div>
+
+  //cardWidth = screenWidth / 200 rounded down to nearest 10
+  const expectedNumCards = Math.round(window.innerWidth / 200);
+  const numCards = Math.max(2, expectedNumCards);
+  const cardWidth = ((window.innerWidth - 100) / numCards)
 
   return (
-    <div>
+    <div >
       <Card
         className='primary-text card-bg'
         style={{
-          width: 200,
+          width: cardWidth,
           margin: 8,
           textAlign: 'center',
           borderRadius: '8%',
@@ -72,9 +79,8 @@ export function BadgeCard({
         <div className='flex-center full-width primary-text'>
           <Meta
             title={<div>
-              <div className='primary-text'
+              <div className='primary-text md:text-md lg:text-lg'
                 style={{
-                  fontSize: 20,
                   fontWeight: 'bolder',
                   whiteSpace: 'normal',
                   wordWrap: 'break-word',
@@ -85,9 +91,8 @@ export function BadgeCard({
               </div>
               {!hideCollectionLink &&
                 <div
-                  className='primary-text'
+                  className='primary-text md:text-sm lg:text-md'
                   style={{
-                    fontSize: 14,
                     fontWeight: 'bolder',
                     whiteSpace: 'normal'
                   }}
@@ -114,7 +119,7 @@ export function BadgeCard({
 
                 {collection && <>
                   ID #{`${badgeId}`}
-                  <br/>
+                  <br />
                 </>}
                 {showSupplys && <>
                   x<span style={{ color: currBalanceAmount < 0 ? 'red' : undefined }}>

@@ -71,8 +71,8 @@ function Broadcast() {
             </div>
             <div>
               If there are bugs or issues, please report them via our Discord or GitHub.
+              See <a href="https://app.gitbook.com/o/7VSYQvtb1QtdWFsEGoUn/s/7R34Y0QZwgpUGaJnJ4dq/for-developers/concepts/cosmos-msgs" target="_blank" rel="noreferrer">the BitBadges documentation</a> for more info.
 
-              See <a href="https://app.gitbook.com/o/7VSYQvtb1QtdWFsEGoUn/s/7R34Y0QZwgpUGaJnJ4dq/for-developers/concepts/cosmos-msgs" target="_blank" rel="noreferrer">the BitBadges documentation</a> for documentation on each Msg type.
             </div>
             <br />
             <Select
@@ -114,9 +114,12 @@ function Broadcast() {
               <Select.Option key={0} value={'MsgUniversalUpdateCollection'}>
                 MsgUniversalUpdateCollection
               </Select.Option>
-
             </Select>
-
+            <br />
+            <br />
+            <a href={`https://docs.bitbadges.io/for-developers/cosmos-sdk-msgs/${txType.toLowerCase()}`} target='_blank'>
+              Learn more about {txType} here.
+            </a>
             <br />
             <br />
           </Col>

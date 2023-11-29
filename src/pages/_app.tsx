@@ -240,13 +240,13 @@ const App = ({ Component, pageProps }: AppProps) => {
                     <TxTimelineContextProvider>
                       <Head>
 
-                        <meta property="og:title" content="iPhone" />
-                        <meta property="og:image" content="%PUBLIC_URL%/logo192.png" />
+                        <meta property="og:title" content="BitBadges" />
+                        <meta property="og:image" content="/logo192.png" />
                         <meta
                           name="description"
-                          content="Create, collect, and share digital badges and credentials with BitBadges."
+                          content="BitBadges is the all-in-one platform for creating, maintaining, displaying ,and verifying digital blockchain badges."
                         />
-                        <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+                        <link rel="apple-touch-icon" href="/logo192.png" />
                         <link rel="manifest" href="/manifest.json" />
                         <title>BitBadges</title>
                       </Head>
