@@ -1,12 +1,11 @@
 import { Empty, Spin } from 'antd';
-import { cosmosToEth } from 'bitbadgesjs-utils';
 import { BalanceInfo, Numberify, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
 import { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { getOwnersForBadge } from '../../bitbadges-api/api';
 
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, getAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -56,7 +55,8 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch accounts ');
-    fetchAccounts(owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map(x => cosmosToEth(x.cosmosAddress)) ?? []);
+    fetchAccounts(owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map(x => getAccount(x.cosmosAddress)?.address ?? x.cosmosAddress));
+  
   }, [owners]);
 
   return (<>
@@ -103,12 +103,12 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
           style={{ width: '100%' }}
         >
           {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
-
+            const account = getAccount(owner.cosmosAddress);
             return <TableRow
               key={idx}
               label={
                 <div>
-                  <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
+                  <AddressDisplay addressOrUsername={account?.address ?? ""} fontSize={16} />
                 </div>
               } value={
 
