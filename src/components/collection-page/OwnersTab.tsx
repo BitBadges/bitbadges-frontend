@@ -5,7 +5,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { getOwnersForBadge } from '../../bitbadges-api/api';
 
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { fetchAccounts, getAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -19,7 +19,6 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
   badgeId: bigint
   setTab?: (tab: string) => void;
 }) {
-
   const collection = useCollection(collectionId)
   const isPreview = collection?.collectionId === NEW_COLLECTION_ID;
 
@@ -55,8 +54,8 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch accounts ');
-    fetchAccounts(owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map(x => getAccount(x.cosmosAddress)?.address ?? x.cosmosAddress));
-  
+    if (owners && owners.length > 0) fetchAccounts(owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map(x => x.cosmosAddress));
+
   }, [owners]);
 
   return (<>
@@ -66,8 +65,6 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
       {loaded ?
         <div className='primary-text flex-center flex-column'>
           {<div className='full-width'>
-
-
             <div className='flex'>
               <BalanceOverview
                 collectionId={collectionId}
@@ -84,7 +81,7 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
         </div>
       }
     </InformationDisplayCard>
-
+    <br />
     <InformationDisplayCard title="All Owners">
       <div className='primary-text flex-center flex-column'>
         <InfiniteScroll
@@ -103,16 +100,14 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
           style={{ width: '100%' }}
         >
           {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
-            const account = getAccount(owner.cosmosAddress);
+
             return <TableRow
               key={idx}
               label={
                 <div>
-                  <AddressDisplay addressOrUsername={account?.address ?? ""} fontSize={16} />
+                  <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
                 </div>
               } value={
-
-
                 <div style={{ float: 'right' }}>
                   <BalanceDisplay
                     hideBadges
