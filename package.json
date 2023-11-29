@@ -35,7 +35,6 @@
     "antd": "^4.24.14",
     "axios": "^1.6.2",
     "bech32": "^2.0.0",
-    "bitbadgesjs-proto": "^0.1.181",
     "bitbadgesjs-utils": "^1.1.306",
     "blockin": "^1.2.60",
     "blockin-eth-driver-minified": "^1.0.0",

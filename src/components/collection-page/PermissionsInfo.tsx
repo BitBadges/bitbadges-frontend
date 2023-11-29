@@ -566,7 +566,7 @@ export const PermissionIcon = ({ permissions, usedFlags, neverHasManager, badgeI
   const { hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes } = getPermissionDetails(permissions, usedFlags, neverHasManager, badgeIds);
 
   return <>
-    <Popover color='black' className="primary-text card-bg" content={<>
+    <Popover color='black' className="primary-text inherit-bg" content={<>
       <div className="dark primary-text">
         <PermissionDisplay permissions={permissions} usedFlags={usedFlags} neverHasManager={neverHasManager} badgeIds={badgeIds} />
       </div>
