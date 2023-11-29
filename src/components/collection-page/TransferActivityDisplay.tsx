@@ -9,7 +9,7 @@ import { DesiredNumberType } from '../../bitbadges-api/api';
 
 
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { fetchCollections, getCollection, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE, NODE_API_URL } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
@@ -43,7 +43,7 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
   return <>
     <div className='flex-between' style={{ width: '100%' }}>
       <div className='primary-text'>
-        <div className='flex' style={{ display: 'flex', alignItems: 'center' }}>
+        <div className='flex flex-wrap' style={{ display: 'flex', alignItems: 'center' }}>
           {collection?.balancesType === 'Standard' ? <>
             <PanelHeaderAddresses addresses={[activity.from]} />
             <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
@@ -51,10 +51,6 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
             <></>}
 
           <PanelHeaderAddresses addresses={activity.to} />
-          <b style={{ marginRight: 8, marginLeft: 8 }}>
-            {/* Calculate number of badges transferred */}
-            ({numBadgesTransferred.toString()} Badge{numBadgesTransferred === 1n ? '' : 's'})
-          </b>
         </div>
         <div
           className='secondary-text'
@@ -73,7 +69,8 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
             {collection?.cachedCollectionMetadata?.name}
           </a>
           {' - '}
-          {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})
+
+          {numBadgesTransferred.toString()} Badge{numBadgesTransferred === 1n ? '' : 's'} at {new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()}
 
 
         </div>
@@ -95,7 +92,6 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
   currPage: number,
   numShown: number
 }) {
-
   return <>{/** No activity */}
     {activity.length === 0 && !hasMore && <EmptyIcon description='No Activity' />}
 
@@ -116,7 +112,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
           }
 
           const collectionId = activity.collectionId;
-
+          const collection = getCollection(collectionId);
 
           return <CollapsePanel
             key={idx}
@@ -133,11 +129,9 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                   <div key={idx} className='primary-text'>
                     <Row>
                       <Col span={24}>
-                        {activity.balances.length == 0 && <div className='secondary-text'>
-                          <InfoCircleOutlined /> This user previously owned badges in this collection, but their balance has now been updated to own none.
-                        </div>}
 
                         <TransferDisplay
+
                           key={idx}
                           doNotCalculate
                           collectionId={collectionId}
@@ -162,6 +156,14 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                             See Blockchain Transaction
                           </a></p>
                         }
+                        {
+                          <div className='secondary-text'>
+                            <InfoCircleOutlined /> {collection?.balancesType === 'Standard' ? 'Standard transfer facilitated on the blockchain.' : 'This collection uses off-chain balances. This user\'s balances has been updated by the host server.'}
+                            {activity.balances.length == 0 && "This user previously owned badges in this collection, but their balance has now been updated to own none."}
+                          </div>}
+                        <br />
+                        {/* {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'}   */}
+
                       </Col>
                     </Row>
                   </div>
