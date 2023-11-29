@@ -1,5 +1,4 @@
 import { Empty, Spin } from 'antd';
-import { cosmosToEth } from 'bitbadgesjs-utils';
 import { BalanceInfo, Numberify, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
 import { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -20,7 +19,6 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
   badgeId: bigint
   setTab?: (tab: string) => void;
 }) {
-
   const collection = useCollection(collectionId)
   const isPreview = collection?.collectionId === NEW_COLLECTION_ID;
 
@@ -56,7 +54,8 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch accounts ');
-    fetchAccounts(owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map(x => cosmosToEth(x.cosmosAddress)) ?? []);
+    if (owners && owners.length > 0) fetchAccounts(owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map(x => x.cosmosAddress));
+
   }, [owners]);
 
   return (<>
@@ -66,8 +65,6 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
       {loaded ?
         <div className='primary-text flex-center flex-column'>
           {<div className='full-width'>
-
-
             <div className='flex'>
               <BalanceOverview
                 collectionId={collectionId}
@@ -84,7 +81,7 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
         </div>
       }
     </InformationDisplayCard>
-
+    <br />
     <InformationDisplayCard title="All Owners">
       <div className='primary-text flex-center flex-column'>
         <InfiniteScroll
@@ -111,8 +108,6 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
                   <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
                 </div>
               } value={
-
-
                 <div style={{ float: 'right' }}>
                   <BalanceDisplay
                     hideBadges

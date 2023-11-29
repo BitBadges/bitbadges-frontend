@@ -8,7 +8,7 @@ export const ConvertFunction = BigIntify;
 
 const BitBadgesApi = new BitBadgesAPI({
   apiUrl: BACKEND_URL,
-  // apiKey: ...
+  apiKey: "asajsfhdasdfgahsjdfnbashjdfgashdjbczjhasgdbjkfabsdkjhfagsdfjkasgdfjkasdgfhja",
   convertFunction: BigIntify
 });
 

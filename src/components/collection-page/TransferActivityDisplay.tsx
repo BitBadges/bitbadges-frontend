@@ -41,10 +41,9 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
   });
 
   return <>
-
-    <div className='primary-text'>
-      <Row className='flex-between  primary-text' style={{ textAlign: 'left' }} >
-        <Col md={12} xs={24} sm={24} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }} >
+    <div className='flex-between' style={{ width: '100%' }}>
+      <div className='primary-text'>
+        <div className='flex' style={{ display: 'flex', alignItems: 'center' }}>
           {collection?.balancesType === 'Standard' ? <>
             <PanelHeaderAddresses addresses={[activity.from]} />
             <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
@@ -56,32 +55,34 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
             {/* Calculate number of badges transferred */}
             ({numBadgesTransferred.toString()} Badge{numBadgesTransferred === 1n ? '' : 's'})
           </b>
-        </Col>
-        <div className='flex-center' onClick={(e) => { e.stopPropagation(); }} style={{ display: 'flex', alignItems: 'center' }}>
-          {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})
-          {onDelete && <IconButton src={<DeleteOutlined />} onClick={() => onDelete(idx)} text='' tooltipMessage='Delete' />}
         </div>
-      </Row>
-      <Row>
         <div
           className='primary-text'
           style={{
             marginTop: 4,
             fontSize: 14,
             fontWeight: 'bolder',
-            whiteSpace: 'normal'
+            whiteSpace: 'normal',
+            textAlign: 'left',
           }}
-          onClick={(e) => {
+
+        >
+          <a onClick={(e) => {
             router.push(`/collections/${activity.collectionId}`);
             e.stopPropagation();
-          }}
-        >
-          <a>
+          }}>
             {collection?.cachedCollectionMetadata?.name}
           </a>
+          {' - '}
+          {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'} ({new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()})
+
+
         </div>
 
-      </Row>
+      </div>
+      <div>
+        {onDelete && <IconButton src={<DeleteOutlined />} onClick={() => onDelete(idx)} text='' tooltipMessage='Delete' />}
+      </div>
     </div>
   </>
 }

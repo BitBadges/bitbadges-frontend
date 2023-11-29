@@ -14,6 +14,7 @@ import { getPermissionDetails } from '../collection-page/PermissionsInfo';
 import { isCompletelyForbidden } from '../tx-timelines/step-items/CanUpdateOffChainBalancesStepItem';
 import { TxModal } from './TxModal';
 import { createBalancesMapAndAddToStorage } from './UpdateBalancesModal';
+import { notification } from 'antd';
 
 export function CreateTxMsgUniversalUpdateCollectionModal(
   { visible, setVisible, children,
@@ -120,63 +121,70 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
           });
         }
       } else {
-        let res = await addMetadataToIpfs({
+        const body = {
           collectionMetadata: txTimelineContext.updateCollectionMetadataTimeline && txTimelineContext.collectionAddMethod === MetadataAddMethod.Manual
             ? collection.cachedCollectionMetadata : undefined,
           badgeMetadata: txTimelineContext.updateBadgeMetadataTimeline && txTimelineContext.badgeAddMethod === MetadataAddMethod.Manual
             ? prunedMetadata : undefined,
-        });
-        // if (!res.collectionMetadataResult) throw new Error('Collection metadata not added to IPFS');
-
-        if (txTimelineContext.updateCollectionMetadataTimeline && txTimelineContext.collectionAddMethod === MetadataAddMethod.Manual) {
-          collectionMetadataTimeline = [{
-            timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            collectionMetadata: {
-              uri: 'ipfs://' + res.collectionMetadataResult?.cid,
-              customData: '',
-            },
-          }];
         }
+        const toUpload = body.collectionMetadata || body.badgeMetadata;
+        if (toUpload) {
+          notification.info({
+            message: 'Uploading metadata',
+            description: 'Give us a second to handle the uploading of your collection\'s metadata to IPFS.',
+          })
 
-        if (txTimelineContext.updateBadgeMetadataTimeline && txTimelineContext.badgeAddMethod === MetadataAddMethod.Manual) {
-          let newBadgeMetadataTimeline: BadgeMetadataTimeline<bigint>[] = [{
-            timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            badgeMetadata: []
-          }]
+          let res = await addMetadataToIpfs(body);
+          // if (!res.collectionMetadataResult) throw new Error('Collection metadata not added to IPFS');
 
-          //First, we add the new metadata that should be updated
-          for (let i = 0; i < prunedMetadata.length; i++) {
-            const metadata = prunedMetadata[i];
-            const result = res.badgeMetadataResults[i];
+          if (txTimelineContext.updateCollectionMetadataTimeline && txTimelineContext.collectionAddMethod === MetadataAddMethod.Manual) {
+            collectionMetadataTimeline = [{
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              collectionMetadata: {
+                uri: 'ipfs://' + res.collectionMetadataResult?.cid,
+                customData: '',
+              },
+            }];
+          }
 
+          if (txTimelineContext.updateBadgeMetadataTimeline && txTimelineContext.badgeAddMethod === MetadataAddMethod.Manual) {
+            let newBadgeMetadataTimeline: BadgeMetadataTimeline<bigint>[] = [{
+              timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+              badgeMetadata: []
+            }]
 
+            //First, we add the new metadata that should be updated
+            for (let i = 0; i < prunedMetadata.length; i++) {
+              const metadata = prunedMetadata[i];
+              const result = res.badgeMetadataResults[i];
 
+              newBadgeMetadataTimeline[0].badgeMetadata.push({
+                uri: 'ipfs://' + result.cid,
+                badgeIds: metadata.badgeIds,
+                customData: ''
+              });
+
+              metadata.uri = 'ipfs://' + result.cid;
+            }
+
+            //Next, we add any existing metadata that wasn't updated
+            if (collection.badgeMetadataTimeline.length > 0 && collection.badgeMetadataTimeline[0].badgeMetadata.length > 0) {
+              newBadgeMetadataTimeline[0].badgeMetadata.push(...collection.badgeMetadataTimeline[0].badgeMetadata);
+            }
+
+            //Add default placeholder metadata for any badges that don't have metadata (IDs > max)
+            //Permissions should be set to allow updating this metadata
             newBadgeMetadataTimeline[0].badgeMetadata.push({
-              uri: 'ipfs://' + result.cid,
-              badgeIds: metadata.badgeIds,
+              uri: 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs',
+              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
               customData: ''
             });
 
-            metadata.uri = 'ipfs://' + result.cid;
+            //Get first match only. Thus, we prioritize updates -> existing -> not handled in that order
+            newBadgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(newBadgeMetadataTimeline[0].badgeMetadata).filter(x => x.badgeIds.length > 0);
+
+            badgeMetadataTimeline = newBadgeMetadataTimeline;
           }
-
-          //Next, we add any existing metadata that wasn't updated
-          if (collection.badgeMetadataTimeline.length > 0 && collection.badgeMetadataTimeline[0].badgeMetadata.length > 0) {
-            newBadgeMetadataTimeline[0].badgeMetadata.push(...collection.badgeMetadataTimeline[0].badgeMetadata);
-          }
-
-          //Add default placeholder metadata for any badges that don't have metadata (IDs > max)
-          //Permissions should be set to allow updating this metadata
-          newBadgeMetadataTimeline[0].badgeMetadata.push({
-            uri: 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs',
-            badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            customData: ''
-          });
-
-          //Get first match only. Thus, we prioritize updates -> existing -> not handled in that order
-          newBadgeMetadataTimeline[0].badgeMetadata = getFirstMatchForBadgeMetadata(newBadgeMetadataTimeline[0].badgeMetadata).filter(x => x.badgeIds.length > 0);
-
-          badgeMetadataTimeline = newBadgeMetadataTimeline;
         }
       }
     }
