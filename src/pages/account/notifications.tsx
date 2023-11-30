@@ -138,9 +138,10 @@ export function Notifications() {
                 <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
                   Notifications
                 </div>
-                <div className='secondary-text flex-center'>
-                  Last Fetched: {new Date(Number(chain.lastSeenActivity)).toLocaleDateString()} {new Date(Number(chain.lastSeenActivity)).toLocaleTimeString()}
-                </div>
+                {chain.lastSeenActivity > 1 &&
+                  <div className='secondary-text flex-center'>
+                    Last Fetched: {new Date(Number(chain.lastSeenActivity)).toLocaleDateString()} {new Date(Number(chain.lastSeenActivity)).toLocaleTimeString()}
+                  </div>}
                 {/* <div className='flex-center'>
                   <IconButton
                     src={<CloudSyncOutlined />}

@@ -45,6 +45,7 @@ function PortfolioPage() {
   const [addPageIsVisible, setAddPageIsVisible] = useState(false);
 
   const [newPageTitle, setNewPageTitle] = useState('');
+  const [newPageDescription, setNewPageDescription] = useState('');
   const [warned, setWarned] = useState(false);
 
   useEffect(() => {
@@ -793,12 +794,27 @@ function PortfolioPage() {
                 />
                 <br />
                 <br />
+                <Input.TextArea
+
+                  defaultValue=""
+                  placeholder="Page Name"
+                  className='form-input'
+                  style={{
+                    maxWidth: 300,
+                    marginRight: 8
+                  }}
+                  onChange={(e) => {
+                    if (e) setNewPageDescription(e.target.value);
+                  }}
+                />
+                <br />
+                <br />
                 <div className='flex-center'>
                   <button className='landing-button' onClick={async () => {
                     const newCustomPages = deepCopy(accountInfo.customPages ?? []);
                     newCustomPages.push({
                       title: newPageTitle,
-                      description: '',
+                      description: newPageDescription,
                       badges: []
                     });
 
@@ -808,6 +824,8 @@ function PortfolioPage() {
 
                     setAddPageIsVisible(false);
                     setBadgeTab(newPageTitle);
+                    setNewPageDescription('');
+                    setNewPageTitle('');
                   }}>
                     Add Page
                   </button>
@@ -816,6 +834,10 @@ function PortfolioPage() {
             </div>}
 
             {badgeTab !== '' && <>
+              <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                {accountInfo.customPages?.find(x => x.title === badgeTab)?.description}
+              </div>
+
               <InfiniteScroll
                 dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
                 next={async () => {
