@@ -168,6 +168,7 @@ function AddressMappingPage() {
                     title="Info"
                   >
                     {isOnChain && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
+                    {!isOnChain && mapping && <TableRow label={"ID"} value={mapping.mappingId.split('_')[1]} labelSpan={9} valueSpan={15} />}
                     {mapping?.customData && <TableRow label={"ID"} value={mapping.customData} labelSpan={9} valueSpan={15} />}
                     {mapping?.createdBy && <TableRow label={"Created By"} value={
                       <div className='flex-between' style={{ textAlign: 'right' }}>

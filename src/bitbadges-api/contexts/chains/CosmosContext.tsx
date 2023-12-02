@@ -191,7 +191,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
       }
     }
     fetchDetails();
-  }, [address, cookies.blockincookie])
+  }, [address, cookies.blockincookie, loggedIn])
 
   const connect = async () => {
     const { keplr } = window

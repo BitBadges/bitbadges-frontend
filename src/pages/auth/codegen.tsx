@@ -3,7 +3,7 @@ import { BigIntify, NumberType, convertBlockinAuthSignatureInfo, convertToCosmos
 import { ChallengeParams } from 'blockin';
 import { SignInModal } from 'blockin/dist/ui';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createAuthCode } from '../../bitbadges-api/api';
 import { SignChallengeResponse, useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -14,6 +14,18 @@ import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { AuthCode } from '../account/[addressOrUsername]/codes';
+import { fetchCollections, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { BadgeAvatarDisplay } from '../../components/badges/BadgeAvatarDisplay';
+
+export interface CodeGenQueryParams {
+  challengeParams?: ChallengeParams<bigint>;
+  name?: string;
+  description?: string;
+  image?: string;
+  generateNonce?: boolean
+  allowAddressSelect?: boolean;
+  callbackRequired?: boolean;
+}
 
 function BlockinCodesScreen() {
   const router = useRouter();
@@ -28,6 +40,8 @@ function BlockinCodesScreen() {
     callbackRequired
   } = router.query;
 
+ 
+
 
   const {
     address,
@@ -40,8 +54,15 @@ function BlockinCodesScreen() {
 
   const currAccount = useAccount(address);
 
+  const blockinParams = challengeParams ? JSON.parse(challengeParams as string) as ChallengeParams<NumberType> : undefined;
+  useEffect(() => {
+    const collectionsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId) ?? [];
+    const collectionIds = collectionsToFetch.map(x => BigInt(x.collectionId));
+    fetchCollections(collectionIds);
 
-  if (!challengeParams) {
+  }, [blockinParams]);
+
+  if (!challengeParams || !blockinParams) {
     return <div style={{
       marginLeft: '3vw',
       marginRight: '3vw',
@@ -54,8 +75,6 @@ function BlockinCodesScreen() {
     </div>;
   }
 
-
-  const blockinParams = JSON.parse(challengeParams as string) as ChallengeParams<NumberType>;
   if (allowAddressSelect) {
     blockinParams.address = address
   }
@@ -63,6 +82,10 @@ function BlockinCodesScreen() {
   if (generateNonce) {
     blockinParams.nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
   }
+
+
+
+
 
   const handleSignChallenge = async (challenge: string) => {
     const response = await signChallenge(challenge);
@@ -167,10 +190,10 @@ function BlockinCodesScreen() {
                       }, BigIntify)} />
                       <Divider />
                       <div className='secondary-text' style={{ textAlign: 'center' }}>
-                        <InfoCircleOutlined /> To be authenticated, the site that directed you here requires you to sign the message below.
+                        <InfoCircleOutlined /> To be authenticated, the site that directed you here requires you to sign the message with the above details.
                         Once signed, a secret QR code will be generated for you to present at authentication time.
                         {window.opener && callbackRequired && <>
-                          The site has also requested that the QR code be sent back to them for their use as well.
+                          <WarningOutlined style={{ color: 'orange' }} /> <span style={{ color: 'orange' }}>This QR code will also be sent back to the site that directed you here.</span>
                         </>}
                       </div>
                       <br />
@@ -179,11 +202,9 @@ function BlockinCodesScreen() {
                       </div>
                       <br />
 
-
-
                       <div className='flex-center'>
                         <button className='landing-button' onClick={() => setModalIsVisible(true)} style={{ minWidth: 222, marginTop: 16 }}>
-                          Sign Message
+                          Sign
                         </button>
                       </div>
 
@@ -227,6 +248,28 @@ function BlockinCodesScreen() {
                       selectedChainName={chain.chain}
                       signAndVerifyChallenge={signAndVerifyChallenge}
                       displayNotConnnectedWarning={false}
+                      displayedAssets={blockinParams.assets?.map(x => {
+                        const collection = x.chain === 'BitBadges' ? getCollection(BigInt(x.collectionId)) : undefined;
+
+                        return {
+                          ...x,
+                          name: collection?.cachedCollectionMetadata?.name ?? '',
+                          // image: collection?.cachedCollectionMetadata?.image ?? '',
+                          description: 'To be granted access, you must satisfy the ownership requirements.',
+                          defaultSelected: true,
+                          frozen: true,
+                          additionalDisplay: x.chain === 'BitBadges' ? <div>
+                            <BadgeAvatarDisplay
+                              collectionId={BigInt(x.collectionId)}
+                              badgeIds={(x.assetIds).map(x => {
+                                if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
+                                return { start: BigInt(x.start), end: BigInt(x.end) };
+                              })}
+                              size={75}
+                            />
+                          </div> : undefined
+                        }
+                      }) ?? []}
                     />
                   }
                 </div>

@@ -213,7 +213,7 @@ export function WalletHeader() {
     {connected && <>
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
     </>}
-    
+
     <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => { }}>
       <div className='flex-center'>
         <div className='mx-2'>{'Dark Mode'}</div>

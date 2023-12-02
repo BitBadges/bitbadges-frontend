@@ -1,16 +1,16 @@
-import { Layout, Tooltip } from 'antd';
+import { Avatar, Layout, Tooltip, notification } from 'antd';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, WarningOutlined } from '@ant-design/icons';
 import { BlockinAuthSignatureInfo, getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { toDataURL } from 'qrcode';
 import { useEffect, useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { deleteAuthCode, getAuthCode } from '../../../bitbadges-api/api';
 import { getAuthCodesView, useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../../components/address/AddressDisplay';
 import { CollectionHeader } from '../../../components/badges/CollectionHeader';
-import { BalanceDisplay } from '../../../components/badges/balances/BalanceDisplay';
 import { EmptyIcon } from '../../../components/common/Empty';
 import CustomCarousel from '../../../components/display/Carousel';
 import { Divider } from '../../../components/display/Divider';
@@ -19,6 +19,7 @@ import { InformationDisplayCard } from '../../../components/display/InformationD
 import { TableRow } from '../../../components/display/TableRow';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../../utils/dates';
+
 
 const { Content } = Layout;
 
@@ -51,6 +52,38 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
     end: x.params.expirationDate ? BigInt(new Date(x.params.expirationDate).getTime()) : GO_MAX_UINT_64
   }]
 
+  const handleDownload = (imageUrl: string) => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `blockin-qr-code-${x.name}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleCopy = (imageUrl: string) => {
+    const canvas = document.createElement('canvas');
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+      canvas.toBlob(blob => {
+        if (!blob) return;
+
+        const item = new ClipboardItem({ 'image/png': blob });
+        navigator.clipboard.write([item]);
+
+        notification.info({
+          message: 'Copied to clipboard',
+          description: 'The QR code has been copied to your clipboard. You can now paste it anywhere.'
+        })
+      });
+    };
+    img.src = imageUrl;
+  }
+
   return <div className='flex-center flex-column full-width'>
     <CollectionHeader
       collectionId={1n} //dummy value
@@ -66,7 +99,9 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
       <br />
       {x.signature && <>
         <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8 }}>
-          <QRCode value={x.signature} size={256} />
+          <Avatar shape='square' size={276} src={
+            <QRCode value={x.signature} size={256} />
+          }></Avatar>
         </div>
         <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
           <WarningOutlined style={{ color: 'orange', marginRight: 8 }} /> Anyone with this QR code can authenticate as you. Keep it safe and secret.
@@ -83,6 +118,36 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
       </>
       }
     </div>
+    {x.signature && <>
+      <div className='flex-center flex-wrap'>
+        <button className='landing-button' style={{ minWidth: 130 }} onClick={async () => {
+          const imageUrl = await toDataURL(x.signature);
+          handleDownload(imageUrl);
+        }}>
+          Save As Image
+        </button>
+        <button className='landing-button' style={{ minWidth: 130 }} onClick={async () => {
+          const imageUrl = await toDataURL(x.signature);
+          handleCopy(imageUrl);
+        }}>
+          Copy As Image
+        </button>
+        {/* //Share as PNG */}
+        {navigator.canShare && navigator.canShare({ files: [new File([], 'test.png')] }) &&
+          <button className='landing-button' style={{ minWidth: 130 }} onClick={async () => {
+            const imageUrl = await toDataURL(x.signature);
+            navigator.share({
+              files: [new File([imageUrl], 'blockin-qr-code.png', { type: 'image/png' })],
+              title: 'Blockin QR Code',
+              text: 'Blockin QR Code',
+            });
+          }}>
+            Share
+          </button>
+        }
+      </div>
+    </>}
+    <Divider />
     <div >
 
       <InformationDisplayCard span={24} title='Details' inheritBg noBorder>
@@ -101,35 +166,59 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
         {x.params.chainId && <TableRow label={'Chain ID'} value={x.params.chainId} labelSpan={8} valueSpan={16} />}
         {x.params.version && <TableRow label={'Version'} value={x.params.version} labelSpan={8} valueSpan={16} />}
         {x.params.resources && !!x.params.resources.length ? <TableRow label={'Resources'} value={x.params.resources.join(', ')} labelSpan={8} valueSpan={16} /> : <></>}
-        {x.params.assets && !!x.params.assets.length ? <TableRow label={'Assets'} value={x.params.assets.map((asset, i) => {
-          // export interface Asset<T extends NumberType> {
-          //   chain: string;
-          //   collectionId: string | NumberType;
-          //   assetIds: (string | UintRange<T>)[];
-          //   ownershipTimes?: UintRange<T>[];
-          //   mustOwnAmounts: UintRange<T>;
-          //   additionalCriteria?: string;
-          // }
-
+        {x.params.assets && !!x.params.assets.length ? <TableRow label={'Ownership Requirements'} value={x.params.assets.map((asset, i) => {
+          const chainName = asset.chain;
 
           return <div key={i}>
-            {asset.chain === 'BitBadges' ? <>
-              <BalanceDisplay
-                collectionId={BigInt(asset.collectionId)}
-                isMustOwnBadgesInput
-                mustOwnBadges={[{
-                  amountRange: asset.mustOwnAmounts,
-                  badgeIds: asset.assetIds.map(x => typeof x === 'string' ? { start: BigInt(x), end: BigInt(x) } : x),
-                  collectionId: BigInt(asset.collectionId),
-                  ownershipTimes: asset.ownershipTimes ?? [],
-                  overrideWithCurrentTime: false,
-                  mustOwnAll: false,
-                }]}
-                balances={[]}
-              />
-            </> : <></>
-            }
+            You must own {[asset.mustOwnAmounts].map(amount => {
+              if (typeof amount !== 'object') {
+                return 'x' + BigInt(amount).toString();
+              } else {
+                if (amount.start === amount.end) {
+                  return `x${BigInt(amount.start).toString()}`
+                }
+                return `x${BigInt(amount.start).toString()}-${BigInt(amount.end).toString()}`
+              }
+            }).join(', ')} of {asset.assetIds.map((assetId, index) => {
+              if (typeof assetId !== 'object') {
+                return <>{"ID: " + assetId.toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+              } else {
+                if (assetId.start === assetId.end) {
+                  return <>ID {BigInt(assetId.start).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+                }
+                return <>IDs {BigInt(assetId.start).toString()}-{BigInt(assetId.end).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+              }
+            })} from {chainName + " Collection: " + asset.collectionId.toString()} {asset.ownershipTimes ? 'from ' +
+              asset.ownershipTimes.map(time => {
+                if (typeof time === 'string') {
+                  return new Date(time).toLocaleString();
+                } else if (typeof time !== 'object') {
+                  return new Date(Number(BigInt(time))).toLocaleString();
+                } else {
+                  return `${new Date(Number(BigInt(time.start))).toLocaleString()} until ${new Date(Number(BigInt(time.end))).toLocaleString()}`
+                }
+              }).join(', ') : 'at the time of sign-in'} to be approved.
           </div>
+
+
+          // return <div key={i}>
+          //   {asset.chain === 'BitBadges' ? <>
+          //     <BalanceDisplay
+          //       collectionId={BigInt(asset.collectionId)}
+          //       isMustOwnBadgesInput
+          //       mustOwnBadges={[{
+          //         amountRange: asset.mustOwnAmounts,
+          //         badgeIds: asset.assetIds.map(x => typeof x === 'string' ? { start: BigInt(x), end: BigInt(x) } : x),
+          //         collectionId: BigInt(asset.collectionId),
+          //         ownershipTimes: asset.ownershipTimes ?? [],
+          //         overrideWithCurrentTime: false,
+          //         mustOwnAll: false,
+          //       }]}
+          //       balances={[]}
+          //     />
+          //   </> : <></>
+          //   }
+          // </div>
         })} labelSpan={8} valueSpan={16} /> : <></>}
       </InformationDisplayCard>
       {x.signature &&
@@ -151,7 +240,8 @@ export function AuthCodes() {
   const signedInAccount = useAccount(chain.address);
 
   const [loading, setLoading] = useState(false);
-
+  // const [tab, setTab] = useState('codes');
+  const tab = 'codes';
   const [authCodes, setAuthCodes] = useState(getAuthCodesView(signedInAccount, 'authCodes'));
 
   useEffect(() => {
@@ -160,7 +250,7 @@ export function AuthCodes() {
 
   const items = authCodes.map((x) => {
     if (!x) return <></>;
-    return <>
+    return <div className='full-width' key={x.signature}>
       <AuthCode authCode={x} />
       <Divider />
       <IconButton
@@ -178,7 +268,7 @@ export function AuthCodes() {
         }}
         tooltipMessage='Delete this QR code'
       />
-    </>
+    </div>
   });
 
 
@@ -192,8 +282,37 @@ export function AuthCodes() {
           className="full-area"
           style={{ minHeight: '100vh', padding: 8 }}
         >
-          {signedInAccount && <>
+          <br />
+          {/* <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
+            Events
+          </div>
+          <Divider />
+          <Tabs
+            tab={tab}
+            setTab={setTab}
+            tabInfo={[{
+              key: 'codes',
+              content: 'My QR Codes',
+            }, {
+              key: 'events',
+              content: 'My Events',
+            }]}
+            fullWidth
+          /> */}
+          {/* {signedInAccount && tab === 'events' && <>
             <br />
+            <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
+              <InfoCircleFilled style={{ marginRight: 8 }} /> Authenticate users by creating an event and giving them a link to generate QR codes to present at auhentication time.
+            </div>
+
+            {authCodes.length === 0 && <div className='flex-center flex-column'>
+              <EmptyIcon description='No events found.' />
+            </div>}
+          </>} */}
+
+          {signedInAccount && tab === 'codes' && <>
+            <br />
+
             <div className='flex-center'>
               {authCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
 
@@ -205,7 +324,7 @@ export function AuthCodes() {
             </div>
 
             {authCodes.length === 0 && <div className='flex-center flex-column'>
-              <EmptyIcon description='No QR codes found. Events should provide you with details on how to generate QR codes for authentication.' />
+              <EmptyIcon description='No QR codes found. Authentication providers will give you the custom link to generate a QR code for authentication.' />
             </div>}
           </>}
         </ Content>

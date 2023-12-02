@@ -17,9 +17,9 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
     <div className="primary-text">
       <div className='flex-between flex-wrap'>
         {title}
-        <div className="carousel-arrows flex-center invisible sm:visible" style={{ float: 'right', marginTop: 10 }}>
+        <div className="carousel-arrows flex-center " style={{ float: 'right', marginTop: 10 }}>
           <Button
-            className='bg-vivid-blue hover:opacity-75 text-white border-0'
+            className='bg-vivid-blue hover:opacity-75 text-white border-0 invisible sm:visible'
             type="primary"
             shape="circle"
             style={{ margin: 4 }}
@@ -35,7 +35,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
             }}
           />
           <Button
-            className='bg-vivid-blue hover:opacity-75 text-white border-0'
+            className='bg-vivid-blue hover:opacity-75 text-white border-0 invisible sm:visible'
             type="primary"
             shape="circle"
             style={{ margin: 4 }}
@@ -88,12 +88,12 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
       </Col>
       <Col md={0} xs={24}>
 
-        <div className='snap-x snap-mandatory scroll-auto flex' style={{ width: '100%', display: 'inline', overflow: 'scroll' }}>
+        <div className='flex snap-x snap-mandatory scroll-auto' style={{ width: '100%', overflowX: 'scroll' }}>
           {items.map((item, index) => {
 
 
             return (
-              <div key={index} className='snap-normal snap-center'>
+              <div key={index} className='snap-normal snap-center' style={{ minWidth: '100%' }}>
                 {item}
               </div>
             );

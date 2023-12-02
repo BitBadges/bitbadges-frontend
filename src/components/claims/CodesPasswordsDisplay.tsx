@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
-import { Divider, Empty, Row, Tooltip, Typography, notification } from "antd";
+import { Avatar, Divider, Empty, Row, Tooltip, Typography, notification } from "antd";
 import { CollectionApprovalWithDetails, getAbbreviatedAddress } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { QRCode } from 'react-qrcode-logo';
@@ -239,7 +239,10 @@ export function CodesDisplay({
           <br />
 
           <div className="flex-center">
-            <QRCode value={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`} /></div>
+            <Avatar shape='square' size={276} src={
+              <QRCode size={256} value={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`} />
+            }></Avatar>
+          </div>
           <br />
         </>}
       </InformationDisplayCard>
