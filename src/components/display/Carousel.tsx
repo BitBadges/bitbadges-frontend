@@ -1,6 +1,6 @@
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { Button, Carousel, Col } from 'antd';
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 
 interface CustomCarouselProps {
   title: string | ReactNode
@@ -13,7 +13,15 @@ interface CustomCarouselProps {
 
 const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, setPage, total, showTotalMobile }) => {
   const [currPage, setCurrPage] = React.useState(page ?? 0);
-  const isMobile = window.innerWidth < 768;
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="primary-text">
