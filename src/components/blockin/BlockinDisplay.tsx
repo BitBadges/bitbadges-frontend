@@ -1,6 +1,5 @@
 import { Avatar, Typography, notification } from "antd";
-import { BigIntify } from "bitbadgesjs-proto";
-import { SupportedChain } from "bitbadgesjs-utils";
+import { Numberify, SupportedChain } from "bitbadgesjs-utils";
 import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
@@ -8,12 +7,12 @@ import { useEffect, useState } from "react";
 import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
 import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { INFINITE_LOOP_MODE, SOLANA_LOGO } from "../../constants";
+import { GO_MAX_UINT_64 } from "../../utils/dates";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay";
-import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
-import { GO_MAX_UINT_64 } from "../../utils/dates";
 
 const { Text } = Typography;
 
@@ -68,6 +67,7 @@ export const BlockinDisplay = ({
     if (address) {
       updateChallengeParams();
     }
+
   }, [address, chain]);
 
   const handleSignChallenge = async (challenge: string) => {
@@ -75,12 +75,12 @@ export const BlockinDisplay = ({
     return response;
   }
 
-  const handleVerifyChallenge = async (originalBytes: Uint8Array, signatureBytes: Uint8Array, _challengeObj?: ChallengeParams<DesiredNumberType>) => {
+  const handleVerifyChallenge = async (message: string, signature: string) => {
 
     try {
-      const verificationResponse = await verifySignIn({ chain, originalBytes, signatureBytes });
+      const verificationResponse = await verifySignIn({ chain, message, signature });
 
-
+      const _challengeObj = constructChallengeObjectFromString(message, Numberify);
       /**
        * At this point, the user has been verified by your backend and Blockin. Here, you will do anything needed
        * on the frontend to grant the user access such as setting loggedIn to true, adding cookies, or 
@@ -101,15 +101,14 @@ export const BlockinDisplay = ({
 
     const signChallengeResponse: SignChallengeResponse = await handleSignChallenge(challenge);
     //Check if error in challenge signature
-    if (!signChallengeResponse.originalBytes || !signChallengeResponse.signatureBytes) {
+    if (!signChallengeResponse.message || !signChallengeResponse.signature) {
       return { success: false, message: `${signChallengeResponse.message}` };
     }
+
     const verifyChallengeResponse: SignAndVerifyChallengeResponse = await handleVerifyChallenge(
-      signChallengeResponse.originalBytes,
-      signChallengeResponse.signatureBytes,
-      constructChallengeObjectFromString(challenge, BigIntify)
+      signChallengeResponse.message,
+      signChallengeResponse.signature
     );
-    console.log(challenge);
 
     return verifyChallengeResponse;
   }

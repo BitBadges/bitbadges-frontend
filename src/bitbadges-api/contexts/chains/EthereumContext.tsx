@@ -31,7 +31,7 @@ export const EthereumContext = createContext<EthereumContextType>({
   disconnect: async () => { },
   chainId: 'Mainnet',
   setChainId: () => { },
-  signChallenge: async () => { return {} },
+  signChallenge: async () => { return { message: '', signature: '' } },
   getPublicKey: async () => { return '' },
   signTxn: async () => { },
   ownedAssetIds: [],
@@ -66,8 +66,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const connected = web3AccountContext.address ? true : false;
   const setConnected = () => { }
   const account = useAccount(cosmosAddress)
-
-
 
   const selectedChainInfo = {};
   const displayedResources: PresetUri[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
@@ -134,7 +132,11 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
         }, {
           viewKey: 'latestAddressMappings',
           bookmark: ''
-        })
+        },
+          {
+            viewKey: 'authCodes',
+            bookmark: '',
+          })
         setLastSeenActivity(Date.now());
       }
 
@@ -161,7 +163,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   };
 
   const signChallenge = async (message: string) => {
-    const msg = `0x${Buffer.from(message, 'utf8').toString('hex')}`;
     const sign = await signMessage({
       message: message
     });
@@ -177,8 +178,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     setCookies('pub_key', `${cosmosAddress}-${base64PubKey}`, { path: '/' });
 
     return {
-      hexSignature: sign,
-      originalBytes: new Uint8Array(Buffer.from(msg, 'utf8')), signatureBytes: new Uint8Array(Buffer.from(sign, 'utf8')), message: 'Success'
+      message,
+      signature: sign,
     }
   }
 

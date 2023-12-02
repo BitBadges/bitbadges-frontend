@@ -208,8 +208,12 @@ export function WalletHeader() {
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
     </>}
     {connected && <>
+      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/codes')}>QR Codes</Menu.Item>
+    </>}
+    {connected && <>
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>
     </>}
+    
     <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => { }}>
       <div className='flex-center'>
         <div className='mx-2'>{'Dark Mode'}</div>

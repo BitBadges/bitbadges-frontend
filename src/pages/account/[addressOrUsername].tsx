@@ -690,6 +690,9 @@ function PortfolioPage() {
             {badgeTab === 'Hidden' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
               <InfoCircleOutlined /> Hidden badges will be automatically filtered out from standard views and not shown by default.
             </div>}
+            {badgeTab !== '' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+              {accountInfo.customPages?.find(x => x.title === badgeTab)?.description}
+            </div>}
 
             <br />
 
@@ -775,10 +778,11 @@ function PortfolioPage() {
                     </div>}
                 </InformationDisplayCard>
 
-              </div> <Divider /></>}
+              </div></>}
 
             {addPageIsVisible && <div className='flex-center '>
               <Col md={12} xs={24} style={{ marginBottom: 8 }}>
+                <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
                 <Input
 
                   defaultValue=""
@@ -794,10 +798,11 @@ function PortfolioPage() {
                 />
                 <br />
                 <br />
+                <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
                 <Input.TextArea
-
+                  autoSize
                   defaultValue=""
-                  placeholder="Page Name"
+                  placeholder="Page Description"
                   className='form-input'
                   style={{
                     maxWidth: 300,
@@ -834,10 +839,6 @@ function PortfolioPage() {
             </div>}
 
             {badgeTab !== '' && <>
-              <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-                {accountInfo.customPages?.find(x => x.title === badgeTab)?.description}
-              </div>
-
               <InfiniteScroll
                 dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
                 next={async () => {

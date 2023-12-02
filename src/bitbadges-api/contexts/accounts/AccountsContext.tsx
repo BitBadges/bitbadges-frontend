@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Stringify } from 'bitbadgesjs-proto';
-import { AccountViewKey, AddressMappingInfo, AnnouncementInfo, BalanceInfo, BigIntify, BitBadgesUserInfo, ClaimAlertInfo, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { AccountViewKey, AddressMappingInfo, AnnouncementInfo, BalanceInfo, BigIntify, BitBadgesUserInfo, BlockinAuthSignatureInfo, ClaimAlertInfo, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useSelector } from 'react-redux';
 import { AccountReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, updateAccountInfo } from '../../api';
@@ -144,6 +144,15 @@ export async function fetchNextForAccountViews(addressOrUsername: string, viewKe
     })
   }]);
 }
+
+export function getAuthCodesView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
+  if (!account) return [];
+
+  return (account.views[viewKey]?.ids.map(x => {
+    return account.authCodes.find(y => y._id === x);
+  }) ?? []) as BlockinAuthSignatureInfo<bigint>[];
+}
+
 
 export function getAccountActivityView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
   if (!account) return [];

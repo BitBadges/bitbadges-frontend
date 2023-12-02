@@ -8,9 +8,8 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { useSolanaContext } from './chains/SolanaContext';
 
 export type SignChallengeResponse = {
-  originalBytes?: Uint8Array;
-  signatureBytes?: Uint8Array;
-  message?: string;
+  signature: string
+  message: string;
 }
 
 export type ChainContextType = ChainSpecificContextType & {
@@ -62,7 +61,7 @@ const ChainContext = createContext<ChainContextType>({
   disconnect: async () => { },
   chainId: '1',
   setChainId: async () => { },
-  signChallenge: async () => { return {} },
+  signChallenge: async () => { return { message: '', signature: '' } },
   signTxn: async () => { },
   getPublicKey: async () => { return '' },
   ownedAssetIds: [],

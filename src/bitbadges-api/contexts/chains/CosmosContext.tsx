@@ -80,7 +80,7 @@ export const CosmosContext = createContext<CosmosContextType>({
   disconnect: async () => { },
   chainId: 'bitbadges_1-2',
   setChainId: () => { },
-  signChallenge: async () => { return {} },
+  signChallenge: async () => { return { message: '', signature: '' } },
   getPublicKey: async () => { return '' },
   signTxn: async () => { },
   ownedAssetIds: [],
@@ -161,13 +161,18 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
         }]
 
         if (loggedIn) {
-          viewsToFetch.push({
-            viewKey: 'latestClaimAlerts',
-            bookmark: '',
-          },
+          viewsToFetch.push(
+            {
+              viewKey: 'latestClaimAlerts',
+              bookmark: '',
+            },
             {
               viewKey: 'latestAddressMappings',
               bookmark: ''
+            },
+            {
+              viewKey: 'authCodes',
+              bookmark: '',
             }
           )
           setLastSeenActivity(Date.now());
@@ -226,9 +231,10 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
       throw new Error('Signature verification failed');
     }
 
-    const concat = Buffer.concat([pubKeyUint8Array, uint8Signature]);
-
-    return { originalBytes: new Uint8Array(Buffer.from(`0x${Buffer.from(message, 'utf8').toString('hex')}`, 'utf8')), signatureBytes: new Uint8Array(concat), message: 'Success' }
+    return {
+      message: message,
+      signature: sig.pub_key.value + ':' + sig.signature,
+    }
   }
 
   const signTxn = async (txn: any, simulate: boolean) => {

@@ -1,12 +1,12 @@
-import { AuditOutlined, ClockCircleOutlined, CloudServerOutlined, ClusterOutlined, ContactsOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, GlobalOutlined, LikeOutlined, LockOutlined, QrcodeOutlined, SendOutlined, TeamOutlined, UpOutlined } from '@ant-design/icons';
+import { AuditOutlined, ClockCircleOutlined, CloudServerOutlined, ClusterOutlined, ContactsOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, GlobalOutlined, LikeOutlined, LockOutlined, QrcodeOutlined, SendOutlined, UpOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Divider, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPage } from 'next/types';
 import { useEffect, useState } from 'react';
+import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
 import { COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
-import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 export const LandingCard = ({ content, customClass, }: {
@@ -455,6 +455,26 @@ const Home: NextPage = () => {
               />
               <LandingCard
                 customClass='secondary-text '
+                content={<>
+                  <AuditOutlined
+                    className='figma-blue'
+                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                  />
+                  <br />
+                  <br />
+                  <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                    No-Storage Authentication
+                  </Typography.Text>
+                  <br />
+                  <br />
+                  <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
+                    By authenticating users from any supported chain via badges and signatures, you can outsource all your authentication needs to BitBadges, allowing you to focus on your core product.
+                  </Typography.Text>
+                </>
+                }
+              />
+              <LandingCard
+                customClass='secondary-text '
                 content={
                   <>
                     <FieldTimeOutlined
@@ -514,26 +534,7 @@ const Home: NextPage = () => {
                   </>
                 }
               />
-              <LandingCard
-                customClass='secondary-text '
-                content={<>
-                  <TeamOutlined
-                    className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
-                  />
-                  <br />
-                  <br />
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                    Address Lists
-                  </Typography.Text>
-                  <br />
-                  <br />
-                  <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    Create address lists to easily manage and organize users. These lists can be used for a variety of purposes, such as whitelists, blacklists, and more.
-                  </Typography.Text>
-                </>
-                }
-              />
+
 
 
 

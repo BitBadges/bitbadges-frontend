@@ -27,7 +27,7 @@ export const SolanaContext = createContext<SolanaContextType>({
   disconnect: async () => { },
   chainId: 'Mainnet',
   setChainId: () => { },
-  signChallenge: async () => { return {} },
+  signChallenge: async () => { return { message: '', signature: '' } },
   getPublicKey: async () => { return '' },
   signTxn: async () => { },
   ownedAssetIds: [],
@@ -155,6 +155,10 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
           }, {
             viewKey: 'latestAddressMappings',
             bookmark: ''
+          },
+          {
+            viewKey: 'authCodes',
+            bookmark: '',
           })
           setLastSeenActivity(Date.now());
         }
@@ -192,10 +196,8 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
         display: "utf8",
       },
     });
-    const originalBytes = new Uint8Array(Buffer.from(message, 'utf8'));
-    const signatureBytes = new Uint8Array(Buffer.from(signedMessage.signature, 'hex'));
-
-    return { originalBytes: originalBytes, signatureBytes: signatureBytes, message: 'Success!' };
+    
+    return { message: message, signature: signedMessage.signature };
   }
 
   const signTxn = async (txn: any, simulate: boolean) => {
