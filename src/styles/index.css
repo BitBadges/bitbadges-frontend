@@ -426,6 +426,15 @@ transform: scale(1.01);
     text-align: center;
 }
 
+.dropdown-item-disabled {
+  text-align: center;
+  font-weight: bolder;
+  font-size: 16px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  cursor: not-allowed;
+}
+
 .dropdown-item {
     text-align: center;
     font-weight: bolder;

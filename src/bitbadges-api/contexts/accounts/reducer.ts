@@ -272,6 +272,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
         announcements: [...(cachedAccount?.announcements || []), ...(account.announcements || [])],
         addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
         claimAlerts: [...(cachedAccount?.claimAlerts || []), ...(account.claimAlerts || [])],
+        authCodes: [...(cachedAccount?.authCodes || []), ...(account.authCodes || [])],
         views: newViews,
         publicKey,
         airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
@@ -288,12 +289,14 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
       newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
       newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+      newAccount.authCodes = newAccount.authCodes.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
 
       //sort in descending order
       newAccount.activity = newAccount.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
       newAccount.announcements = newAccount.announcements.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
       newAccount.reviews = newAccount.reviews.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
       newAccount.claimAlerts = newAccount.claimAlerts.sort((a, b) => b.createdTimestamp - a.createdTimestamp > 0 ? -1 : 1);
+      newAccount.authCodes = newAccount.authCodes.sort((a, b) => b.createdAt - a.createdAt > 0 ? -1 : 1);
 
       accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
     }

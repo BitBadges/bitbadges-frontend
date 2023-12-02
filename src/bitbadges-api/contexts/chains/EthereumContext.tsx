@@ -154,7 +154,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     if (web3AccountContext.address) {
       connectAndPopulate(web3AccountContext.address, cookies.blockincookie);
     }
-  }, [web3AccountContext.address]);
+  }, [web3AccountContext.address, loggedIn]);
 
 
   const disconnect = async () => {

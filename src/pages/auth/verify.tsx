@@ -35,7 +35,7 @@ function BlockinCodesScreen() {
                 autoSize
                 value={inputtedQrCode}
                 onChange={(e) => {
-                  setInputtedQrCode(e.target.value);
+                  setInputtedQrCode(e.target.value.trim());
                 }}
                 placeholder='Enter QR Code text here...'
               />
@@ -44,8 +44,9 @@ function BlockinCodesScreen() {
                 <button className='landing-button' onClick={async () => {
                   try {
                     const res = await getAuthCode({ signature: inputtedQrCode, options: {} });
-                    setVerified(res.blockinSuccess);
-                    if (!res.blockinSuccess) setErrorMessage(res.blockinMessage);
+                    console.log(res);
+                    setVerified(res.verificationResponse.success);
+                    if (!res.verificationResponse.success) setErrorMessage(res.verificationResponse.verificationMessage);
                     else setErrorMessage('');
                   } catch (e: any) {
                     setVerified(false);

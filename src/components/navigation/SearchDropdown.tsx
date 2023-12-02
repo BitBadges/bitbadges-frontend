@@ -97,7 +97,7 @@ export function SearchDropdown({
         <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
           {/* Current Search Value Address Helper - Matches Text Exactly */}
           {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
-            <Menu.Item className='dropdown-item'
+            <Menu.Item className={(isAddressValid(searchValue) && searchValue !== 'Mint' ? 'dropdown-item' : 'dropdown-item-disabled')}
               disabled={isAddressValid(searchValue) && searchValue !== 'Mint'}
               onClick={async () => {
                 await onSearch(searchValue, true, false);

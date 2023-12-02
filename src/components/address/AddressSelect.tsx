@@ -71,14 +71,17 @@ export function AddressSelect({
         disabled={disabled}
       />
     </Dropdown>
-  </Input.Group>
+  </Input.Group >
 
 
   return <>
     <div className='full-width'>
       {switchable &&
         <div className='flex-center flex-wrap primary-text'>
-          <AddressDisplay addressOrUsername={latestAddress ?? ''} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => setShowSelect(!showSelect)} />
+          <AddressDisplay addressOrUsername={latestAddress ?? ''} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => {
+
+            setShowSelect(!showSelect)
+          }} />
         </div>
       }
       {showSelect && <>

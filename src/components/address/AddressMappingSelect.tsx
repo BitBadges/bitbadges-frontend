@@ -97,6 +97,7 @@ export function AddressMappingSelect({
             ...addressMapping,
             addresses: users,
           }));
+          setVisible(false);
         }}
         hideAddresses
         disabled={disabled}
