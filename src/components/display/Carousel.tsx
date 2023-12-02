@@ -8,18 +8,22 @@ interface CustomCarouselProps {
   setPage?: (page: number) => void;
   total?: number;
   items: ReactNode[];
+  showTotalMobile?: boolean;
 }
 
-const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, setPage, total }) => {
+const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, setPage, total, showTotalMobile }) => {
   const [currPage, setCurrPage] = React.useState(page ?? 0);
+  const isMobile = window.innerWidth < 768;
 
   return (
     <div className="primary-text">
-      <div className='flex-between flex-wrap'>
+
+      {!isMobile && <div className='flex-between flex-wrap invisible sm:visible'>
+        {/* centered title if xs */}
         {title}
-        <div className="carousel-arrows flex-center " style={{ float: 'right', marginTop: 10 }}>
+        <div className="carousel-arrows flex-center collapse sm:visible" style={{ float: 'right', marginTop: 10 }}>
           <Button
-            className='bg-vivid-blue hover:opacity-75 text-white border-0 invisible sm:visible'
+            className='bg-vivid-blue hover:opacity-75 text-white border-0'
             type="primary"
             shape="circle"
             style={{ margin: 4 }}
@@ -35,7 +39,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
             }}
           />
           <Button
-            className='bg-vivid-blue hover:opacity-75 text-white border-0 invisible sm:visible'
+            className='bg-vivid-blue hover:opacity-75 text-white border-0 '
             type="primary"
             shape="circle"
             style={{ margin: 4 }}
@@ -55,7 +59,15 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
             {page ?? currPage + 1}/{total ?? items.length}
           </div>
         </div>
-      </div>
+      </div>}
+      {isMobile && <>
+        <div className='flex-center'>
+          {title}
+          {showTotalMobile && <div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder', marginLeft: 4 }}>({total ?? items.length})</div>}
+        </div>
+      </>}
+
+
 
       <Col md={24} xs={0}>
         <Carousel

@@ -107,12 +107,8 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
           <WarningOutlined style={{ color: 'orange', marginRight: 8 }} /> Anyone with this QR code can authenticate as you. Keep it safe and secret.
           <br />
           <br />
-          <InfoCircleFilled style={{ marginRight: 8 }} /> We recommend storing this QR code elsewhere for easier presentation at authentication time.
-          Options include, but are not limited to, printing it out, saving to your device, or screenshotting it.
-          <br />
-          <br />
-          Reminder: If you are signed out of BitBadges, you need to sign in with your crypto wallet which you may not have handy at authentication time.
-          This is why we recommend storing the QR code elsewhere.
+          <InfoCircleFilled style={{ marginRight: 8 }} /> We strongly recommend storing this QR code elsewhere for easier presentation at authentication time.
+          Otherwise, ensure you are logged into your BitBadges account (if not, you will need another wallet signature to authenticate).
         </div>
         <Divider />
       </>
@@ -148,6 +144,16 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
       </div>
     </>}
     <Divider />
+    {x.signature &&
+      <InformationDisplayCard span={24} title='Current Status' inheritBg noBorder>
+        <div className='secondary-text' style={{ fontSize: 16, textAlign: 'center', alignItems: 'center' }}>
+          {currStatus.success ?
+            <CheckCircleFilled style={{ color: 'green', marginRight: 8 }} />
+            :
+            <CloseCircleFilled style={{ color: 'red', marginRight: 8 }} />
+          } {currStatus.verificationMessage}
+        </div>
+      </InformationDisplayCard>}
     <div >
 
       <InformationDisplayCard span={24} title='Details' inheritBg noBorder>
@@ -221,16 +227,7 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
           // </div>
         })} labelSpan={8} valueSpan={16} /> : <></>}
       </InformationDisplayCard>
-      {x.signature &&
-        <InformationDisplayCard span={24} title='Current Status' inheritBg noBorder>
-          <div className='secondary-text flex-center' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
-            {currStatus.success ? <div className='flex-center'>
-              <CheckCircleFilled style={{ color: 'green', fontSize: 24, marginRight: 8 }} />
-            </div> : <div className='flex-center'>
-              <CloseCircleFilled style={{ color: 'red', fontSize: 24, marginRight: 8 }} />
-            </div>} {currStatus.verificationMessage}
-          </div>
-        </InformationDisplayCard>}
+
     </div>
   </div>
 }
@@ -276,7 +273,7 @@ export function AuthCodes() {
   return (
     <DisconnectedWrapper
       requireLogin
-      message={'Please connect your wallet and sign in to view this page.'}
+      message={'Please connect and sign in to view this page.'}
       node={
         <Content
           className="full-area"
@@ -319,6 +316,7 @@ export function AuthCodes() {
                 <CustomCarousel
                   title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
                   items={items}
+                  showTotalMobile
                 />
               </InformationDisplayCard>}
             </div>

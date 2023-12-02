@@ -105,7 +105,7 @@ export function AccountSettings() {
   return (
     <DisconnectedWrapper
       requireLogin
-      message={'Please connect your wallet and sign in to view this page.'}
+      message={'Please connect and sign in to view this page.'}
       node={
         <RegisteredWrapper
 

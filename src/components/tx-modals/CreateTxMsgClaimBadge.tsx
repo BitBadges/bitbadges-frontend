@@ -117,7 +117,7 @@ export function CreateTxMsgClaimBadgeModal(
   if (!chain.connected) {
     cantClaim = true;
     notConnected = true;
-    errorMessage = 'Please connect your wallet to claim!';
+    errorMessage = 'Please connect to claim!';
   } else if (claim && details?.hasPassword && !chain.loggedIn) {
     cantClaim = true;
     notConnected = true;

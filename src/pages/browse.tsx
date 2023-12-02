@@ -1,6 +1,6 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
 import { AddressListCard } from '../components/badges/AddressListCard';
@@ -28,7 +28,7 @@ function BrowsePage() {
   const [containerWidth, setContainerWidth] = useState<number>(0);
 
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       const container = document.querySelector('.profile-carousel') as HTMLElement;
       setContainerWidth(container.clientWidth);
