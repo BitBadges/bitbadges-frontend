@@ -33,6 +33,7 @@ export function BalanceDisplayEditRow({
   numRecipients = 0n,
   incrementBadgeIdsBy = 0n,
   setIncrementBadgeIdsBy,
+  timeString,
 }: {
   collectionId: bigint;
   balances: Balance<bigint>[];
@@ -60,6 +61,7 @@ export function BalanceDisplayEditRow({
   sequentialOnly?: boolean
   fullWidthCards?: boolean
   setIncrementBadgeIdsBy?: (value: bigint) => void
+  timeString?: string
 }) {
 
   const [selectIsVisible, setSelectIsVisible] = useState(false);
@@ -218,7 +220,7 @@ export function BalanceDisplayEditRow({
         </InformationDisplayCard>
         <InformationDisplayCard md={fullWidthCards ? 24 : 9} xs={24} sm={24} style={{ marginTop: 16 }} title={'Ownership Times'}>
           <br />
-          {isMustOwnBadgesInput ? 'Transfer Time' :
+          {isMustOwnBadgesInput ? timeString ?? 'Transfer Time' :
             hideOwnershipTimeSelect ? <><b>Select Ownership Times</b><br />
               {getTimeRangesElement(currentSupply.ownershipTimes, '', true)}
             </> :

@@ -36,7 +36,8 @@ export function BalanceDisplay({
   sequentialOnly,
   fullWidthCards,
   setIncrementBadgeIdsBy,
-  doNotCalculate
+  doNotCalculate,
+  timeString,
 }: {
   mustOwnBadges?: MustOwnBadges<bigint>[]
   collectionId: bigint;
@@ -65,6 +66,7 @@ export function BalanceDisplay({
   fullWidthCards?: boolean
   setIncrementBadgeIdsBy?: (incrementBadgeIdsBy: bigint) => void
   doNotCalculate?: boolean
+  timeString?: string
 }) {
   const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
   const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
@@ -123,6 +125,7 @@ export function BalanceDisplay({
     incrementBadgeIdsBy={incrementBadgeIdsBy}
     setIncrementBadgeIdsBy={setIncrementBadgeIdsBy}
     numRecipients={numIncrements}
+    timeString={timeString}
   />
 
 
@@ -167,7 +170,7 @@ export function BalanceDisplay({
                       {amountRange.start.toString()} (Min) - {amountRange.end.toString()} (Max)
                     </td>}
                     <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}> {getBadgeIdsString(badgeIds)}</td>
-                    <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true)}</td>
+                    <td style={{ textAlign: 'center', verticalAlign: "top", paddingLeft: 4 }}>{isMustOwnBadgesInput ? timeString ?? 'Transfer Time' : getTimeRangesElement(ownershipTimes, '', true)}</td>
                   </tr>
 
                   return <>

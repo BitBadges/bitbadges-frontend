@@ -280,33 +280,6 @@ export function AuthCodes() {
           style={{ minHeight: '100vh', padding: 8 }}
         >
           <br />
-          {/* <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
-            Events
-          </div>
-          <Divider />
-          <Tabs
-            tab={tab}
-            setTab={setTab}
-            tabInfo={[{
-              key: 'codes',
-              content: 'My QR Codes',
-            }, {
-              key: 'events',
-              content: 'My Events',
-            }]}
-            fullWidth
-          /> */}
-          {/* {signedInAccount && tab === 'events' && <>
-            <br />
-            <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
-              <InfoCircleFilled style={{ marginRight: 8 }} /> Authenticate users by creating an event and giving them a link to generate QR codes to present at auhentication time.
-            </div>
-
-            {authCodes.length === 0 && <div className='flex-center flex-column'>
-              <EmptyIcon description='No events found.' />
-            </div>}
-          </>} */}
-
           {signedInAccount && tab === 'codes' && <>
             <br />
 
@@ -325,6 +298,10 @@ export function AuthCodes() {
               <EmptyIcon description='No QR codes found. Authentication providers will give you the custom link to generate a QR code for authentication.' />
             </div>}
           </>}
+          <Divider />
+          <div className='secondary-text flex-center'>
+            Looking to become an authentication provider and create / verify QR codes? See{' '}<a style={{ marginLeft: 3 }} href='https://docs.bitbadges.io/for-developers/generating-auth-qr-codes' target='_blank' rel="noreferrer">the documentation here</a>.
+          </ div>
         </ Content>
       }
     />

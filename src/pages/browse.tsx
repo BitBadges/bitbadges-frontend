@@ -34,6 +34,8 @@ function BrowsePage() {
       setContainerWidth(container.clientWidth);
     };
 
+    setContainerWidth(document.querySelector('.profile-carousel')?.clientWidth ?? 0);
+
     // Initial measurement and resize event listener
     handleResize();
     window.addEventListener('resize', handleResize);

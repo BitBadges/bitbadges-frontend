@@ -18,6 +18,7 @@ export function BalanceInput({
   mustOwnBadges,
   increment,
   setIncrement,
+  timeString,
   numIncrements
 }: {
   balancesToShow: Balance<bigint>[],
@@ -35,6 +36,7 @@ export function BalanceInput({
   fullWidthCards?: boolean
   mustOwnBadges?: MustOwnBadges<bigint>[]
   increment?: bigint
+  timeString?: string
   setIncrement?: (increment: bigint) => void
   numIncrements?: bigint
 }) {
@@ -65,6 +67,7 @@ export function BalanceInput({
 
       sequentialOnly={sequentialOnly}
       fullWidthCards={fullWidthCards}
+      timeString={timeString}
     />
   </>
 }

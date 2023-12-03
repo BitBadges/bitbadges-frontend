@@ -1,11 +1,13 @@
 import { DownOutlined, InfoCircleOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Checkbox, Form, Input, Select, Space, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
-import { useState } from 'react';
+import { Button, Checkbox, DatePicker, Form, Input, Select, Space, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
+import moment from 'moment';
+import { useEffect, useState } from 'react';
 import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { CodeGenQueryParams } from './codegen';
-import { DateRangeInput } from '../../components/inputs/DateRangeInput';
+import { BalanceInput } from '../../components/inputs/BalanceInput';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 const { Text } = Typography;
 
 
@@ -33,6 +35,20 @@ function BlockinCodesScreen() {
       assets: [],
     }
   });
+
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (!codeGenParams.challengeParams.domain || !codeGenParams.challengeParams.statement) {
+      setErrorMessage('Please provide a domain and statement');
+    } else if (!codeGenParams.name || !codeGenParams.description) {
+      setErrorMessage('Please provide a name and description');
+    } else if (!codeGenParams.image) {
+      setErrorMessage('Please provide an image');
+    } else {
+      setErrorMessage('');
+    }
+  }, [codeGenParams]);
 
   const FRONTEND_URL = "https://bitbadges.io"
   let url = FRONTEND_URL + '/auth/codegen?';
@@ -131,8 +147,13 @@ function BlockinCodesScreen() {
             textAlign: 'center'
           }}
         >
+          <br />
+          <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
+            QR Code Authentication - Create a URL
+          </div>
+          <Divider />
           <div className='flex'>
-            <InformationDisplayCard title='Enter Details' md={24} xs={24} sm={24} >
+            <InformationDisplayCard title='Details' md={12} xs={24} sm={24} subtitle='Provide details so we can generate the URL for you to send to your users.'>
               <Form colon={false} layout="vertical">
 
 
@@ -286,7 +307,8 @@ function BlockinCodesScreen() {
                   required
 
                 >
-                  <Input
+                  <Input.TextArea
+                    autoSize
                     value={codeGenParams.challengeParams.statement}
                     onChange={(e: any) => {
                       setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, statement: e.target.value } });
@@ -303,7 +325,7 @@ function BlockinCodesScreen() {
                       className='primary-text'
                       strong
                     >
-                      Start Time <Tooltip color='black' title={'The earliest time that the code can be used.'}>
+                      Not Before <Tooltip color='black' title={'The earliest time that the code can be used.'}>
                         <InfoCircleOutlined />
                       </Tooltip>
                     </Text>
@@ -311,7 +333,7 @@ function BlockinCodesScreen() {
                 >
                   <div className='flex-between' style={{}}>
                     <div className='primary-text inherit-bg full-width'>
-                      <div className='primary-text'>
+                      <div className='primary-text' style={{ float: 'left' }}>
                         None?
                         <Checkbox
                           checked={!codeGenParams.challengeParams.notBefore}
@@ -321,12 +343,6 @@ function BlockinCodesScreen() {
                               setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, notBefore: '' } });
                             } else {
                               const maxDate = new Date();
-                              maxDate.setFullYear(9999);
-                              maxDate.setMonth(11);
-                              maxDate.setDate(31);
-                              maxDate.setHours(0);
-                              maxDate.setMinutes(0);
-                              maxDate.setSeconds(0);
 
                               setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, notBefore: maxDate.toISOString() } });
 
@@ -338,10 +354,21 @@ function BlockinCodesScreen() {
                       </div>
 
                       {codeGenParams.challengeParams.notBefore && <>
-                        <DateRangeInput
-                          timeRanges={[]}
-                          setTimeRanges={(timeRanges) => {
-                            setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, notBefore: timeRanges[0].start.toString() } });
+
+                        <DatePicker
+                          showMinute
+                          showTime
+                          allowClear={false}
+                          placeholder='Start'
+                          value={codeGenParams.challengeParams.notBefore ? moment(new Date(codeGenParams.challengeParams.notBefore)) : null}
+                          className='primary-text inherit-bg full-width'
+                          onChange={(_date, dateString) => {
+                            if (codeGenParams.challengeParams.expirationDate && new Date(dateString).valueOf() > new Date(codeGenParams.challengeParams.expirationDate).valueOf()) {
+                              alert('Start time must be before end time.');
+                              return;
+                            }
+
+                            setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, notBefore: dateString } });
                           }}
                         />
                       </>
@@ -357,7 +384,7 @@ function BlockinCodesScreen() {
                       className='primary-text'
                       strong
                     >
-                      End Time <Tooltip color='black' title={'The latest time that the code can be used.'}>
+                      Expiration Time <Tooltip color='black' title={'The latest time that the code can be used.'}>
                         <InfoCircleOutlined />
                       </Tooltip>
                     </Text>
@@ -365,7 +392,7 @@ function BlockinCodesScreen() {
                 >
                   <div className='flex-between' style={{}}>
                     <div className='primary-text inherit-bg full-width'>
-                      <div className='primary-text'>
+                      <div className='primary-text' style={{ float: 'left' }}>
                         None?
                         <Checkbox
                           checked={!codeGenParams.challengeParams.expirationDate}
@@ -375,12 +402,6 @@ function BlockinCodesScreen() {
                               setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, expirationDate: '' } });
                             } else {
                               const maxDate = new Date();
-                              maxDate.setFullYear(9999);
-                              maxDate.setMonth(11);
-                              maxDate.setDate(31);
-                              maxDate.setHours(0);
-                              maxDate.setMinutes(0);
-                              maxDate.setSeconds(0);
 
                               setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, expirationDate: maxDate.toISOString() } });
 
@@ -392,10 +413,21 @@ function BlockinCodesScreen() {
                       </div>
 
                       {codeGenParams.challengeParams.expirationDate && <>
-                        <DateRangeInput
-                          timeRanges={[]}
-                          setTimeRanges={(timeRanges) => {
-                            setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, expirationDate: timeRanges[0].start.toString() } });
+
+                        <DatePicker
+                          showMinute
+                          showTime
+                          allowClear={false}
+                          placeholder='End'
+                          value={codeGenParams.challengeParams.expirationDate ? moment(new Date(codeGenParams.challengeParams.expirationDate)) : null}
+                          className='primary-text inherit-bg full-width'
+                          onChange={(_date, dateString) => {
+                            if (codeGenParams.challengeParams.notBefore && new Date(dateString).valueOf() < new Date(codeGenParams.challengeParams.notBefore).valueOf()) {
+                              alert('End time must be after start time.');
+                              return;
+                            }
+
+                            setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, expirationDate: dateString } });
                           }}
                         />
                       </>
@@ -405,28 +437,130 @@ function BlockinCodesScreen() {
                   </div>
                 </Form.Item>
 
-                
+                <Form.Item
+                  label={
+                    <Text
+                      className='primary-text'
+                      strong
+                    >
+                      Assets
+                    </Text>
+                  }
+                >
+                  <div className='primary-text'>
+                    <br />
+
+                    <BalanceInput
+                      fullWidthCards
+                      isMustOwnBadgesInput
+                      message="Must Own Badges"
+                      timeString="Authentication Time"
+                      hideOwnershipTimes
+                      balancesToShow={codeGenParams.challengeParams.assets?.map(x => {
+                        const badgeIds = [];
+                        for (const asset of x.assetIds) {
+                          if (typeof asset !== 'string') {
+                            badgeIds.push(asset);
+                          }
+                        }
+                        return {
+                          ...x,
+                          mustOwnAmounts: x.mustOwnAmounts,
+                          amount: x.mustOwnAmounts.start,
+                          badgeIds: badgeIds,
+                          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                        }
+                      }) ?? []}
+                      mustOwnBadges={codeGenParams.challengeParams.assets?.map(x => {
+                        const badgeIds = [];
+                        for (const asset of x.assetIds) {
+                          if (typeof asset !== 'string') {
+                            badgeIds.push(asset);
+                          }
+                        }
+                        return {
+                          collectionId: BigInt(x.collectionId),
+                          overrideWithCurrentTime: true,
+                          amountRange: x.mustOwnAmounts,
+                          badgeIds: badgeIds,
+                          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                          mustOwnAll: true
+                        }
+                      }) ?? []}
+                      onAddBadges={(balance, amountRange, collectionId) => {
+                        if (!collectionId || !amountRange) return;
+
+                        const newAssets = codeGenParams.challengeParams.assets ? [...codeGenParams.challengeParams.assets] : [];
+                        newAssets.push({
+                          assetIds: balance.badgeIds,
+                          collectionId: collectionId,
+                          mustOwnAmounts: amountRange,
+                          chain: 'BitBadges',
+                          //no ownership times = auth time
+                        });
+                        setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, assets: newAssets } });
+
+                      }}
+                      onRemoveAll={() => {
+                        setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, assets: [] } });
+                      }}
+                      // setBalances={setBalances}
+                      collectionId={0n}
+                    />
+                  </div>
+
+                </Form.Item>
+
+
               </Form>
             </InformationDisplayCard>
-          </div>
-          <div
-            className='inherit-bg primary-text'
-            style={{
-              textAlign: 'center',
-              marginTop: 16,
-            }}
-          >
-            <Tooltip title={url}>
-              <Typography.Text className='primary-text' copyable={{ text: url }} style={{ fontSize: 20 }}>
-                Generated URL
+            <InformationDisplayCard title='URL and Instructions' md={12} xs={24} sm={24} subtitle='Below is the URL that you will share with your users based on the details provided. When users navigate, they will be walked through the process of generating a QR code.'>
+              {errorMessage ? <><Divider /><div style={{ color: 'red' }}>
+                Error generating URL: {errorMessage}
+              </div> </> : <></>}
+              {!errorMessage && <>
+                <div
+                  className='inherit-bg primary-text'
+                  style={{
+                    textAlign: 'center',
+                    marginTop: 16,
+                  }}
+                >
+                  <Tooltip title={url}>
+                    <Typography.Text className='primary-text' copyable={{ text: url }} style={{ fontSize: 20 }}>
+                      <a href={url} target="_blank" rel="noopener noreferrer">
+                        {url.split('?')[0]}?...{url.split('?')[1].slice(-10)}
+                      </a>
+                    </Typography.Text>
+                  </Tooltip>
+                </div>
+                <Divider />
+                <div className='flex-center'>
+                  <b className='primary-text'>
+                    Next Steps
+                  </b>
+                </div>
+                <div className='secondary-text'>
+                  1) Navigate to the link and generate a QR code yourself to make sure it works and everything looks good.
+                </div>
+                <br />
+                <div className='secondary-text'>
+                  2) Share the link with your users. They will be walked through the process of generating and storing a QR code.
+                  It is strongly recommended that you also tell users to save the QR code elsewhere (in addition to their BitBadges account).
+                  This is because signing in to BitBadges requires a wallet signature, and you should not expect users to have their crypto wallet on hand at all times.
+                </div>
+                <br />
+                <div className='secondary-text'>
+                  3) Users will present the QR code to you at authentication time. You can then scan the QR code to authenticate them using Blockin.
+                  See here for <a href='https://docs.bitbadges.io/for-developers/generating-auth-qr-codes' target='_blank' rel="noopener noreferrer">more information on how to verify with Blockin</a>.
+                  For simple use cases, consider using <a href="https://bitbadges.io/auth/verify" target="_blank" rel="noopener noreferrer">this tool</a> created by us to verify the QR code directly in your browser.
 
-              </Typography.Text>
-            </Tooltip>
-          </div>
-          <div className='secondary-text'>
-            <InfoCircleOutlined /> This is the URL that is to be shared with your users to generate a QR code.
-            Navigate to the link and generate a QR code yourself to make sure it works and everything looks good.
-          </div>
+
+                </div>
+              </>}
+            </InformationDisplayCard>
+          </ div>
+
 
         </div>
       }

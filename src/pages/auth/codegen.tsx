@@ -40,7 +40,7 @@ function BlockinCodesScreen() {
     callbackRequired
   } = router.query;
 
- 
+
 
 
   const {
@@ -137,6 +137,7 @@ function BlockinCodesScreen() {
     return { success: true, message: 'Successfully signed challenge.' };
   }
 
+  const flaggedWebsites = ['https://bitbadges.io', 'https://bitbadges.io/'];
 
   return (
     <DisconnectedWrapper
@@ -159,121 +160,129 @@ function BlockinCodesScreen() {
               marginTop: 16,
             }}
           >
-            {address && blockinParams.address && blockinParams.address !== address ?
-              <div style={{
-                marginLeft: '3vw',
-                marginRight: '3vw',
-                paddingLeft: '1vw',
-                paddingRight: '1vw',
-                paddingTop: '20px'
-              }} className='flex-center flex-column'>
-                <EmptyIcon description='The connected address does not match the expected address for this link. Please sign in with the correct address.' />
-                <AddressDisplay addressOrUsername={blockinParams.address} fontSize={17} />
-                <br />
-                <br />
-                <BlockinDisplay />
-              </div> : <>
+            {
+              flaggedWebsites.includes(blockinParams.domain) &&
+              <div className='' style={{ color: 'red' }}>
+                <WarningOutlined style={{ color: 'red' }} /> <span style={{ color: 'red' }}> Be careful. This is likely a scam attempt. This site ({blockinParams.domain}) does not use QR codes for authentication.</span>
+              </div>
+            }
+            {
 
-                <div className='flex-center'>
-                  {!qrCode &&
-                    <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
+              address && blockinParams.address && blockinParams.address !== address ?
+                <div style={{
+                  marginLeft: '3vw',
+                  marginRight: '3vw',
+                  paddingLeft: '1vw',
+                  paddingRight: '1vw',
+                  paddingTop: '20px'
+                }} className='flex-center flex-column'>
+                  <EmptyIcon description='The connected address does not match the expected address for this link. Please sign in with the correct address.' />
+                  <AddressDisplay addressOrUsername={blockinParams.address} fontSize={17} />
+                  <br />
+                  <br />
+                  <BlockinDisplay />
+                </div> : <>
 
-                      <AuthCode authCode={convertBlockinAuthSignatureInfo({
-                        _id: '',
-                        signature: '',
-                        name: name as string,
-                        description: description as string,
-                        image: image as string,
-                        params: blockinParams,
-                        createdAt: Date.now(),
-                        cosmosAddress: convertToCosmosAddress(address as string),
-                      }, BigIntify)} />
-                      <Divider />
-                      <div className='secondary-text' style={{ textAlign: 'center' }}>
-                        <InfoCircleOutlined /> To be authenticated, the site that directed you here requires you to sign the message with the above details.
-                        Once signed, a secret QR code will be generated for you to present at authentication time.
-                        {window.opener && callbackRequired && <>
-                          <WarningOutlined style={{ color: 'orange' }} /> <span style={{ color: 'orange' }}>This QR code will also be sent back to the site that directed you here.</span>
-                        </>}
-                      </div>
-                      <br />
-                      <div className='secondary-text' style={{ textAlign: 'center' }}>
-                        <WarningOutlined style={{ color: 'orange' }} /> Ensure all the information above is correct before signing.
-                      </div>
-                      <br />
+                  <div className='flex-center'>
+                    {!qrCode &&
+                      <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
 
-                      <div className='flex-center'>
-                        <button className='landing-button' onClick={() => setModalIsVisible(true)} style={{ minWidth: 222, marginTop: 16 }}>
-                          Sign
-                        </button>
-                      </div>
-
-                    </InformationDisplayCard>
-                  }
-                  {qrCode &&
-                    <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
-                      <div className='flex-center'>
-                        {!qrCode && <EmptyIcon description='No QR Code generated yet...' />}
-                        {qrCode && <AuthCode authCode={convertBlockinAuthSignatureInfo({
+                        <AuthCode authCode={convertBlockinAuthSignatureInfo({
                           _id: '',
-                          signature: qrCode,
+                          signature: '',
                           name: name as string,
                           description: description as string,
                           image: image as string,
                           params: blockinParams,
                           createdAt: Date.now(),
                           cosmosAddress: convertToCosmosAddress(address as string),
-                        }, BigIntify)} />}
+                        }, BigIntify)} />
+                        <Divider />
+                        <div className='secondary-text' style={{ textAlign: 'center' }}>
+                          <InfoCircleOutlined /> To be authenticated, the site that directed you here requires you to sign the message with the above details.
+                          Once signed, a secret QR code will be generated for you to present at authentication time.
+                          {window.opener && callbackRequired && <>
+                            <WarningOutlined style={{ color: 'orange' }} /> <span style={{ color: 'orange' }}>This QR code will also be sent back to the site that directed you here.</span>
+                          </>}
+                        </div>
+                        <br />
+                        <div className='secondary-text' style={{ textAlign: 'center' }}>
+                          <WarningOutlined style={{ color: 'orange' }} /> Ensure all the information above is correct before signing.
+                        </div>
+                        <br />
 
-                      </div>
-                      <div className='flex-center'>
-                        <button className='landing-button' onClick={() => router.push(`/account/${chain.address}/codes`)} style={{ minWidth: 222 }}>
-                          View All My Codes
-                        </button>
-                      </div>
+                        <div className='flex-center'>
+                          <button className='landing-button' onClick={() => setModalIsVisible(true)} style={{ minWidth: 222, marginTop: 16 }}>
+                            Sign
+                          </button>
+                        </div>
+
+                      </InformationDisplayCard>
+                    }
+                    {qrCode &&
+                      <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
+                        <div className='flex-center'>
+                          {!qrCode && <EmptyIcon description='No QR Code generated yet...' />}
+                          {qrCode && <AuthCode authCode={convertBlockinAuthSignatureInfo({
+                            _id: '',
+                            signature: qrCode,
+                            name: name as string,
+                            description: description as string,
+                            image: image as string,
+                            params: blockinParams,
+                            createdAt: Date.now(),
+                            cosmosAddress: convertToCosmosAddress(address as string),
+                          }, BigIntify)} />}
+
+                        </div>
+                        <div className='flex-center'>
+                          <button className='landing-button' onClick={() => router.push(`/account/${chain.address}/codes`)} style={{ minWidth: 222 }}>
+                            View All My Codes
+                          </button>
+                        </div>
 
 
-                    </InformationDisplayCard>
-                  }
-                </div>
-                <div className='flex-center primary-text img-overrides'>
-                  {
-                    <SignInModal
-                      modalIsVisible={modalIsVisible}
-                      setModalIsVisible={setModalIsVisible}
-                      modalStyle={{ color: `white`, textAlign: 'start' }}
-                      address={address}
-                      selectedChainInfo={selectedChainInfo}
-                      challengeParams={blockinParams}
-                      selectedChainName={chain.chain}
-                      signAndVerifyChallenge={signAndVerifyChallenge}
-                      displayNotConnnectedWarning={false}
-                      displayedAssets={blockinParams.assets?.map(x => {
-                        const collection = x.chain === 'BitBadges' ? getCollection(BigInt(x.collectionId)) : undefined;
+                      </InformationDisplayCard>
+                    }
+                  </div>
+                  <div className='flex-center primary-text img-overrides'>
+                    {
+                      <SignInModal
+                        modalIsVisible={modalIsVisible}
+                        setModalIsVisible={setModalIsVisible}
+                        modalStyle={{ color: `white`, textAlign: 'start' }}
+                        address={address}
+                        selectedChainInfo={selectedChainInfo}
+                        challengeParams={blockinParams}
+                        selectedChainName={chain.chain}
+                        signAndVerifyChallenge={signAndVerifyChallenge}
+                        displayNotConnnectedWarning={false}
+                        displayedAssets={blockinParams.assets?.map(x => {
+                          const collection = x.chain === 'BitBadges' ? getCollection(BigInt(x.collectionId)) : undefined;
 
-                        return {
-                          ...x,
-                          name: collection?.cachedCollectionMetadata?.name ?? '',
-                          // image: collection?.cachedCollectionMetadata?.image ?? '',
-                          description: 'To be granted access, you must satisfy the ownership requirements.',
-                          defaultSelected: true,
-                          frozen: true,
-                          additionalDisplay: x.chain === 'BitBadges' ? <div>
-                            <BadgeAvatarDisplay
-                              collectionId={BigInt(x.collectionId)}
-                              badgeIds={(x.assetIds).map(x => {
-                                if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
-                                return { start: BigInt(x.start), end: BigInt(x.end) };
-                              })}
-                              size={75}
-                            />
-                          </div> : undefined
-                        }
-                      }) ?? []}
-                    />
-                  }
-                </div>
-              </>}
+                          return {
+                            ...x,
+                            name: collection?.cachedCollectionMetadata?.name ?? '',
+                            // image: collection?.cachedCollectionMetadata?.image ?? '',
+                            description: 'To be granted access, you must satisfy the ownership requirements.',
+                            defaultSelected: true,
+                            frozen: true,
+                            additionalDisplay: x.chain === 'BitBadges' ? <div>
+                              <BadgeAvatarDisplay
+                                collectionId={BigInt(x.collectionId)}
+                                badgeIds={(x.assetIds).map(x => {
+                                  if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
+                                  return { start: BigInt(x.start), end: BigInt(x.end) };
+                                })}
+                                size={75}
+                              />
+                            </div> : undefined
+                          }
+                        }) ?? []}
+                      />
+                    }
+                  </div>
+                </>}
 
           </div>
         </div>
