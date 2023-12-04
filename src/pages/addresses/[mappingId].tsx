@@ -1,14 +1,15 @@
-import { Col, Divider, Empty, Layout, Row, Spin } from 'antd';
-import { AddressMappingInfo, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { Col, Divider, Empty, Input, Layout, Modal, Row, Spin, Typography } from 'antd';
+import { AddressMappingInfo, AddressMappingWithMetadata, DefaultPlaceholderMetadata, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { deleteAddressMappings, getAddressMappings } from '../../bitbadges-api/api';
+import { deleteAddressMappings, getAddressMappings, getAddressesBySurveyId } from '../../bitbadges-api/api';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
-import { InfoCircleOutlined } from '@ant-design/icons';
+import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { QRCode } from 'react-qrcode-logo';
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { AddressDisplayList } from '../../components/address/AddressDisplayList';
@@ -39,9 +40,12 @@ function AddressMappingPage() {
 
   const [addressToCheck, setAddressToCheck] = useState<string>('');
 
+  const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
+  const [surveyDescription, setSurveyDescription] = useState<string>('');
+
   const actions: Action[] = [];
 
-  if ((mappingId as string)?.indexOf('_') >= 0) {
+  if ((mappingId as string)?.indexOf('_') >= 0 && !(mappingId as string).startsWith('survey_')) {
     actions.push({
       title: "Update List",
       description: "Update the details of this list.",
@@ -59,6 +63,15 @@ function AddressMappingPage() {
         router.push('/');
       },
     });
+  } else if ((mappingId as string)?.startsWith('survey_')) {
+
+    actions.push({
+      title: "Generate URL / QR Code",
+      description: "Generate a URL / QR code for users to submit their address to this survey.",
+      showModal: async () => {
+        setModalIsVisible(true);
+      },
+    });
   }
 
 
@@ -67,11 +80,36 @@ function AddressMappingPage() {
     async function fetch() {
       if (!mappingId) return;
 
-      const mappings = await getAddressMappings({
-        mappingIds: [mappingId as string],
-      })
+      const mappingIdStr = mappingId as string;
+      let mapping: AddressMappingWithMetadata<bigint>;
+      if (mappingIdStr.startsWith('survey_')) {
+        const res = await getAddressesBySurveyId(mappingIdStr.split('_')[1]);
+        mapping = {
+          mappingId: mappingIdStr,
+          addresses: res.addresses,
+          includeAddresses: true,
+          createdBy: '',
+          updateHistory: [],
+          createdBlock: 0n,
+          lastUpdated: 0n,
+          uri: '',
+          customData: '',
+          _id: '',
+          metadata: {
+            image: DefaultPlaceholderMetadata.image,
+            name: (mappingIdStr.split('_')[1] as string).replace(/-/g, ' '),
+            description: "",
+          },
+        }
 
-      const mapping = mappings.addressMappings[0];
+      } else {
+
+        const mappings = await getAddressMappings({
+          mappingIds: [mappingId as string],
+        })
+
+        mapping = mappings.addressMappings[0];
+      }
 
       setMapping(mapping);
 
@@ -91,15 +129,26 @@ function AddressMappingPage() {
   if (!mapping?.includeAddresses) {
     isAddressInList = !isAddressInList;
   }
+  const isOnChain = mapping?.mappingId && mapping.mappingId.indexOf('_') < 0;
+  const isSurvey = mapping?.mappingId && mapping.mappingId.startsWith('survey_');
 
   const tabInfo = []
   tabInfo.push(
     { key: 'overview', content: 'Overview' },
-    { key: 'history', content: 'Update History' },
-    { key: 'actions', content: 'Actions' },
+
   );
 
-  const isOnChain = mapping?.mappingId && mapping.mappingId.indexOf('_') < 0
+  if (!isSurvey) {
+    tabInfo.push(
+      { key: 'history', content: 'Update History' },
+
+    )
+  }
+
+  tabInfo.push({ key: 'actions', content: 'Actions' },);
+
+
+  const surveyUrl = mappingId ? "https://bitbadges.io/addresscollector?surveyId=" + (mappingId as string).split('_')[1] + "&description=" + surveyDescription : ''
 
   return (
     <Content
@@ -169,7 +218,9 @@ function AddressMappingPage() {
                   >
                     {isOnChain && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
                     {!isOnChain && mapping && <TableRow label={"ID"} value={mapping.mappingId.split('_')[1]} labelSpan={9} valueSpan={15} />}
+                    {isSurvey && <TableRow label={"Type"} value={"Survey"} labelSpan={9} valueSpan={15} />}
                     {mapping?.customData && <TableRow label={"ID"} value={mapping.customData} labelSpan={9} valueSpan={15} />}
+
                     {mapping?.createdBy && <TableRow label={"Created By"} value={
                       <div className='flex-between' style={{ textAlign: 'right' }}>
                         <div></div>
@@ -184,15 +235,16 @@ function AddressMappingPage() {
                     <TableRow label={"Storage"} value={isOnChain ?
                       "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
                   </InformationDisplayCard>
-                  <br />
+                  {!isSurvey && <>
+                    <br />
 
-                  <MetadataDisplay
-                    collectionId={0n}
-                    metadataOverride={metadata}
-                    span={24}
-                    isAddressListDisplay
-                    metadataUrl={mapping?.uri}
-                  />
+                    <MetadataDisplay
+                      collectionId={0n}
+                      metadataOverride={metadata}
+                      span={24}
+                      isAddressListDisplay
+                      metadataUrl={mapping?.uri}
+                    /></>}
                 </Col>
                 <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
                 <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
@@ -273,6 +325,52 @@ function AddressMappingPage() {
       </div>
 
       <Divider />
+
+      <Modal
+        title={<div className='primary-text inherit-bg'><b>{'Generate URL / QR Code'}</b></div>}
+        open={modalIsVisible}
+        style={{}}
+        footer={null}
+        closeIcon={<div className='primary-text inherit-bg'>{<CloseOutlined />}</div>}
+        bodyStyle={{
+          paddingTop: 8,
+        }}
+        onCancel={() => setModalIsVisible(false)}
+        destroyOnClose={true}
+      >
+        <div className='flex-center flex-column'>
+          <Input.TextArea
+            autoSize
+            value={surveyDescription}
+            onChange={(e) => setSurveyDescription(e.target.value)}
+            placeholder='Description'
+            style={{ width: '90%' }}
+          />
+          <div className='secondary-text' style={{ marginTop: 8, textAlign: 'left', width: '90%' }}>
+            <InfoCircleOutlined /> Provide additional details (next steps, what this survey is for, etc.) which will be displayed to the user.
+          </div>
+
+          <Divider />
+
+          <div className='secondary-text' style={{ textAlign: 'center', width: '90%', marginTop: 8 }}>
+            <b>URL:</b> {surveyUrl}
+          </div>
+          <div className='flex-center'>
+            <a href={surveyUrl} target="_blank" rel="noopener noreferrer">
+
+              Open URL
+            </a>
+
+            <Typography.Text className='primary-text' copyable={{ text: surveyUrl }} style={{ marginLeft: 8 }}>
+              Copy URL
+            </Typography.Text>
+          </div>
+          <Divider />
+          <QRCode value={surveyUrl} size={256} />
+
+
+        </div>
+      </Modal>
     </Content>
   );
 }

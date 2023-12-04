@@ -114,10 +114,7 @@ export const tools = [{
   createdBy: 'Paperform',
   toolType: 'Collect',
   communityBuilt: true
-}
-
-
-]
+}]
 
 export function ToolIcon({
   name

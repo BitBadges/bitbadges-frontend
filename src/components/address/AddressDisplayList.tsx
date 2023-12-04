@@ -1,14 +1,15 @@
-import { UserDeleteOutlined } from "@ant-design/icons"
-import { Tooltip } from "antd"
+import { CopyOutlined, InfoCircleOutlined, UserDeleteOutlined } from "@ant-design/icons"
+import { Spin, Tooltip, notification } from "antd"
+import { deepCopy } from "bitbadgesjs-proto"
 import { useEffect, useState } from "react"
+import { INFINITE_LOOP_MODE } from "../../constants"
 import { getPageDetails } from "../../utils/pagination"
 import { Pagination } from "../common/Pagination"
 import { AddressDisplay } from "./AddressDisplay"
-import { INFINITE_LOOP_MODE } from "../../constants"
-import { deepCopy } from "bitbadgesjs-proto"
 
-import { getAbbreviatedAddress } from "bitbadgesjs-utils"
-import { fetchAccounts } from "../../bitbadges-api/contexts/accounts/AccountsContext"
+import { getAbbreviatedAddress, isAddressValid } from "bitbadgesjs-utils"
+import { getAccounts } from "../../bitbadges-api/api"
+import { fetchAccounts, getAccount, updateAccounts } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 
 export function AddressDisplayList({
   users,
@@ -46,6 +47,8 @@ export function AddressDisplayList({
   //Indexes are not the same as badge IDs. Ex: If badgeIds = [1-10, 20-30] and pageSize = 20, then currPageStart = 0 and currPageEnd = 19
   const [currPageStart, setCurrPageStart] = useState<number>(0); // Index of first badge to display
   const [currPageEnd, setCurrPageEnd] = useState<number>(0); // Index of last badge to display
+  const [copying, setCopying] = useState<boolean>(false);
+
 
   let usersToDisplay = deepCopy(users);
   usersToDisplay = usersToDisplay.filter(x => x !== 'Total');
@@ -73,6 +76,47 @@ export function AddressDisplayList({
   }, [currPage, pageSize, usersToDisplay, trackerIdList]);
 
 
+  const calcNumFetch = () => {
+    let numFetched = 0;
+    for (const user of usersToDisplay) {
+      if (user == 'All') continue;
+      const account = getAccount(user);
+      if (!account) continue;
+      if (account.address) numFetched++;
+    }
+
+    return numFetched;
+  }
+
+
+  const copyAddresses = async () => {
+    await getAllAddresses();
+    let numFetched = calcNumFetch();
+    while (numFetched < usersToDisplay.length) {
+      await new Promise(r => setTimeout(r, 100));
+      numFetched = calcNumFetch();
+    }
+
+    navigator.clipboard.writeText(usersToDisplay.map(x => getAccount(x)?.address).join('\n'));
+  }
+
+
+  const getAllAddresses = async () => {
+    const addressesToFetch = usersToDisplay.filter(x => x != 'All');
+
+    for (let i = 0; i < usersToDisplay.length; i += 250) {
+      const res = await getAccounts({
+        accountsToFetch: addressesToFetch.slice(i, i + 250).map(x => {
+          return {
+            address: isAddressValid(x) ? x : undefined,
+            username: isAddressValid(x) ? undefined : x
+          }
+        })
+      });
+
+      updateAccounts(res.accounts);
+    }
+  }
 
   return <div className="primary-text" style={{ maxHeight: 500, overflow: 'auto', color: fontColor, fontSize: fontSize, alignItems: 'center' }}>
     {!hideTitle &&
@@ -114,5 +158,41 @@ export function AddressDisplayList({
         </div>
       )
     })}
+    <br />
+
+    {usersToDisplay.filter(x => x != 'All').length > 1 && <>
+      <a
+
+        onClick={async () => {
+          if (copying) {
+            notification.info({
+              message: 'Already Copying!',
+              description: 'The addresses are currently being copied to your clipboard.',
+            });
+            return
+          }
+          setCopying(true);
+          await copyAddresses();
+          setCopying(false);
+
+          notification.success({
+            message: 'Addresses Copied!',
+            description: 'The addresses have been copied to your clipboard.',
+          });
+        }}
+      >
+        Copy All Addresses <CopyOutlined />
+      </a>
+
+      {copying && <>
+        <br /><br />
+        <InfoCircleOutlined style={{ marginRight: 4 }} /> We first need to fetch the details for each user in the list (if not already fetched). This may take some time.
+        <br /><br />
+        <div className="flex-center">
+          <Spin size="large" />
+        </div>
+        <br /><br />
+      </>}
+    </>}
   </div>
 }

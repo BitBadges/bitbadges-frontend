@@ -1,4 +1,4 @@
-import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { CloseOutlined, CodeOutlined, InfoCircleOutlined, MinusOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
 import { generatePostBodyBroadcast } from 'bitbadgesjs-utils';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
@@ -15,12 +15,22 @@ import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import IconButton from '../display/IconButton';
 
 const { Step } = Steps;
 
 export function TxModal(
-  { createTxFunction, txCosmosMsg, visible, setVisible, txName, children, style, closeIcon, bodyStyle,
-    msgSteps, displayMsg, onSuccessfulTx, beforeTx, disabled,
+  { createTxFunction,
+    txCosmosMsg,
+    visible,
+    setVisible,
+    txName,
+    children, 
+    style, 
+    closeIcon, 
+    bodyStyle,
+    msgSteps,
+    displayMsg, onSuccessfulTx, beforeTx, disabled,
     requireRegistration,
     coinsToTransfer,
     width
@@ -61,6 +71,7 @@ export function TxModal(
   const [simulatedGas, setSimulatedGas] = useState(200000n);
   const [simulated, setSimulated] = useState(false);
   const [recommendedAmount, setRecommendedAmount] = useState(0n);
+  const [showJson, setShowJson] = useState(false);
 
   const signedInAccount = useAccount(chain.cosmosAddress);
 
@@ -324,7 +335,6 @@ export function TxModal(
           await router.push(`/collections/${collectionId}`);
         }
       }
-
     } catch (err: any) {
       console.error(err);
       if (err?.response?.data?.message) {
@@ -365,7 +375,7 @@ export function TxModal(
           </div>
         }
         <div className='flex-center flex-wrap' style={{ alignItems: 'normal' }}>
-          <Col md={12} xs={24} style={{ textAlign: 'center' }}>
+          <Col md={8} xs={24} style={{ textAlign: 'center' }}>
 
             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
               Signer
@@ -384,7 +394,7 @@ export function TxModal(
           </Col>
 
 
-          <Col md={12} xs={24} style={{ textAlign: 'center' }}>
+          <Col md={8} xs={24} style={{ textAlign: 'center' }}>
             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
               Fee
               <Tooltip
@@ -432,7 +442,27 @@ export function TxModal(
               <Divider />
             </div>}
           </Col>
+          <Col md={8} xs={24} style={{ textAlign: 'center' }}>
+            <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
+              Options
+            </Typography.Text>
+            {simulated && <>
+              <div className='flex-center'>
+                <IconButton
+                  src={showJson ? <MinusOutlined /> : <CodeOutlined />}
+                  text={'Show Final JSON'}
+                  tooltipMessage='Show the JSON of the Cosmos SDK message sent to the blockchain.'
+                  onClick={() => {
+                    setShowJson(!showJson);
+                  }} />
 
+              </div>
+              <div className='secondary-text' style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined /> These are advanced options.
+              </div>
+
+            </>}
+          </Col>
           {exceedsBalance &&
             <div style={{ textAlign: 'center' }} className='primary-text'>
               <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
@@ -440,9 +470,17 @@ export function TxModal(
               </Typography.Text>
             </div>}
 
-          <Divider />
 
         </div>
+        {showJson && <><div style={{ textAlign: 'center' }} className='primary-text'>
+          <br />
+          <DevMode obj={txCosmosMsg} override
+          />
+          <br />
+        </div>
+        </>}
+
+        <Divider />
         <div className='flex-center'>
           <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, alignItems: 'center' }} className='primary-text'>
             I understand that this is a beta version of BitBadges, and there may be bugs.

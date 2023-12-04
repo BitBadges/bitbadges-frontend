@@ -1,0 +1,112 @@
+import { Layout, Spin, notification } from 'antd';
+import { useEffect, useState } from 'react';
+import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
+import { AddressDisplay } from '../components/address/AddressDisplay';
+import { AddressSelect } from '../components/address/AddressSelect';
+import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
+import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
+import { Tabs } from '../components/navigation/Tabs';
+import { useRouter } from 'next/router';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { addAddressToSurvey } from '../bitbadges-api/api';
+
+const { Content } = Layout;
+
+function AddressCollectionScreen() {
+  const router = useRouter();
+  const { surveyId, description } = router.query;
+
+  const chain = useChainContext();
+
+  const [selectedUser, setSelectedUser] = useState<string>(chain.address || '');
+  const [tab, setTab] = useState<string>('search');
+
+  useEffect(() => {
+    setSelectedUser(chain.address || '');
+  }, [chain.address]);
+
+  if (!surveyId) {
+    return <Content
+      className="full-area"
+      style={{ minHeight: '100vh', padding: 8 }}
+    >
+      <div className='flex-center'>
+        <Spin size='large' />
+      </div>
+    </Content>
+  }
+
+  return (
+    <Content
+      className="full-area"
+      style={{ minHeight: '100vh', padding: 8 }}
+    >
+      <div className='flex-center'>
+        <InformationDisplayCard title='Address Survey' md={12} xs={24} sm={24} style={{ marginTop: '10px' }} subtitle={description}>
+          <br />
+
+          <div className='flex-center'>
+            <Tabs
+              tab={tab}
+              setTab={setTab}
+              tabInfo={[
+                { key: 'search', content: 'Search' },
+                { key: 'select', content: 'Connect Wallet' },
+              ]}
+              type='underline'
+            />
+          </div>
+
+          {tab == 'search' && <>
+
+            <div className='flex-center' style={{ textAlign: 'center' }}>
+              <AddressSelect
+                defaultValue={selectedUser}
+                switchable
+                onUserSelect={async (userInfo) => {
+                  setSelectedUser(userInfo);
+                }}
+              />
+            </div>
+          </>}
+
+          {tab == 'select' && <>
+            <br />
+            <div className='flex-center flex-column'>
+              <BlockinDisplay hideLogo />
+            </div>
+            <br />
+
+            <div className='flex-center'>
+              <AddressDisplay addressOrUsername={selectedUser} />
+            </div>
+          </>}
+
+
+          <br />
+
+          {selectedUser && <>
+            <br />
+            <div className='flex-center'>
+              <button className='landing-button' style={{ width: '90%' }} onClick={async () => {
+                await addAddressToSurvey(surveyId as string, { address: selectedUser });
+                notification.success({
+                  message: 'Address Submitted!',
+                  description: 'Your address has been submitted to the survey.',
+                });
+                router.push('/');
+              }} disabled={!selectedUser}>
+                Submit
+              </button>
+            </div>
+            <div className='secondary-text' style={{ textAlign: 'center', marginTop: '10px' }}>
+              <InfoCircleOutlined /> The selected address will be submitted.
+            </div>
+          </>}
+        </InformationDisplayCard>
+      </div>
+    </ Content >
+  );
+}
+
+export default AddressCollectionScreen;

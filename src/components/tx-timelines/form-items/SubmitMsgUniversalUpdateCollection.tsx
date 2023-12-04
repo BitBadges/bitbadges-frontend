@@ -5,8 +5,7 @@ import { MsgUniversalUpdateCollection } from 'bitbadgesjs-proto';
 export function SubmitMsgNewCollection({ MsgUniversalUpdateCollection }: { MsgUniversalUpdateCollection?: MsgUniversalUpdateCollection<bigint> }) {
   const [visible, setVisible] = useState<boolean>(false);
 
-  return <div className='full-width flex-center'
-    style={{ marginTop: 20, }} >
+  return <div className='full-width flex-center' style={{ marginTop: 20, }}>
     <button
       className='landing-button'
       style={{ width: '90%' }}

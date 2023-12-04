@@ -8,6 +8,7 @@ import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapp
 import { CodeGenQueryParams } from './codegen';
 import { BalanceInput } from '../../components/inputs/BalanceInput';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { addMetadataToIpfs, fetchMetadataDirectly } from '../../bitbadges-api/api';
 const { Text } = Typography;
 
 
@@ -107,9 +108,19 @@ function BlockinCodesScreen() {
       }
 
       if (info.file.status === 'done') {
-        await file2Base64(info.file.originFileObj as File).then((base64) => {
+        await file2Base64(info.file.originFileObj as File).then(async (base64) => {
+          //TODO: optimize
+          const res = await addMetadataToIpfs({ collectionMetadata: { name: '', description: '', image: base64 } });
+          const imageRes = res?.collectionMetadataResult?.cid;
+          const getRes = await fetchMetadataDirectly({ uris: ['ipfs://' + imageRes] });
+          const metadata = getRes.metadata[0];
+          const image = metadata?.image;
+          if (!image) {
+            message.error(`${info.file.name} file upload failed.`);
+            return;
+          }
 
-          setCodeGenParams({ ...codeGenParams, image: base64 });
+          setCodeGenParams({ ...codeGenParams, image: image });
           setImageIsUploading(false);
           message.success(`${info.file.name} file uploaded successfully.`);
         })

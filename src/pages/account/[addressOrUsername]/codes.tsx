@@ -93,7 +93,7 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
       hideCollectionLink
     />
     <div className='flex-center flex-column'>
-      <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8 }}>
+      <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
         {x.description}
       </div>
       <br />
