@@ -49,7 +49,6 @@ function AddressMappingPage() {
 
   const actions: Action[] = [];
 
-  const isSurvey = mapping?.surveyMode;
   const isPrivate = mapping?.private;
   const isOnChain = mapping?.mappingId && mapping.mappingId.indexOf('_') < 0;
   if (!isOnChain && chain.cosmosAddress == mapping?.createdBy && mapping?.createdBy) {
@@ -71,10 +70,10 @@ function AddressMappingPage() {
       },
     });
 
-    if (isSurvey) {
+    if (mapping?.editKeys && mapping.editKeys.length > 0) {
       actions.push({
-        title: "Generate URL / QR Code",
-        description: "Generate a URL / QR code for users to submit their address to this survey.",
+        title: "Generate Edit URLs",
+        description: "Generate a URL / QR code for users to submit an address to this list.",
         showModal: async () => {
           setModalIsVisible(true);
         },
@@ -121,19 +120,16 @@ function AddressMappingPage() {
   const tabInfo = []
   tabInfo.push(
     { key: 'overview', content: 'Overview' },
-
   );
-
-  if (!isSurvey) {
-    tabInfo.push(
-      { key: 'history', content: 'Update History' },
-    )
-  }
+  tabInfo.push(
+    { key: 'history', content: 'Update History' },
+  )
 
   tabInfo.push({ key: 'actions', content: 'Actions' });
 
+  const editKey = mapping?.editKeys && mapping.editKeys.length > 0 ? mapping.editKeys[0] : undefined;
+  const surveyUrl = mappingId ? "https://bitbadges.io/addresscollector?mappingId=" + (mappingId as string) + "&description=" + surveyDescription + "&editKey=" + editKey?.key : '';
 
-  const surveyUrl = mappingId ? "https://bitbadges.io/addresscollector?surveyId=" + (mappingId as string) + "&description=" + surveyDescription : ''
 
   return (
     <Content
@@ -216,7 +212,10 @@ function AddressMappingPage() {
                     >
                       {isOnChain && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
                       {!isOnChain && mapping && <TableRow label={"ID"} value={mapping.mappingId.split('_')[1]} labelSpan={9} valueSpan={15} />}
-                      {isSurvey && <TableRow label={"Type"} value={"Survey"} labelSpan={9} valueSpan={15} />}
+                      {mapping.editKeys && mapping.editKeys.length > 0 ?
+                        <TableRow label={"Editable>"} value={"By Creator and Approved Users"} labelSpan={9} valueSpan={15} /> :
+                        <TableRow label={"Editable?"} value={"By Creator Only"} labelSpan={9} valueSpan={15} />
+                      }
                       {!isOnChain && <TableRow label={"Access"} value={isPrivate ? "Private" : "Public"} labelSpan={9} valueSpan={15} />}
                       {mapping?.customData && <TableRow label={"ID"} value={mapping.customData} labelSpan={9} valueSpan={15} />}
 
@@ -234,16 +233,15 @@ function AddressMappingPage() {
                       <TableRow label={"Storage"} value={isOnChain ?
                         "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
                     </InformationDisplayCard>
-                    {!isSurvey && <>
-                      <br />
+                    <br />
 
-                      <MetadataDisplay
-                        collectionId={0n}
-                        metadataOverride={metadata}
-                        span={24}
-                        isAddressListDisplay
-                        metadataUrl={mapping?.uri}
-                      /></>}
+                    <MetadataDisplay
+                      collectionId={0n}
+                      metadataOverride={metadata}
+                      span={24}
+                      isAddressListDisplay
+                      metadataUrl={mapping?.uri}
+                    />
                   </Col>
                   <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
                   <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
@@ -367,8 +365,18 @@ function AddressMappingPage() {
           <Divider />
           <QrCodeDisplay value={surveyUrl} size={256} />
           <Divider />
-          <div className='primary-text' style={{ textAlign: 'center' }}>
-            <WarningOutlined style={{ color: 'orange' }} /> <b>Warning:</b> Anyone with this URL can add an address.
+          <div className='secondary-text' style={{ textAlign: 'center' }}>
+            <WarningOutlined style={{ color: 'orange' }} /> <b>Warning:</b> With the current settings, anyone with this URL can add an address{editKey?.expirationDate ? <>
+              {' '}until {new Date(Number(editKey.expirationDate)).toLocaleDateString()}.
+            </> : <>with no expiration date.</>}
+          </div>
+          <br />
+          <div className='secondary-text' style={{ textAlign: 'center' }}>
+            {editKey?.mustSignIn ? <>
+              <InfoCircleOutlined /> Users must sign in and can only add their own address under the current settings.
+            </> : <>
+              <InfoCircleOutlined /> Users can add any address without signing in under the current settings.
+            </>}
           </div>
 
         </div>

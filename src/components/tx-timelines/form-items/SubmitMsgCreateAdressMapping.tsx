@@ -1,4 +1,4 @@
-import { Divider, Input, Switch, Typography } from 'antd';
+import { DatePicker, Divider, Input, Switch, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { addMetadataToIpfs, updateAddressMappings } from '../../../bitbadges-api/api';
@@ -8,10 +8,14 @@ import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/
 import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
 
 import { InfoCircleOutlined } from '@ant-design/icons';
+import { AddressMappingEditKey } from 'bitbadgesjs-utils';
+import moment from 'moment';
 import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { TableRow } from '../../display/TableRow';
 import { SwitchForm } from './SwitchForm';
+const crypto = require('crypto');
 
 export function SubmitMsgCreateAddressMapping() {
   const chain = useChainContext();
@@ -32,7 +36,7 @@ export function SubmitMsgCreateAddressMapping() {
   const collection = useCollection(NEW_COLLECTION_ID);
 
   const [privateMode, setPrivateMode] = useState<boolean>(false);
-  const [surveyMode, setSurveyMode] = useState<boolean>(false);
+  const [editKeys, setEditKeys] = useState<AddressMappingEditKey<bigint>[]>(addressMapping.editKeys ?? []);
 
   useEffect(() => {
     if (!isUpdateAddressMapping) {
@@ -116,20 +120,94 @@ export function SubmitMsgCreateAddressMapping() {
                 <InfoCircleOutlined /> {privateMode ? 'Only you will be able to see the list.' : 'The list will be public and will show up in search results.'}
               </div>
               <TableRow label='Survey Mode?' value={<Switch
-                checked={surveyMode}
+                checked={editKeys.length > 0}
                 checkedChildren="Survey Mode"
                 unCheckedChildren="Admin Mode"
                 onChange={(checked) => {
-                  setSurveyMode(checked);
+                  setEditKeys(checked ? [{
+                    key: crypto.randomBytes(32).toString('hex'),
+                    expirationDate: GO_MAX_UINT_64,
+                    mustSignIn: false,
+                  }] : []);
                 }}
-
               />}
                 labelSpan={12}
                 valueSpan={12}
               />
               <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
-                <InfoCircleOutlined /> {surveyMode ? 'You can update and delete, but also, others can add to the list by navigating to a unique URL link.' : 'Only you will be able to update and delete the list.'}
+                <InfoCircleOutlined /> {editKeys.length > 0 ? 'You can update and delete, but also, others can add to the list, according to the criteria specified.' : 'Only you will be able to update and delete the list.'}
               </div>
+
+              {editKeys.length > 0 && <>
+                <TableRow label='Require sign in?' value={<Switch
+                  checked={editKeys[0].mustSignIn}
+                  checkedChildren="Require Sign In"
+                  unCheckedChildren="No Sign In Required"
+                  onChange={(checked) => {
+                    setEditKeys([{
+                      ...editKeys[0],
+                      mustSignIn: checked,
+                    }]);
+                  }}
+                />}
+                  labelSpan={12}
+                  valueSpan={12}
+                />
+                <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                  <InfoCircleOutlined /> Users must sign in to add to the list, and they can only add the address they signed in with.
+                  This means users are expected to have their crypto wallets ready to sign.
+                </div>
+                <TableRow label='Expiration?' value={<>
+                  <Switch checked={editKeys[0].expirationDate === GO_MAX_UINT_64}
+                    checkedChildren="Never"
+                    unCheckedChildren="Set Expiration"
+                    onChange={(checked) => {
+                      if (checked) {
+                        setEditKeys([{
+                          ...editKeys[0],
+                          expirationDate: GO_MAX_UINT_64,
+                        }]);
+                      } else {
+                        setEditKeys([{
+                          ...editKeys[0],
+                          expirationDate: BigInt(Date.now() + 1000 * 60 * 60 * 24 * 7) // 7 days
+                        }]);
+                      }
+                    }}
+                  />
+                </>}
+                  labelSpan={12}
+                  valueSpan={12}
+                />
+                <div className='flex-between' style={{ marginLeft: 10, marginTop: 6 }}>
+                  <div className='primary-text inherit-bg full-width'>
+
+
+                    {!editKeys[0].expirationDate || editKeys[0].expirationDate !== GO_MAX_UINT_64 && <>
+
+                      <DatePicker
+                        showMinute
+                        showTime
+                        allowClear={false}
+                        placeholder='Start'
+                        value={editKeys[0].expirationDate ? moment(new Date(Number(editKeys[0].expirationDate))) : null}
+                        className='primary-text inherit-bg full-width'
+                        onChange={(_date, dateString) => {
+                          setEditKeys([{
+                            ...editKeys[0],
+                            expirationDate: dateString ? BigInt(new Date(dateString).getTime()) : 0n,
+                          }]);
+                        }}
+                      />
+                    </>
+                    }
+                  </div>
+
+                </div>
+                <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                  <InfoCircleOutlined /> Users can only add to the list until the expiration date.
+                </div>
+              </>}
             </InformationDisplayCard>
           </div></>}
 
@@ -158,7 +236,7 @@ export function SubmitMsgCreateAddressMapping() {
               ...addressMapping,
               mappingId: !isUpdateAddressMapping ? mappingId : addressMapping.mappingId,
               uri: metadataUrl,
-              surveyMode: surveyMode,
+              editKeys: editKeys,
               private: privateMode,
             }],
           });

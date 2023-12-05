@@ -1,5 +1,5 @@
 import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
-import { BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
+import { AddressMappingEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -55,9 +55,16 @@ export interface CreateAndDistributeMsg<T extends NumberType> {
   setCustomCollection: (customCollection: boolean) => void
 }
 
-export interface CreateAddressMappingMsg {
-  addressMapping: AddressMapping
-  setAddressMapping: (addressMapping: AddressMapping) => void
+export interface CreateAddressMappingMsg<T extends NumberType> {
+  addressMapping: (AddressMapping & {
+    private?: boolean;
+
+    editKeys?: AddressMappingEditKey<T>[];
+  })
+  setAddressMapping: (addressMapping: AddressMapping & {
+    private?: boolean;
+    editKeys?: AddressMappingEditKey<T>[];
+  }) => void
   isUpdateAddressMapping?: boolean
 }
 
@@ -95,7 +102,7 @@ export interface UpdateFlags {
   setUpdateIsArchivedTimeline: (value: boolean) => void;
 }
 
-export type MsgUniversalUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressMappingMsg & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
+export type MsgUniversalUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressMappingMsg<bigint> & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
 
 export interface BaseTxTimelineProps {
   txType: 'UpdateCollection'

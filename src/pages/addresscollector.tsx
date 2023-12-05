@@ -14,7 +14,7 @@ const { Content } = Layout;
 
 function AddressCollectionScreen() {
   const router = useRouter();
-  const { surveyId, description, callbackRequired } = router.query;
+  const { mappingId, description, callbackRequired, editKey } = router.query;
 
   const chain = useChainContext();
 
@@ -78,24 +78,28 @@ function AddressCollectionScreen() {
             <br />
             <div className='flex-center'>
               <button className='landing-button' style={{ width: '90%' }} onClick={async () => {
-                if (surveyId) {
-                  await addAddressToSurvey(surveyId as string, { address: selectedUser });
-
+                if (mappingId && editKey) {
+                  await addAddressToSurvey(mappingId as string, { address: selectedUser, editKey: editKey as string });
                 }
-                notification.success({
-                  message: 'Address Submitted!',
-                });
-                router.push('/');
-
                 if (window.opener && callbackRequired) {
                   window.opener.postMessage({ type: 'address', address: selectedUser }, "*");
                 }
+
+                notification.success({
+                  message: 'Address Submitted!',
+                });
+                if (window.opener) {
+                  window.close();
+                } else {
+                  router.push('/');
+                }
+
               }} disabled={!selectedUser}>
                 Submit
               </button>
             </div>
             <div className='secondary-text' style={{ textAlign: 'center', marginTop: '10px' }}>
-              <InfoCircleOutlined /> The selected address will be {surveyId ? 'submitted to the survey.' : 'sent to the website that directed you here.'}
+              <InfoCircleOutlined /> The selected address will be {mappingId ? 'submitted.' : 'sent to the website that directed you here.'}
             </div>
           </>}
         </InformationDisplayCard>

@@ -2,11 +2,10 @@ import { Divider, Empty, Layout } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { fetchCollections, fetchNextForCollectionViews, getCollection, getCollectionActivityView, getCollectionAnnouncementsView, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { fetchCollections, fetchNextForCollectionViews, getCollection, getCollectionActivityView, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
-import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { UserApprovalsTab } from '../../components/collection-page/ApprovalsTab';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
 import { OffChainTransferabilityTab } from '../../components/collection-page/OffChainTransferabilityTab';
@@ -44,7 +43,7 @@ function CollectionPage({
       { key: 'badges', content: 'Badges', disabled: false },
       { key: 'transferability', content: 'Transferability', disabled: false },
       { key: 'approvals', content: 'Approvals', disabled: false },
-      { key: 'announcements', content: 'Announcements', disabled: false },
+      // { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
       { key: 'history', content: 'Update History', disabled: false },
@@ -55,7 +54,7 @@ function CollectionPage({
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
       { key: 'transferability', content: 'Transferability', disabled: false },
-      { key: 'announcements', content: 'Announcements', disabled: false },
+      // { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
       { key: 'history', content: 'Update History', disabled: false },
@@ -184,7 +183,7 @@ function CollectionPage({
             />
           )}
 
-          {tab === 'announcements' && !isPreview && collection && (
+          {/* {tab === 'announcements' && !isPreview && collection && (
             <>
               <AnnouncementsTab announcements={getCollectionAnnouncementsView(collection, 'latestAnnouncements') ?? []}
                 collectionId={collectionIdNumber}
@@ -194,7 +193,7 @@ function CollectionPage({
                 hasMore={getCollection(collectionIdNumber)?.views.latestAnnouncements?.pagination.hasMore ?? true}
               />
             </>
-          )}
+          )} */}
 
           {tab === 'history' && !isPreview && <div className='primary-text'>
             <br />

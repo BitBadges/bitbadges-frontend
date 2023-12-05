@@ -4,9 +4,9 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { AccountViewKey } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountAnnouncementsView, getAccountClaimAlertsView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountClaimAlertsView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressListCard } from '../../components/badges/AddressListCard';
-import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
+// import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { ClaimAlertsTab } from '../../components/collection-page/ClaimAlertsTab';
 import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { Tabs } from '../../components/navigation/Tabs';
@@ -27,7 +27,7 @@ export function Notifications() {
   //This is to avoid the race conditions where we somehow fetch or add an activity at time T in some other manner (claiming a badge, sending an announcement, etc)
   //We don't want to mark all notifications as read if we haven't yet loaded notifications from last seen to T
   const transferActivity = (getAccountActivityView(signedInAccount, 'latestActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
-  const announcements = (getAccountAnnouncementsView(signedInAccount, 'latestAnnouncements') ?? []).filter((announcement) => announcement.timestamp < (chain.lastSeenActivity));
+  // const announcements = (getAccountAnnouncementsView(signedInAccount, 'latestAnnouncements') ?? []).filter((announcement) => announcement.timestamp < (chain.lastSeenActivity));
   const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'latestClaimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
 
   const listsTab = 'latestAddressMappings';
@@ -70,7 +70,7 @@ export function Notifications() {
   }, [hasMoreAddressMappings, fetchMore, chain.address, listsTab]);
 
 
-  const unseenAnnouncementsCount = announcements.filter((announcement) => announcement.timestamp > (prevSeenActivity ?? 0)).length;
+  // const unseenAnnouncementsCount = announcements.filter((announcement) => announcement.timestamp > (prevSeenActivity ?? 0)).length;
   const unseenClaimAlertsCount = claimAlerts.filter((claimAlert) => claimAlert.createdTimestamp > (prevSeenActivity ?? 0)).length;
   const unseenTransferActivityCount = transferActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
   const unseenAddressMappingsCount = listsView.filter((addressMapping) => addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp > (prevSeenActivity ?? 0)).length;
@@ -159,11 +159,12 @@ export function Notifications() {
                   setTab={setTab}
                   tabInfo={[
 
+                    // {
+                    //   key: 'announcements',
+                    //   content: <TabComponent title={'Announcements'} count={unseenAnnouncementsCount} />,
+                    //   disabled: false
+                    // }, 
                     {
-                      key: 'announcements',
-                      content: <TabComponent title={'Announcements'} count={unseenAnnouncementsCount} />,
-                      disabled: false
-                    }, {
                       key: 'claimAlerts',
                       content: <TabComponent title={'Claim Alerts'} count={unseenClaimAlertsCount} />,
                       disabled: false
@@ -188,11 +189,11 @@ export function Notifications() {
                     />
                   </>}
 
-                  {tab === 'announcements' && <><br /><AnnouncementsTab
+                  {/* {tab === 'announcements' && <><br /><AnnouncementsTab
                     announcements={announcements ?? []}
                     fetchMore={async () => fetchMore(chain.address, 'latestAnnouncements')}
                     hasMore={signedInAccount?.views.latestAnnouncements?.pagination.hasMore ?? true}
-                  /></>}
+                  /></>} */}
 
                   {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
                     claimAlerts={claimAlerts ?? []}
