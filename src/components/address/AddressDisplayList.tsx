@@ -104,17 +104,24 @@ export function AddressDisplayList({
   const getAllAddresses = async () => {
     const addressesToFetch = usersToDisplay.filter(x => x != 'All');
 
-    for (let i = 0; i < usersToDisplay.length; i += 250) {
-      const res = await getAccounts({
-        accountsToFetch: addressesToFetch.slice(i, i + 250).map(x => {
-          return {
-            address: isAddressValid(x) ? x : undefined,
-            username: isAddressValid(x) ? undefined : x
-          }
-        })
-      });
+    let next250ToFetch = [];
+    for (let i = 0; i < addressesToFetch.length; i++) {
+      if (!getAccount(usersToDisplay[i])?.address) {
+        next250ToFetch.push(usersToDisplay[i]);
 
-      updateAccounts(res.accounts);
+        if (next250ToFetch.length == 250 || i == usersToDisplay.length - 1) {
+          const res = await getAccounts({
+            accountsToFetch: next250ToFetch.map(x => {
+              return {
+                address: isAddressValid(x) ? x : undefined,
+                username: isAddressValid(x) ? undefined : x
+              }
+            })
+          });
+          updateAccounts(res.accounts);
+          next250ToFetch = [];
+        }
+      }
     }
   }
 
@@ -158,9 +165,10 @@ export function AddressDisplayList({
         </div>
       )
     })}
-    <br />
+
 
     {usersToDisplay.filter(x => x != 'All').length > 1 && <>
+      <br />
       <a
 
         onClick={async () => {

@@ -1,7 +1,7 @@
 import { CloseCircleOutlined, DeleteOutlined, DownOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Col, Divider, Dropdown, Empty, Input, Layout, Select, Spin, Tag, Typography, notification } from 'antd';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { AccountViewKey, Numberify, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
+import { AccountViewKey, AddressMappingWithMetadata, Numberify, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
@@ -10,6 +10,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 
+import { getAddressMappings } from '../../bitbadges-api/api';
 import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountBalancesView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
@@ -73,6 +74,9 @@ function PortfolioPage() {
     setNumBadgesDisplayed(25);
   }, [badgeTab]);
 
+
+
+
   const [cardView, setCardView] = useState(true);
   const [filteredCollections, setFilteredCollections] = useState<{
     collectionId: bigint,
@@ -82,9 +86,14 @@ function PortfolioPage() {
 
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
   const [editMode, setEditMode] = useState(false);
-  const [listsTab, setListsTab] = useState<AccountViewKey>('addressMappings');
+  const [listsTab, setListsTab] = useState<string>('addressMappings');
   const [searchValue, setSearchValue] = useState<string>('');
 
+  useEffect(() => {
+    if (listsTab !== '') {
+      setAddPageIsVisible(false);
+    }
+  }, [listsTab]);
 
   const tabInfo = [];
   if (accountInfo?.readme) {
@@ -255,10 +264,35 @@ function PortfolioPage() {
     await fetchNextForAccountViews(address, [viewKey]);
   }, []);
 
-  const listsView = getAccountAddressMappingsView(accountInfo, listsTab);
+  const isPresetList = listsTab === 'addressMappings' || listsTab === 'explicitlyIncludedAddressMappings' || listsTab === 'explicitlyExcludedAddressMappings' || listsTab === 'privateLists';
+
+  const [customView, setCustomView] = useState<AddressMappingWithMetadata<bigint>[]>([]);
+
+  useEffect(() => {
+    if (isPresetList) return;
+
+    async function getCustomView() {
+      const idsToFetch = [];
+      if (listsTab === 'Hidden') {
+        idsToFetch.push(...accountInfo?.hiddenLists ?? []);
+      } else {
+        idsToFetch.push(...accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
+      }
+
+
+
+      const res = await getAddressMappings({ mappingIds: idsToFetch });
+      setCustomView(res.addressMappings);
+
+      console.log("CUSTOM VIEW", res.addressMappings);
+    }
+
+    getCustomView();
+  }, [listsTab, accountInfo?.customListPages, isPresetList, accountInfo?.hiddenLists]);
+
+  const listsView = isPresetList ? getAccountAddressMappingsView(accountInfo, listsTab) : customView
   const collectedHasMore = editMode ? accountInfo?.views['badgesCollectedWithHidden']?.pagination?.hasMore ?? true :
     accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true;
-
 
   const createdView = accountInfo?.views['createdBy'];
   const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
@@ -276,14 +310,15 @@ function PortfolioPage() {
     if (tab === 'collected' && collectedIsEmpty && (accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true)) {
       fetchMoreCollected(accountInfo?.address ?? '');
     } else if (tab === 'lists' && hasMoreAddressMappings && listsIsEmpty) {
-      fetchMoreLists(accountInfo?.address ?? '', listsTab);
+      if (isPresetList) {
+        fetchMoreLists(accountInfo?.address ?? '', listsTab);
+      }
     } else if (tab === 'createdBy' && (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true) && createdByIsEmpty) {
       fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
     } else if (tab === 'managing' && (accountInfo?.views['managing']?.pagination?.hasMore ?? true) && managingIsEmpty) {
       fetchMoreManaging(accountInfo?.address ?? '', 'managing');
     }
-  }, [tab, accountInfo, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, fetchMoreCollected, listsTab]);
-
+  }, [tab, accountInfo, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, fetchMoreCollected, listsTab, isPresetList])
 
   useEffect(() => {
     if (tab === 'lists') {
@@ -407,6 +442,43 @@ function PortfolioPage() {
     {CustomizeSearchBar}
   </Dropdown >
 
+  const [customizeSearchListValue, setCustomizeSearchListValue] = useState<string>('');
+  const [selectedList, setSelectedList] = useState<string>('');
+  const selectedListMapping = accountInfo?.addressMappings?.find(x => x.mappingId === selectedList);
+
+  const CustomizeListSearchBar = <Input
+    defaultValue=""
+    placeholder={"Add or remove by searching a list"}
+
+    value={customizeSearchListValue}
+    onChange={async (e) => {
+      setCustomizeSearchListValue(e.target.value);
+    }}
+    className='form-input'
+    style={{}}
+  />;
+
+  const CustomizeSearchListDropdown = <Dropdown
+    open={customizeSearchListValue !== ''}
+    placement="bottom"
+    overlay={
+      <SearchDropdown
+        onlyLists
+        onSearch={async (searchValue: any, isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
+          if (!isAccount && !isCollection && !isBadge && typeof searchValue === 'string') {
+            setSelectedList(searchValue);
+            setCustomizeSearchListValue('');
+          }
+        }}
+        searchValue={customizeSearchListValue}
+      />
+    }
+    overlayClassName='primary-text inherit-bg'
+    className='inherit-bg'
+    trigger={['hover', 'click']}
+  >
+    {CustomizeListSearchBar}
+  </Dropdown >
 
   if (!accountInfo) {
     return <></>
@@ -458,6 +530,43 @@ function PortfolioPage() {
     </Tag>
   }
 
+  const CustomizeSelect = <>{
+    chain.address === accountInfo.address && chain.loggedIn && (
+      <div className='primary-text inherit-bg' style={{
+        float: 'right',
+        display: 'flex',
+        alignItems: 'center',
+        marginRight: 16,
+        marginTop: 5,
+      }}>
+        Mode:
+
+        <Select
+          className='selector primary-text inherit-bg'
+          value={editMode ? 'edit' : 'none'}
+          placeholder="Default: None"
+          onChange={(e: any) => {
+            setEditMode(e === 'edit');
+            setCardView(true);
+          }}
+          style={{
+            float: 'right',
+            marginLeft: 8,
+          }}
+          suffixIcon={
+            <DownOutlined
+              className='primary-text'
+            />
+          }
+        >
+          <Select.Option value="none">Normal User</Select.Option>
+          <Select.Option value="edit">Customize</Select.Option>
+        </Select>
+      </div>
+    )
+  }</>
+
+
 
   return (
     <Content
@@ -498,39 +607,7 @@ function PortfolioPage() {
 
           <br />
           <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
-            {chain.address === accountInfo.address && chain.loggedIn && (
-              <div className='primary-text inherit-bg' style={{
-                float: 'right',
-                display: 'flex',
-                alignItems: 'center',
-                marginRight: 16,
-                marginTop: 5,
-              }}>
-                Mode:
-
-                <Select
-                  className='selector primary-text inherit-bg'
-                  value={editMode ? 'edit' : 'none'}
-                  placeholder="Default: None"
-                  onChange={(e: any) => {
-                    setEditMode(e === 'edit');
-                    setCardView(true);
-                  }}
-                  style={{
-                    float: 'right',
-                    marginLeft: 8,
-                  }}
-                  suffixIcon={
-                    <DownOutlined
-                      className='primary-text'
-                    />
-                  }
-                >
-                  <Select.Option value="none">Normal User</Select.Option>
-                  <Select.Option value="edit">Customize</Select.Option>
-                </Select>
-              </div>
-            )}
+            {CustomizeSelect}
 
             {<div className='primary-text inherit-bg' style={{
               float: 'right',
@@ -899,13 +976,54 @@ function PortfolioPage() {
 
         {tab === 'lists' && (<>
           <br />
+          <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
+            {CustomizeSelect}
+          </div>
+
+
           <div className='flex-center'>
             <Tabs
               tabInfo={
+
+
                 [
                   { key: 'addressMappings', content: 'All', disabled: false },
                   { key: 'explicitlyIncludedAddressMappings', content: 'Included', disabled: false },
                   { key: 'explicitlyExcludedAddressMappings', content: 'Excluded', disabled: false },
+                  ...(editMode ? [{
+                    key: 'Hidden', content: 'Hidden', disabled: false
+                  }] : []),
+                  ...accountInfo.customListPages?.map((customPage) => {
+                    return {
+                      key: customPage.title, content:
+                        <div className='flex-center' style={{ marginLeft: editMode ? 8 : undefined }}>
+                          {customPage.title}
+                          {editMode && listsTab !== 'All' && listsTab !== 'Hidden' && listsTab !== '' && listsTab === customPage.title && <>
+
+
+                            <IconButton
+                              text=''
+                              onClick={async () => {
+                                if (!confirm('Are you sure you want to delete this page?')) {
+                                  return
+                                }
+
+                                const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
+                                newCustomPages.splice(newCustomPages.findIndex(x => x.title === listsTab), 1);
+
+                                await updateProfileInfo(chain.address, {
+                                  customListPages: newCustomPages
+                                });
+
+                                setListsTab('All');
+                              }}
+                              src={<DeleteOutlined />}
+                            />
+                          </>}
+                        </div>, disabled: false
+                    }
+                  }) ?? []
+
                 ]
               }
               tab={listsTab} setTab={(e) => {
@@ -913,47 +1031,209 @@ function PortfolioPage() {
               }}
               type='underline'
             />
-          </div>
-          <br />
-          <div className='flex-center flex-wrap'>
-            <InfiniteScroll
-              dataLength={listsView.length}
-              next={async () => fetchMoreLists(accountInfo?.address ?? '', listsTab)}
-              hasMore={hasMoreAddressMappings}
-              loader={<div>
-                <br />
-                <Spin size={'large'} />
-              </div>}
-              scrollThreshold={"300px"}
-              endMessage={
-                <></>
-              }
-              initialScrollY={0}
-              style={{ width: '100%', overflow: 'hidden' }}
-            >
-              <div className='full-width flex-center flex-wrap'>
-                {listsView.map((addressMapping, idx) => {
-                  return <AddressListCard
-                    key={idx}
-                    addressMapping={addressMapping}
-                    addressOrUsername={accountInfo.address}
-                  />
-                })}
-              </div>
-            </InfiniteScroll>
 
-            {listsView.length === 0 && !hasMoreAddressMappings && (
-              <Empty
-                className='primary-text'
-                description={
-                  <span>
-                    No lists found.
-                  </span>
-                }
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            )}
+            {editMode && <IconButton src={<PlusOutlined />}
+              text=''
+              tooltipMessage='Add a new page to your portfolio.'
+              onClick={() => {
+                setAddPageIsVisible(true);
+                setListsTab(''); //Reset tab
+              }} />}
           </div>
+          {listsTab === 'Hidden' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            <InfoCircleOutlined /> Hidden lists will be automatically filtered out from standard views and not shown by default.
+          </div>}
+          {listsTab === 'All' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            <InfoCircleOutlined /> These results only include whitelists where the address is included and blacklists where the address is excluded.
+          </div>}
+          {listsTab === 'explicitlyIncludedAddressMappings' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            <InfoCircleOutlined /> These results
+            only include whitelists where the address is included.
+          </div>}
+          {listsTab === 'explicitlyExcludedAddressMappings' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            <InfoCircleOutlined /> These results
+            only include blacklists where the address is excluded.
+          </div>}
+          {listsTab !== '' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            {accountInfo.customListPages?.find(x => x.title === badgeTab)?.description}
+          </div>}
+
+          {!isPresetList && listsTab != '' && editMode && <>
+
+            <div className='flex-center'>
+              <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedList} inheritBg={!selectedList}>
+                <div className='flex'>
+                  {CustomizeSearchListDropdown}
+
+                </div>
+
+                {selectedList && selectedListMapping && <>
+                  <br />
+                  <div className='flex-center'>
+                    <AddressListCard
+                      addressMapping={selectedListMapping}
+                      addressOrUsername={accountInfo.address}
+                    />
+                  </div>
+                  <br />
+                </>}
+
+                {selectedList &&
+                  <div className='flex-center flex-wrap'>
+                    <button className='landing-button' onClick={async () => {
+                      if (!selectedList) return;
+
+                      let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
+                        deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
+
+                      currCustomPageLists = currCustomPageLists.concat([selectedList]);
+
+                      if (listsTab == 'Hidden') {
+                        await updateProfileInfo(chain.address, {
+                          hiddenLists: currCustomPageLists
+                        });
+                      } else {
+                        const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
+                        if (!currCustomPage) return;
+
+                        await updateProfileInfo(chain.address, {
+                          customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
+                        });
+                      }
+
+                      setSelectedList('');
+                    }}>
+                      Add
+                    </button>
+
+                    <button className='landing-button' onClick={async () => {
+                      if (!selectedList) return;
+
+                      let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
+                        deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
+                      currCustomPageLists = currCustomPageLists.filter(x => x !== selectedList);
+
+                      if (listsTab == 'Hidden') {
+                        await updateProfileInfo(chain.address, {
+                          hiddenLists: currCustomPageLists
+                        });
+                      } else {
+                        const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
+                        if (!currCustomPage) return;
+
+                        await updateProfileInfo(chain.address, {
+                          customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
+                        });
+                      }
+
+                      setSelectedList('');
+                    }}>
+                      Remove
+                    </button>
+                  </div>}
+              </InformationDisplayCard>
+            </div></>}
+
+          {addPageIsVisible && <div className='flex-center '>
+            <Col md={12} xs={24} style={{ marginBottom: 8 }}>
+              <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
+              <Input
+
+                defaultValue=""
+                placeholder="Page Name"
+                className='form-input'
+                style={{
+                  maxWidth: 300,
+                  marginRight: 8
+                }}
+                onChange={(e) => {
+                  if (e) setNewPageTitle(e.target.value);
+                }}
+              />
+              <br />
+              <br />
+              <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
+              <Input.TextArea
+                autoSize
+                defaultValue=""
+                placeholder="Page Description"
+                className='form-input'
+                style={{
+                  maxWidth: 300,
+                  marginRight: 8
+                }}
+                onChange={(e) => {
+                  if (e) setNewPageDescription(e.target.value);
+                }}
+              />
+              <br />
+              <br />
+              <div className='flex-center'>
+                <button className='landing-button' onClick={async () => {
+                  const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
+                  newCustomPages.push({
+                    title: newPageTitle,
+                    description: newPageDescription,
+                    mappingIds: []
+                  });
+
+                  await updateProfileInfo(chain.address, {
+                    customListPages: newCustomPages
+                  });
+
+                  setAddPageIsVisible(false);
+                  setListsTab(newPageTitle);
+                  setNewPageDescription('');
+                  setNewPageTitle('');
+                }}>
+                  Add Page
+                </button>
+              </div>
+            </Col>
+          </div>}
+          {listsTab !== '' && <>
+            <div className='flex-center flex-wrap'>
+              <InfiniteScroll
+                dataLength={listsView.length}
+                next={async () => {
+                  if (isPresetList) fetchMoreLists(accountInfo?.address ?? '', listsTab)
+                }}
+                hasMore={isPresetList && hasMoreAddressMappings}
+                loader={<div>
+                  <br />
+                  <Spin size={'large'} />
+                </div>}
+                scrollThreshold={"300px"}
+                endMessage={
+                  <></>
+                }
+                initialScrollY={0}
+                style={{ width: '100%', overflow: 'hidden' }}
+              >
+                <div className='full-width flex-center flex-wrap'>
+                  {listsView.map((addressMapping, idx) => {
+                    return <AddressListCard
+                      key={idx}
+                      addressMapping={addressMapping}
+                      addressOrUsername={accountInfo.address}
+                    />
+                  })}
+                </div>
+              </InfiniteScroll>
+
+              {listsView.length === 0 && !hasMoreAddressMappings && (
+                <Empty
+                  className='primary-text'
+                  description={
+                    <span>
+                      No lists found.
+                    </span>
+                  }
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
+            </div>
+          </>}
         </>)}
 
         {tab === 'reputation' && (<>

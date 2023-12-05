@@ -15,10 +15,11 @@ import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/u
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { TransferabilityRow } from '../collection-page/TransferabilityRow';
+import { PredeterminedCard, TransferabilityRow } from '../collection-page/TransferabilityRow';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TxModal } from './TxModal';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { Divider } from '../display/Divider';
 
 
 //Claim badge is exclusively used for predetermined balances
@@ -108,7 +109,7 @@ export function CreateTxMsgClaimBadgeModal(
   //4. Only one claim per code and code has been used
   //5. Could not fetch claim data when it was created (most likely due to not being created through BitBadges website and being incompatible)
   const [, validTime] = searchUintRangesForId(BigInt(Date.now()), approval.transferTimes);
-
+  const [orderNumber, setOrderNumber] = useState<number>(0);
   let errorMessage = '';
   let cantClaim = false;
   let notConnected = false;
@@ -199,102 +200,125 @@ export function CreateTxMsgClaimBadgeModal(
       title: 'Claim Details',
       disabled: cantClaim || !(isValidProof || !requiresProof),
       description: <div>
-        <div className="flex-center full-width">
-          <InformationDisplayCard title='' noBorder inheritBg md={24} xs={24} sm={24} style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ alignItems: 'center', justifyContent: 'center' }} >
-              <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
-                {notConnected ? <>
+        <div className='secondary-text' style={{ textAlign: 'center' }}>
+          <InfoCircleOutlined /> Below are the details for this claim.
+          All claims have a parent approval from which they are derived. All criteria in the parent approval must be satisfied in order to claim,
+          and once the claim is processed, it will increment the counters in the parent approval.
 
-                  <div>
-                    <BlockinDisplay hideLogo hideLogin={!(claim && claim.root && details?.hasPassword)} />
-                  </div>
-                </> : <>
-                  {isMint && claim && claim.root && !claim.useCreatorAddressAsLeaf && setCode ?
-                    <InformationDisplayCard md={12} xs={24} sm={24} title='' noBorder inheritBg>
-                      {
-                        <>
-                          <Typography.Text strong className='primary-text' style={{ fontSize: 18, marginBottom: 12 }}>
-                            {details?.hasPassword ? 'Password' : 'Code'}</Typography.Text>
+        </div>
+        <br />
+        <div className='flex'>
+          <InformationDisplayCard md={12} xs={24} sm={24} title='Details' style={{ textAlign: 'center' }} subtitle={'Customize the details for this claim, such as the recipient or enter claim codes, if applicable.'}>
+            <br />
+            <div className="flex-center full-width">
+              <div style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ alignItems: 'center', justifyContent: 'center' }} >
+                  <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
+                    {notConnected ? <>
 
-                          <Input
-                            placeholder={`Enter ${details?.hasPassword ? 'Password' : 'Code'}`}
-                            value={code}
-                            onInput={(e: any) => {
-                              if (setCode) setCode(e.target.value);
-                            }}
-                            className="primary-text inherit-bg"
-                            style={{
-                              textAlign: 'center',
-                              marginTop: 10,
-                            }}
-                          />
-                          <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                            <InfoCircleOutlined /> {`To be able to claim, you must enter a valid ${details?.hasPassword ? 'password' : 'code'}.`}
+                      <div>
+                        <BlockinDisplay hideLogo hideLogin={!(claim && claim.root && details?.hasPassword)} />
+                      </div>
+                    </> : <>
+                      {isMint && claim && claim.root && !claim.useCreatorAddressAsLeaf && setCode ?
+                        <div>
+                          {
+                            <>
+                              <Typography.Text strong className='primary-text' style={{ fontSize: 18, marginBottom: 12 }}>
+                                {details?.hasPassword ? 'Password' : 'Code'}</Typography.Text>
+
+                              <Input
+                                placeholder={`Enter ${details?.hasPassword ? 'Password' : 'Code'}`}
+                                value={code}
+                                onInput={(e: any) => {
+                                  if (setCode) setCode(e.target.value);
+                                }}
+                                className="primary-text inherit-bg"
+                                style={{
+                                  textAlign: 'center',
+                                  marginTop: 10,
+                                }}
+                              />
+                              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
+                                <InfoCircleOutlined /> {`To be able to claim, you must enter a valid ${details?.hasPassword ? 'password' : 'code'}.`}
+                                <br />
+                              </Typography.Text>
+                            </>
+                          }
+                          {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0) ? <></> : <>
                             <br />
-                          </Typography.Text>
-                        </>
-                      }
-                      {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0) ? <></> : <>
+                            <br />
+                            <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>This is code #{leafIndex + 1} which is reserved claim #{leafIndex + 1}</Typography.Text>
+
+                          </>
+                          }
+
+                        </div> : <></>}
+                    </>}
+
+                    {isMint && hasPredetermined && chain.connected && <InformationDisplayCard md={24} xs={24} sm={24} title='' noBorder inheritBg>
+
+
+                      {<>
+                        <Typography.Text strong className='primary-text' style={{ fontSize: 18, marginBottom: 12 }}> Recipient</Typography.Text>
+
+                        <AddressSelect switchable defaultValue={chain.address} onUserSelect={(val) => {
+                          if (setRecipient) setRecipient(val);
+                        }}
+                          disabled={approvalCriteria?.requireToEqualsInitiatedBy}
+                        />
                         <br />
-                        <br />
-                        <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>This is code #{leafIndex + 1} which is reserved claim #{leafIndex + 1}</Typography.Text>
-
-                      </>
-                      }
-
-                    </InformationDisplayCard> : <></>}
-                </>}
-
-                {isMint && hasPredetermined && chain.connected && <InformationDisplayCard md={12} xs={24} sm={24} title='' noBorder inheritBg>
+                      </>}
+                      {claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0) ? <>
+                        <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>
+                          This address has been reserved claim #{leafIndex + 1}.
+                        </Typography.Text>
+                      </> : <></>}
+                    </InformationDisplayCard>}
+                  </div>
 
 
-                  {<>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 18, marginBottom: 12 }}> Recipient</Typography.Text>
 
-                    <AddressSelect switchable defaultValue={chain.address} onUserSelect={(val) => {
-                      if (setRecipient) setRecipient(val);
-                    }}
-                      disabled={approvalCriteria?.requireToEqualsInitiatedBy}
-                    />
+                  {errorMessage ? <>
                     <br />
+                    <InfoCircleOutlined style={{ color: '#FF5733', marginRight: 4 }} />
+                    {errorMessage}
+                  </> : <>
+                    <br />
+
                   </>}
-                  {claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0) ? <>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>
-                      This address has been reserved claim #{leafIndex + 1}.
-                    </Typography.Text>
-                  </> : <></>}
-                </InformationDisplayCard>}
+                </div>
               </div>
 
-
-
-              {errorMessage ? <>
-                <br />
-                <InfoCircleOutlined style={{ color: '#FF5733', marginRight: 4 }} />
-                {errorMessage}
-              </> : <>
-                <br />
-                {reservedCode || reservedAddress ? <>
-                  <br />
-                  <BalanceDisplay
-                    message={`Claim #${leafIndex + 1}`}
-                    collectionId={collectionId}
-                    balances={approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances ?? []}
-                    incrementBadgeIdsBy={approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy}
-                    incrementOwnershipTimesBy={approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy}
-                    numIncrements={BigInt(leafIndex)}
-                  />
-                </> : <>
-                  <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                    <InfoCircleOutlined /> {"See the claim details below to determine the badges you will receive."}
-                    <br />
-                  </Typography.Text></>}
-              </>}
-            </div>
+            </div >
           </InformationDisplayCard>
+          <InformationDisplayCard md={12} xs={24} sm={24} title='Badges to Receive' style={{ textAlign: 'center' }} subtitle={'Below, you can determine which badges you will receive for this claim.'}>
+            <br />
+            {reservedCode || reservedAddress ? <>
+              <BalanceDisplay
+                message={`Claim #${leafIndex + 1}`}
+                collectionId={collectionId}
+                balances={approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances ?? []}
+                incrementBadgeIdsBy={approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy}
+                incrementOwnershipTimesBy={approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy}
+                numIncrements={BigInt(leafIndex)}
 
-        </div >
-        <br />
+              />
+            </> : <>
+              <PredeterminedCard
+                orderNumber={orderNumber} setOrderNumber={setOrderNumber}
+                collectionId={collectionId} transfer={approval} address={address} setAddress={setAddress}
+              />
+            </>}
+          </InformationDisplayCard>
+        </div>
+        <Divider />
+        <div className='secondary-text' style={{ textAlign: 'center' }}>
+          <InfoCircleOutlined /> Below are the details for the parent approval of this claim.
+          All criteria for the parent approval must be met in order to claim.
+          Once this claim is processed, it will increment the counters in the parent approval.
+
+        </div>
         <TransferabilityRow
           collectionId={collectionId}
           transfer={approval}
@@ -302,6 +326,7 @@ export function CreateTxMsgClaimBadgeModal(
           address={address}
           setAddress={setAddress}
           isIncomingDisplay //just a hack to not show transfer icon
+          defaultShowDetails
         />
       </div >
     }

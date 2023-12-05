@@ -1,12 +1,10 @@
-import { Avatar, Layout, Tooltip, notification } from 'antd';
+import { Layout, Tooltip } from 'antd';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, WarningOutlined } from '@ant-design/icons';
 import { BlockinAuthSignatureInfo, getAbbreviatedAddress } from 'bitbadgesjs-utils';
-import { toDataURL } from 'qrcode';
 import { useEffect, useState } from 'react';
-import { QRCode } from 'react-qrcode-logo';
 import { deleteAuthCode, getAuthCode } from '../../../bitbadges-api/api';
 import { getAuthCodesView, useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../../components/address/AddressDisplay';
@@ -16,6 +14,7 @@ import CustomCarousel from '../../../components/display/Carousel';
 import { Divider } from '../../../components/display/Divider';
 import IconButton from '../../../components/display/IconButton';
 import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
+import QrCodeDisplay from '../../../components/display/QrCodeDisplay';
 import { TableRow } from '../../../components/display/TableRow';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../../utils/dates';
@@ -52,38 +51,6 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
     end: x.params.expirationDate ? BigInt(new Date(x.params.expirationDate).getTime()) : GO_MAX_UINT_64
   }]
 
-  const handleDownload = (imageUrl: string) => {
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `blockin-qr-code-${x.name}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleCopy = (imageUrl: string) => {
-    const canvas = document.createElement('canvas');
-    const img = new Image();
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(img, 0, 0);
-      canvas.toBlob(blob => {
-        if (!blob) return;
-
-        const item = new ClipboardItem({ 'image/png': blob });
-        navigator.clipboard.write([item]);
-
-        notification.info({
-          message: 'Copied to clipboard',
-          description: 'The QR code has been copied to your clipboard. You can now paste it anywhere.'
-        })
-      });
-    };
-    img.src = imageUrl;
-  }
-
   return <div className='flex-center flex-column full-width'>
     <CollectionHeader
       collectionId={1n} //dummy value
@@ -97,52 +64,18 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigi
         {x.description}
       </div>
       <br />
-      {x.signature && <>
-        <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8 }}>
-          <Avatar shape='square' size={276} src={
-            <QRCode value={x.signature} size={256} />
-          }></Avatar>
-        </div>
-        <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
+      <QrCodeDisplay
+        label={x.name}
+        value={x.signature}
+        helperDisplay={<div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
           <WarningOutlined style={{ color: 'orange', marginRight: 8 }} /> Anyone with this QR code can authenticate as you. Keep it safe and secret.
           <br />
           <br />
           <InfoCircleFilled style={{ marginRight: 8 }} /> We strongly recommend storing this QR code elsewhere for easier presentation at authentication time.
           Otherwise, ensure you are logged into your BitBadges account (if not, you will need another wallet signature to authenticate).
-        </div>
-        <Divider />
-      </>
-      }
+        </div>}
+      />
     </div>
-    {x.signature && <>
-      <div className='flex-center flex-wrap'>
-        <button className='landing-button' style={{ minWidth: 130 }} onClick={async () => {
-          const imageUrl = await toDataURL(x.signature);
-          handleDownload(imageUrl);
-        }}>
-          Save As Image
-        </button>
-        <button className='landing-button' style={{ minWidth: 130 }} onClick={async () => {
-          const imageUrl = await toDataURL(x.signature);
-          handleCopy(imageUrl);
-        }}>
-          Copy As Image
-        </button>
-        {/* //Share as PNG */}
-        {navigator.canShare && navigator.canShare({ files: [new File([], 'test.png')] }) &&
-          <button className='landing-button' style={{ minWidth: 130 }} onClick={async () => {
-            const imageUrl = await toDataURL(x.signature);
-            navigator.share({
-              files: [new File([imageUrl], 'blockin-qr-code.png', { type: 'image/png' })],
-              title: 'Blockin QR Code',
-              text: 'Blockin QR Code',
-            });
-          }}>
-            Share
-          </button>
-        }
-      </div>
-    </>}
     <Divider />
     {x.signature &&
       <InformationDisplayCard span={24} title='Current Status' inheritBg noBorder>
@@ -295,13 +228,13 @@ export function AuthCodes() {
             </div>
 
             {authCodes.length === 0 && <div className='flex-center flex-column'>
-              <EmptyIcon description='No QR codes found. Authentication providers will give you the custom link to generate a QR code for authentication.' />
+              <EmptyIcon description='No QR codes found. QR codes can be used to verify you own specific badges for an in-person event.' />
             </div>}
           </>}
           <Divider />
           <div className='secondary-text flex-center'>
             Looking to become an authentication provider and create / verify QR codes? See{' '}<a style={{ marginLeft: 3 }} href='https://docs.bitbadges.io/for-developers/generating-auth-qr-codes' target='_blank' rel="noreferrer">the documentation here</a>.
-          </ div>
+          </div>
         </ Content>
       }
     />

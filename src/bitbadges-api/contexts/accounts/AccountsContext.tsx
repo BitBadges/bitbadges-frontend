@@ -145,7 +145,7 @@ export async function fetchNextForAccountViews(addressOrUsername: string, viewKe
   }]);
 }
 
-export function getAuthCodesView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
+export function getAuthCodesView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
@@ -154,7 +154,7 @@ export function getAuthCodesView(account: BitBadgesUserInfo<bigint> | undefined,
 }
 
 
-export function getAccountActivityView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
+export function getAccountActivityView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
@@ -162,7 +162,7 @@ export function getAccountActivityView(account: BitBadgesUserInfo<bigint> | unde
   }) ?? []) as TransferActivityInfo<bigint>[];
 }
 
-export function getAccountReviewsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
+export function getAccountReviewsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
@@ -170,7 +170,7 @@ export function getAccountReviewsView(account: BitBadgesUserInfo<bigint> | undef
   }) ?? []) as ReviewInfo<bigint>[];
 }
 
-export function getAccountAnnouncementsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
+export function getAccountAnnouncementsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
@@ -178,7 +178,7 @@ export function getAccountAnnouncementsView(account: BitBadgesUserInfo<bigint> |
   }) ?? []) as AnnouncementInfo<bigint>[];
 }
 
-export function getAccountBalancesView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
+export function getAccountBalancesView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
@@ -186,7 +186,7 @@ export function getAccountBalancesView(account: BitBadgesUserInfo<bigint> | unde
   }) ?? []) as BalanceInfo<bigint>[];
 }
 
-export function getAccountAddressMappingsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
+export function getAccountAddressMappingsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
@@ -194,7 +194,7 @@ export function getAccountAddressMappingsView(account: BitBadgesUserInfo<bigint>
   }) ?? []) as AddressMappingInfo<bigint>[];
 }
 
-export function getAccountClaimAlertsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: AccountViewKey) {
+export function getAccountClaimAlertsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {

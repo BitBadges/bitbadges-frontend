@@ -1,13 +1,16 @@
-import { Divider, Input, Typography } from 'antd';
+import { Divider, Input, Switch, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { addMetadataToIpfs, updateAddressMappings } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
 
+import { InfoCircleOutlined } from '@ant-design/icons';
 import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { InformationDisplayCard } from '../../display/InformationDisplayCard';
+import { TableRow } from '../../display/TableRow';
 import { SwitchForm } from './SwitchForm';
 
 export function SubmitMsgCreateAddressMapping() {
@@ -24,10 +27,40 @@ export function SubmitMsgCreateAddressMapping() {
 
   const [onChainStorage, setOnChainStorage] = useState<boolean>(false);
   const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressMapping);
-  const [mappingId, setMappingId] = useState<string>('');
 
 
   const collection = useCollection(NEW_COLLECTION_ID);
+
+  const [privateMode, setPrivateMode] = useState<boolean>(false);
+  const [surveyMode, setSurveyMode] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isUpdateAddressMapping) {
+      setAddressMapping({
+        ...addressMapping,
+        mappingId: '',
+      });
+    }
+  }, [])
+
+  const ListIDInput = <><div style={{}} >
+    <Typography.Text strong style={{ fontSize: 18 }} className='primary-text'>List ID</Typography.Text>
+  </div>
+    <Input
+      defaultValue={addressMapping.mappingId}
+      placeholder="Enter a unique identifier for your list."
+      value={addressMapping.mappingId}
+      onChange={async (e) => {
+
+        setAddressMapping({
+          ...addressMapping,
+          mappingId: e.target.value,
+        });
+      }}
+      className='form-input'
+      size='large'
+    />
+  </>
 
 
   return <div className='full-width'
@@ -38,14 +71,16 @@ export function SubmitMsgCreateAddressMapping() {
 
           {
             title: 'Off-Chain',
-            message: <div>{`We handle the storage for you! We will store your list info on our centralized servers and IPFS. This is completely free! The list will be updatable and deletable by you.`}
+            message: <div>{`We handle the storage for you! We will store your list info on our centralized servers and IPFS. This is completely free!  `}
             </div>,
             isSelected: clicked && !onChainStorage,
+            additionalNode: ListIDInput
           },
           {
             title: 'On-Chain',
             message: `The address list will be stored on-chain. This will cost a transaction fee to store it. The list will be permanently frozen, meaning it can never be updated or deleted.`,
             isSelected: clicked && onChainStorage,
+            additionalNode: ListIDInput
           },
         ]}
         onSwitchChange={(idx) => {
@@ -58,39 +93,52 @@ export function SubmitMsgCreateAddressMapping() {
           }
         }}
       />
-      {<>
-        <br />
-        <div style={{}} >
-          <Typography.Text strong style={{ fontSize: 18 }} className='primary-text'>List ID</Typography.Text>
-        </div>
-        <Input
-          defaultValue={addressMapping.mappingId}
-          placeholder="Enter a unique identifier for your list."
-          value={mappingId}
-          onChange={async (e) => {
-            setMappingId(e.target.value);
-            setAddressMapping({
-              ...addressMapping,
-              mappingId: e.target.value,
-            });
-          }}
-          className='form-input'
-          size='large'
-        />
-        {/* {clicked && onChainStorage &&
-          <div className='secondary-text' style={{ fontSize: 14, marginTop: 4 }}>
-            <InfoCircleOutlined /> This combination of addresses can already be reference b at the mapping ID:{' '}
-            <Tooltip title={addMappingId(deepCopy(addressMapping)).mappingId} style={{}}>
-              <span style={{ marginLeft: 2 }}> {getAbbreviatedAddress(addMappingId(deepCopy(addressMapping)).mappingId)}</span>
-            </Tooltip>
-          </div>} */}
-        <Divider />
-      </>}
+
+    </>
+    }
+    {<>
+      {clicked && !onChainStorage &&
+        <>{!isUpdateAddressMapping && <Divider />}
+          <div className='flex-center'>
+            <InformationDisplayCard md={12} xs={24} sm={24} title='Additional Options' subtitle='These options are only applicable to off-chain lists.'>
+              <TableRow label='Public?' value={<Switch
+                checked={!privateMode}
+                checkedChildren="Public"
+                unCheckedChildren="Private"
+                onChange={(checked) => {
+                  setPrivateMode(!checked);
+                }}
+              />}
+                labelSpan={12}
+                valueSpan={12}
+              />
+              <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                <InfoCircleOutlined /> {privateMode ? 'Only you will be able to see the list.' : 'The list will be public and will show up in search results.'}
+              </div>
+              <TableRow label='Survey Mode?' value={<Switch
+                checked={surveyMode}
+                checkedChildren="Survey Mode"
+                unCheckedChildren="Admin Mode"
+                onChange={(checked) => {
+                  setSurveyMode(checked);
+                }}
+
+              />}
+                labelSpan={12}
+                valueSpan={12}
+              />
+              <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                <InfoCircleOutlined /> {surveyMode ? 'You can update and delete, but also, others can add to the list by navigating to a unique URL link.' : 'Only you will be able to update and delete the list.'}
+              </div>
+            </InformationDisplayCard>
+          </div></>}
+
+      <Divider />
     </>}
-    <br />
+    < br />
     <button
       className='landing-button'
-      disabled={loading || !clicked || !addressMapping.mappingId || !mappingId}
+      disabled={loading || !clicked || !addressMapping.mappingId}
       style={{ width: '100%' }}
       onClick={async () => {
         if (!collection) return;
@@ -108,8 +156,10 @@ export function SubmitMsgCreateAddressMapping() {
           await updateAddressMappings({
             addressMappings: [{
               ...addressMapping,
-              mappingId: mappingId,
+              mappingId: !isUpdateAddressMapping ? mappingId : addressMapping.mappingId,
               uri: metadataUrl,
+              surveyMode: surveyMode,
+              private: privateMode,
             }],
           });
           router.push(`/addresses/${mappingId}`);
@@ -120,6 +170,9 @@ export function SubmitMsgCreateAddressMapping() {
     >
       Submit
     </button>
+    <div className='flex-center' style={{ color: 'red' }}>
+      {addressMapping.mappingId === '' && clicked && 'Please enter a list ID.'}
+    </div>
     <CreateTxMsgCreateAddressMappingModal
       visible={visible}
       setVisible={setVisible}

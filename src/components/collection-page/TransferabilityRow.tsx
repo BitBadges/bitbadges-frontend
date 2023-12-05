@@ -163,7 +163,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
               ? 'password' : 'code' : 'password / code'}`}</li>
             {(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0 && (
               <li>{transfer.details?.challengeDetails.leavesDetails.leaves.length.toString()} {`valid ${transfer.details ? transfer.details?.challengeDetails.hasPassword
-                ? 'password' : 'code' : 'password / code'}(s)`}</li>
+                ? 'password' : 'code' : 'password / code'}(s) total`}</li>
             )}
             {/* <li>{transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf ? `Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per code / password` : "No limit on claims per code / password"}</li> */}
           </>}
@@ -285,7 +285,7 @@ export const MustOwnBadgesCard = ({ transfer }: {
 export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, collectionId, address, setAddress }: {
   address?: string,
   setAddress: (address: string) => void,
-  collectionId: bigint, transfer: CollectionApprovalWithDetails<bigint>, orderNumber: number, setOrderNumber: (orderNumber: number) => void
+  collectionId: bigint, transfer: CollectionApprovalWithDetails<bigint>, orderNumber: number, setOrderNumber: (orderNumber: number) => void,
 }) => {
 
   const claim = transfer.approvalCriteria?.merkleChallenge
@@ -374,10 +374,17 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
             }
               {!calculationMethod?.usePerInitiatedByAddressNumTransfers && !calculationMethod?.useMerkleChallengeLeafIndex && <>
 
-                <WarningOutlined style={{ color: '#FF5733', margin: 4 }} /> The claim number is calculated at processing time. It is subject to change if others are processed before your claim.
+                <WarningOutlined style={{ color: '#FF5733', margin: 4 }} /> The claim number and badges to be received are calculated at processing time. They are subject to change according to the rules below if other claims are processed before your claim.
 
               </>}
             </li>
+            {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0 && (<li>
+              Each claim number increments the badge IDs by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
+
+            </li>)}
+            {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy > 0 && (<li>
+              Each claim number increments the ownership times by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
+            </li>)}
             {calculationMethod?.useMerkleChallengeLeafIndex ? <></> : <div className='flex-center flex-column full-width'><br />
 
 
@@ -392,35 +399,21 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
 
                 </>
               }
-
-              <Typography.Text className="primary-text" style={{ fontSize: 18 }} strong>
-                {`Current - Claim #${BigInt(numIncrements) + 1n}`}
-              </Typography.Text>
-
-              <MaxNumTransfersComponent trackedBehindTheScenes transfer={transfer} collectionId={collectionId} address={address} type={trackerType} componentType="card" setAddress={setAddress} />
-
-              <br />
             </div>}
 
-            {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0 && (<li>
-              Each claim number increments the badge IDs by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
-
-            </li>)}
 
 
-            {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy > 0 && (<li>
-              Each claim number increments the ownership times by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
-            </li>)}
+
           </>}
         </ul>
         <div className='flex-center inherit-bg primary-text'>
           <div>
             {hasIncrements ? <>
-
-              <br />
               <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>
-                Claim #
+                Balances for Claim #
               </Typography.Text>
+
+
 
               <InputNumber
                 style={{ width: 100 }}
@@ -442,14 +435,17 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
                   Code #{orderNumber + 1}
                 </>}
               </>}
-
-              <br />
               <br />
             </> : <></>}
+            <Typography.Text className="secondary-text" style={{ fontSize: 14 }} strong>
+              {`Current - Claim #${BigInt(numIncrements) + 1n}`}
+            </Typography.Text>
+            <br /><br />
             {!hasIncrements ? <>
               {transfer.approvalCriteria && transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
                 <BalanceDisplay
-                  message={hasIncrements ? `Balances for Claim #${orderNumber + 1}` : 'Balances - All or Nothing'}
+                  message={hasIncrements ? `` : 'Balances - All or Nothing'}
+                  hideMessage={hasIncrements}
                   balances={hasOverlap ? incrementedBalances : []}
                   collectionId={collectionId}
                 />
@@ -463,7 +459,8 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
             </div> : <>
               {transfer.approvalCriteria && transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
                 <BalanceDisplay
-                  message={hasIncrements ? `Balances for Claim #${orderNumber + 1}` : 'Balances - All or Nothing'}
+                  message={hasIncrements ? `` : 'Balances - All or Nothing'}
+                  hideMessage={hasIncrements}
                   balances={hasOverlap ? incrementedBalances : []}
                   collectionId={collectionId}
                 />
@@ -483,6 +480,10 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
             </>
             )}
           </div>
+        </div>
+        <div>
+          {/* <MaxNumTransfersComponent trackedBehindTheScenes transfer={transfer} collectionId={collectionId} address={address} type={trackerType} componentType="card" setAddress={setAddress} /> */}
+
         </div>
       </>
     )}
@@ -662,7 +663,8 @@ export function TransferabilityRow({
   disapproved,
   isIncomingDisplay,
   isOutgoingDisplay,
-  approverAddress
+  approverAddress,
+  defaultShowDetails
 }: {
   transfer: CollectionApprovalWithDetails<bigint>,
   allTransfers: CollectionApprovalWithDetails<bigint>[],
@@ -684,12 +686,13 @@ export function TransferabilityRow({
   onRestore?: (approvalId: string) => void,
   grayedOut?: boolean,
   approvalPermissions?: CollectionApprovalPermissionWithDetails<bigint>[]
+  defaultShowDetails?: boolean,
 }) {
 
   const collection = useCollection(collectionId);
   const chain = useChainContext();
 
-  const [showMoreIsVisible, setShowMoreIsVisible] = useState(false);
+  const [showMoreIsVisible, setShowMoreIsVisible] = useState(defaultShowDetails ?? false);
   const [editIsVisible, setEditIsVisible] = useState(false);
   const [orderNumber, setOrderNumber] = useState(0);
   const [transferIsVisible, setTransferIsVisible] = useState(false);
@@ -758,27 +761,33 @@ export function TransferabilityRow({
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display');
-    if (collectionId != NEW_COLLECTION_ID && showMoreIsVisible) {
-      refreshTrackers();
+    if (collectionId != NEW_COLLECTION_ID && (showMoreIsVisible || transferIsVisible || editIsVisible)) {
+      if (!hideActions) refreshTrackers();
     }
-  }, [collectionId, showMoreIsVisible, refreshTrackers]);
+  }, [collectionId, showMoreIsVisible, refreshTrackers, transferIsVisible, editIsVisible, hideActions]);
 
   const router = useRouter();
   const query = router.query;
 
+  const [populated, setPopulated] = useState(false);
+
   //Auto scroll to page upon claim ID query in URL
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set claim auto');
-    if (query.approvalId && typeof query.approvalId === 'string') {
-      if (query.approvalId === approval.approvalId && !hideActions && !disapproved) {
-        setTransferIsVisible(true)
-        notification.info({
-          message: 'Code / Password',
-          description: `Code / password was found in the URL. We have automatically inserted it into the input field for you.`,
-        });
+    if (populated) return;
+    if (!editable && !onDelete && !hideActions && !disapproved) {
+      if (query.approvalId && typeof query.approvalId === 'string') {
+        if (query.approvalId === approval.approvalId && !hideActions && !disapproved) {
+          setTransferIsVisible(true)
+          notification.info({
+            message: 'Code / Password',
+            description: `Code / password was found in the URL. We have automatically inserted it into the input field for you.`,
+          });
+          setPopulated(true);
+        }
       }
     }
-  }, [query.approvalId, approval.approvalId, hideActions, disapproved]);
+  }, [query.approvalId, approval.approvalId, hideActions, disapproved, populated, editable, onDelete]);
 
   //Only show rows that have at least one address (after filtration)
   if ((toAddresses.length == 0 && transfer.toMapping.includeAddresses) || (initiatedByAddresses.length == 0 && transfer.initiatedByMapping.includeAddresses) || (fromAddresses.length == 0 && transfer.fromMapping.includeAddresses)) {
@@ -1039,7 +1048,7 @@ export function TransferabilityRow({
       <br />
       <div className='flex-center flex-wrap'>
 
-        <InformationDisplayCard title={transfer.details?.name ?? ''} md={24} xs={24} sm={24}>
+        <InformationDisplayCard title={transfer.details?.name ?? ''} md={24} xs={24} sm={24} subtitle={transfer.details?.description ?? ''}>
 
           {<><br />
             {
@@ -1095,8 +1104,8 @@ export function TransferabilityRow({
                     setEditIsVisible(false);
                   }}
                   disabled={editIsVisible}
-                  text={showMoreIsVisible ? 'Hide Details' : 'Show Details'}
-                  tooltipMessage={showMoreIsVisible ? 'Hide Details' : 'Show Details'}
+                  text={showMoreIsVisible ? 'Hide Details' : 'Details'}
+                  tooltipMessage={showMoreIsVisible ? 'Hide Details' : 'Details'}
                   size={40}
                 />}
               {!editable && !onDelete && !hideActions && !disapproved &&

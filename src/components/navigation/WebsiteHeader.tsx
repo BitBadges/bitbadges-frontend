@@ -77,7 +77,7 @@ export function WalletHeader() {
     key: 'collections/mint', content: (<Avatar className='flex-center'
       style={{ height: 72 }} src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu
   };
-  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Mint</Typography.Text>), subMenuOverlay: MintTabMenu };
+  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Create</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
@@ -209,6 +209,9 @@ export function WalletHeader() {
     </>}
     {connected && <>
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/codes')}>QR Codes</Menu.Item>
+    </>}
+    {connected && <>
+      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/lists')}>Private Lists</Menu.Item>
     </>}
     {connected && <>
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>

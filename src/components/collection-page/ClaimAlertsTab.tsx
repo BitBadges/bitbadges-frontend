@@ -98,7 +98,28 @@ export function ClaimAlertDisplay({
 
         <div className='flex-between full-width primary-text'>
           <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-            {claimAlert.message}
+            {/* replace all links with <a> */}
+            {claimAlert.message?.split(' ').map((word, index) => {
+              const isUri = word.includes('://');
+              let abbreviatedUri = word.slice(0, 50);
+              if (abbreviatedUri.length < word.length) abbreviatedUri += '.....';
+              //append last 5 chars if there
+              if (abbreviatedUri.length < word.length) abbreviatedUri += word.slice(word.length - 5, word.length);
+
+              if (isUri) {
+                return <Tooltip title={word} placement="bottom" key={index}>
+                  <a
+                    href={word}
+                    target='_blank'
+                    rel="noopener noreferrer"
+                  >
+                    {abbreviatedUri}
+                  </a>
+                </Tooltip>
+              } else {
+                return word + ' ';
+              }
+            })}
           </Typography.Text>
         </div>
       </div>

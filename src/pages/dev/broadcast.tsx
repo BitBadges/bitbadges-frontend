@@ -1,12 +1,13 @@
-import { DownOutlined, WarningOutlined } from '@ant-design/icons';
-import { Col, Divider, Input, Row, Select, Typography } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
+import { Col, Divider, Input, Row, Select, Typography, notification } from 'antd';
 import { BigIntify, convertMsgCreateCollection, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertMsgUpdateCollection, convertMsgUpdateUserApprovals, createTxMsgCreateAddressMappings, createTxMsgCreateCollection, createTxMsgDeleteCollection, createTxMsgTransferBadges, createTxMsgUniversalUpdateCollection, createTxMsgUpdateCollection, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
-import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { TxModal } from '../../components/tx-modals/TxModal';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 const style = require('react-syntax-highlighter/dist/cjs/styles/prism').oneDark;
 
 const sampleMsgUpdateCollection = require('./sample-msgupdate.json');
@@ -22,9 +23,32 @@ function Broadcast() {
   const [visible, setVisible] = useState(false);
   const [err, setErr] = useState<Error | null>();
   const chain = useChainContext();
+  const router = useRouter();
 
-  const [txType, setTxType] = useState('MsgCreateCollection');
-  const [inputMsg, setInputMsg] = useState(JSON.stringify(sampleMsgUniversalUpdateCollection, null, 2));
+  const routerTxType = router.query.txType;
+  const routerTxMsg = router.query.txMsg;
+
+  const [txType, setTxType] = useState(routerTxType as string || 'MsgCreateCollection');
+  const [inputMsg, setInputMsg] = useState(routerTxMsg as string || JSON.stringify(sampleMsgUniversalUpdateCollection, null, 2));
+  const [notified, setNotified] = useState(false);
+
+  useEffect(() => {
+    if (routerTxType) {
+      setTxType(routerTxType as string);
+    }
+
+    if (routerTxMsg) {
+      setInputMsg(routerTxMsg as string);
+    }
+
+    if (!notified && (routerTxType || routerTxMsg)) {
+      setNotified(true);
+      notification.info({
+        message: 'Loaded from URL',
+        description: 'The transaction type and message were loaded from the URL.'
+      })
+    }
+  }, [routerTxType, routerTxMsg, notified])
 
   const convertFunction = txType === 'MsgUniversalUpdateCollection' ? createTxMsgUniversalUpdateCollection
     : txType === 'MsgDeleteCollection' ? createTxMsgDeleteCollection
@@ -62,18 +86,9 @@ function Broadcast() {
         >
           <Col md={24} xs={24} style={{ textAlign: 'center' }} className='primary-text'>
             <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>
-              Custom JSON Tx Form
+              Custom JSON Form
             </Typography.Text>
-
-            <div className='primary-text full-width' style={{ textAlign: 'center' }}>
-              <WarningOutlined style={{ fontSize: 16, marginRight: 4, color: '#FF5733' }} />
-              This is an advanced and experimental feature. Use at your own risk.
-            </div>
-            <div>
-              If there are bugs or issues, please report them via our Discord or GitHub.
-              See <a href="https://app.gitbook.com/o/7VSYQvtb1QtdWFsEGoUn/s/7R34Y0QZwgpUGaJnJ4dq/for-developers/concepts/cosmos-msgs" target="_blank" rel="noreferrer">the BitBadges documentation</a> for more info.
-
-            </div>
+            <br />
             <br />
             <Select
               className="selector primary-text inherit-bg"

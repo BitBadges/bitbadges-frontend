@@ -1,20 +1,20 @@
-import { Layout, Spin, notification } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Layout, notification } from 'antd';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { addAddressToSurvey } from '../bitbadges-api/api';
 import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
 import { AddressDisplay } from '../components/address/AddressDisplay';
 import { AddressSelect } from '../components/address/AddressSelect';
 import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
 import { Tabs } from '../components/navigation/Tabs';
-import { useRouter } from 'next/router';
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { addAddressToSurvey } from '../bitbadges-api/api';
 
 const { Content } = Layout;
 
 function AddressCollectionScreen() {
   const router = useRouter();
-  const { surveyId, description } = router.query;
+  const { surveyId, description, callbackRequired } = router.query;
 
   const chain = useChainContext();
 
@@ -24,17 +24,6 @@ function AddressCollectionScreen() {
   useEffect(() => {
     setSelectedUser(chain.address || '');
   }, [chain.address]);
-
-  if (!surveyId) {
-    return <Content
-      className="full-area"
-      style={{ minHeight: '100vh', padding: 8 }}
-    >
-      <div className='flex-center'>
-        <Spin size='large' />
-      </div>
-    </Content>
-  }
 
   return (
     <Content
@@ -89,18 +78,24 @@ function AddressCollectionScreen() {
             <br />
             <div className='flex-center'>
               <button className='landing-button' style={{ width: '90%' }} onClick={async () => {
-                await addAddressToSurvey(surveyId as string, { address: selectedUser });
+                if (surveyId) {
+                  await addAddressToSurvey(surveyId as string, { address: selectedUser });
+
+                }
                 notification.success({
                   message: 'Address Submitted!',
-                  description: 'Your address has been submitted to the survey.',
                 });
                 router.push('/');
+
+                if (window.opener && callbackRequired) {
+                  window.opener.postMessage({ type: 'address', address: selectedUser }, "*");
+                }
               }} disabled={!selectedUser}>
                 Submit
               </button>
             </div>
             <div className='secondary-text' style={{ textAlign: 'center', marginTop: '10px' }}>
-              <InfoCircleOutlined /> The selected address will be submitted.
+              <InfoCircleOutlined /> The selected address will be {surveyId ? 'submitted to the survey.' : 'sent to the website that directed you here.'}
             </div>
           </>}
         </InformationDisplayCard>

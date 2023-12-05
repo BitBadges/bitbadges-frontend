@@ -59,7 +59,7 @@ export function BadgeCard({
           width: cardWidth,
           margin: 8,
           textAlign: 'center',
-          borderRadius: '8%',
+          borderRadius: 15,
         }}
         hoverable={hoverable ? hoverable : true}
         onClick={() => {
@@ -79,7 +79,7 @@ export function BadgeCard({
         <div className='flex-center full-width primary-text'>
           <Meta
             title={<div>
-              <div className='primary-text md:text-md lg:text-lg'
+              <div className='primary-text xs:text-xs sm:text-sm md:text-md lg:text-lg'
                 style={{
                   fontWeight: 'bolder',
                   whiteSpace: 'normal',
@@ -91,9 +91,10 @@ export function BadgeCard({
               </div>
               {!hideCollectionLink &&
                 <div
-                  className='primary-text md:text-sm lg:text-md'
+                  className='primary-text'
                   style={{
                     fontWeight: 'bolder',
+                    fontSize: 14,
                     whiteSpace: 'normal'
                   }}
                   onClick={(e) => {

@@ -15,12 +15,14 @@ export function SearchDropdown({
   onSearch,
   onlyAddresses,
   onlyCollections,
+  onlyLists,
   allowMintSearch
 }: {
   searchValue: string,
   onSearch: (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean, isCollection?: boolean, isBadge?: boolean) => Promise<void>
   onlyAddresses?: boolean
   onlyCollections?: boolean
+  onlyLists?: boolean
   allowMintSearch?: boolean
 }) {
 
@@ -60,6 +62,12 @@ export function SearchDropdown({
         result.accounts = result.accounts.filter((a) => a.address !== 'Mint');
       }
 
+      if (onlyLists) {
+        for (const account of result.accounts) {
+          account.addressMappings = [...account.addressMappings, ...result.addressMappings];
+        }
+      }
+
       //Update context if we have new accounts or collections
       updateAccounts(result.accounts);
 
@@ -92,7 +100,7 @@ export function SearchDropdown({
     {loading ? <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
       <Spin size={'large'} />
     </Menu.Item> : <>
-      {!onlyCollections && <>
+      {!onlyCollections && !onlyLists && <>
         <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
         <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
           {/* Current Search Value Address Helper - Matches Text Exactly */}
@@ -138,7 +146,7 @@ export function SearchDropdown({
       </>}
       {/* Collection Results */}
       {
-        !onlyAddresses && <>
+        !onlyAddresses && !onlyLists && <>
 
           <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
           <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
@@ -167,7 +175,7 @@ export function SearchDropdown({
       }
 
       {
-        !onlyAddresses && <>
+        !onlyAddresses && !onlyLists && <>
           <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Badges</Typography.Text>
           <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
             {badgeResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>

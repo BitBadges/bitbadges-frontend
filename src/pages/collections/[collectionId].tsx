@@ -93,11 +93,16 @@ function CollectionPage({
     }
   }, [collection, warned, isPreview])
 
+  const [populated, setPopulated] = useState(false);
   //Set tab to badges if badgeId is in query
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set tab to claims');
-    if (code || password || claimsTab) setTab('transferability');
-  }, [code, password, claimsTab])
+    if (populated) return;
+    if (code || password || claimsTab) {
+      setTab('transferability');
+      setPopulated(true);
+    }
+  }, [code, password, claimsTab, populated])
 
 
   return (

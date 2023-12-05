@@ -3,19 +3,22 @@ import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
 export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass }: {
   tab: string;
   setTab: (tab: string) => void;
-  tabInfo: { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
+  tabInfo: ({ key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element } | undefined)[];
   fullWidth?: boolean;
   theme?: MenuTheme;
   noSelectedKeys?: boolean;
   type?: 'underline' | 'default';
   customClass?: string;
 }) {
+  const tabInfoFiltered = tabInfo.filter((tab) => tab != undefined) as { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
+
   const widthPerTab = fullWidth
-    ? `calc(100% / ${tabInfo.length})`
+    ? `calc(100% / ${tabInfoFiltered.length})`
     : undefined;
   const selectedTab = tab
 
-  const tabs = tabInfo.map((tab,) => {
+
+  const tabs = tabInfoFiltered.map((tab,) => {
     const menuItem = (
       <Menu.Item
         disabled={tab.disabled}
