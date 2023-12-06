@@ -146,6 +146,7 @@ export const BlockinDisplay = ({
               })
             }
           }}
+
           modalStyle={{ color: `white`, textAlign: 'start' }}
           disconnect={async () => {
             disconnect()

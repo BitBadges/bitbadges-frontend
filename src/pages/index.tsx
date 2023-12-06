@@ -1,4 +1,4 @@
-import { AuditOutlined, ClockCircleOutlined, CloudServerOutlined, ClusterOutlined, ContactsOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, GlobalOutlined, LikeOutlined, LockOutlined, QrcodeOutlined, SendOutlined, UpOutlined } from '@ant-design/icons';
+import { AuditOutlined, ClockCircleOutlined, CloudServerOutlined, ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, LikeOutlined, LockOutlined, OrderedListOutlined, QrcodeOutlined, SendOutlined, UpOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Divider, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPage } from 'next/types';
@@ -15,7 +15,6 @@ export const LandingCard = ({ content, customClass, }: {
 }) => {
 
   return <div className='flex'>
-
     <Card className={customClass + " card-bg"}
       style={{
         border: '1px solid gray',
@@ -442,7 +441,7 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Hybrid Off-Chain Balances
+                      Hybrid Balances
                     </Typography.Text>
                     <br />
                     <br />
@@ -453,22 +452,48 @@ const Home: NextPage = () => {
                   </>
                 }
               />
+
+              <LandingCard
+                customClass='secondary-text '
+                content={
+                  <>
+                    <QrcodeOutlined
+                      className='figma-blue'
+                      style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    />
+                    <br />
+                    <br />
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                      Seamless Authentication
+                    </Typography.Text>
+                    <br />
+                    <br />
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
+                      Verify badge ownership at in-person events through our QR codes feature.
+                      Or, verify badge ownership digitally through <a href="https://blockin.gitbook.io/blockin/" target='_blank'>Blockin</a>.
+                      
+                    </Typography.Text>
+                  </>
+                }
+              />
               <LandingCard
                 customClass='secondary-text '
                 content={<>
-                  <AuditOutlined
+                  <DeploymentUnitOutlined
                     className='figma-blue'
                     style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
                   />
                   <br />
                   <br />
                   <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                    No-Storage Authentication
+                    Optional Decentralization
                   </Typography.Text>
                   <br />
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    By authenticating users from any supported chain via badges and signatures, you can outsource all your authentication needs to BitBadges, allowing you to focus on your core product.
+                    BitBadges will ALWAYS provide full support for fully decentralized implementations.
+                    However, we realize most users do not care, so we also provide hybrid approaches 
+                    that can be used to greatly improve user experience and scalability.
                   </Typography.Text>
                 </>
                 }
@@ -505,7 +530,7 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Customizable Transferability
+                      Fine-Grained Transferability
                     </Typography.Text>
                     <br /><br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
@@ -539,8 +564,7 @@ const Home: NextPage = () => {
 
 
 
-
-              <LandingCard
+              {/* <LandingCard
                 customClass='secondary-text '
                 content={
                   <>
@@ -560,7 +584,7 @@ const Home: NextPage = () => {
                     </Typography.Text>
                   </>
                 }
-              />
+              />   */}
             </>
             <>
               <LandingCard
@@ -626,19 +650,19 @@ const Home: NextPage = () => {
               <LandingCard
                 customClass='secondary-text '
                 content={
-                  <><GlobalOutlined
+                  <><OrderedListOutlined
                     className='figma-blue'
                     style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
                   />
                     <br />
                     <br />
                     <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Announcements
+                      Address Lists
                     </Typography.Text>
                     <br /><br />
 
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Send announcements to all owners in a collection, enabling you to easily communicate with your badge holders.
+                      As an alternative, address lists can be used to manage users without the complexity of badges (i.e. balances, permissions, transferability, etc.).
                     </Typography.Text>
                   </>
                 }

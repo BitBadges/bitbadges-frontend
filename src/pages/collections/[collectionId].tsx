@@ -16,6 +16,7 @@ import { TransferabilityTab } from '../../components/collection-page/Transferabi
 import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
 
 const { Content } = Layout;
 
@@ -35,8 +36,9 @@ function CollectionPage({
 
   const collectionMetadata = collection?.cachedCollectionMetadata;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
 
-  const tabInfo = [];
+  let tabInfo = [];
   if (!isOffChainBalances) {
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
@@ -60,6 +62,10 @@ function CollectionPage({
       { key: 'history', content: 'Update History', disabled: false },
       { key: 'actions', content: 'Actions', disabled: false },
     )
+  }
+
+  if (noBalancesStandard) {
+    tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity');
   }
 
   //Get collection information

@@ -28,6 +28,7 @@ import { Tabs } from '../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -50,9 +51,9 @@ function PortfolioPage() {
   const [warned, setWarned] = useState(false);
 
   useEffect(() => {
-    if (tab === 'managing' || tab === 'createdBy') {
-      setEditMode(false);
-    }
+    // if (tab === 'managing' || tab === 'createdBy') {
+    //   setEditMode(false);
+    // }
     setNumBadgesDisplayed(25);
   }, [tab]);
 
@@ -103,8 +104,6 @@ function PortfolioPage() {
   tabInfo.push(
     { key: 'collected', content: 'Badges', disabled: false },
     { key: 'lists', content: 'Lists' },
-    { key: 'managing', content: 'Managing', disabled: false },
-    { key: 'createdBy', content: 'Created', disabled: false },
     { key: 'activity', content: 'Activity', disabled: false },
     { key: 'reputation', content: 'Reviews' },
   )
@@ -176,6 +175,9 @@ function PortfolioPage() {
     }
   }, [filteredCollections, accountInfo?.address]);
 
+  const createdViewIds = accountInfo?.views['createdBy']?.ids ?? [];
+  const managingViewIds = accountInfo?.views['managing']?.ids ?? [];
+
   let badgesToShow = useMemo(() => {
 
     let badgesToShow = getAccountBalancesView(accountInfo, 'badgesCollected')
@@ -186,16 +188,19 @@ function PortfolioPage() {
     }[] = [];
     if (badgeTab === 'Hidden') {
       allBadgeIds.push(...deepCopy(accountInfo?.hiddenBadges ?? []));
-    } else if (badgeTab === 'All') {
-      for (const balanceInfo of badgesToShow) {
-        if (!balanceInfo) {
-          continue;
-        }
+    } else if (badgeTab === 'All' || badgeTab === 'Managing' || badgeTab === 'Created') {
+      if (badgeTab === 'All') {
+        for (const balanceInfo of badgesToShow) {
+          if (!balanceInfo) {
+            continue;
+          }
 
-        allBadgeIds.push(deepCopy({
-          badgeIds: balanceInfo.balances.map(balance => balance.badgeIds).flat() || [],
-          collectionId: balanceInfo.collectionId
-        }));
+
+          allBadgeIds.push(deepCopy({
+            badgeIds: balanceInfo.balances.map(balance => balance.badgeIds).flat() || [],
+            collectionId: balanceInfo.collectionId
+          }));
+        }
       }
     } else {
       allBadgeIds.push(...deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []))
@@ -228,6 +233,7 @@ function PortfolioPage() {
       badgeIdObj.badgeIds = remaining;
     }
 
+    console.log(allBadgeIds);
     return allBadgeIds.filter(x => x.badgeIds.length > 0);
   }, [accountInfo, badgeTab, filteredCollections]);
 
@@ -264,7 +270,7 @@ function PortfolioPage() {
     await fetchNextForAccountViews(address, [viewKey]);
   }, []);
 
-  const isPresetList = listsTab === 'addressMappings' || listsTab === 'explicitlyIncludedAddressMappings' || listsTab === 'explicitlyExcludedAddressMappings' || listsTab === 'privateLists';
+  const isPresetList = listsTab === 'addressMappings' || listsTab === 'explicitlyIncludedAddressMappings' || listsTab === 'explicitlyExcludedAddressMappings' || listsTab === 'privateLists' || listsTab === 'createdLists';
 
   const [customView, setCustomView] = useState<AddressMappingWithMetadata<bigint>[]>([]);
 
@@ -279,12 +285,8 @@ function PortfolioPage() {
         idsToFetch.push(...accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
       }
 
-
-
       const res = await getAddressMappings({ mappingIds: idsToFetch });
       setCustomView(res.addressMappings);
-
-      console.log("CUSTOM VIEW", res.addressMappings);
     }
 
     getCustomView();
@@ -307,18 +309,21 @@ function PortfolioPage() {
     const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
 
     if (!accountInfo || !accountInfo.address) return;
-    if (tab === 'collected' && collectedIsEmpty && (accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true)) {
-      fetchMoreCollected(accountInfo?.address ?? '');
+    if (tab === 'collected') {
+      if (badgeTab === 'All' && collectedIsEmpty && (accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true)) {
+        fetchMoreCollected(accountInfo?.address ?? '');
+      } else if (badgeTab === 'Managing' && (accountInfo?.views['managing']?.pagination?.hasMore ?? true) && managingIsEmpty) {
+        fetchMoreManaging(accountInfo?.address ?? '', 'managing');
+      } else if (badgeTab === 'Created' && (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true) && createdByIsEmpty) {
+        fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
+      }
     } else if (tab === 'lists' && hasMoreAddressMappings && listsIsEmpty) {
       if (isPresetList) {
+        if (listsTab === 'privateLists' && !chain.loggedIn) return;
         fetchMoreLists(accountInfo?.address ?? '', listsTab);
       }
-    } else if (tab === 'createdBy' && (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true) && createdByIsEmpty) {
-      fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
-    } else if (tab === 'managing' && (accountInfo?.views['managing']?.pagination?.hasMore ?? true) && managingIsEmpty) {
-      fetchMoreManaging(accountInfo?.address ?? '', 'managing');
     }
-  }, [tab, accountInfo, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, fetchMoreCollected, listsTab, isPresetList])
+  }, [tab, accountInfo, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, fetchMoreCollected, listsTab, isPresetList, badgeTab, chain.loggedIn]);
 
   useEffect(() => {
     if (tab === 'lists') {
@@ -567,6 +572,8 @@ function PortfolioPage() {
   }</>
 
 
+  const currView = badgeTab === 'Managing' ? accountInfo.views['managing'] : badgeTab === 'Created' ? accountInfo.views['createdBy'] : accountInfo.views['badgesCollected'];
+
 
   return (
     <Content
@@ -707,12 +714,19 @@ function PortfolioPage() {
         {tab === 'collected' && (<>
           <div className=''>
             <div className='flex-center flex-wrap'>
-              {((accountInfo.customPages?.filter(x => x.badges.length > 0) ?? [])?.length > 0 || editMode) &&
+              {
                 <Tabs
                   tabInfo={
                     [
                       {
                         key: 'All', content: 'All', disabled: false
+                      },
+
+                      {
+                        key: 'Created', content: 'Created', disabled: false
+                      },
+                      {
+                        key: 'Managing', content: 'Managing', disabled: false
                       },
 
                       ...(editMode ? [{
@@ -767,7 +781,7 @@ function PortfolioPage() {
             {badgeTab === 'Hidden' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
               <InfoCircleOutlined /> Hidden badges will be automatically filtered out from standard views and not shown by default.
             </div>}
-            {badgeTab !== '' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            {badgeTab !== '' && accountInfo.customPages?.find(x => x.title === badgeTab)?.description && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
               {accountInfo.customPages?.find(x => x.title === badgeTab)?.description}
             </div>}
 
@@ -915,25 +929,82 @@ function PortfolioPage() {
               </Col>
             </div>}
 
-            {badgeTab !== '' && <>
+            {(badgeTab === 'Managing' || badgeTab === 'Created') && (<>
+              <InfiniteScroll
+                dataLength={currView?.ids.length ?? 0}
+                next={async () => {
+                  if (badgeTab === 'Managing') {
+                    await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
+                  } else {
+                    await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
+                  }
+                }}
+                hasMore={currView?.pagination?.hasMore ?? true}
+                loader={<div>
+                  <br />
+                  <Spin size={'large'} />
+                </div>}
+                scrollThreshold={"300px"}
+                endMessage={
+                  <></>
+                }
+                initialScrollY={500}
+                style={{ width: '100%', overflow: 'hidden', }}
+              >
+                <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
+                  <MultiCollectionBadgeDisplay
+                    collectionIds={currView?.ids.map(x => BigInt(x)) ?? []}
+                    cardView={cardView}
+                    groupByCollection={true}
+                    defaultPageSize={cardView ? 1 : 10}
+                    hidePagination={true}
+                    hideAddress
+                    showCustomizeButtons={editMode}
+                  />
+                </div>
+              </InfiniteScroll>
+
+              {currView?.ids.length == 0 && !currView?.pagination?.hasMore && (
+                <Empty
+                  className='primary-text'
+                  description={
+                    <span>
+                      No badges found.
+                    </span>
+                  }
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
+
+            </>)}
+
+            {badgeTab !== '' && badgeTab !== 'Managing' && badgeTab !== 'Created' && <>
               <InfiniteScroll
                 dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
                 next={async () => {
-                  if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
-                    await fetchMoreCollected(accountInfo?.address ?? '');
-                  }
-
-                  if (!groupByCollection) {
-                    if (numBadgesDisplayed + 25 > numTotalBadges) {
-                      setNumBadgesDisplayed(numBadgesDisplayed + 25);
-                    } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
-                      setNumBadgesDisplayed(numBadgesDisplayed + 100);
-                    } else {
-                      setNumBadgesDisplayed(numTotalBadges + 25);
+                  if (badgeTab === 'All') {
+                    if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
+                      await fetchMoreCollected(accountInfo?.address ?? '');
                     }
+
+                    if (!groupByCollection) {
+                      if (numBadgesDisplayed + 25 > numTotalBadges) {
+                        setNumBadgesDisplayed(numBadgesDisplayed + 25);
+                      } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
+                        setNumBadgesDisplayed(numBadgesDisplayed + 100);
+                      } else {
+                        setNumBadgesDisplayed(numTotalBadges + 25);
+                      }
+                    }
+                  } else if (badgeTab === 'Created') {
+                    await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
+                  } else if (badgeTab === 'Managing') {
+                    await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
                   }
                 }}
-                hasMore={collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)}
+                hasMore={badgeTab === 'All' ?
+                  (collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)) :
+                  (badgeTab === 'Created' ? (createdView?.pagination?.hasMore ?? true) : (badgeTab === 'Managing' ? (accountInfo?.views['managing']?.pagination?.hasMore ?? true) : false))}
                 loader={<div>
                   <br />
                   <Spin size={'large'} />
@@ -968,8 +1039,6 @@ function PortfolioPage() {
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
               )}
-
-
             </>}
           </div>
         </>)}
@@ -990,6 +1059,10 @@ function PortfolioPage() {
                   { key: 'addressMappings', content: 'All', disabled: false },
                   { key: 'explicitlyIncludedAddressMappings', content: 'Included', disabled: false },
                   { key: 'explicitlyExcludedAddressMappings', content: 'Excluded', disabled: false },
+                  { key: 'createdLists', content: 'Created', disabled: false },
+                  chain.cosmosAddress && chain.cosmosAddress === accountInfo.cosmosAddress
+
+                    ? { key: 'privateLists', content: 'Private', disabled: false } : undefined,
                   ...(editMode ? [{
                     key: 'Hidden', content: 'Hidden', disabled: false
                   }] : []),
@@ -1054,6 +1127,12 @@ function PortfolioPage() {
             <InfoCircleOutlined /> These results
             only include blacklists where the address is excluded.
           </div>}
+          {listsTab === 'createdLists' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            <InfoCircleOutlined /> These results include lists created by this user.
+          </div>}
+          {listsTab === 'privateLists' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            <InfoCircleOutlined /> These results include private lists created by you and are only visible to you.
+          </div>}
           {listsTab !== '' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
             {accountInfo.customListPages?.find(x => x.title === badgeTab)?.description}
           </div>}
@@ -1064,7 +1143,6 @@ function PortfolioPage() {
               <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedList} inheritBg={!selectedList}>
                 <div className='flex'>
                   {CustomizeSearchListDropdown}
-
                 </div>
 
                 {selectedList && selectedListMapping && <>
@@ -1192,47 +1270,51 @@ function PortfolioPage() {
             </Col>
           </div>}
           {listsTab !== '' && <>
-            <div className='flex-center flex-wrap'>
-              <InfiniteScroll
-                dataLength={listsView.length}
-                next={async () => {
-                  if (isPresetList) fetchMoreLists(accountInfo?.address ?? '', listsTab)
-                }}
-                hasMore={isPresetList && hasMoreAddressMappings}
-                loader={<div>
-                  <br />
-                  <Spin size={'large'} />
-                </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
-                }
-                initialScrollY={0}
-                style={{ width: '100%', overflow: 'hidden' }}
-              >
-                <div className='full-width flex-center flex-wrap'>
-                  {listsView.map((addressMapping, idx) => {
-                    return <AddressListCard
-                      key={idx}
-                      addressMapping={addressMapping}
-                      addressOrUsername={accountInfo.address}
-                    />
-                  })}
-                </div>
-              </InfiniteScroll>
+            {listsTab === 'privateLists' && !chain.loggedIn ? <BlockinDisplay /> : <>
 
-              {listsView.length === 0 && !hasMoreAddressMappings && (
-                <Empty
-                  className='primary-text'
-                  description={
-                    <span>
-                      No lists found.
-                    </span>
+              <div className='flex-center flex-wrap'>
+                <InfiniteScroll
+                  dataLength={listsView.length}
+                  next={async () => {
+                    if (isPresetList) fetchMoreLists(accountInfo?.address ?? '', listsTab)
+                  }}
+                  hasMore={isPresetList && hasMoreAddressMappings}
+                  loader={<div>
+                    <br />
+                    <Spin size={'large'} />
+                  </div>}
+                  scrollThreshold={"300px"}
+                  endMessage={
+                    <></>
                   }
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
-            </div>
+                  initialScrollY={0}
+                  style={{ width: '100%', overflow: 'hidden' }}
+                >
+                  <div className='full-width flex-center flex-wrap'>
+                    {listsView.map((addressMapping, idx) => {
+                      return <AddressListCard
+                        key={idx}
+                        addressMapping={addressMapping}
+                        addressOrUsername={accountInfo.address}
+                        hideInclusionDisplay={listsTab === 'privateLists' || listsTab === 'createdLists'}
+                      />
+                    })}
+                  </div>
+                </InfiniteScroll>
+
+                {listsView.length === 0 && !hasMoreAddressMappings && (
+                  <Empty
+                    className='primary-text'
+                    description={
+                      <span>
+                        No lists found.
+                      </span>
+                    }
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  />
+                )}
+              </div>
+            </>}
           </>}
         </>)}
 
@@ -1259,97 +1341,7 @@ function PortfolioPage() {
         </>
         )}
 
-        {tab === 'createdBy' && (<>
-          <br />
-          <div className='flex-center flex-wrap'>
-            <InfiniteScroll
-              dataLength={createdView?.ids.length ?? 0}
-              next={async () => fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy')}
-              hasMore={createdView?.pagination?.hasMore ?? true}
-              loader={<div>
-                <br />
-                <Spin size={'large'} />
-              </div>}
-              scrollThreshold={"300px"}
-              endMessage={
-                <></>
-              }
-              initialScrollY={0}
-              style={{ width: '100%', overflow: 'hidden' }}
-            >
-              <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
-                <MultiCollectionBadgeDisplay
-                  collectionIds={createdView?.ids.map(x => BigInt(x)) ?? []}
-                  cardView={cardView}
-                  groupByCollection={true}
-                  defaultPageSize={cardView ? 1 : 10}
-                  hidePagination={true}
-                  hideAddress
-                  showCustomizeButtons={editMode}
-                />
-              </div>
-            </InfiniteScroll>
 
-            {accountInfo?.views['createdBy']?.ids.length == 0 && !accountInfo?.views['createdBy']?.pagination?.hasMore && (
-              <Empty
-                className='primary-text'
-                description={
-                  <span>
-                    No badges found.
-                  </span>
-                }
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            )}
-          </div>
-        </>)}
-
-        {tab === 'managing' && (<>
-          <br />
-          <div className='flex-center flex-wrap'>
-            <InfiniteScroll
-              dataLength={accountInfo?.views['managing']?.ids.length ?? 0}
-              next={async () => fetchMoreManaging(accountInfo?.address ?? '', 'managing')}
-              hasMore={accountInfo?.views['managing']?.pagination?.hasMore ?? true}
-              loader={<div>
-                <br />
-                <Spin size={'large'} />
-              </div>}
-              scrollThreshold={"300px"}
-              endMessage={
-                <></>
-              }
-              initialScrollY={500}
-              style={{ width: '100%', overflow: 'hidden', }}
-            >
-              <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
-                <MultiCollectionBadgeDisplay
-                  collectionIds={accountInfo?.views['managing']?.ids.map(x => BigInt(x)) ?? []}
-                  cardView={cardView}
-                  groupByCollection={true}
-                  defaultPageSize={cardView ? 1 : 10}
-                  // defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                  hidePagination={true}
-                  hideAddress
-
-                  showCustomizeButtons={editMode}
-                />
-              </div>
-            </InfiniteScroll>
-
-            {accountInfo?.views['managing']?.ids.length == 0 && !accountInfo?.views['managing']?.pagination?.hasMore && (
-              <Empty
-                className='primary-text'
-                description={
-                  <span>
-                    No badges found.
-                  </span>
-                }
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            )}
-          </div>
-        </>)}
 
       </div>
       <DevMode obj={accountInfo} />

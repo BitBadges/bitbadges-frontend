@@ -9,7 +9,7 @@ import {
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
 import { BadgeMetadataTimeline, CollectionMetadataTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, OffChainBalancesMetadataTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
-import { Metadata, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { Metadata, getCurrentValuesForCollection, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
 
 import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
@@ -36,7 +36,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []) : collection?.cachedCollectionMetadata;
 
   const isCollectionInfo = !badgeId;
-
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
   const [_, isValid] = searchUintRangesForId(BigInt(Date.now()), metadata?.validFrom ?? []);
   let balancesTypeInfoStr = '';
   if (collection?.balancesType === "Off-Chain") {
@@ -88,7 +88,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
 
 
 
-          {<TableRow label={"Balances Storage"} value={
+          {!noBalancesStandard && <TableRow label={"Balances Storage"} value={
             <>
               <div className='' style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
                 {collection?.balancesType === "Off-Chain" ?

@@ -1,5 +1,5 @@
 import { Col, Row } from "antd";
-import { getUintRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
+import { getCurrentValuesForCollection, getUintRangesForAllBadgeIdsInCollection } from "bitbadgesjs-utils";
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 
@@ -28,7 +28,14 @@ export function OverviewTab({
   const collectionMetadata = collection?.cachedCollectionMetadata;
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(collectionMetadata?.description ?? ''));
-
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
+  const MetadataDisplayElem = <>
+    <MetadataDisplay
+      collectionId={collectionId}
+      span={24}
+    />
+    <br />
+  </>
   return <>
     {<>
       <div style={{ paddingRight: 4, paddingLeft: 4 }}>
@@ -67,22 +74,21 @@ export function OverviewTab({
             </div>
           </InformationDisplayCard>
           <br />
+          {!noBalancesStandard && MetadataDisplayElem}
+
+          <PermissionsOverview
+            collectionId={collectionId}
+            span={24}
+          />
         </>}
-        <MetadataDisplay
-          collectionId={collectionId}
-          span={24}
-        />
-        <br />
-        <PermissionsOverview
-          collectionId={collectionId}
-          span={24}
-        />
+
       </Col>
 
       <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
 
         <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
-        {<>
+        {noBalancesStandard && MetadataDisplayElem}
+        {!noBalancesStandard && <>
 
           <DistributionOverview
             collectionId={collectionId}

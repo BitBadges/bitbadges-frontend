@@ -31,7 +31,7 @@ function RegisterScreen({ message }: { message?: string }) {
           requireLogin
           node={
             <div className='flex-center'>
-              <Content style={{ paddingTop: '15px', maxWidth: 600, }} className='primary-text'>
+              <Content style={{ padding: '15px', maxWidth: 600, }} className='primary-text'>
                 <Content>
                   <Text
                     strong

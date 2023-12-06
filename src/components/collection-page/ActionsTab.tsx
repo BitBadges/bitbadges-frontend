@@ -107,7 +107,9 @@ export function ActionsTab({
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
   const isOnChainBalances = collection && collection.balancesType == "Standard";
 
-  if (isOnChainBalances) {
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
+
+  if (isOnChainBalances && !noBalancesStandard) {
     actions.push({
       title: "Transfer",
       description: "Transfer badge(s) in this collection, if allowed.",

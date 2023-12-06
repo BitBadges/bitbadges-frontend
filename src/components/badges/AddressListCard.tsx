@@ -7,10 +7,12 @@ import { BadgeAvatar } from './BadgeAvatar';
 
 export function AddressListCard({
   addressMapping,
-  addressOrUsername
+  addressOrUsername,
+  hideInclusionDisplay,
 }: {
   addressMapping: AddressMappingWithMetadata<bigint>
   addressOrUsername?: string
+  hideInclusionDisplay?: boolean
 }) {
   const router = useRouter();
 
@@ -51,11 +53,11 @@ export function AddressListCard({
         <br />
         {addressMapping.addresses.length} address{addressMapping.addresses.length === 1 ? '' : 'es'}
       </Typography.Text>
-      {accountInfo && <>
+      {accountInfo && !hideInclusionDisplay && <>
         <br />
         <br />
       </>}
-      {accountInfo ? addressMapping.includeAddresses ?
+      {accountInfo && !hideInclusionDisplay ? addressMapping.includeAddresses ?
         <Typography.Text strong style={{ color: 'green' }}>
           {/* {explicitly ? '' : 'SOFT'} */}
           INCLUDED

@@ -213,7 +213,7 @@ function AddressMappingPage() {
                       {isOnChain && <TableRow label={"ID"} value={mapping.mappingId} labelSpan={9} valueSpan={15} />}
                       {!isOnChain && mapping && <TableRow label={"ID"} value={mapping.mappingId.split('_')[1]} labelSpan={9} valueSpan={15} />}
                       {mapping.editKeys && mapping.editKeys.length > 0 ?
-                        <TableRow label={"Editable>"} value={"By Creator and Approved Users"} labelSpan={9} valueSpan={15} /> :
+                        <TableRow label={"Editable?"} value={"By Creator and Approved Users"} labelSpan={9} valueSpan={15} /> :
                         <TableRow label={"Editable?"} value={"By Creator Only"} labelSpan={9} valueSpan={15} />
                       }
                       {!isOnChain && <TableRow label={"Access"} value={isPrivate ? "Private" : "Public"} labelSpan={9} valueSpan={15} />}

@@ -1,5 +1,5 @@
 import { Col, Divider, Layout, Row } from 'antd';
-import { BitBadgesCollection, TransferActivityInfo, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, TransferActivityInfo, getCurrentValuesForCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
@@ -54,6 +54,7 @@ export function BadgePage({ collectionPreview }
 
   const collection = useCollection(isPreview ? undefined : collectionIdNumber);
   const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.cachedBadgeMetadata) : undefined;
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
 
   //Get collection information
   useEffect(() => {
@@ -72,7 +73,7 @@ export function BadgePage({ collectionPreview }
 
   // const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
 
-  const tabInfo = []
+  let tabInfo = []
   // if (!isOffChainBalances) {
   tabInfo.push(
     { key: 'overview', content: 'Overview' },
@@ -87,6 +88,11 @@ export function BadgePage({ collectionPreview }
   //     { key: 'actions', content: 'Actions' },
   //   );
   // }
+
+  if (noBalancesStandard) {
+    tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity');
+  }
+
 
   const HtmlToReactParser = HtmlToReact.Parser();
   const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
@@ -146,12 +152,14 @@ export function BadgePage({ collectionPreview }
                     </InformationDisplayCard>
                     <br />
                   </>}
-                  <MetadataDisplay
-                    collectionId={collectionIdNumber}
-                    badgeId={badgeIdNumber}
-                    span={24}
-                  />
-                  <br />
+                  {!noBalancesStandard && <>
+                    <MetadataDisplay
+                      collectionId={collectionIdNumber}
+                      badgeId={badgeIdNumber}
+                      span={24}
+                    />
+                    <br />
+                  </>}
                   {collection &&
                     <PermissionsOverview
                       collectionId={collectionIdNumber}
@@ -163,19 +171,27 @@ export function BadgePage({ collectionPreview }
                 </Col>
                 <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
                 <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
+                  {!noBalancesStandard && <>
+                    <DistributionOverview
+                      collectionId={collectionIdNumber}
+                      span={24}
+                      badgeId={badgeIdNumber}
+                    />
+                    <br />
 
-                  <DistributionOverview
-                    collectionId={collectionIdNumber}
-                    span={24}
-                    badgeId={badgeIdNumber}
-                  />
-                  <br />
-
-                  {collection && <OwnersTab
-                    collectionId={collectionIdNumber}
-                    badgeId={badgeIdNumber}
-                    setTab={setTab}
-                  />}
+                    {collection && <OwnersTab
+                      collectionId={collectionIdNumber}
+                      badgeId={badgeIdNumber}
+                      setTab={setTab}
+                    />}
+                  </>}
+                  {noBalancesStandard && <>{collection &&
+                    <MetadataDisplay
+                      collectionId={collectionIdNumber}
+                      badgeId={badgeIdNumber}
+                      span={24}
+                    />
+                  }</>}
                 </Col>
               </Row>
             </div>
