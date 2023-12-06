@@ -20,7 +20,7 @@ export function Notifications() {
   const chain = useChainContext();
   const signedInAccount = useAccount(chain.address);
 
-  const [tab, setTab] = useState('announcements');
+  const [tab, setTab] = useState('transferActivity');
 
   //We only show the transfer activity at first load time (chain.lastSeenActivity)
   //Anything after that, we don't show and will assume that they see the next time they refresh the page
@@ -165,19 +165,21 @@ export function Notifications() {
                     //   disabled: false
                     // }, 
                     {
-                      key: 'claimAlerts',
-                      content: <TabComponent title={'Claim Alerts'} count={unseenClaimAlertsCount} />,
-                      disabled: false
-                    }, {
                       key: 'transferActivity',
                       content: <TabComponent title={'Transfer Activity'} count={unseenTransferActivityCount} />,
                       disabled: false
                     },
                     {
                       key: 'latestAddressMappings',
-                      content: <TabComponent title={'Lists'} count={unseenAddressMappingsCount} />,
+                      content: <TabComponent title={'List Activity'} count={unseenAddressMappingsCount} />,
                       disabled: false
-                    }]}
+                    },
+                    {
+                      key: 'claimAlerts',
+                      content: <TabComponent title={'Claim Alerts'} count={unseenClaimAlertsCount} />,
+                      disabled: false
+                    },
+                  ]}
                 />
 
                 <div style={{ textAlign: 'center' }}>
