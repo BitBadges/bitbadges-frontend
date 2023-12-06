@@ -175,9 +175,6 @@ function PortfolioPage() {
     }
   }, [filteredCollections, accountInfo?.address]);
 
-  const createdViewIds = accountInfo?.views['createdBy']?.ids ?? [];
-  const managingViewIds = accountInfo?.views['managing']?.ids ?? [];
-
   let badgesToShow = useMemo(() => {
 
     let badgesToShow = getAccountBalancesView(accountInfo, 'badgesCollected')
