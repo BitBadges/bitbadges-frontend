@@ -32,6 +32,7 @@ import { SetBadgeMetadataStepItem } from './step-items/SetBadgeMetadata';
 import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadataStepItem';
 import { TemplateCollectionSelect } from './step-items/TemplateCollections';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
+import { CollectionTypeSelect } from './step-items/CustomVsPresetCollection';
 
 //See TxTimeline for explanations and documentation
 export function UpdateCollectionTimeline() {
@@ -74,7 +75,7 @@ export function UpdateCollectionTimeline() {
   const BalanceTypeSelect = BalanceTypeSelectStepItem();
   const CodesViewStep = CodesViewStepItem();
 
-  // const CustomCollectionStep = CollectionTypeSelect();
+  const CustomCollectionStep = CollectionTypeSelect();
   const TemplateSelectStep = TemplateCollectionSelect();
 
   const items: TimelineItem[] = [
@@ -178,13 +179,13 @@ export function UpdateCollectionTimeline() {
       //or permissions are completely neutral
       || (Object.values(startingCollection.collectionPermissions).every(x => x.length == 0))
 
-    // const toShowCollectionType = (!existingCollectionId || existingCollectionId == 0n)
+    const toShowCollectionType = (!existingCollectionId || existingCollectionId == 0n)
 
     const templateCollectionSelect = !txTimelineContext.customCollection;
 
-    // items.push(
-    //   toShowCollectionType ? CustomCollectionStep : EmptyStepItem,
-    // )
+    items.push(
+      toShowCollectionType ? CustomCollectionStep : EmptyStepItem,
+    )
     if (templateCollectionSelect) {
       items.push(
         TemplateSelectStep

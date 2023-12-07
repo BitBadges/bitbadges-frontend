@@ -18,7 +18,7 @@ import { notification } from 'antd';
 
 export function CreateTxMsgUniversalUpdateCollectionModal(
   { visible, setVisible, children,
-    MsgUniversalUpdateCollection,
+    MsgUniversalUpdateCollection, afterTx
 
   }
     : {
@@ -26,6 +26,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
       setVisible: (visible: boolean) => void,
       children?: React.ReactNode,
       MsgUniversalUpdateCollection?: MsgUniversalUpdateCollection<bigint>,
+      afterTx?: (collectionId: bigint) => Promise<void>
     }) {
   const chain = useChainContext();
   const router = useRouter();
@@ -219,7 +220,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
     }
 
 
-    if (!txTimelineContext.updateOffChainBalancesMetadataTimeline) {
+    if (!txTimelineContext.updateOffChainBalancesMetadataTimeline || (!!txTimelineContext.existingCollectionId && collection.balancesType != "Off-Chain")) {
       //Do nothing, not even if self-hosted
       offChainBalancesMetadataTimeline = []; //just for the msg, doesn't actually change the collection since update flag is false
     } else if (collection.balancesType == "Off-Chain" && txTimelineContext.updateOffChainBalancesMetadataTimeline) {
@@ -314,7 +315,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
       txCosmosMsg={msg}
       createTxFunction={createTxMsgUniversalUpdateCollection}
       beforeTx={!!MsgUniversalUpdateCollection ? undefined : beforeTx} //If we have a template msg, we assume everything is handled
-      onSuccessfulTx={async () => {
+      onSuccessfulTx={async (collectionId: bigint) => {
 
         if (collectionId && collectionId > 0n) {
           await fetchCollections([collectionId], true);
@@ -323,6 +324,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
           //navigating to a new collection page is handled in TxModal bc we need nextCollectionId
         }
 
+        if (afterTx) await afterTx(collectionId);
         txTimelineContext.resetState();
       }}
       requireRegistration

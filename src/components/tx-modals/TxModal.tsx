@@ -25,9 +25,9 @@ export function TxModal(
     visible,
     setVisible,
     txName,
-    children, 
-    style, 
-    closeIcon, 
+    children,
+    style,
+    closeIcon,
     bodyStyle,
     msgSteps,
     displayMsg, onSuccessfulTx, beforeTx, disabled,
@@ -44,7 +44,7 @@ export function TxModal(
     style?: React.CSSProperties,
     closeIcon?: React.ReactNode,
     bodyStyle?: React.CSSProperties,
-    onSuccessfulTx?: () => Promise<void>,
+    onSuccessfulTx?: (collectionId: bigint) => Promise<void>,
     beforeTx?: (simulate: boolean) => Promise<any>,
     msgSteps?: StepProps[],
     displayMsg?: string | ReactNode
@@ -333,8 +333,12 @@ export function TxModal(
           Modal.destroyAll()
 
           await router.push(`/collections/${collectionId}`);
+
+          return BigInt(collectionIdStr);
         }
       }
+
+      return 0n;
     } catch (err: any) {
       console.error(err);
       if (err?.response?.data?.message) {
@@ -351,8 +355,8 @@ export function TxModal(
 
   const handleSubmitTx = async () => {
     try {
-      await submitTx(createTxFunction, txCosmosMsg, false);
-      if (onSuccessfulTx) onSuccessfulTx();
+      const collectionId = await submitTx(createTxFunction, txCosmosMsg, false);
+      if (onSuccessfulTx) onSuccessfulTx(collectionId ?? 0n);
 
       setVisible(false);
     } catch (err: any) {

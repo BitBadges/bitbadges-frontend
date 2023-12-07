@@ -4,8 +4,10 @@ import { SubmitMsgNewCollection } from "../form-items/SubmitMsgUniversalUpdateCo
 import { BigIntify, convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
+import { updateFollowDetails } from "../../../bitbadges-api/api";
 
 const template1 = require('./templates/template1.json');
+const template2 = require('./templates/template2.json');
 
 export function TemplateCollectionSelect() {
   const chain = useChainContext();
@@ -47,6 +49,37 @@ export function TemplateCollectionSelect() {
                   creator: chain.cosmosAddress,
                   //TODO: manager timeline?
                 }, BigIntify)}
+              />
+            </>
+          },
+          {
+            title: 'Follow Protocol',
+            message: <>
+              This collection will have one badge of infinite supply that you assign to who you want to follow.
+              You will always have full control over who you follow.
+              Updating your following is instant, free, and does not require any blockchain transactions
+              because balances are stored off-chain (learn more <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">here</a>).
+              Once this collection is created, your following will be updated to this collection.
+              <br />
+              <br />
+              <BadgeAvatarDisplay collectionId={1n} badgeIds={[{ start: 1n, end: 10n }]} showIds />
+              <br />
+              <ul>
+                <li><b>Following (ID 1): </b>Give this badge to users you want to follow.</li>
+              </ul>
+            </>,
+            isSelected: selectedIdx === 1,
+            additionalNode: <>
+              <SubmitMsgNewCollection
+
+                MsgUniversalUpdateCollection={convertMsgUniversalUpdateCollection({
+                  ...template2,
+                  creator: chain.cosmosAddress,
+                  //TODO: manager timeline?
+                }, BigIntify)}
+                afterTx={async (collectionId: bigint) => {
+                  await updateFollowDetails({ followingCollectionId: collectionId });
+                }}
               />
             </>
           }
