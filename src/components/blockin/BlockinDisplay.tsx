@@ -185,7 +185,7 @@ export const BlockinDisplay = ({
               description: 'Gain general access to this website. You will not be allowed access if you own a scammer badge. This is to prevent spam and unwanted visitors.',
               frozen: true,
               defaultSelected: true,
-              additionalDisplay: <div>
+              additionalDisplay: <div className="dark">
                 <BadgeAvatarDisplay
                   collectionId={1n}
                   badgeIds={[{ start: 8n, end: 8n }]}

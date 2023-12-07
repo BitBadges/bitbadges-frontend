@@ -163,12 +163,12 @@ function BlockinCodesScreen() {
             {
               flaggedWebsites.includes(blockinParams.domain) &&
               <div className='' style={{ color: 'red' }}>
-                <WarningOutlined style={{ color: 'red' }} /> <span style={{ color: 'red' }}> Be careful. This is likely a scam attempt. This site ({blockinParams.domain}) does not use QR codes for authentication.</span>
+                <WarningOutlined style={{ color: 'red' }} /> <span style={{ color: 'red' }}> Be careful. This is likely a scam attempt. This site ({blockinParams.domain}) requesting authentication does not use QR codes.</span>
               </div>
             }
             {
 
-              address && blockinParams.address && blockinParams.address !== address ?
+              address && blockinParams.address && blockinParams.address !== address && !allowAddressSelect ?
                 <div style={{
                   marginLeft: '3vw',
                   marginRight: '3vw',
@@ -176,8 +176,15 @@ function BlockinCodesScreen() {
                   paddingRight: '1vw',
                   paddingTop: '20px'
                 }} className='flex-center flex-column'>
-                  <EmptyIcon description='The connected address does not match the expected address for this link. Please sign in with the correct address.' />
-                  <AddressDisplay addressOrUsername={blockinParams.address} fontSize={17} />
+                  <div className='primary-text flex-center flex-wrap'>The connected address
+                    <div style={{ margin: 8 }}>
+                      <AddressDisplay addressOrUsername={address} fontSize={17} />
+                    </div>
+                    does not match the expected address
+                    <div style={{ margin: 8 }}>
+                      <AddressDisplay addressOrUsername={blockinParams.address} fontSize={17} />
+                    </div>
+                    for this link. Please sign in with the correct address. </div>
                   <br />
                   <br />
                   <BlockinDisplay />

@@ -205,7 +205,7 @@ export function SubmitMsgCreateAddressMapping() {
 
                 </div>
                 <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
-                  <InfoCircleOutlined /> Users can only add to the list until the expiration date.
+                  <InfoCircleOutlined /> Users can only add to the list until the expiration date (if set).
                 </div>
               </>}
             </InformationDisplayCard>

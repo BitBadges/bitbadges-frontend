@@ -1,5 +1,5 @@
 import { Empty, Spin } from 'antd';
-import { BalanceInfo, Numberify, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
+import { BalanceInfo, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
 import { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { getOwnersForBadge } from '../../bitbadges-api/api';
@@ -27,10 +27,8 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
   const [pagination, setPagination] = useState<PaginationInfo>({
     bookmark: '',
     hasMore: true,
-    total: 0
   });
 
-  const totalNumOwners = pagination.total ? Numberify(pagination.total) : 0;
   const fetchMore = useCallback(async (bookmark?: string) => {
     if (isPreview) return;
 
@@ -40,7 +38,6 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
     setOwners(owners => [...owners, ...badgeOwners].filter((x, idx, self) => self.findIndex(y => y.cosmosAddress === x.cosmosAddress) === idx));
     setPagination({
       ...ownersRes.pagination,
-      total: (ownersRes.pagination.total ?? 0) - 2,
     });
   }, [collectionId, badgeId, isPreview]);
 
@@ -124,7 +121,7 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
           })}
         </InfiniteScroll>
 
-        {totalNumOwners <= 0 && <Empty //<= 2 because of Mint and Total always being there
+        {!pagination.hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
           description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           className='primary-text'

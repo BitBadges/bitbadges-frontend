@@ -432,7 +432,7 @@ export async function verifySignInGeneric(requestBody: VerifySignInRouteRequestB
 }
 export async function addAddressToSurvey(mappingId: string, requestBody: AddAddressToSurveyRouteRequestBody): Promise<AddAddressToSurveyRouteSuccessResponse> {
   try {
-    return (await BitBadgesApi.addAddressToSurvey(mappingId, requestBody.address));
+    return (await BitBadgesApi.addAddressToSurvey(mappingId, requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);

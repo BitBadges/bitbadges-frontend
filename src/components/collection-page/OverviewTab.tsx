@@ -73,15 +73,15 @@ export function OverviewTab({
               </div>
             </div>
           </InformationDisplayCard>
-          <br />
+          
+        </>}
+        <br />
           {!noBalancesStandard && MetadataDisplayElem}
 
           <PermissionsOverview
             collectionId={collectionId}
             span={24}
           />
-        </>}
-
       </Col>
 
       <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>
