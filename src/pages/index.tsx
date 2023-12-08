@@ -154,7 +154,7 @@ const Home: NextPage = () => {
                 }}
                 target='_blank'
               >
-                Mint
+                Create
               </Button>
               <Button
                 size='large'
@@ -471,7 +471,7 @@ const Home: NextPage = () => {
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Verify badge ownership at in-person events through our QR codes feature.
                       Or, verify badge ownership digitally through <a href="https://blockin.gitbook.io/blockin/" target='_blank'>Blockin</a>.
-                      
+
                     </Typography.Text>
                   </>
                 }
@@ -492,7 +492,7 @@ const Home: NextPage = () => {
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                     BitBadges will ALWAYS provide full support for fully decentralized implementations.
-                    However, we realize most users do not care, so we also provide hybrid approaches 
+                    However, we realize most users do not care, so we also provide hybrid approaches
                     that can be used to greatly improve user experience and scalability.
                   </Typography.Text>
                 </>
