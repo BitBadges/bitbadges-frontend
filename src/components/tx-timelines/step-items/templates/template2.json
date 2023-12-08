@@ -1,0 +1,105 @@
+{
+  "creator": "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x",
+  "collectionId": "0",
+  "balancesType": "Standard",
+  "defaultOutgoingApprovals": [],
+  "defaultAutoApproveSelfInitiatedOutgoingTransfers": true,
+  "defaultAutoApproveSelfInitiatedIncomingTransfers": true,
+  "defaultIncomingApprovals": [],
+  "defaultUserPermissions": {
+    "canUpdateIncomingApprovals": [],
+    "canUpdateOutgoingApprovals": [],
+    "canUpdateAutoApproveSelfInitiatedIncomingTransfers": [],
+    "canUpdateAutoApproveSelfInitiatedOutgoingTransfers": []
+  },
+  "badgesToCreate": [
+    {
+      "amount": "1000000000000000000",
+      "ownershipTimes": [
+        {
+          "start": "1",
+          "end": "18446744073709551615"
+        }
+      ],
+      "badgeIds": [
+        {
+          "start": "1",
+          "end": "1"
+        }
+      ]
+    }
+  ],
+  "updateCollectionPermissions": true,
+  "collectionPermissions": {
+    "canDeleteCollection": [],
+    "canArchiveCollection": [],
+    "canUpdateOffChainBalancesMetadata": [],
+    "canUpdateStandards": [],
+    "canUpdateCustomData": [],
+    "canUpdateManager": [],
+    "canUpdateCollectionMetadata": [],
+    "canCreateMoreBadges": [],
+    "canUpdateBadgeMetadata": [],
+    "canUpdateCollectionApprovals": []
+  },
+  "updateManagerTimeline": false,
+  "managerTimeline": [],
+  "updateCollectionMetadataTimeline": true,
+  "collectionMetadataTimeline": [
+    {
+      "collectionMetadata": {
+        "uri": "ipfs://QmbMWdirW8mc6jGwLZE71XuXx91YYDV3Q3rcNHSdrqz2h9",
+        "customData": ""
+      },
+      "timelineTimes": [
+        {
+          "start": "1",
+          "end": "18446744073709551615"
+        }
+      ]
+    }
+  ],
+  "updateBadgeMetadataTimeline": true,
+  "badgeMetadataTimeline": [
+    {
+      "badgeMetadata": [
+        {
+          "uri": "ipfs://QmaeUrLbDPmpEq34vJeZvGGGfcFFtGmefGRQVne4uVkz8J",
+          "customData": "",
+          "badgeIds": [
+            {
+              "start": "1",
+              "end": "1"
+            }
+          ]
+        },
+        {
+          "uri": "ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs",
+          "customData": "",
+          "badgeIds": [
+            {
+              "start": "2",
+              "end": "18446744073709551615"
+            }
+          ]
+        }
+      ],
+      "timelineTimes": [
+        {
+          "start": "1",
+          "end": "18446744073709551615"
+        }
+      ]
+    }
+  ],
+  "updateOffChainBalancesMetadataTimeline": true,
+  "offChainBalancesMetadataTimeline": [],
+  "updateCustomDataTimeline": true,
+  "customDataTimeline": [],
+  "updateCollectionApprovals": true,
+  "collectionApprovals": [],
+  "updateStandardsTimeline": true,
+  "standardsTimeline": [],
+  "updateIsArchivedTimeline": true,
+  "isArchivedTimeline": []
+}

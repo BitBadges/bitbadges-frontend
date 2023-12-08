@@ -29,6 +29,7 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
+import { FollowProtocolDisplay } from '../../components/display/FollowProtocol';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -104,6 +105,7 @@ function PortfolioPage() {
   tabInfo.push(
     { key: 'collected', content: 'Badges', disabled: false },
     { key: 'lists', content: 'Lists' },
+    { key: 'protocols', content: 'Protocols' },
     { key: 'activity', content: 'Activity', disabled: false },
     { key: 'reputation', content: 'Reviews' },
   )
@@ -705,6 +707,10 @@ function PortfolioPage() {
           </div>
 
 
+        </>)}
+
+        {tab === 'protocols' && (<>
+          <FollowProtocolDisplay addressOrUsername={accountInfo.address} />
         </>)}
 
         {/* Tab Content */}

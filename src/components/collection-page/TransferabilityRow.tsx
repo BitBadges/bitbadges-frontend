@@ -764,7 +764,8 @@ export function TransferabilityRow({
     if (collectionId != NEW_COLLECTION_ID && (showMoreIsVisible || transferIsVisible || editIsVisible)) {
       if (!hideActions) refreshTrackers();
     }
-  }, [collectionId, showMoreIsVisible, refreshTrackers, transferIsVisible, editIsVisible, hideActions]);
+    //TODO: refreshTrackers here creates an infinite loop if 2+ details are open at once
+  }, [collectionId, showMoreIsVisible, transferIsVisible, editIsVisible, hideActions]);
 
   const router = useRouter();
   const query = router.query;

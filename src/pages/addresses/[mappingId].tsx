@@ -24,6 +24,7 @@ import QrCodeDisplay from '../../components/display/QrCodeDisplay';
 import { TableRow } from '../../components/display/TableRow';
 import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 
 const { Content } = Layout;
 const mdParser = new MarkdownIt(/* Markdown-it options */);
@@ -366,7 +367,7 @@ function AddressMappingPage() {
           <QrCodeDisplay value={surveyUrl} size={256} />
           <Divider />
           <div className='secondary-text' style={{ textAlign: 'center' }}>
-            <WarningOutlined style={{ color: 'orange' }} /> <b>Warning:</b> With the current settings, anyone with this URL can add an address{editKey?.expirationDate ? <>
+            <WarningOutlined style={{ color: 'orange' }} /> <b>Warning:</b> With the current settings, anyone with this URL can add an address {editKey?.expirationDate && editKey.expirationDate < GO_MAX_UINT_64 ? <>
               {' '}until {new Date(Number(editKey.expirationDate)).toLocaleDateString()}.
             </> : <>with no expiration date.</>}
           </div>

@@ -25,7 +25,8 @@ export function AddressDisplayList({
   allExcept,
   filterMint,
   trackerIdList,
-  hideIcons
+  hideIcons,
+  
 }: {
   users: string[],
   setUsers?: (users: string[]) => void

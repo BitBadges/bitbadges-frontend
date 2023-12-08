@@ -153,7 +153,7 @@ export function FreezeSelectStepItem() {
   if (!collection) return EmptyStepItem;
   const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true); //Get badge IDs that will have unlocked supply moving forward
 
-  const AdditionalNode = () => {
+  const AdditionalNode = ({ idx }: { idx: number }) => {
     return <>
       <div className="flex-center">
         <PermissionsOverview
@@ -161,7 +161,7 @@ export function FreezeSelectStepItem() {
           collectionId={collection.collectionId}
           permissionName="canUpdateCollectionApprovals"
           onFreezePermitted={(frozen: boolean) => {
-            handleSwitchChange(lastClickedIdx, frozen);
+            handleSwitchChange(idx, frozen);
             setLastClickedFrozen(frozen);
           }}
         />
@@ -217,25 +217,25 @@ export function FreezeSelectStepItem() {
                 title: 'Freeze All',
                 message: `Freeze the transferability entirely for the collection for all badge IDs and from all addresses.`,
                 isSelected: selectedIdx === 0,
-                additionalNode: <AdditionalNode />
+                additionalNode: <AdditionalNode idx={0} />,
               },
               {
                 title: 'Freeze Post-Mint Transferability',
                 message: `Freeze the transferability of the collection for all badge IDs AFTER the badges have been transferred from the Mint address (i.e. revoking, transferable vs non-transferable, frozen addresses, etc).`,
                 isSelected: selectedIdx === 1,
-                additionalNode: <AdditionalNode />
+                additionalNode: <AdditionalNode idx={1} />
               },
               {
                 title: 'Freeze Mint Transferability',
                 message: `Freeze the transferability of the collection for all transfers from the Mint address.`,
                 isSelected: selectedIdx === 2,
-                additionalNode: <AdditionalNode />
+                additionalNode: <AdditionalNode idx={2} />
               },
               {
                 title: 'Editable',
                 message: `The manager will be able to edit the collection-level transferability for everything. This permission can be disabled in the future.`,
                 isSelected: selectedIdx === 3,
-                additionalNode: <AdditionalNode />
+                additionalNode: <AdditionalNode idx={3} />
               },
             ]}
             onSwitchChange={(idx) => {

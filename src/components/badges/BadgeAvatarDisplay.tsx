@@ -156,9 +156,9 @@ export function BadgeAvatarDisplay({
       }
     </div>
 
-    {removed.length > 0 && <div className="secondary-text">
+    {removed.length > 0 && filterGreaterThanMax && <div className="secondary-text">
       <br />
-      Badge IDs {getBadgeIdsString(removed)} have placeholder metadata.
+      Badge IDs {getBadgeIdsString(removed)} have placeholder metadata or are not shown.
     </div>}
   </div>
 }
