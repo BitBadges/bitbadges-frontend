@@ -237,7 +237,10 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
             hasMore={hasMore || numShown < activity.length}
             loader={
               <div>
+                <br/>
                 <Spin size={'large'} />
+                <br />
+                    <br />
               </div>
             }
             scrollThreshold={"300px"}

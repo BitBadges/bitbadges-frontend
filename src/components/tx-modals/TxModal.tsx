@@ -241,11 +241,11 @@ export function TxModal(
         }
       }
 
-      if (Number(gasUsed) > Numberify(simulatedGas) * 1.3 || Number(gasUsed) < Numberify(simulatedGas) * 0.7) {
-        // setSimulated(false);
-        setSimulatedGas(BigIntify(gasUsed));
-        throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please review the updated recommended fee and try again.`);
-      }
+      // if (Number(gasUsed) > Numberify(simulatedGas) * 1.3 || Number(gasUsed) < Numberify(simulatedGas) * 0.7) {
+      //   // setSimulated(false);
+      //   setSimulatedGas(BigIntify(gasUsed));
+      //   throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please review the updated recommended fee and try again.`);
+      // }
 
       // console.log(cosmosMsg.transfers);
       // console.log((cosmosMsg as any).transfers.map((x: any) => convertTransfer(x, Stringify, true)));

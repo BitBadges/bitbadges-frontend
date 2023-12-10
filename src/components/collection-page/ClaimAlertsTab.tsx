@@ -41,6 +41,8 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
         loader={<div>
           <br />
           <Spin size={'large'} />
+          <br />
+                    <br />
         </div>}
         scrollThreshold="200px"
         endMessage={null}

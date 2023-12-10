@@ -104,6 +104,8 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
         loader={<div>
           <br />
           <Spin size={'large'} />
+          <br />
+                    <br />
         </div>}
         scrollThreshold="200px"
         endMessage={null}

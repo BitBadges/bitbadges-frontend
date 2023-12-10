@@ -228,7 +228,7 @@ export function AuthCodes() {
             </div>
 
             {authCodes.length === 0 && <div className='flex-center flex-column'>
-              <EmptyIcon description='No QR codes found. QR codes can be used to verify you own specific badges for an in-person event.' />
+              <EmptyIcon description='No QR codes found. QR codes can be used to prove you own specific badges in-person.' />
             </div>}
           </>}
           <Divider />

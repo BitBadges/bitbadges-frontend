@@ -467,7 +467,7 @@ export function ApprovalSelect({
             type='initiatedBy' />
           {approvalToAdd.initiatedByMapping.includeAddresses && showMintingOnlyFeatures && <TableRow labelSpan={16} valueSpan={8} label={'Store whitelist off-chain?'} value={
             <Switch
-              disabled={initiatedByMappingLocked}
+              disabled={initiatedByMappingLocked || distributionMethod === DistributionMethod.Codes}
               checked={distributionMethod === DistributionMethod.Whitelist} onChange={(checked) => {
                 if (checked) {
                   setDistributionMethod(DistributionMethod.Whitelist);
@@ -553,7 +553,7 @@ export function ApprovalSelect({
             </>
             } />}
 
-          {distributionMethod !== DistributionMethod.Codes && showMintingOnlyFeatures && <div className='' style={{ textAlign: 'start', marginLeft: 10, marginBottom: 4 }}>
+          {distributionMethod !== DistributionMethod.Codes && distributionMethod === DistributionMethod.Whitelist && showMintingOnlyFeatures && <div className='' style={{ textAlign: 'start', marginLeft: 10, marginBottom: 4 }}>
 
             <Typography.Text strong className='secondary-text' style={{ fontSize: 12 }}>
               <InfoCircleOutlined /> {distributionMethod === DistributionMethod.Whitelist ? "Incompatible with off-chain whitelists."

@@ -214,6 +214,8 @@ export function Notifications() {
                         loader={<div>
                           <br />
                           <Spin size={'large'} />
+                          <br />
+                          <br />
                         </div>}
                         scrollThreshold={"300px"}
                         endMessage={

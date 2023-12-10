@@ -11,6 +11,7 @@ import { TableRow } from "../display/TableRow";
 import { TimelineFieldWrapper } from "../wrappers/TimelineFieldWrapper";
 import { BalanceDisplay } from "./balances/BalanceDisplay";
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getBadgeIdsString } from "../../utils/badgeIds";
 
 export function DistributionOverview({
   collectionId,
@@ -56,7 +57,7 @@ export function DistributionOverview({
 
   return <InformationDisplayCard title={hideTitle ? '' : 'Distribution'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
     <>
-      {collection && <TableRow label={"Circulating (Total)"} value={
+      {collection && <TableRow label={"Circulating (Total Supply)"} value={
         <div style={{ float: 'right' }}>
           <BalanceDisplay
             hideBadges
@@ -82,7 +83,7 @@ export function DistributionOverview({
         } labelSpan={8} valueSpan={16} />}
       </>}
       {!isBadgeView &&
-        <TableRow label={"Number of Unique Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
+        <TableRow label={"Number of Unique Badges"} value={`${maxBadgeId}${maxBadgeId > 0 ? ` (IDs ${getBadgeIdsString([{ start: 1n, end: maxBadgeId }])})` : ''}`} labelSpan={12} valueSpan={12} />}
       {!isSelectStep && <TableRow label={"Can more badges be created?"} value={
         <PermissionIcon
           permissions={castBalancesActionPermissionToUniversalPermission(

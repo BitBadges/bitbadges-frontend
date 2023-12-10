@@ -87,6 +87,8 @@ export function AnnouncementsTab({ announcements, collectionId, hideCollection, 
         loader={<div>
           <br />
           <Spin size={'large'} />
+          <br />
+                    <br />
         </div>}
 
         scrollThreshold="200px"

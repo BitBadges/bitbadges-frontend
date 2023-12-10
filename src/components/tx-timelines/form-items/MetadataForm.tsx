@@ -432,7 +432,7 @@ export function MetadataForm({
                 style={{ cursor: 'pointer', marginLeft: 8, transform: 'scaleX(-1)' }}
               />}
               {!isCollectionSelect && !isAddressMappingSelect && <IconButton
-                text='Show All'
+                text={showAvatarDisplay ? 'Hide' : 'Show All'}
                 tooltipMessage='Show a display of updatable badges in this collection.'
                 src={showAvatarDisplay ? <FontAwesomeIcon
                   icon={faMinus}
@@ -446,19 +446,7 @@ export function MetadataForm({
               />}
             </div>
             <div className='flex-center flex-column full-width'>
-              <div className='flex-center flex full-width'>
-                {!isCollectionSelect && !isAddressMappingSelect && showAvatarDisplay &&
-                  <div className='primary-text mx-10'>
-                    <BadgeAvatarDisplay
-                      onClick={(id: bigint) => {
-                        setBadgeId(id);
-                      }}
-                      collectionId={NEW_COLLECTION_ID}
-                      badgeIds={badgeIds}
-                      showIds={true}
-                      selectedId={badgeId}
-                    />
-                  </div>}
+              <div className='flex-center flex-wrap full-width'>
                 {!isCollectionSelect && badgeId > 0 && !isCollectionSelect && !isAddressMappingSelect && <>
 
                   <div className='primary-text flex-center mx-10'>
@@ -473,6 +461,19 @@ export function MetadataForm({
                   </div>
                 </>
                 }
+                {!isCollectionSelect && !isAddressMappingSelect && showAvatarDisplay &&
+                  <div className='primary-text mx-10'>
+                    <BadgeAvatarDisplay
+                      onClick={(id: bigint) => {
+                        setBadgeId(id);
+                      }}
+                      collectionId={NEW_COLLECTION_ID}
+                      badgeIds={badgeIds}
+                      showIds={true}
+                      selectedId={badgeId}
+                    />
+                  </div>}
+
               </div>
 
             </div>

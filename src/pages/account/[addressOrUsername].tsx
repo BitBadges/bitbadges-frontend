@@ -947,6 +947,8 @@ function PortfolioPage() {
                 loader={<div>
                   <br />
                   <Spin size={'large'} />
+                  <br />
+                    <br />
                 </div>}
                 scrollThreshold={"300px"}
                 endMessage={
@@ -1012,6 +1014,8 @@ function PortfolioPage() {
                 loader={<div>
                   <br />
                   <Spin size={'large'} />
+                  <br />
+                    <br />
                 </div>}
                 scrollThreshold={"300px"}
                 endMessage={
@@ -1284,6 +1288,8 @@ function PortfolioPage() {
                   loader={<div>
                     <br />
                     <Spin size={'large'} />
+                    <br />
+                    <br />
                   </div>}
                   scrollThreshold={"300px"}
                   endMessage={

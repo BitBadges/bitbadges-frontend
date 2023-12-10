@@ -29,9 +29,8 @@ export function BalanceTypeSelectStepItem() {
     isSelected: collection?.balancesType === "Off-Chain",
     message: <div className='full-width'><span>
       Off-chain storage will be utilized to optimize the user experience and ensure scalability.
-      Balances will be managed exclusively by a centralized entity (you), which is responsible for assigning and updating the balances.
+      Balances will be managed exclusively by a centralized entity (you), which is responsible for assigning and updating ALL balances.
       There will never be any blockchain transactions for transfers or approvals.
-      Ownership of assets can only be granted by the centralized entity through assignment.
       <br /> <br />
       This option should only be used for specific use cases. Learn more
       <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">

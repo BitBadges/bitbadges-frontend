@@ -91,6 +91,8 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
           loader={<div>
             <br />
             <Spin size={'large'} />
+            <br />
+                    <br />
           </div>}
           scrollThreshold="200px"
           endMessage={null}

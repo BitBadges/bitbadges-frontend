@@ -19,6 +19,7 @@ import { convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { Divider } from './Divider';
+import { BadgeAvatar } from '../badges/BadgeAvatar';
 const template2 = require('../tx-timelines/step-items/templates/template2.json');
 
 const { Content } = Layout;
@@ -97,8 +98,9 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
     >
       {loading && <Spin size='large' />}
       <div className='flex-center'>
-        {!loading && <InformationDisplayCard title={'BitBadges Follow Protocol'} md={12} xs={24} sm={24} style={{}} subtitle={'The BitBadges follow protocol allows you to follow other users by sending them a follow badge and gain followers by receiving follow badges.'}>
+        {!loading && <InformationDisplayCard noBorder inheritBg title={<div className='flex-center'>BitBadges Follow Protocol <BadgeAvatar collectionId={1n} badgeId={15n} /></div>} md={8} xs={24} sm={24} style={{}} subtitle={'Follow users by sending them follow badges.'}>
           <br />
+
           <div className='flex-center'>
             <Tabs tab={tab} setTab={setTab} tabInfo={[
               { key: 'followers', content: 'Followers' },
@@ -131,6 +133,8 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                       loader={<div>
                         <br />
                         <Spin size={'large'} />
+                        <br />
+                    <br />
                       </div>}
                       scrollThreshold="200px"
                       endMessage={null}
@@ -168,6 +172,8 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                   loader={<div>
                     <br />
                     <Spin size={'large'} />
+                    <br />
+                    <br />
                   </div>}
                   scrollThreshold="200px"
                   endMessage={null}
