@@ -1,5 +1,5 @@
 import { Col, Divider, Empty, Input, Layout, Modal, Row, Spin, Typography } from 'antd';
-import { AddressMappingInfo, AddressMappingWithMetadata, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { AddressMappingDoc, AddressMappingWithMetadata, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
@@ -37,7 +37,7 @@ function AddressMappingPage() {
   const { mappingId } = router.query;
 
   const [tab, setTab] = useState('overview');
-  const [mapping, setMapping] = useState<AddressMappingInfo<bigint>>();
+  const [mapping, setMapping] = useState<AddressMappingDoc<bigint>>();
   const [metadata, setMetadata] = useState<Metadata<bigint>>();
   const [fetchError, setFetchError] = useState<string>();
 

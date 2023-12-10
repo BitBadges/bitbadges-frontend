@@ -363,7 +363,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         announcements: [],
         reviews: [],
         owners: [{
-          _id: "0:Total",
+          _legacyId: "0:Total",
           collectionId: 0n,
           onChain: true,
           cosmosAddress: 'Total',
@@ -380,7 +380,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           autoApproveSelfInitiatedOutgoingTransfers: false,
           updateHistory: [],
         }, {
-          _id: "0:Mint",
+          _legacyId: "0:Mint",
           cosmosAddress: 'Mint',
           onChain: true,
           collectionId: 0n,
@@ -438,7 +438,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         createdTimestamp: 0n,
 
         //Preview / simulated collection values
-        _id: "0",
+        // _legacyId: "0",
         collectionId: 0n
       }
 
@@ -465,7 +465,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           ...existingCollection,
 
           //Preview / simulated collection values
-          _id: "0",
+          // _legacyId: "0",
           collectionId: 0n
         }
 

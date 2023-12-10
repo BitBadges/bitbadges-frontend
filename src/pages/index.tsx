@@ -110,14 +110,55 @@ const Home: NextPage = () => {
     {
       collectionId: 1n,
       badgeId: 10n,
-    }
+    },
+    {
+      collectionId: 1n,
+      badgeId: 11n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 12n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 13n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 14n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 15n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 16n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 17n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 18n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 19n,
+    },
+    {
+      collectionId: 1n,
+      badgeId: 20n,
+    },
+
   ];
 
   useEffect(() => {
     batchFetchAndUpdateMetadata([{
       collectionId: 1n,
       metadataToFetch: {
-        badgeIds: [{ start: 1n, end: 10n }],
+        badgeIds: [{ start: 1n, end: 20n }],
       }
     }]);
   }, []);
@@ -194,7 +235,7 @@ const Home: NextPage = () => {
 
               <div className='flex-center flex-wrap full-width primary-text '>
                 {
-                  [...featuredBadges, ...featuredBadges].map((badge, idx) => {
+                  [...featuredBadges].map((badge, idx) => {
                     const { collectionId, badgeId } = badge;
                     return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
 

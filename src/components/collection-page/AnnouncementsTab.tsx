@@ -1,6 +1,6 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Col, Divider, Empty, Input, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { AnnouncementInfo, getCurrentValueForTimeline } from 'bitbadgesjs-utils';
+import { AnnouncementDoc, getCurrentValueForTimeline } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -14,7 +14,7 @@ import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsCon
 import { useCollection, fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function AnnouncementsTab({ announcements, collectionId, hideCollection, fetchMore, hasMore }: {
-  announcements: AnnouncementInfo<bigint>[],
+  announcements: AnnouncementDoc<bigint>[],
   collectionId?: bigint,
   hideCollection?: boolean,
   fetchMore: () => Promise<void>,
@@ -111,7 +111,7 @@ export function AnnouncementDisplay({
   setLoading,
   isCollectionDisplay
 }: {
-  announcement: AnnouncementInfo<bigint>,
+  announcement: AnnouncementDoc<bigint>,
   hideCollection?: boolean
   loading: boolean,
   setLoading: (loading: boolean) => void,
@@ -156,7 +156,7 @@ export function AnnouncementDisplay({
                 if (loading) return;
 
                 setLoading(true);
-                await deleteAnnouncement(announcement._id);
+                await deleteAnnouncement(announcement._legacyId);
                 if (isCollectionDisplay) {
                   await fetchCollections([announcement.collectionId], true);
                 }

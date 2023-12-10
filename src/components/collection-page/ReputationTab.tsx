@@ -1,5 +1,5 @@
 import { Button, Col, Divider, Empty, Input, Row, Spin, Tooltip, Typography } from 'antd';
-import { Numberify, ReviewInfo } from 'bitbadgesjs-utils';
+import { Numberify, ReviewDoc } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ReactStars from "react-stars";
@@ -18,7 +18,7 @@ import { AddressDisplay } from '../address/AddressDisplay';
 export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchMore, hasMore }:
   {
     addressOrUsername?: string,
-    reviews: ReviewInfo<bigint>[];
+    reviews: ReviewDoc<bigint>[];
     collectionId?: bigint,
     fetchMore: () => Promise<void>,
     hasMore: boolean
@@ -144,7 +144,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                         if (loading) return;
 
                         setLoading(true);
-                        await deleteReview(review._id);
+                        await deleteReview(review._legacyId);
                         if (collectionId) {
                           await fetchCollections([collectionId], true);
                         } else if (addressOrUsername) {

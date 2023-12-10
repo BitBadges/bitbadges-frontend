@@ -258,6 +258,7 @@ function PortfolioPage() {
   }, [editMode]);
 
   const fetchMoreLists = useCallback(async (address: string, viewKey: AccountViewKey) => {
+    console.log('fetch more lists', viewKey);
     await fetchNextForAccountViews(address, [viewKey]);
   }, []);
 
@@ -302,7 +303,7 @@ function PortfolioPage() {
 
     //Fetch on tab change but only if empty and has mroe
     const collectedIsEmpty = !accountInfo?.views['badgesCollected']?.ids.length;
-    const listsIsEmpty = !accountInfo?.views['addressMappings']?.ids.length;
+    const listsIsEmpty = !accountInfo?.views[`${listsTab}`]?.ids.length;
     const createdByIsEmpty = !accountInfo?.views['createdBy']?.ids.length;
     const managingIsEmpty = !accountInfo?.views['managing']?.ids.length;
     const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
@@ -1056,8 +1057,6 @@ function PortfolioPage() {
           <div className='flex-center'>
             <Tabs
               tabInfo={
-
-
                 [
                   { key: 'addressMappings', content: 'All', disabled: false },
                   { key: 'explicitlyIncludedAddressMappings', content: 'Included', disabled: false },

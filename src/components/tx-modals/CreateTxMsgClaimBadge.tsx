@@ -97,9 +97,11 @@ export function CreateTxMsgClaimBadgeModal(
 
   const calculationMethod = approvalCriteria?.predeterminedBalances?.orderCalculationMethod;
 
+  const claimCode = details?.hasPassword ? passwordCodeToSubmit : code;
+
   const leafIndex: number = (claim?.useCreatorAddressAsLeaf ?
     approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-    : approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(code ?? '').toString())) ?? -1;
+    : approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(claimCode ?? '').toString())) ?? -1;
 
 
   //There are many different cases that can happen here as to why a user can not claim
@@ -167,16 +169,17 @@ export function CreateTxMsgClaimBadgeModal(
     if (INFINITE_LOOP_MODE) console.log('useEffect: code to submit ');
     // If the claim is password-based, we need to fetch the code to submit to the blockchain from the server
     async function fetchCode() {
-      if (claimItem && approval.details?.hasPassword) {
+      if (approval && approval.details?.hasPassword) {
         let claimItemCid = '';
-        if (claimItem.uri.startsWith('ipfs://')) {
-          claimItemCid = claimItem.uri.split('ipfs://')[1];
+        if (approval.uri?.startsWith('ipfs://')) {
+          claimItemCid = approval.uri.split('ipfs://')[1];
           claimItemCid = claimItemCid.split('/')[0];
         }
         if (code) {
           try {
             const res = await getCodeForPassword(collectionId, claimItemCid, code);
             setPasswordCodeToSubmit(res.code);
+            console.log(res.code);
           } catch (e) {
 
           }

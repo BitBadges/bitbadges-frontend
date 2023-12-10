@@ -283,13 +283,13 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
 
 
       //Filter duplicates
-      newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+      newAccount.reviews = newAccount.reviews.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
+      newAccount.collected = newAccount.collected.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
+      newAccount.activity = newAccount.activity.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
+      newAccount.announcements = newAccount.announcements.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
       newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
-      newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
-      newAccount.authCodes = newAccount.authCodes.filter((x, index, self) => index === self.findIndex((t) => (t._id === x._id)))
+      newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
+      newAccount.authCodes = newAccount.authCodes.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
 
       //sort in descending order
       newAccount.activity = newAccount.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);

@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { BigIntify, NumberType, convertBlockinAuthSignatureInfo, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { ChallengeParams } from 'blockin';
 import { SignInModal } from 'blockin/dist/ui';
 import { useRouter } from 'next/router';
@@ -116,9 +116,9 @@ function BlockinCodesScreen() {
       ...currAccount,
       authCodes: [
         ...(currAccount?.authCodes ?? []),
-        convertBlockinAuthSignatureInfo(
+        convertBlockinAuthSignatureDoc(
           {
-            _id: signature,
+            _legacyId: signature,
             signature: signature,
             params: blockinParams,
             name: name as string,
@@ -194,8 +194,8 @@ function BlockinCodesScreen() {
                     {!qrCode &&
                       <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
 
-                        <AuthCode authCode={convertBlockinAuthSignatureInfo({
-                          _id: '',
+                        <AuthCode authCode={convertBlockinAuthSignatureDoc({
+                          _legacyId: '',
                           signature: '',
                           name: name as string,
                           description: description as string,
@@ -230,8 +230,8 @@ function BlockinCodesScreen() {
                       <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
                         <div className='flex-center'>
                           {!qrCode && <EmptyIcon description='No QR Code generated yet...' />}
-                          {qrCode && <AuthCode authCode={convertBlockinAuthSignatureInfo({
-                            _id: '',
+                          {qrCode && <AuthCode authCode={convertBlockinAuthSignatureDoc({
+                            _legacyId: '',
                             signature: qrCode,
                             name: name as string,
                             description: description as string,

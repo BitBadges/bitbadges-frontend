@@ -1,5 +1,5 @@
 import { Col, Divider, Layout, Row } from 'antd';
-import { BitBadgesCollection, TransferActivityInfo, getCurrentValuesForCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, TransferActivityDoc, getCurrentValuesForCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
@@ -39,7 +39,7 @@ export function BadgePage({ collectionPreview }
 
 
   const [tab, setTab] = useState('overview');
-  const [activity, setActivity] = useState<TransferActivityInfo<bigint>[]>([]);
+  const [activity, setActivity] = useState<TransferActivityDoc<bigint>[]>([]);
 
   //TODO: Do within contexts
   const [hasMore, setHasMore] = useState(true);

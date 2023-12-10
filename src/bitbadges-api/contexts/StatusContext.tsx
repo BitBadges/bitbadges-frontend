@@ -1,17 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { StatusInfo } from 'bitbadgesjs-utils';
+import { StatusDoc } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { DesiredNumberType, getStatus } from '../api';
 import { INFINITE_LOOP_MODE } from '../../constants';
 
 export type StatusContextType = {
-  status: StatusInfo<DesiredNumberType>,
-  updateStatus: () => Promise<StatusInfo<DesiredNumberType>>
+  status: StatusDoc<DesiredNumberType>,
+  updateStatus: () => Promise<StatusDoc<DesiredNumberType>>
 }
 
 const StatusContext = createContext<StatusContextType>({
   status: {
-    _id: "status",
+    _legacyId: "status",
     block: {
       height: 0n,
       timestamp: 0n,
@@ -24,7 +24,7 @@ const StatusContext = createContext<StatusContextType>({
   },
   updateStatus: async () => {
     return {
-      _id: "status",
+      _legacyId: "status",
       block: {
         height: 0n,
         timestamp: 0n,
@@ -43,8 +43,8 @@ type Props = {
 };
 
 export const StatusContextProvider: React.FC<Props> = ({ children }) => {
-  const [status, setStatus] = useState<StatusInfo<DesiredNumberType>>({
-    _id: 'status',
+  const [status, setStatus] = useState<StatusDoc<DesiredNumberType>>({
+    _legacyId: 'status',
     block: {
       height: 0n,
       timestamp: 0n,

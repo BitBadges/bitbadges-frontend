@@ -3,7 +3,7 @@ import 'react-markdown-editor-lite/lib/index.css';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, WarningOutlined } from '@ant-design/icons';
-import { BlockinAuthSignatureInfo, getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { BlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { deleteAuthCode, getAuthCode } from '../../../bitbadges-api/api';
 import { getAuthCodesView, useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -22,7 +22,7 @@ import { GO_MAX_UINT_64, getTimeRangesElement } from '../../../utils/dates';
 
 const { Content } = Layout;
 
-export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureInfo<bigint> }) => {
+export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureDoc<bigint> }) => {
   const [currStatus, setCurrStatus] = useState({ success: false, verificationMessage: '' });
   const [loaded, setLoaded] = useState(false);
 

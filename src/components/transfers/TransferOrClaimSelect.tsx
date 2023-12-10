@@ -306,7 +306,7 @@ export function TransferSelect({
                     activity={transfers.map(x => {
 
                       return {
-                        _id: `collection-${collectionId}-${x.from}-${x.toAddresses.join('-')}`,
+                        _legacyId: `collection-${collectionId}-${x.from}-${x.toAddresses.join('-')}`,
                         from: x.from,
                         balances: x.balances,
                         collectionId: collectionId,

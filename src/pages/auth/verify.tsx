@@ -1,6 +1,6 @@
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Input, InputNumber, Spin, Switch } from 'antd';
-import { BigIntify, BlockinAuthSignatureInfo, convertToCosmosAddress, getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { BigIntify, BlockinAuthSignatureDoc, convertToCosmosAddress, getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { constructChallengeObjectFromString } from 'blockin';
 import { useEffect, useState } from 'react';
 import { getAuthCode } from '../../bitbadges-api/api';
@@ -19,7 +19,7 @@ function BlockinCodesScreen() {
   const [errorMessage, setErrorMessage] = useState('');
 
   interface QRSession {
-    usedQrCodes: (BlockinAuthSignatureInfo<bigint> & { usedAt: bigint })[],
+    usedQrCodes: (BlockinAuthSignatureDoc<bigint> & { usedAt: bigint })[],
 
     id: string
     verificationOptions: {
@@ -114,7 +114,7 @@ function BlockinCodesScreen() {
             description: '',
             image: '',
             params,
-            _id: inputtedQrCode,
+            _legacyId: inputtedQrCode,
             usedAt: BigInt(Date.now()),
           });
 

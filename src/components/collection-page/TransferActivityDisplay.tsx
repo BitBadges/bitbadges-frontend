@@ -1,7 +1,7 @@
 import { DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Col, Collapse, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { TransferActivityInfo } from 'bitbadgesjs-utils';
+import { TransferActivityDoc } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -29,7 +29,7 @@ function PanelHeaderAddresses({ addresses }: { addresses: string[] }) {
 }
 
 
-function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, collectionId: bigint, activity: TransferActivityInfo<DesiredNumberType>, onDelete?: (idx: number) => void }) {
+function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, collectionId: bigint, activity: TransferActivityDoc<DesiredNumberType>, onDelete?: (idx: number) => void }) {
   const router = useRouter();
   const collection = useCollection(collectionId);
 
@@ -39,6 +39,8 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
       numBadgesTransferred += badgeIdRange.end - badgeIdRange.start + 1n;
     }
   });
+
+  console.log('activity', activity);
 
   return <>
     <div className='flex-between' style={{ width: '100%' }}>
@@ -85,7 +87,7 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
 
 
 function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, hasMore }: {
-  activity: TransferActivityInfo<DesiredNumberType>[],
+  activity: TransferActivityDoc<DesiredNumberType>[],
   onDelete?: (idx: number) => void
   paginated?: boolean
   hasMore: boolean
@@ -178,7 +180,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
 
 
 export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated }: {
-  activity: TransferActivityInfo<DesiredNumberType>[],
+  activity: TransferActivityDoc<DesiredNumberType>[],
   fetchMore: () => Promise<void>,
   hasMore: boolean,
   onDelete?: (idx: number) => void

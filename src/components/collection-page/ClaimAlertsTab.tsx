@@ -1,5 +1,5 @@
 import { Col, Divider, Empty, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { ClaimAlertInfo } from 'bitbadgesjs-utils';
+import { ClaimAlertDoc } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -9,7 +9,7 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { BadgeAvatar } from '../badges/BadgeAvatar';
 
 export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
-  claimAlerts: ClaimAlertInfo<bigint>[],
+  claimAlerts: ClaimAlertDoc<bigint>[],
   fetchMore: () => Promise<void>,
   hasMore: boolean
 }) {
@@ -57,7 +57,7 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
 export function ClaimAlertDisplay({
   claimAlert
 }: {
-  claimAlert: ClaimAlertInfo<bigint>
+  claimAlert: ClaimAlertDoc<bigint>
 }) {
   const router = useRouter();
   const collectionToDisplay = useCollection(claimAlert.collectionId);

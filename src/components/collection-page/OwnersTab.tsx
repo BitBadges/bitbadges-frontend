@@ -1,5 +1,5 @@
 import { Empty, Spin } from 'antd';
-import { BalanceInfo, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
+import { BalanceDoc, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
 import { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { getOwnersForBadge } from '../../bitbadges-api/api';
@@ -23,7 +23,7 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
   const isPreview = collection?.collectionId === NEW_COLLECTION_ID;
 
   const [loaded, setLoaded] = useState(false);
-  const [owners, setOwners] = useState<BalanceInfo<bigint>[]>([]);
+  const [owners, setOwners] = useState<BalanceDoc<bigint>[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
     bookmark: '',
     hasMore: true,
