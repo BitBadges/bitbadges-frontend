@@ -6,12 +6,14 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { AddressDisplayList } from '../address/AddressDisplayList';
 import { BadgeAvatar } from '../badges/BadgeAvatar';
 
-export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
+export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore, showToAddress }: {
   claimAlerts: ClaimAlertDoc<bigint>[],
   fetchMore: () => Promise<void>,
-  hasMore: boolean
+  hasMore: boolean,
+  showToAddress?: boolean
 }) {
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: ');
@@ -42,14 +44,14 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
           <br />
           <Spin size={'large'} />
           <br />
-                    <br />
+          <br />
         </div>}
         scrollThreshold="200px"
         endMessage={null}
         style={{ width: '100%', overflow: 'hidden' }}
       >
         {claimAlerts.map((claimAlert, index) => {
-          return <ClaimAlertDisplay key={index} claimAlert={claimAlert} />
+          return <ClaimAlertDisplay key={index} claimAlert={claimAlert} showToAddress={showToAddress} />
         })}
       </InfiniteScroll >
     </>
@@ -57,9 +59,12 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore }: {
 }
 
 export function ClaimAlertDisplay({
-  claimAlert
+  claimAlert,
+  showToAddress,
+
 }: {
-  claimAlert: ClaimAlertDoc<bigint>
+  claimAlert: ClaimAlertDoc<bigint>,
+  showToAddress?: boolean
 }) {
   const router = useRouter();
   const collectionToDisplay = useCollection(claimAlert.collectionId);
@@ -86,6 +91,7 @@ export function ClaimAlertDisplay({
                 </div>
               </Tooltip>
             </div>}
+          {showToAddress && <AddressDisplayList users={claimAlert.cosmosAddresses} />}
 
 
           <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>

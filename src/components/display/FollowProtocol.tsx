@@ -96,9 +96,11 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
       className="full-area primary-text"
       style={{ minHeight: '100vh', padding: 8 }}
     >
+      <br />
       {loading && <Spin size='large' />}
       <div className='flex-center'>
-        {!loading && <InformationDisplayCard noBorder inheritBg title={<div className='flex-center'>BitBadges Follow Protocol <BadgeAvatar collectionId={1n} badgeId={15n} /></div>} md={8} xs={24} sm={24} style={{}} subtitle={'Follow users by sending them follow badges.'}>
+
+        {!loading && <InformationDisplayCard title={<div className='flex-center'>BitBadges Follow Protocol <BadgeAvatar collectionId={1n} badgeId={15n} /></div>} md={8} xs={24} sm={24} style={{}} subtitle={'Follow users by sending them follow badges.'}>
           <br />
 
           <div className='flex-center'>
@@ -134,7 +136,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                         <br />
                         <Spin size={'large'} />
                         <br />
-                    <br />
+                        <br />
                       </div>}
                       scrollThreshold="200px"
                       endMessage={null}

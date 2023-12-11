@@ -26,7 +26,7 @@ export function AddressDisplayList({
   filterMint,
   trackerIdList,
   hideIcons,
-  
+
 }: {
   users: string[],
   setUsers?: (users: string[]) => void
@@ -60,7 +60,7 @@ export function AddressDisplayList({
     //append it at beginning
     usersToDisplay = ['All', ...usersToDisplay];
   } else if (usersToDisplay.length == 0) {
-    usersToDisplay = ['All'];
+    usersToDisplay = [];
   }
 
   useEffect(() => {
@@ -131,7 +131,7 @@ export function AddressDisplayList({
       title ? <h3 style={{ color: fontColor }}>{title}</h3> : <></>
     }
     <Pagination total={usersToDisplay.length} pageSize={pageSize} onChange={(page) => setCurrPage(page)} currPage={currPage} />
-
+    {usersToDisplay.length == 0 && <div style={{ color: 'red' }}>None</div>}
     {usersToDisplay.map((user, index) => {
       if (index < currPageStart || index > currPageEnd) return null;
 

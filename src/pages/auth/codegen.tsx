@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { createAuthCode } from '../../bitbadges-api/api';
 import { SignChallengeResponse, useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { EmptyIcon } from '../../components/common/Empty';
@@ -62,6 +62,11 @@ function BlockinCodesScreen() {
 
   }, [blockinParams]);
 
+  useEffect(() => {
+    if (!blockinParams?.address) return;
+    fetchAccounts([blockinParams.address]);
+  }, [blockinParams?.address]);
+
   if (!challengeParams || !blockinParams) {
     return <div style={{
       marginLeft: '3vw',
@@ -82,6 +87,7 @@ function BlockinCodesScreen() {
   if (generateNonce) {
     blockinParams.nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
   }
+
 
 
 

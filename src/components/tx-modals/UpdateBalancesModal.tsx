@@ -22,7 +22,7 @@ export const createBalancesMapAndAddToStorage = async (collectionId: bigint, tra
   if (notify) {
     notification.success({
       message: 'Success',
-      description: 'Balances updated in off-chain storage. Note it may take a few minutes for the changes to be reflected.',
+      description: 'Balances updated for this collection. It may take a few minutes for the changes to be reflected.',
     });
   }
 

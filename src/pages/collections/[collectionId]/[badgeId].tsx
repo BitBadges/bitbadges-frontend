@@ -24,6 +24,7 @@ import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineCon
 import { fetchAccounts } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchAndUpdateMetadata, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { OffChainTransferabilityTab } from '../../../components/collection-page/OffChainTransferabilityTab';
+import { ReportedWrapper } from '../../../components/wrappers/ReportedWrapper';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -98,131 +99,136 @@ export function BadgePage({ collectionPreview }
   const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
 
   return (
-    <Content
-      style={{
-        textAlign: 'center',
-        minHeight: '100vh',
-      }}
-    >
-      <div
-        style={{
-          marginLeft: !isPreview ? '3vw' : undefined,
-          marginRight: !isPreview ? '3vw' : undefined,
-          paddingLeft: !isPreview ? '1vw' : undefined,
-          paddingRight: !isPreview ? '1vw' : undefined,
-          paddingTop: '20px',
-        }}
-      >
-        <BadgeButtonDisplay website={metadata?.externalUrl} collectionId={collectionIdNumber} />
-
-        {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
-
-        <Tabs tab={tab} tabInfo={tabInfo} setTab={setTab} theme="dark" fullWidth />
-
-        {tab === 'claims' && collection && <>
-          <br />
-          <ClaimsTab
-            collectionId={collectionIdNumber}
-
-            badgeId={badgeIdNumber}
-          />
-        </>}
-        {tab === 'transferability' && (
-          <>{collection?.balancesType == 'Off-Chain' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
-          </>)}
-
-
-        {tab === 'overview' && (<>
-          <br />
-
-
-          {collection &&
-            <div className='flex-center'>
-              <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
-                <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
-                  {metadata?.description && <>
-                    <InformationDisplayCard
-                      title="About"
-                    >
-                      <div style={{ maxHeight: 200, overflow: 'auto' }} className='flex-center'>
-                        <div className='custom-html-style primary-text' id="description">
-                          {reactElement}
-                        </div>
-                      </div>
-                    </InformationDisplayCard>
-                    <br />
-                  </>}
-                  {!noBalancesStandard && <>
-                    <MetadataDisplay
-                      collectionId={collectionIdNumber}
-                      badgeId={badgeIdNumber}
-                      span={24}
-                    />
-                    <br />
-                  </>}
-                  {collection &&
-                    <PermissionsOverview
-                      collectionId={collectionIdNumber}
-                      badgeId={badgeIdNumber}
-                      span={24}
-                    />
-                  }
-
-                </Col>
-                <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
-                <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
-                  {!noBalancesStandard && <>
-                    <DistributionOverview
-                      collectionId={collectionIdNumber}
-                      span={24}
-                      badgeId={badgeIdNumber}
-                    />
-                    <br />
-
-                    {collection && <OwnersTab
-                      collectionId={collectionIdNumber}
-                      badgeId={badgeIdNumber}
-                      setTab={setTab}
-                    />}
-                  </>}
-                  {noBalancesStandard && <>{collection &&
-                    <MetadataDisplay
-                      collectionId={collectionIdNumber}
-                      badgeId={badgeIdNumber}
-                      span={24}
-                    />
-                  }</>}
-                </Col>
-              </Row>
-            </div>
-          }
-        </>
-        )}
-
-        {tab === 'activity' && collection && (<>
-          <br />
-          <ActivityTab
-            activity={activity}
-            fetchMore={async () => {
-              const activityRes = await getBadgeActivity(collectionIdNumber, badgeIdNumber, { bookmark });
-              if (activityRes) {
-                setActivity([...activity, ...activityRes.activity]);
-                setHasMore(activityRes.pagination.hasMore);
-                setBookmark(activityRes.pagination.bookmark);
-              }
+    <ReportedWrapper
+      reported={!!collection?.reported ?? false}
+      node={<>
+        <Content
+          style={{
+            textAlign: 'center',
+            minHeight: '100vh',
+          }}
+        >
+          <div
+            style={{
+              marginLeft: !isPreview ? '3vw' : undefined,
+              marginRight: !isPreview ? '3vw' : undefined,
+              paddingLeft: !isPreview ? '1vw' : undefined,
+              paddingRight: !isPreview ? '1vw' : undefined,
+              paddingTop: '20px',
             }}
-            hasMore={hasMore}
-          />
-        </>
-        )}
+          >
+            <BadgeButtonDisplay website={metadata?.externalUrl} collectionId={collectionIdNumber} />
 
-        {tab === 'actions' && (<>
-          <ActionsTab collectionId={collectionIdNumber} badgeView />
-        </>
-        )}
-      </div>
-      <Divider />
-    </Content>
+            {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
+
+            <Tabs tab={tab} tabInfo={tabInfo} setTab={setTab} theme="dark" fullWidth />
+
+            {tab === 'claims' && collection && <>
+              <br />
+              <ClaimsTab
+                collectionId={collectionIdNumber}
+
+                badgeId={badgeIdNumber}
+              />
+            </>}
+            {tab === 'transferability' && (
+              <>{collection?.balancesType == 'Off-Chain' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
+              </>)}
+
+
+            {tab === 'overview' && (<>
+              <br />
+
+
+              {collection &&
+                <div className='flex-center'>
+                  <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
+                    <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+                      {metadata?.description && <>
+                        <InformationDisplayCard
+                          title="About"
+                        >
+                          <div style={{ maxHeight: 200, overflow: 'auto' }} className='flex-center'>
+                            <div className='custom-html-style primary-text' id="description">
+                              {reactElement}
+                            </div>
+                          </div>
+                        </InformationDisplayCard>
+                        <br />
+                      </>}
+                      {!noBalancesStandard && <>
+                        <MetadataDisplay
+                          collectionId={collectionIdNumber}
+                          badgeId={badgeIdNumber}
+                          span={24}
+                        />
+                        <br />
+                      </>}
+                      {collection &&
+                        <PermissionsOverview
+                          collectionId={collectionIdNumber}
+                          badgeId={badgeIdNumber}
+                          span={24}
+                        />
+                      }
+
+                    </Col>
+                    <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
+                    <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
+                      {!noBalancesStandard && <>
+                        <DistributionOverview
+                          collectionId={collectionIdNumber}
+                          span={24}
+                          badgeId={badgeIdNumber}
+                        />
+                        <br />
+
+                        {collection && <OwnersTab
+                          collectionId={collectionIdNumber}
+                          badgeId={badgeIdNumber}
+                          setTab={setTab}
+                        />}
+                      </>}
+                      {noBalancesStandard && <>{collection &&
+                        <MetadataDisplay
+                          collectionId={collectionIdNumber}
+                          badgeId={badgeIdNumber}
+                          span={24}
+                        />
+                      }</>}
+                    </Col>
+                  </Row>
+                </div>
+              }
+            </>
+            )}
+
+            {tab === 'activity' && collection && (<>
+              <br />
+              <ActivityTab
+                activity={activity}
+                fetchMore={async () => {
+                  const activityRes = await getBadgeActivity(collectionIdNumber, badgeIdNumber, { bookmark });
+                  if (activityRes) {
+                    setActivity([...activity, ...activityRes.activity]);
+                    setHasMore(activityRes.pagination.hasMore);
+                    setBookmark(activityRes.pagination.bookmark);
+                  }
+                }}
+                hasMore={hasMore}
+              />
+            </>
+            )}
+
+            {tab === 'actions' && (<>
+              <ActionsTab collectionId={collectionIdNumber} badgeView />
+            </>
+            )}
+          </div>
+          <Divider />
+        </Content>
+      </>}
+    />
   );
 }
 

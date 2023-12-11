@@ -125,7 +125,8 @@ export const CookiePopup = ({ visible, onClose, placement }: {
           flexWrap: 'wrap'
         }}>
           This website uses cookies to ensure you get the best experience.
-          By continuing to use this website, you agree to our use of cookies, {" "}
+          By continuing to use this website, you agree to our 
+          <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Cookies%20Policy')}><a className='text-vivid-blue'>cookie policy</a></p>,
           <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Privacy%20Policy.pdf')}><a className='text-vivid-blue'>privacy policy</a></p>, and
           <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Terms%20of%20Service.pdf')}><a className='text-vivid-blue'>terms of service</a></p>.
         </div>

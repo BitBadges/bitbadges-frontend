@@ -1,7 +1,7 @@
 {
   "creator": "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x",
   "collectionId": "0",
-  "balancesType": "Standard",
+  "balancesType": "Off-Chain",
   "defaultOutgoingApprovals": [],
   "defaultAutoApproveSelfInitiatedOutgoingTransfers": true,
   "defaultAutoApproveSelfInitiatedIncomingTransfers": true,
@@ -48,7 +48,7 @@
   "collectionMetadataTimeline": [
     {
       "collectionMetadata": {
-        "uri": "ipfs://QmbMWdirW8mc6jGwLZE71XuXx91YYDV3Q3rcNHSdrqz2h9",
+        "uri": "ipfs://QmPaSeuruZDtgG5AQgv8ipBUKMDdaMYP48ZuQaVnVPsTpk",
         "customData": ""
       },
       "timelineTimes": [
@@ -64,7 +64,7 @@
     {
       "badgeMetadata": [
         {
-          "uri": "ipfs://QmaeUrLbDPmpEq34vJeZvGGGfcFFtGmefGRQVne4uVkz8J",
+          "uri": "ipfs://QmPaSeuruZDtgG5AQgv8ipBUKMDdaMYP48ZuQaVnVPsTpk",
           "customData": "",
           "badgeIds": [
             {

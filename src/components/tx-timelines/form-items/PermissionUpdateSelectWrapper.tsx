@@ -13,6 +13,7 @@ import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
 import { ErrDisplay } from './ErrDisplay';
 import { SwitchForm } from './SwitchForm';
+import { compareObjects } from '../../../utils/compare';
 
 
 export function PermissionUpdateSelectWrapper({
@@ -116,7 +117,9 @@ export function PermissionUpdateSelectWrapper({
     }
   }
 
-
+  const startingPermissions = startingCollection?.collectionPermissions[`${permissionName as keyof typeof startingCollection.collectionPermissions}`] ?? [] as any;
+  const currPermissions = collection?.collectionPermissions[`${permissionName as keyof typeof collection.collectionPermissions}`] ?? [] as any;
+  const isSameAsStarting = compareObjects(startingPermissions, currPermissions);
 
   return (
     <>
@@ -153,6 +156,7 @@ export function PermissionUpdateSelectWrapper({
             <IconButton
               src={<UndoOutlined style={{ fontSize: 16 }} />}
               text={'Reset'}
+              disabled={isSameAsStarting}
               tooltipMessage='Undo all changes'
               onClick={() => {
                 if (startingCollection && collection) {

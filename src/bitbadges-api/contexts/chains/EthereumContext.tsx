@@ -52,8 +52,6 @@ type Props = {
 };
 
 export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
-
-
   const [chainId, setChainId] = useState<string>('Mainnet');
   const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
   const [cookies, setCookies] = useCookies(['blockincookie', 'pub_key']);

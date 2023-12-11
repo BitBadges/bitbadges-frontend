@@ -2,8 +2,8 @@ import { Layout, Tooltip } from 'antd';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
-import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, WarningOutlined } from '@ant-design/icons';
-import { BlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { BigIntify, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { deleteAuthCode, getAuthCode } from '../../../bitbadges-api/api';
 import { getAuthCodesView, useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -18,11 +18,13 @@ import QrCodeDisplay from '../../../components/display/QrCodeDisplay';
 import { TableRow } from '../../../components/display/TableRow';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../../utils/dates';
+import { Tabs } from '../../../components/navigation/Tabs';
+import { BlockinDisplay } from '../../../components/blockin/BlockinDisplay';
 
 
 const { Content } = Layout;
 
-export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureDoc<bigint> }) => {
+export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSignatureDoc<bigint>, storeLocally?: boolean }) => {
   const [currStatus, setCurrStatus] = useState({ success: false, verificationMessage: '' });
   const [loaded, setLoaded] = useState(false);
 
@@ -67,6 +69,8 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureDoc<bigin
       <QrCodeDisplay
         label={x.name}
         value={x.signature}
+        storeLocally={storeLocally}
+        authCode={x}
         helperDisplay={<div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
           <WarningOutlined style={{ color: 'orange', marginRight: 8 }} /> Anyone with this QR code can authenticate as you. Keep it safe and secret.
           <br />
@@ -74,6 +78,7 @@ export const AuthCode = ({ authCode }: { authCode: BlockinAuthSignatureDoc<bigin
           <InfoCircleFilled style={{ marginRight: 8 }} /> We strongly recommend storing this QR code elsewhere for easier presentation at authentication time.
           Otherwise, ensure you are logged into your BitBadges account (if not, you will need another wallet signature to authenticate).
         </div>}
+
       />
     </div>
     <Divider />
@@ -170,42 +175,67 @@ export function AuthCodes() {
   const signedInAccount = useAccount(chain.address);
 
   const [loading, setLoading] = useState(false);
-  // const [tab, setTab] = useState('codes');
-  const tab = 'codes';
   const [authCodes, setAuthCodes] = useState(getAuthCodesView(signedInAccount, 'authCodes'));
 
   useEffect(() => {
     setAuthCodes(getAuthCodesView(signedInAccount, 'authCodes'));
   }, [signedInAccount]);
 
-  const items = authCodes.map((x) => {
-    if (!x) return <></>;
-    return <div className='full-width' key={x.signature}>
-      <AuthCode authCode={x} />
-      <Divider />
-      <IconButton
-        src={<DeleteOutlined />}
-        text='Delete'
-        disabled={loading}
-        onClick={async () => {
-          if (!signedInAccount) return;
-          setLoading(true);
-          if (confirm('Are you sure you want to delete this QR code?')) {
-            await deleteAuthCode({ signature: x.signature });
-            window.location.reload();
-          }
-          setLoading(false);
-        }}
-        tooltipMessage='Delete this QR code'
-      />
-    </div>
-  });
+  const getItems = (codes: BlockinAuthSignatureDoc<bigint>[], saved?: boolean) => {
+    return codes.map((x) => {
+      if (!x) return <></>;
+      return <div className='full-width' key={x.signature}>
+        <AuthCode authCode={x} storeLocally={!saved} />
+        <Divider />
+        <IconButton
+          src={<DeleteOutlined />}
+          text='Delete'
+          disabled={loading}
+          onClick={async () => {
+            if (!signedInAccount) return;
+            if (!saved) {
+
+              setLoading(true);
+              if (confirm('Are you sure you want to delete this QR code?')) {
+                await deleteAuthCode({ signature: x.signature });
+                window.location.reload();
+              }
+              setLoading(false);
+            } else {
+              const existingAuthCodes = localStorage.getItem('savedAuthCodes');
+              const authCodes = existingAuthCodes ? JSON.parse(existingAuthCodes) : [];
+              const newAuthCodes = authCodes.filter((y: any) => y.signature !== x.signature);
+              localStorage.setItem('savedAuthCodes', JSON.stringify(newAuthCodes));
+              window.location.reload();
+            }
+          }}
+          tooltipMessage='Delete this QR code'
+        />
+      </div>
+    });
+  }
+
+  const [tab, setTab] = useState('all');
+  const [savedAuthCodes, setSavedAuthCodes] = useState<BlockinAuthSignatureDoc<bigint>[]>([]);
+
+  useEffect(() => {
+    //Check local storage
+    const savedAuthCodes = localStorage.getItem('savedAuthCodes');
+    if (savedAuthCodes) {
+      setSavedAuthCodes(JSON.parse(savedAuthCodes).map((x: any) => convertBlockinAuthSignatureDoc(x, BigIntify)));
+    }
+  }, []);
+
+  const items = getItems(authCodes);
+  const savedItems = getItems(savedAuthCodes, true);
+
+
+
 
 
 
   return (
     <DisconnectedWrapper
-      requireLogin
       message={'Please connect and sign in to view this page.'}
       node={
         <Content
@@ -213,29 +243,74 @@ export function AuthCodes() {
           style={{ minHeight: '100vh', padding: 8 }}
         >
           <br />
-          {signedInAccount && tab === 'codes' && <>
-            <br />
+          <div className='flex-center'>
 
-            <div className='flex-center'>
-              {authCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
+            <Tabs
+              tab={tab}
+              setTab={setTab}
+              tabInfo={[
+                { key: 'all', content: 'All' },
+                { key: 'saved', content: 'Saved' }
+              ]}
+              type='underline'
+            />
+          </div>
+          <br />
+          <div className='secondary-text' style={{ textAlign: 'center' }}>
+            <InfoCircleOutlined /> {tab == 'all' ? 'All QR codes for this account (must be signed in).' : 'QR codes you have saved to the browser on this device.'}
+          </div>
 
-                <CustomCarousel
-                  title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
-                  items={items}
-                  showTotalMobile
-                />
-              </InformationDisplayCard>}
-            </div>
+          <br />
+          {tab == 'all' && <>
+            {!signedInAccount || !chain.loggedIn ? <>
+              <div className='flex-center flex-column'>
+                <BlockinDisplay />
+              </div>
+            </> : <>
+              <br />
 
-            {authCodes.length === 0 && <div className='flex-center flex-column'>
-              <EmptyIcon description='No QR codes found. QR codes can be used to prove you own specific badges in-person.' />
-            </div>}
+              <div className='flex-center'>
+                {authCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
+
+                  <CustomCarousel
+                    title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
+                    items={items}
+                    showTotalMobile
+                  />
+                </InformationDisplayCard>}
+              </div>
+
+              {authCodes.length === 0 && <div className='flex-center flex-column'>
+                <EmptyIcon description='No QR codes found. QR codes can be used to prove you own specific badges in-person.' />
+              </div>}
+            </>}
+          </>}
+
+          {tab == 'saved' && <>
+            <>
+              <br />
+
+              <div className='flex-center'>
+                {savedAuthCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
+
+                  <CustomCarousel
+                    title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
+                    items={savedItems}
+                    showTotalMobile
+                  />
+                </InformationDisplayCard>}
+              </div>
+
+              {savedAuthCodes.length === 0 && <div className='flex-center flex-column'>
+                <EmptyIcon description='No QR codes saved.' />
+              </div>}
+            </>
           </>}
           <Divider />
-          <div className='secondary-text flex-center'>
+          <div className='secondary-text' style={{ textAlign: 'center' }}>
             Looking to become an authentication provider and create / verify QR codes? See{' '}<a style={{ marginLeft: 3 }} href='https://docs.bitbadges.io/for-developers/generating-auth-qr-codes' target='_blank' rel="noreferrer">the documentation here</a>.
           </div>
-        </ Content>
+        </Content>
       }
     />
   );

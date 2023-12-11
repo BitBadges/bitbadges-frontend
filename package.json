@@ -35,7 +35,7 @@
     "antd": "^4.24.14",
     "axios": "^1.6.2",
     "bech32": "^2.0.0",
-    "bitbadgesjs-utils": "^1.1.351",
+    "bitbadgesjs-utils": "^1.1.354",
     "blockin": "^1.2.72",
     "bs58": "^5.0.0",
     "dotenv": "^16.0.2",

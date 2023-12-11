@@ -220,10 +220,36 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
     }
 
 
-    if (!txTimelineContext.updateOffChainBalancesMetadataTimeline || (!!txTimelineContext.existingCollectionId && collection.balancesType != "Off-Chain")) {
+    offChainBalancesMetadataTimeline = await getOffChainBalances(simulate);
+
+    //I don't think this actually does anything, but the logic is we don't want any passswords / codes in the final msg accidentally
+    const collectionApprovalsWithoutDetails: CollectionApproval<bigint>[] = collection.collectionApprovals?.map(y => {
+      return { ...y, details: undefined }
+    }) || [];
+
+
+    const MsgUniversalUpdateCollection: MsgUniversalUpdateCollection<bigint> = {
+      ...msg,
+      creator: chain.cosmosAddress,
+      collectionId: collectionId ? collectionId : 0n,
+      collectionApprovals: collectionApprovalsWithoutDetails,
+      badgesToCreate: txTimelineContext.badgesToCreate,
+      collectionMetadataTimeline: collectionMetadataTimeline,
+      badgeMetadataTimeline: badgeMetadataTimeline,
+      offChainBalancesMetadataTimeline: offChainBalancesMetadataTimeline,
+    }
+
+    console.log("FINAL MSG", MsgUniversalUpdateCollection);
+    return MsgUniversalUpdateCollection;
+  }
+
+  const getOffChainBalances = async (simulate?: boolean) => {
+
+    let offChainBalancesMetadataTimeline = MsgUniversalUpdateCollection ? MsgUniversalUpdateCollection.offChainBalancesMetadataTimeline ?? [] : collection?.offChainBalancesMetadataTimeline ?? [];
+    if (!txTimelineContext.updateOffChainBalancesMetadataTimeline || (!!txTimelineContext.existingCollectionId && msg.balancesType != "Off-Chain")) {
       //Do nothing, not even if self-hosted
       offChainBalancesMetadataTimeline = []; //just for the msg, doesn't actually change the collection since update flag is false
-    } else if (collection.balancesType == "Off-Chain" && txTimelineContext.updateOffChainBalancesMetadataTimeline) {
+    } else if (msg.balancesType == "Off-Chain" && txTimelineContext.updateOffChainBalancesMetadataTimeline) {
       if (txTimelineContext.offChainAddMethod === MetadataAddMethod.UploadUrl) {
         //Do nothing (already set to self-hosted URL)
       }
@@ -233,7 +259,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
 
         if (!simulate) {
           //If it can be updated, we add it to centralized storage. If not, we add it to IPFS storage.
-          const noManager = neverHasManager(collection)
+          const noManager = collection ? neverHasManager(collection) : !!(msg.updateManagerTimeline && msg.managerTimeline && (msg.managerTimeline.length == 0 || msg.managerTimeline.every(x => !x.manager)));
 
           const details = getPermissionDetails(
             castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateOffChainBalancesMetadata ?? []),
@@ -258,6 +284,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
               }];
             } else throw new Error('Off-chain balances not added');
           } else {
+            console.log(res.uri);
             //if bitbadges
             if (res.uri) {
               offChainBalancesMetadataTimeline = [{
@@ -280,31 +307,27 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
         }
       }
     }
-
-    //I don't think this actually does anything, but the logic is we don't want any passswords / codes in the final msg accidentally
-    const collectionApprovalsWithoutDetails: CollectionApproval<bigint>[] = collection.collectionApprovals?.map(y => {
-      return { ...y, details: undefined }
-    }) || [];
-
-
-    const MsgUniversalUpdateCollection: MsgUniversalUpdateCollection<bigint> = {
-      ...msg,
-      creator: chain.cosmosAddress,
-      collectionId: collectionId ? collectionId : 0n,
-      collectionApprovals: collectionApprovalsWithoutDetails,
-      badgesToCreate: txTimelineContext.badgesToCreate,
-      collectionMetadataTimeline: collectionMetadataTimeline,
-      badgeMetadataTimeline: badgeMetadataTimeline,
-      offChainBalancesMetadataTimeline: offChainBalancesMetadataTimeline,
-    }
-
-    console.log("FINAL MSG", MsgUniversalUpdateCollection);
-    return MsgUniversalUpdateCollection;
+    return offChainBalancesMetadataTimeline;
   }
 
   const beforeTx = async (simulate: boolean) => {
-    const newMsg = await getFinalMsgWithStoredUris(simulate);
-    return newMsg
+
+    if (!MsgUniversalUpdateCollection) {
+      const newMsg = await getFinalMsgWithStoredUris(simulate);
+      return newMsg
+    } else if (MsgUniversalUpdateCollection && MsgUniversalUpdateCollection?.balancesType == "Off-Chain") {
+      //If we have off-chain balances, we should create a new URI for them
+      const offChainBalancesMetadataTimeline = await getOffChainBalances(simulate);
+
+      console.log("OFF CHAIN BALANCES", offChainBalancesMetadataTimeline);
+      const newMsg = {
+        ...msg,
+        offChainBalancesMetadataTimeline: offChainBalancesMetadataTimeline,
+      }
+      return newMsg;
+    } else {
+      return msg;
+    }
   }
 
   return (
@@ -314,7 +337,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
       txName="Updated Collection"
       txCosmosMsg={msg}
       createTxFunction={createTxMsgUniversalUpdateCollection}
-      beforeTx={!!MsgUniversalUpdateCollection ? undefined : beforeTx} //If we have a template msg, we assume everything is handled
+      beforeTx={beforeTx} //If we have a template msg, we assume everything is handled
       onSuccessfulTx={async (collectionId: bigint) => {
 
         if (collectionId && collectionId > 0n) {

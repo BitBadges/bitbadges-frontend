@@ -261,12 +261,21 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                     }
                   }
 
-                  return <Tooltip placement='bottom' title={uri}>
+                  return <><Tooltip placement='bottom' title={uri}>
                     <a href={(uri.startsWith('ipfs://') ? `https://bitbadges-ipfs.infura-ipfs.io/ipfs/${uri.slice(7)}` : uri).replace("{id}", badgeId.toString())
                     } target="_blank" rel="noreferrer">
                       View
                       <LinkOutlined style={{ marginLeft: 4 }} /></a>
                   </Tooltip>
+                    {uri.startsWith('ipfs://')
+                      ? <Tooltip placement='bottom' title='This metadata URL uses permanent storage, meaning this URL will always return the same metadata.'>
+                        <LockOutlined style={{ marginLeft: 4 }} />
+                      </Tooltip> :
+                      <Tooltip placement='bottom' title='This metadata does not use permanent storage, meaning the data is free to be changed by whoever controls the URL.'>
+                        <EditOutlined style={{ marginLeft: 4 }} />
+                      </Tooltip>
+                    }
+                  </>
                 }}
                 emptyNode={
                   <>None</>
