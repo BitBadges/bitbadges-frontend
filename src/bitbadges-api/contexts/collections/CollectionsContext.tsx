@@ -51,9 +51,14 @@ export const fetchBalanceForUser = async (collectionId: DesiredNumberType, addre
   const account = await getAccount(addressOrUsername);
   if (!account) throw new Error('Account does not exist');
 
+
+
   let res;
-  if (forceful) {
+  if (forceful || collection.balancesType === "Off-Chain - Non-Indexed") {
     res = await getBadgeBalanceByAddress(collectionId, account.cosmosAddress);
+    if (collection.balancesType === "Off-Chain - Non-Indexed") {
+      return res.balance
+    }
   } else {
     const cachedBalance = collection.owners.find(x => x.cosmosAddress === account.cosmosAddress);
     if (cachedBalance) {

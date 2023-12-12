@@ -336,12 +336,12 @@ export function ApprovalSelect({
   </div>
 
   const str = codeType == CodeType.Unique ? "Codes will be uniquely generated and one-time use only. You can distribute these codes how you would like." :
-    "You enter a custom password that is to be used by all claimees (e.g. attendance code). Limited to one use per address.";
+    "You enter a custom password that is to be used by all claimees (e.g. attendance code = password123). Limited to one use per address."
 
   const LearnMore = <div style={{ textAlign: 'center' }} className='secondary-text'>
     <br />
     <p>
-      <InfoCircleOutlined /> {str} Note that this is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you can store your own codes and interact directly with the blockchain (see documentation).">
+      <InfoCircleOutlined /> {str} This is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you can store your own codes and interact directly with the blockchain (see documentation).">
         Hover to learn more.
       </Tooltip>
     </p>

@@ -33,7 +33,7 @@ export function TransferDisplay({
 }) {
 
   const collection = useCollection(collectionId)
-  const isBalanceUpdate = collection?.balancesType === 'Off-Chain'
+  const isBalanceUpdate = collection?.balancesType === 'Off-Chain - Indexed'
 
   const [page, setPage] = useState(1);
 

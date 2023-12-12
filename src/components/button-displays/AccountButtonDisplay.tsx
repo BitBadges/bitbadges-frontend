@@ -94,15 +94,14 @@ export function AccountButtonDisplay({
   useEffect(() => {
 
     async function checkFollowing() {
-      if (!accountInfo?.cosmosAddress || !followDetails?.followingCollectionId) return;
-
+      if (!accountInfo?.cosmosAddress || !followDetails || followDetails.followingCollectionId <= 0 || hideButtons) return;
       const balanceDoc = await fetchBalanceForUser(followDetails.followingCollectionId, accountInfo.cosmosAddress);
       if (getBalanceForIdAndTime(1n, BigInt(Date.now()), balanceDoc.balances) > 0n) {
         setFollowing(true);
       }
     }
     checkFollowing();
-  }, [followDetails?.followingCollectionId, accountInfo?.cosmosAddress]);
+  }, [followDetails, accountInfo?.cosmosAddress, hideButtons]);
 
   const addToFollowCollection = async () => {
     if (loading || !accountInfo?.cosmosAddress) return;
@@ -128,7 +127,7 @@ export function AccountButtonDisplay({
       followCollection = res.collection;
     }
 
-    if (followCollection.balancesType !== 'Off-Chain' || followCollection.offChainBalancesMetadataTimeline.length === 0 || !followCollection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/')) {
+    if (followCollection.balancesType !== 'Off-Chain - Indexed' || followCollection.offChainBalancesMetadataTimeline.length === 0 || !followCollection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/')) {
       message.error('Your follow collection is custom created. To follow users, you must send them the respective follow badge manually.');
       setLoading(false);
       return;
@@ -189,7 +188,7 @@ export function AccountButtonDisplay({
       followCollection = res.collection;
     }
 
-    if (followCollection.balancesType !== 'Off-Chain' || followCollection.offChainBalancesMetadataTimeline.length === 0 || !followCollection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/')) {
+    if (followCollection.balancesType !== 'Off-Chain - Indexed' || followCollection.offChainBalancesMetadataTimeline.length === 0 || !followCollection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/')) {
       message.error('Your follow collection is custom created. To follow or unfollow users, you must assign them the follow badge manually.');
       setLoading(false);
       return;

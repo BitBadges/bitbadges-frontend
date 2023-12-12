@@ -66,7 +66,7 @@ export const AddressMappingSelectComponent = ({
       <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
         <InfoCircleOutlined /> Below is the current balances of the Mint address (including any newly created badges).
         {unlockedBadgeIds.length > 0 && <>
-          Also, note that you have selected to be able to create more badges in the future for the following IDs: {getBadgeIdsString(unlockedBadgeIds)}.</>}
+          You have also selected to be able to create more badges in the future for the following IDs: {getBadgeIdsString(unlockedBadgeIds)}.</>}
       </Typography.Text>
       <BalanceDisplay
         message={'Unminted Balances'}

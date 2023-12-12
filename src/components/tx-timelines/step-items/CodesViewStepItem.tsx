@@ -13,7 +13,7 @@ export function CodesViewStepItem() {
   const approvalDetails = collection?.collectionApprovals.map(x => x.details);
   const codesAndPasswords: CodesAndPasswords[] = approvalDetails?.map(x => !x ? { codes: [], password: '', cid: '' } : { codes: x.challengeDetails.leavesDetails.preimages ?? [], password: x.challengeDetails.password ?? '', cid: '' }) ?? [];
 
-  if (codesAndPasswords.every(x => x.codes.length === 0) || !collection) {
+  if (codesAndPasswords.every(x => x.codes.length === 0 || x.password) || !collection) {
     return EmptyStepItem
   }
 

@@ -465,7 +465,8 @@ const Home: NextPage = () => {
                     </Typography.Text>
                     <br /> <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges utilizes a scalable architecture that can eventually support millions of users and badges.
+                      BitBadges utilizes a scalable architecture that can eventually support millions of users and badges through 
+                      outsourcing to off-chain storage where possible and batch operations.
                     </Typography.Text>
                   </>
                 }
@@ -511,7 +512,8 @@ const Home: NextPage = () => {
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Verify badge ownership at in-person events through our QR codes feature.
-                      Or, verify badge ownership digitally through <a href="https://blockin.gitbook.io/blockin/" target='_blank'>Blockin</a>.
+                      Or, verify badge ownership digitally through <a href="https://blockin.gitbook.io/blockin/" target='_blank'>Blockin</a> and our suite of
+                      authentication tools.
 
                     </Typography.Text>
                   </>

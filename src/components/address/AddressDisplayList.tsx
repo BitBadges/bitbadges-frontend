@@ -7,7 +7,7 @@ import { getPageDetails } from "../../utils/pagination"
 import { Pagination } from "../common/Pagination"
 import { AddressDisplay } from "./AddressDisplay"
 
-import { getAbbreviatedAddress, isAddressValid } from "bitbadgesjs-utils"
+import { isAddressValid } from "bitbadgesjs-utils"
 import { getAccounts } from "../../bitbadges-api/api"
 import { fetchAccounts, getAccount, updateAccounts } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 
@@ -140,24 +140,24 @@ export function AddressDisplayList({
       return (
         <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginLeft: 8 }}>
           {trackerIdList ? <div style={{ color: (allowedMessage || allExcept) && (user != 'All') ? 'red' : fontColor }}>
+            {user.length > 10 ? `${user.substring(0, 10)}...` : user} </div>
+            : <AddressDisplay
+              icon={
+                !hideIcons && setUsers && user != 'All' &&
+                <Tooltip title={"Remove User"}>
+                  <UserDeleteOutlined onClick={() => {
+                    setUsers(users.filter((x => x !== user)));
+                  }} />
+                </Tooltip>
+              }
+              addressOrUsername={user}
 
-            {getAbbreviatedAddress(user)} </div> : <AddressDisplay
-            icon={
-              !hideIcons && setUsers && user != 'All' &&
-              <Tooltip title={"Remove User"}>
-                <UserDeleteOutlined onClick={() => {
-                  setUsers(users.filter((x => x !== user)));
-                }} />
-              </Tooltip>
-            }
-            addressOrUsername={user}
+              fontColor={((allowedMessage || allExcept) && (user != 'All'))
+                || (!allExcept && user == 'All')
 
-            fontColor={((allowedMessage || allExcept) && (user != 'All'))
-              || (!allExcept && user == 'All')
-
-              ? 'red' : fontColor}
-            fontSize={fontSize}
-          />}
+                ? 'red' : fontColor}
+              fontSize={fontSize}
+            />}
           {allowedMessage && allowedMessage.length > 0 &&
             <div style={{ color: 'red' }}>
               Reason: {allowedMessage}

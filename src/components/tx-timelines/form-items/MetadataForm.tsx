@@ -1,4 +1,4 @@
-import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons';
+import { DownOutlined, FileTextOutlined, InfoCircleOutlined, PlusOutlined, SearchOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Col, Divider, Form, Input, InputNumber, Progress, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
 import { useState } from 'react';
 
@@ -87,6 +87,8 @@ export function MetadataForm({
   const [validForeverChecked, setValidForeverChecked] = useState((!metadata.validFrom) || (metadata.validFrom && metadata.validFrom.length === 0));
   const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>(badgeIds);
   const [applyingBatchUpdate, setApplyingBatchUpdate] = useState(false);
+
+  const [imageUrlEditIsOpen, setImageUrlEditIsOpen] = useState(false);
 
   const sampleImages = [
     {
@@ -233,6 +235,8 @@ export function MetadataForm({
             <FieldCheckbox fieldName='category' label='Category' />
             <FieldCheckbox fieldName='tags' label='Tags' />
             <FieldCheckbox fieldName='externalUrl' label='Website' />
+            <FieldCheckbox fieldName='socials' label='Socials' />
+
           </div>
 
           <br />
@@ -523,6 +527,7 @@ export function MetadataForm({
             >
               <div className='flex-between' style={{}}>
                 <Select
+
                   className="selector primary-text inherit-bg"
                   value={images.find((item: any) => item.value === currMetadata.image)?.label}
                   onChange={(e) => {
@@ -549,12 +554,30 @@ export function MetadataForm({
                       />
                       <Space
                         align="center"
-                        style={{ padding: '0 8px 4px' }}
+
+
+                        style={{ padding: '0 8px 4px', width: '100%' }}
                       >
                         <Upload {...props}>
                           <Button icon={<UploadOutlined />}>Click to Upload New Image(s)</Button>
                         </Upload>
+                        or Enter URL
+                        <Input
+                          style={{ color: 'black' }}
+                          value={currMetadata.image}
+                          onChange={(e) => {
+                            setMetadata({
+                              ...currMetadata,
+                              image: e.target.value
+                            });
+                          }}
+                          placeholder="Enter URL"
+                        />
+
                       </Space>
+
+
+
                     </>
                   )}
                 >
@@ -705,7 +728,7 @@ export function MetadataForm({
               </div>
               <div style={{ fontSize: 12 }}>
                 <Text className='secondary-text'>
-                  {toBeFrozen && '*Note that you have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future.'}
+                  {toBeFrozen && '*You have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future.'}
                 </Text>
               </div>
             </Form.Item>
@@ -819,6 +842,119 @@ export function MetadataForm({
                 })}
 
               </div>
+            </Form.Item>
+
+            <Form.Item
+              label={
+                <Text className='primary-text' strong>
+                  Twitter
+                </Text>
+              }
+            >
+              <Input
+                defaultValue={currMetadata.socials?.twitter ?? ''}
+                value={currMetadata.socials?.twitter ?? ''}
+                onChange={(e) => {
+                  setMetadata({
+                    ...currMetadata,
+                    socials: {
+                      ...currMetadata.socials,
+                      twitter: e.target.value
+                    }
+                  });
+                }}
+                className="form-input"
+              />
+              {currMetadata.socials?.twitter &&
+                <a href={"https://twitter.com/" + currMetadata.socials?.twitter ?? ''} target="_blank" rel="noopener noreferrer">
+                  https://twitter.com/{currMetadata.socials?.twitter}
+                </a>}
+
+            </Form.Item>
+
+            <Form.Item
+              label={
+                <Text className='primary-text' strong>
+                  GitHub
+                </Text>
+              }
+            >
+              <Input
+                defaultValue={currMetadata.socials?.github ?? ''}
+                value={currMetadata.socials?.github ?? ''}
+                onChange={(e) => {
+                  setMetadata({
+                    ...currMetadata,
+                    socials: {
+                      ...currMetadata.socials,
+                      github: e.target.value
+                    }
+                  });
+                }}
+                className="form-input"
+              />
+              {currMetadata.socials?.github &&
+                <a href={"https://github.com/" + currMetadata.socials?.github} target="_blank" rel="noopener noreferrer">
+                  https://github.com/{currMetadata.socials?.github}
+                </a>}
+            </Form.Item>
+
+
+
+            <Form.Item
+              label={
+                <Text className='primary-text' strong>
+                  Telegram
+                </Text>
+              }
+            >
+              <Input
+                defaultValue={currMetadata.socials?.telegram}
+                value={currMetadata.socials?.telegram ?? ''}
+                onChange={(e) => {
+                  setMetadata({
+                    ...currMetadata,
+                    socials: {
+                      ...currMetadata.socials,
+                      telegram: e.target.value
+                    }
+                  });
+                }}
+                className="form-input"
+              />
+              {currMetadata.socials?.telegram &&
+                <a href={`https://t.me/${currMetadata.socials?.telegram}`} target="_blank" rel="noopener noreferrer">
+                  https://t.me/{currMetadata.socials?.telegram}
+                </a>}
+            </Form.Item>
+
+            <Form.Item
+              label={
+                <Text className='primary-text' strong>
+                  Discord
+                </Text>
+              }
+            >
+              <Input
+                defaultValue={currMetadata.socials?.discord}
+                value={currMetadata.socials?.discord}
+                onChange={(e) => {
+                  setMetadata({
+                    ...currMetadata,
+                    socials: {
+                      ...currMetadata.socials,
+                      discord: e.target.value
+                    }
+                  });
+                }}
+                className="form-input"
+              />
+              {
+                currMetadata.socials?.discord &&
+                <div className='secondary-text'>
+                  https://discord.com/invite/{currMetadata.socials?.discord}
+                </div>
+              }
             </Form.Item>
 
 

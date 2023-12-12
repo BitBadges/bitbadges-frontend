@@ -254,6 +254,15 @@ function BlockinCodesScreen() {
                             <Upload {...props}>
                               <Button icon={<UploadOutlined />}>Click to Upload New Image(s)</Button>
                             </Upload>
+                            or Enter URL
+                            <Input
+                              style={{ color: 'black' }}
+                              value={codeGenParams.image}
+                              onChange={(e) => {
+                                setCodeGenParams({ ...codeGenParams, image: e.target.value });
+                              }}
+                              placeholder="Enter URL"
+                            />
                           </Space>
                         </>
                       )}

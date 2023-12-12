@@ -62,7 +62,7 @@ function PortfolioPage() {
   useEffect(() => {
     if (accountInfo?.cosmosAddress === chain.cosmosAddress && !chain.loggedIn && chain.cosmosAddress && !warned) {
       notification.info({
-        message: 'Note that you must sign in to customize your portfolio.',
+        message: 'You must sign in to customize your portfolio.',
       });
       setWarned(true);
     }
@@ -579,7 +579,7 @@ function PortfolioPage() {
   return (
     <ReportedWrapper
       reported={!!accountInfo?.reported ?? false}
-      
+
       node={<>
         <Content
           style={{

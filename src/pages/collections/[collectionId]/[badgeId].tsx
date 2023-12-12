@@ -72,7 +72,8 @@ export function BadgePage({ collectionPreview }
     fetchAccounts([collection.createdBy, ...managers]);
   }, [collection, isPreview]);
 
-  // const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
+  // const isOffChainBalances = collection && collection.balancesType == "Off-Chain - Indexed" ? true : false;
+  const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
 
   let tabInfo = []
   // if (!isOffChainBalances) {
@@ -90,7 +91,7 @@ export function BadgePage({ collectionPreview }
   //   );
   // }
 
-  if (noBalancesStandard) {
+  if (noBalancesStandard || isNonIndexedBalances) {
     tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity');
   }
 
@@ -117,7 +118,7 @@ export function BadgePage({ collectionPreview }
               paddingTop: '20px',
             }}
           >
-            <BadgeButtonDisplay website={metadata?.externalUrl} collectionId={collectionIdNumber} />
+            <BadgeButtonDisplay website={metadata?.externalUrl} collectionId={collectionIdNumber} socials={metadata?.socials} />
 
             {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
 
@@ -132,7 +133,7 @@ export function BadgePage({ collectionPreview }
               />
             </>}
             {tab === 'transferability' && (
-              <>{collection?.balancesType == 'Off-Chain' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
+              <>{collection?.balancesType == 'Off-Chain - Indexed' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
               </>)}
 
 

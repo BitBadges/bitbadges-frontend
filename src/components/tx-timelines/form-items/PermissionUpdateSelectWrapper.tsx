@@ -7,7 +7,7 @@ import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/
 
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
-import { PermissionsOverview } from '../../collection-page/PermissionsInfo';
+import { PermissionSelect, PermissionsOverview } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
 import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
@@ -40,6 +40,7 @@ export function PermissionUpdateSelectWrapper({
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
   const [customJson, setCustomJson] = useState<boolean>(false);
   const [jsonErr, setJsonErr] = useState<Error | null>(null)
+  const [formView, setFormView] = useState<boolean>(true);
 
   const isMint = !existingCollectionId;
 
@@ -152,6 +153,15 @@ export function PermissionUpdateSelectWrapper({
                 setCustomJson(false);
               }}
             />}
+          {checked && false &&
+            <IconButton
+              src={<FormOutlined style={{ fontSize: 16 }} />}
+              text={formView ? 'Advanced' : 'Normal'}
+              tooltipMessage={formView ? 'Go to advanced view' : 'Go to normal view'}
+              onClick={() => {
+                setFormView(!formView);
+              }}
+            />}
           {checked &&
             <IconButton
               src={<UndoOutlined style={{ fontSize: 16 }} />}
@@ -258,7 +268,23 @@ export function PermissionUpdateSelectWrapper({
 
             </div></>}
         <br />
-        {node}
+
+        {formView && node}
+        {!formView && <PermissionSelect
+          collectionId={NEW_COLLECTION_ID}
+
+          permissionName={permissionName} value={currPermissions}
+          setValue={(value) => {
+            if (collection) {
+              updateCollection({
+                collectionId: NEW_COLLECTION_ID,
+                collectionPermissions: {
+                  ...collection.collectionPermissions,
+                  [`${permissionName}`]: value
+                }
+              });
+            }
+          }} />}
       </>}
 
     </>

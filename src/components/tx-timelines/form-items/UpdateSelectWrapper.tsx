@@ -215,12 +215,12 @@ export function UpdateSelectWrapper({
               }}
             />}
 
-          {updateFlag && !disableUndo &&
+          {updateFlag && (!disableUndo || customRevertFunction) &&
             <IconButton
               src={<UndoOutlined style={{ fontSize: 16 }} />}
               style={{ cursor: 'pointer' }}
               tooltipMessage={'Undo changes'}
-              disabled={compareObjects(startingValue, currValue)}
+              disabled={!customRevertFunction && compareObjects(startingValue, currValue)}
               text={'Reset'}
               onClick={() => {
                 if (customRevertFunction) {

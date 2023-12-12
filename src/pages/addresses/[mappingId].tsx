@@ -152,7 +152,7 @@ function AddressMappingPage() {
               paddingTop: '20px',
             }}
           >
-            {!fetchError && <BadgeButtonDisplay website={metadata?.externalUrl} mappingId={mappingId as string} />}
+            {!fetchError && <BadgeButtonDisplay socials={metadata?.socials} website={metadata?.externalUrl} mappingId={mappingId as string} />}
             {!fetchError && <CollectionHeader collectionId={NEW_COLLECTION_ID} metadataOverride={metadata} hideCollectionLink />}
             {!mapping && !fetchError && <Spin size='large' />}
             {fetchError && <>

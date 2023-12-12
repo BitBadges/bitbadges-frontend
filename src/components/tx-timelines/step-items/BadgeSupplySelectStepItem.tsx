@@ -53,6 +53,7 @@ export function BadgeSupplySelectStepItem() {
       jsonPropertyPath=''
       permissionName='canCreateMoreBadges'
       customValue={badgesToCreate}
+      
       customSetValueFunction={(val: any) => {
         //Check it is a valid balance sarray
         if (!Array.isArray(val)) throw new Error("Must be valid balances array");

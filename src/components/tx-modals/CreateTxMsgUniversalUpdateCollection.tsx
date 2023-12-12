@@ -246,10 +246,10 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
   const getOffChainBalances = async (simulate?: boolean) => {
 
     let offChainBalancesMetadataTimeline = MsgUniversalUpdateCollection ? MsgUniversalUpdateCollection.offChainBalancesMetadataTimeline ?? [] : collection?.offChainBalancesMetadataTimeline ?? [];
-    if (!txTimelineContext.updateOffChainBalancesMetadataTimeline || (!!txTimelineContext.existingCollectionId && msg.balancesType != "Off-Chain")) {
+    if (!txTimelineContext.updateOffChainBalancesMetadataTimeline || (!!txTimelineContext.existingCollectionId && msg.balancesType != "Off-Chain - Indexed")) {
       //Do nothing, not even if self-hosted
       offChainBalancesMetadataTimeline = []; //just for the msg, doesn't actually change the collection since update flag is false
-    } else if (msg.balancesType == "Off-Chain" && txTimelineContext.updateOffChainBalancesMetadataTimeline) {
+    } else if (msg.balancesType == "Off-Chain - Indexed" && txTimelineContext.updateOffChainBalancesMetadataTimeline) {
       if (txTimelineContext.offChainAddMethod === MetadataAddMethod.UploadUrl) {
         //Do nothing (already set to self-hosted URL)
       }
@@ -315,11 +315,10 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
     if (!MsgUniversalUpdateCollection) {
       const newMsg = await getFinalMsgWithStoredUris(simulate);
       return newMsg
-    } else if (MsgUniversalUpdateCollection && MsgUniversalUpdateCollection?.balancesType == "Off-Chain") {
+    } else if (MsgUniversalUpdateCollection && MsgUniversalUpdateCollection?.balancesType == "Off-Chain - Indexed") {
       //If we have off-chain balances, we should create a new URI for them
       const offChainBalancesMetadataTimeline = await getOffChainBalances(simulate);
 
-      console.log("OFF CHAIN BALANCES", offChainBalancesMetadataTimeline);
       const newMsg = {
         ...msg,
         offChainBalancesMetadataTimeline: offChainBalancesMetadataTimeline,

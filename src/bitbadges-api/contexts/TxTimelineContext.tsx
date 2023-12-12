@@ -494,7 +494,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  distribution method');
 
-    if (simulatedCollection?.balancesType === "Off-Chain") {
+    if (simulatedCollection?.balancesType === "Off-Chain - Indexed") {
       setUpdateCollectionApprovals(false);
       updateCollection({
         collectionId: NEW_COLLECTION_ID,
@@ -506,6 +506,15 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       setUpdateCollectionApprovals(true);
       updateCollection({
         collectionId: NEW_COLLECTION_ID,
+        offChainBalancesMetadataTimeline: [],
+      });
+    } else if (simulatedCollection?.balancesType === "Off-Chain - Non-Indexed") {
+      setUpdateCollectionApprovals(false);
+      updateCollection({
+        collectionId: NEW_COLLECTION_ID,
+        collectionApprovals: [],
+        defaultUserIncomingApprovals: [],
+        defaultUserOutgoingApprovals: [],
         offChainBalancesMetadataTimeline: [],
       });
     }

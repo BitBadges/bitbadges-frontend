@@ -39,12 +39,14 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
   const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
   const [_, isValid] = searchUintRangesForId(BigInt(Date.now()), metadata?.validFrom ?? []);
   let balancesTypeInfoStr = '';
-  if (collection?.balancesType === "Off-Chain") {
-    balancesTypeInfoStr = 'Balances are stored off the blockchain and controlled via a typical server (chosen by the manager). Transferring and obtaining badges is not facilitated via the blockchain but rather via this server.';
+  if (collection?.balancesType === "Off-Chain - Indexed") {
+    balancesTypeInfoStr = 'Balances are stored off the blockchain and controlled via a typical server (chosen by the manager). Transferring and obtaining badges is not facilitated via the blockchain but rather via this server. Balances are indexed, meaning all owners and their balances are known. Also, a log of update activity is kept.';
   } else if (collection?.balancesType === "Standard") {
     balancesTypeInfoStr = 'Transferring and obtaining badges is all facilitated via blockchain transactions.';
   } else if (collection?.balancesType === "Inherited") {
     balancesTypeInfoStr = 'Balances of a badge are inherited from some parent badge. When you obtain or transfer the parent badge, the child badge will also be obtained or transferred.';
+  } else if (collection?.balancesType === "Off-Chain - Non-Indexed") {
+    balancesTypeInfoStr = 'Balances are stored off-chain and controlled via a typical server. There is no verifiable total supply, and these balances do not show up in standard search results. The only way to view balances is with the balance checker.';
   }
 
   useEffect(() => {
@@ -91,7 +93,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
           {!noBalancesStandard && <TableRow label={"Balances Storage"} value={
             <>
               <div className='' style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-                {collection?.balancesType === "Off-Chain" ?
+                {collection?.balancesType === "Off-Chain - Indexed" ?
                   <div>
                     <>
                       <TimelineFieldWrapper
