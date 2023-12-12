@@ -1,4 +1,4 @@
-import { DownOutlined, FileTextOutlined, InfoCircleOutlined, PlusOutlined, SearchOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons';
+import { DownOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Col, Divider, Form, Input, InputNumber, Progress, Select, Space, Spin, Switch, Tag, Tooltip, Typography, Upload, UploadProps, message, notification } from 'antd';
 import { useState } from 'react';
 
@@ -11,7 +11,9 @@ import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
+import { fetchAndUpdateMetadata, fetchMetadataForPreview, setCollection, updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../../bitbadges-api/utils/badges';
+import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { BadgeAvatarDisplay } from '../../badges/BadgeAvatarDisplay';
 import { CollectionHeader } from '../../badges/CollectionHeader';
 import { DevMode } from '../../common/DevMode';
@@ -21,8 +23,6 @@ import { ToolIcon } from '../../display/ToolIcon';
 import { BadgeIdRangesInput } from '../../inputs/BadgeIdRangesInput';
 import { DateRangeInput } from '../../inputs/DateRangeInput';
 import { MetadataUriSelect } from './MetadataUriSelect';
-import { fetchAndUpdateMetadata, fetchMetadataForPreview, setCollection, updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { GO_MAX_UINT_64 } from '../../../utils/dates';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -87,8 +87,6 @@ export function MetadataForm({
   const [validForeverChecked, setValidForeverChecked] = useState((!metadata.validFrom) || (metadata.validFrom && metadata.validFrom.length === 0));
   const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>(badgeIds);
   const [applyingBatchUpdate, setApplyingBatchUpdate] = useState(false);
-
-  const [imageUrlEditIsOpen, setImageUrlEditIsOpen] = useState(false);
 
   const sampleImages = [
     {
