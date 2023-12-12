@@ -149,10 +149,9 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
               <WarningOutlined /> {"Certain features for minting may not be supported using this modal. This could cause your transaction to fail. Please use the Transferability tab to transfer badges from the Mint address."}
             </Typography.Text>
           </>}
-
           <Divider />
           <Typography.Text className='secondary-text'>
-            <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden by the collection transferability, the transfer must also satisfy the sender's outgoing and recipient's incoming approvals as well."}
+            <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden, the sender's the outgoing and recipient's incoming approvals as well."}
           </Typography.Text>
         </InformationDisplayCard>
       </div >

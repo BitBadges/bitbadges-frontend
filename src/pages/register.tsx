@@ -52,7 +52,7 @@ function RegisterScreen({ message }: { message?: string }) {
                   <br />
                   <br />
                 </div>
-                <div className='' style={{ alignItems: 'center' }}>
+                <div className='secondary-text' style={{ alignItems: 'center' }}>
                   <InfoCircleOutlined style={{ marginRight: 4, }} />  All transactions on the BitBadges blockchain require a small fee to be executed, which can be paid using $BADGE.
                   $BADGE is the currency, whereas BitBadges / badges are the tokens used to represent achievements, attendance, etc. Note the airdrop badge may take a few minutes to appear in your portfolio.
                 </div>
