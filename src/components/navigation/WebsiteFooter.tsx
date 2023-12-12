@@ -34,10 +34,10 @@ export function WalletFooter() {
               <a target="_blank " href="https://docs.bitbadges.io/overview" className='text-gray-500 hover:text-vivid-blue m-3'>
                 Documentation
               </a>
-              <a target="_blank" rel="noopener noreferrer" href="https://github.com/BitBadges/bitbadges.org/raw/main/policies/Terms%20of%20Service.pdf" className='m-3 text-gray-500 hover:text-vivid-blue'>
+              <a target="_blank" rel="noopener noreferrer" href="https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Terms%20of%20Service.pdf" className='m-3 text-gray-500 hover:text-vivid-blue'>
                 Terms of Service
               </a>
-              <a target="_blank" rel="noopener noreferrer" href="https://github.com/BitBadges/bitbadges.org/raw/main/policies/Privacy%20Policy.pdf" className='text-gray-500 m-3 hover:text-vivid-blue'>
+              <a target="_blank" rel="noopener noreferrer" href="https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Privacy%20Policy.pdf" className='text-gray-500 m-3 hover:text-vivid-blue'>
                 Privacy Policy
               </a>
 

@@ -7,7 +7,7 @@ import { getPageDetails } from "../../utils/pagination"
 import { Pagination } from "../common/Pagination"
 import { AddressDisplay } from "./AddressDisplay"
 
-import { getAbbreviatedAddress, isAddressValid } from "bitbadgesjs-utils"
+import { isAddressValid } from "bitbadgesjs-utils"
 import { getAccounts } from "../../bitbadges-api/api"
 import { fetchAccounts, getAccount, updateAccounts } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 
@@ -26,7 +26,7 @@ export function AddressDisplayList({
   filterMint,
   trackerIdList,
   hideIcons,
-  
+
 }: {
   users: string[],
   setUsers?: (users: string[]) => void
@@ -60,7 +60,7 @@ export function AddressDisplayList({
     //append it at beginning
     usersToDisplay = ['All', ...usersToDisplay];
   } else if (usersToDisplay.length == 0) {
-    usersToDisplay = ['All'];
+    usersToDisplay = [];
   }
 
   useEffect(() => {
@@ -131,7 +131,7 @@ export function AddressDisplayList({
       title ? <h3 style={{ color: fontColor }}>{title}</h3> : <></>
     }
     <Pagination total={usersToDisplay.length} pageSize={pageSize} onChange={(page) => setCurrPage(page)} currPage={currPage} />
-
+    {usersToDisplay.length == 0 && <div style={{ color: 'red' }}>None</div>}
     {usersToDisplay.map((user, index) => {
       if (index < currPageStart || index > currPageEnd) return null;
 
@@ -140,24 +140,24 @@ export function AddressDisplayList({
       return (
         <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginLeft: 8 }}>
           {trackerIdList ? <div style={{ color: (allowedMessage || allExcept) && (user != 'All') ? 'red' : fontColor }}>
+            {user.length > 10 ? `${user.substring(0, 10)}...` : user} </div>
+            : <AddressDisplay
+              icon={
+                !hideIcons && setUsers && user != 'All' &&
+                <Tooltip title={"Remove User"}>
+                  <UserDeleteOutlined onClick={() => {
+                    setUsers(users.filter((x => x !== user)));
+                  }} />
+                </Tooltip>
+              }
+              addressOrUsername={user}
 
-            {getAbbreviatedAddress(user)} </div> : <AddressDisplay
-            icon={
-              !hideIcons && setUsers && user != 'All' &&
-              <Tooltip title={"Remove User"}>
-                <UserDeleteOutlined onClick={() => {
-                  setUsers(users.filter((x => x !== user)));
-                }} />
-              </Tooltip>
-            }
-            addressOrUsername={user}
+              fontColor={((allowedMessage || allExcept) && (user != 'All'))
+                || (!allExcept && user == 'All')
 
-            fontColor={((allowedMessage || allExcept) && (user != 'All'))
-              || (!allExcept && user == 'All')
-
-              ? 'red' : fontColor}
-            fontSize={fontSize}
-          />}
+                ? 'red' : fontColor}
+              fontSize={fontSize}
+            />}
           {allowedMessage && allowedMessage.length > 0 &&
             <div style={{ color: 'red' }}>
               Reason: {allowedMessage}

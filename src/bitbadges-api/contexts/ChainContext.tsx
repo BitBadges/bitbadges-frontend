@@ -2,9 +2,9 @@
 import { SupportedChain } from 'bitbadgesjs-utils';
 import { PresetUri, SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
+import { INFINITE_LOOP_MODE } from '../../constants';
 import { useCosmosContext } from './chains/CosmosContext';
 import { useEthereumContext } from './chains/EthereumContext';
-import { INFINITE_LOOP_MODE } from '../../constants';
 import { useSolanaContext } from './chains/SolanaContext';
 
 export type SignChallengeResponse = {
@@ -45,7 +45,7 @@ export type ChainSpecificContextType = {
   ownedAssetIds: string[],
 
   lastSeenActivity: number,
-  setLastSeenActivity: Dispatch<SetStateAction<number>>,
+  setLastSeenActivity: Dispatch<SetStateAction<number>>
 }
 
 const ChainContext = createContext<ChainContextType>({
@@ -71,7 +71,7 @@ const ChainContext = createContext<ChainContextType>({
   setChain: () => { },
 
   lastSeenActivity: 0,
-  setLastSeenActivity: () => { },
+  setLastSeenActivity: () => { }
 });
 
 type Props = {

@@ -33,6 +33,8 @@ import { SetCollectionMetadataStepItem } from './step-items/SetCollectionMetadat
 import { TemplateCollectionSelect } from './step-items/TemplateCollections';
 import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelectStepItem';
 import { CollectionTypeSelect } from './step-items/CustomVsPresetCollection';
+import { StandardsSelectStepItem } from './step-items/StandardsSelectStepItem';
+import { CanUpdateStandardsStepItem } from './step-items/CanUpdateStandardsSelectStepItem';
 
 //See TxTimeline for explanations and documentation
 export function UpdateCollectionTimeline() {
@@ -70,6 +72,9 @@ export function UpdateCollectionTimeline() {
   const OffChainBalancesStorageStepItem = OffChainBalancesStorageSelectStepItem();
   const ChooseControlStepItem = ChooseControlTypeStepItem();
   const CanUpdateBytesStep = CanUpdateBalancesStepItem();
+  const StandardsSelectStep = StandardsSelectStepItem();
+  const CanUpdateStandardsSelectStep = CanUpdateStandardsStepItem();
+
   const AddressMappingSelectItem = AddressMappingSelectStepItem();
   const CreateAddressMappingStep = CreateAddressMappingStepItem();
   const BalanceTypeSelect = BalanceTypeSelectStepItem();
@@ -87,7 +92,8 @@ export function UpdateCollectionTimeline() {
   if (!collection || !startingCollection) return <></>;
 
   if (mintType === MintType.BitBadge) {
-    const isOffChainBalances = collection.balancesType === "Off-Chain";
+    const isOffChainBalances = collection.balancesType === "Off-Chain - Indexed";
+    const isNonIndexedBalances = collection.balancesType === "Off-Chain - Non-Indexed";
     const hasManager = !neverHasManager(collection);
 
     //For the following, we show the PERMISSION UPDATE if it has neutral times (i.e. it's not always permitted or always forbidden at all times)
@@ -152,6 +158,14 @@ export function UpdateCollectionTimeline() {
     const toShowCanArchiveCollectionPermission = canArchiveCollection.hasNeutralTimes
     const toShowArchiveCollectionAction = canArchiveCollection.hasNeutralTimes || canArchiveCollection.hasPermittedTimes
 
+    const canUpdateStandards = getPermissionDetails(
+      castTimedUpdatePermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateStandards ?? []),
+      TimedUpdatePermissionUsedFlags,
+      !hasManager
+    );
+    const toShowCanUpdateStandardsPermission = canUpdateStandards.hasNeutralTimes
+    const toShowUpdateStandardsAction = canUpdateStandards.hasNeutralTimes || canUpdateStandards.hasPermittedTimes
+
     const canUpdateCollectionApprovalsDetails = getPermissionDetails(
       castCollectionApprovalPermissionToUniversalPermission(startingCollection.collectionPermissions.canUpdateCollectionApprovals ?? []),
       ApprovalPermissionUsedFlags,
@@ -192,6 +206,11 @@ export function UpdateCollectionTimeline() {
       )
     } else {
       items.push(
+
+        false && toShowUpdateStandardsAction ? StandardsSelectStep : EmptyStepItem,
+        false && toShowCanUpdateStandardsPermission ? CanUpdateStandardsSelectStep : EmptyStepItem,
+
+
         toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
         hasManager && toShowCompleteControl ? ChooseControlStepItem : EmptyStepItem,
         !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
@@ -206,22 +225,22 @@ export function UpdateCollectionTimeline() {
         !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
 
         BalanceTypeSelect,
-        !isOffChainBalances && toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
+        !isOffChainBalances && !isNonIndexedBalances && toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
         CodesViewStep,
 
         //TODO: We currently make some assumptions here w/ isBitBadgesHosted and on-chain permissions. Make more robust
         isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction ? OffChainBalancesStorageStepItem : EmptyStepItem,
-        isOffChainBalances && toShowCanUpdateOffChainBalancesMetadataPermission ? CanUpdateBytesStep : EmptyStepItem,
+        (isOffChainBalances || isNonIndexedBalances) && toShowCanUpdateOffChainBalancesMetadataPermission ? CanUpdateBytesStep : EmptyStepItem,
 
-
-        !isOffChainBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
-        !isOffChainBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
-        !isOffChainBalances ? DefaultToApprovedStepItem : EmptyStepItem,
+        !isOffChainBalances && !isNonIndexedBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
+        !isOffChainBalances && !isNonIndexedBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
+        !isOffChainBalances && !isNonIndexedBalances ? DefaultToApprovedStepItem : EmptyStepItem,
 
 
         !completeControl && hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,
         toShowArchiveCollectionAction && existingCollectionId && existingCollectionId > 0n ? IsArchivedSelectStep : EmptyStepItem,
         !completeControl && hasManager && toShowCanArchiveCollectionPermission ? CanArchiveCollectionStep : EmptyStepItem,
+
 
         CollectionPreviewStep,
         CreateCollectionStep,

@@ -74,8 +74,8 @@ export function OverviewTab({
             </div>
           </InformationDisplayCard>
           
-        </>}
         <br />
+        </>}
           {!noBalancesStandard && MetadataDisplayElem}
 
           <PermissionsOverview

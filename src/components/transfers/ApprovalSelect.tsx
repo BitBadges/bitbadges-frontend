@@ -336,12 +336,12 @@ export function ApprovalSelect({
   </div>
 
   const str = codeType == CodeType.Unique ? "Codes will be uniquely generated and one-time use only. You can distribute these codes how you would like." :
-    "You enter a custom password that is to be used by all claimees (e.g. attendance code). Limited to one use per address.";
+    "You enter a custom password that is to be used by all claimees (e.g. attendance code = password123). Limited to one use per address."
 
   const LearnMore = <div style={{ textAlign: 'center' }} className='secondary-text'>
     <br />
     <p>
-      <InfoCircleOutlined /> {str} Note that this is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you can store your own codes and interact directly with the blockchain (see documentation).">
+      <InfoCircleOutlined /> {str} This is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you can store your own codes and interact directly with the blockchain (see documentation).">
         Hover to learn more.
       </Tooltip>
     </p>
@@ -467,7 +467,7 @@ export function ApprovalSelect({
             type='initiatedBy' />
           {approvalToAdd.initiatedByMapping.includeAddresses && showMintingOnlyFeatures && <TableRow labelSpan={16} valueSpan={8} label={'Store whitelist off-chain?'} value={
             <Switch
-              disabled={initiatedByMappingLocked}
+              disabled={initiatedByMappingLocked || distributionMethod === DistributionMethod.Codes}
               checked={distributionMethod === DistributionMethod.Whitelist} onChange={(checked) => {
                 if (checked) {
                   setDistributionMethod(DistributionMethod.Whitelist);
@@ -553,7 +553,7 @@ export function ApprovalSelect({
             </>
             } />}
 
-          {distributionMethod !== DistributionMethod.Codes && showMintingOnlyFeatures && <div className='' style={{ textAlign: 'start', marginLeft: 10, marginBottom: 4 }}>
+          {distributionMethod !== DistributionMethod.Codes && distributionMethod === DistributionMethod.Whitelist && showMintingOnlyFeatures && <div className='' style={{ textAlign: 'start', marginLeft: 10, marginBottom: 4 }}>
 
             <Typography.Text strong className='secondary-text' style={{ fontSize: 12 }}>
               <InfoCircleOutlined /> {distributionMethod === DistributionMethod.Whitelist ? "Incompatible with off-chain whitelists."

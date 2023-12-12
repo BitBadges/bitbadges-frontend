@@ -179,7 +179,7 @@ export const BlockinDisplay = ({
             {
               collectionId: 1,
               chain: 'BitBadges',
-              assetIds: [{ start: 8, end: 8 }],
+              assetIds: [{ start: 9, end: 9 }],
               mustOwnAmounts: { start: 0, end: 0 },
               name: 'General Access',
               description: 'Gain general access to this website. You will not be allowed access if you own a scammer badge. This is to prevent spam and unwanted visitors.',
@@ -188,12 +188,12 @@ export const BlockinDisplay = ({
               additionalDisplay: <div className="dark">
                 <BadgeAvatarDisplay
                   collectionId={1n}
-                  badgeIds={[{ start: 8n, end: 8n }]}
+                  badgeIds={[{ start: 9n, end: 9n }]}
                   size={100}
                   showSupplys
                   balance={[{
                     amount: 0n,
-                    badgeIds: [{ start: 8n, end: 8n }],
+                    badgeIds: [{ start: 9n, end: 9n }],
                     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   }]}
                 /></div>

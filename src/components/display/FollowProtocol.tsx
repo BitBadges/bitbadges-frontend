@@ -1,4 +1,4 @@
-import { Col, Layout, Spin } from 'antd';
+import { Layout, Spin } from 'antd';
 import 'react-markdown-editor-lite/lib/index.css';
 
 import { InfoCircleOutlined } from '@ant-design/icons';
@@ -19,6 +19,7 @@ import { convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { Divider } from './Divider';
+import { BadgeAvatar } from '../badges/BadgeAvatar';
 const template2 = require('../tx-timelines/step-items/templates/template2.json');
 
 const { Content } = Layout;
@@ -32,7 +33,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
   const [followDetails, setFollowDetails] = useState<GetFollowDetailsRouteSuccessResponse<bigint>>()
 
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<string>('details');
+  const [tab, setTab] = useState<string>('followers');
 
   const fetchMore = useCallback(async () => {
     setLoading(true);
@@ -95,100 +96,110 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
       className="full-area primary-text"
       style={{ minHeight: '100vh', padding: 8 }}
     >
+      <br />
       {loading && <Spin size='large' />}
       <div className='flex-center'>
-        {!loading && <InformationDisplayCard title={'BitBadges Follow Protocol'} md={12} xs={24} sm={24} style={{}} subtitle={'The BitBadges follow protocol allows you to follow other users by sending them a follow badge and gain followers by receiving follow badges.'}>
+
+        {!loading && <InformationDisplayCard title={<div className='flex-center'>BitBadges Follow Protocol <BadgeAvatar collectionId={1n} badgeId={15n} /></div>} md={8} xs={24} sm={24} style={{}} subtitle={'Follow users by sending them follow badges.'}>
           <br />
+
           <div className='flex-center'>
             <Tabs tab={tab} setTab={setTab} tabInfo={[
-              { key: 'details', content: 'Follow Details' },
+              { key: 'followers', content: 'Followers' },
+              { key: 'following', content: 'Following' },
               { key: 'collection', content: 'Collection' },
             ]}
               type='underline'
             />
           </div>
           <br />
-          {tab === 'details' &&
+          {tab === 'followers' &&
             <div className='flex-center flex-column' style={{ textAlign: 'center' }}>
               {addressOrUsername && <>
                 {accountInfo?.cosmosAddress === chain.cosmosAddress && <><div className='secondary-text'>
                   <InfoCircleOutlined /> To follow a user, send them the follow badge from your respective collection.
                 </div><br /></>}
-                <div className='flex full-width'>
-                  <Col md={12} xs={24} sm={24} style={{ width: '100%' }}>
+                <div className='flex-center  flex-column full-width'>
 
 
-                    <div className='flex-center'>
-                      Followers ({followDetails?.followersCount.toString()})
-                    </div>
-                    {followDetails && followDetails?.followers.length > 0 &&
-                      <InfiniteScroll
-                        dataLength={followDetails.followers.length}
-                        next={async () => {
-                          await fetchMore();
-                        }}
-                        hasMore={followersPagination?.hasMore ?? true}
-                        loader={<div>
-                          <br />
-                          <Spin size={'large'} />
-                        </div>}
-                        scrollThreshold="200px"
-                        endMessage={null}
-                        style={{ width: '100%' }}
-                      >
-                        <div className='flex-center flex-column'>
-                          {followDetails.followers?.map((follower, idx) => {
-                            return <AddressDisplay addressOrUsername={follower} fontSize={16} key={idx} />
-                          })}
-                        </div>
-                      </InfiniteScroll>
-                    }
-                    {followDetails && followDetails?.followers.length === 0 &&
-                      <div className='flex-center'>
-                        <EmptyIcon description='No followers yet' />
+                  <div className='flex-center'>
+                    Followers ({followDetails?.followersCount.toString()})
+                  </div>
+                  {followDetails && followDetails?.followers.length > 0 &&
+                    <InfiniteScroll
+                      dataLength={followDetails.followers.length}
+                      next={async () => {
+                        await fetchMore();
+                      }}
+                      hasMore={followersPagination?.hasMore ?? true}
+                      loader={<div>
+                        <br />
+                        <Spin size={'large'} />
+                        <br />
+                        <br />
                       </div>}
-                    <br />
-                  </Col>
-                  <Col md={12} xs={24} sm={24}>
+                      scrollThreshold="200px"
+                      endMessage={null}
+                      style={{ width: '100%' }}
+                    >
+                      <div className='flex-center flex-column'>
+                        {followDetails.followers?.map((follower, idx) => {
+                          return <AddressDisplay addressOrUsername={follower} fontSize={16} key={idx} />
+                        })}
+                      </div>
+                    </InfiniteScroll>
+                  }
+                  {followDetails && followDetails?.followers.length === 0 &&
                     <div className='flex-center'>
-                      Following ({followDetails?.followingCount.toString()})
-                    </div>
-                    {followDetails && followDetails?.following.length > 0 &&
-                      <InfiniteScroll
-                        dataLength={followDetails.following.length}
-                        next={async () => {
-                          await fetchMore();
-                        }}
-                        hasMore={followingPagination?.hasMore ?? true}
-                        loader={<div>
-                          <br />
-                          <Spin size={'large'} />
-                        </div>}
-                        scrollThreshold="200px"
-                        endMessage={null}
-                        style={{ width: '100%' }}
-                      >
-                        <div className='flex-center flex-column'>
-                          {followDetails.following?.map((following, idx) => {
-                            return <AddressDisplay addressOrUsername={following} fontSize={16} key={idx} />
-                          })}
-                        </div>
-                      </InfiniteScroll>
-                    }
-                    {followDetails && followDetails?.following.length === 0 &&
-                      <div className='flex-center'>
-                        <EmptyIcon description='Not following anyone yet' />
-                      </div>}
-
-                    <br />
-                  </Col>
+                      <EmptyIcon description='No followers yet' />
+                    </div>}
+                  <br />
                 </div>
-
-
               </>}
-
               {!addressOrUsername && <EmptyIcon description='Please select an address or username' />}
             </div>}
+          {tab === 'following' &&
+            <div className='flex-center flex-column' style={{ textAlign: 'center' }}>
+
+              <div className='flex-center'>
+                Following ({followDetails?.followingCount.toString()})
+              </div>
+              {followDetails && followDetails?.following.length > 0 &&
+                <InfiniteScroll
+                  dataLength={followDetails.following.length}
+                  next={async () => {
+                    await fetchMore();
+                  }}
+                  hasMore={followingPagination?.hasMore ?? true}
+                  loader={<div>
+                    <br />
+                    <Spin size={'large'} />
+                    <br />
+                    <br />
+                  </div>}
+                  scrollThreshold="200px"
+                  endMessage={null}
+                  style={{ width: '100%' }}
+                >
+                  <div className='flex-center flex-column'>
+                    {followDetails.following?.map((following, idx) => {
+                      return <AddressDisplay addressOrUsername={following} fontSize={16} key={idx} />
+                    })}
+                  </div>
+                </InfiniteScroll>
+              }
+              {followDetails && followDetails?.following.length === 0 &&
+                <div className='flex-center'>
+                  <EmptyIcon description='Not following anyone yet' />
+                </div>}
+
+              <br />
+            </div>
+
+          }
+
+
+
 
           {tab == 'collection' && <div className='' style={{ textAlign: 'center' }}>
             {followDetails && followDetails.followingCollectionId > 0n && <div className=''>
@@ -246,7 +257,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
             </div>}
           </div>}
         </InformationDisplayCard>}
-      </div>
-    </ Content>
+      </div >
+    </ Content >
   );
 }

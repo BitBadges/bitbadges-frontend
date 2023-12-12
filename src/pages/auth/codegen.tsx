@@ -1,12 +1,12 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { BigIntify, NumberType, convertBlockinAuthSignatureInfo, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { ChallengeParams } from 'blockin';
 import { SignInModal } from 'blockin/dist/ui';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { createAuthCode } from '../../bitbadges-api/api';
 import { SignChallengeResponse, useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { EmptyIcon } from '../../components/common/Empty';
@@ -62,6 +62,11 @@ function BlockinCodesScreen() {
 
   }, [blockinParams]);
 
+  useEffect(() => {
+    if (!blockinParams?.address) return;
+    fetchAccounts([blockinParams.address]);
+  }, [blockinParams?.address]);
+
   if (!challengeParams || !blockinParams) {
     return <div style={{
       marginLeft: '3vw',
@@ -82,6 +87,7 @@ function BlockinCodesScreen() {
   if (generateNonce) {
     blockinParams.nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
   }
+
 
 
 
@@ -116,9 +122,9 @@ function BlockinCodesScreen() {
       ...currAccount,
       authCodes: [
         ...(currAccount?.authCodes ?? []),
-        convertBlockinAuthSignatureInfo(
+        convertBlockinAuthSignatureDoc(
           {
-            _id: signature,
+            _legacyId: signature,
             signature: signature,
             params: blockinParams,
             name: name as string,
@@ -194,8 +200,8 @@ function BlockinCodesScreen() {
                     {!qrCode &&
                       <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
 
-                        <AuthCode authCode={convertBlockinAuthSignatureInfo({
-                          _id: '',
+                        <AuthCode authCode={convertBlockinAuthSignatureDoc({
+                          _legacyId: '',
                           signature: '',
                           name: name as string,
                           description: description as string,
@@ -230,8 +236,8 @@ function BlockinCodesScreen() {
                       <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
                         <div className='flex-center'>
                           {!qrCode && <EmptyIcon description='No QR Code generated yet...' />}
-                          {qrCode && <AuthCode authCode={convertBlockinAuthSignatureInfo({
-                            _id: '',
+                          {qrCode && <AuthCode authCode={convertBlockinAuthSignatureDoc({
+                            _legacyId: '',
                             signature: qrCode,
                             name: name as string,
                             description: description as string,

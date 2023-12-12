@@ -1,5 +1,5 @@
 import { CloseOutlined, PlusOutlined, WarningOutlined } from "@ant-design/icons";
-import { Switch } from "antd";
+import { Input, Switch } from "antd";
 import { AddressMapping } from "bitbadgesjs-proto";
 import { isAddressMappingEmpty } from "bitbadgesjs-utils";
 import { useState } from "react";
@@ -26,17 +26,19 @@ export function AddressMappingSelect({
   setAddressMapping,
   disabled,
   showErrorOnEmpty,
-  allowMintSearch
+  allowMintSearch,
+  isIdSelect
 }: {
   addressMapping: AddressMapping,
   setAddressMapping: (addressMapping: AddressMapping) => void,
   disabled?: boolean,
   showErrorOnEmpty?: boolean,
-  allowMintSearch?: boolean
+  allowMintSearch?: boolean,
+  isIdSelect?: boolean,
 }) {
   const [visible, setVisible] = useState(false);
 
-
+  const [currId, setCurrId] = useState("");
 
   return <div className="primary-text full-width flex-column" style={{ width: '100%', maxWidth: 500, }}>
     <div >
@@ -55,7 +57,7 @@ export function AddressMappingSelect({
             }));
           }}
           className="primary-text inherit-bg"
-        ></Switch> - Addresses ({addressMapping.addresses.length})</b></div>
+        ></Switch> - {isIdSelect ? 'IDs' : 'Addresses'} ({addressMapping.addresses.length})</b></div>
       <div style={{ textAlign: 'center' }}>
         {/* Any inputted addresses have been {addressMapping.includeAddresses ? 'whitelisted' : 'blacklisted'}.
         {addressMapping.includeAddresses ? ' ' : ' All other addresses will be valid.'} */}
@@ -64,8 +66,9 @@ export function AddressMappingSelect({
           <br /><span style={{ color: 'red' }}> <WarningOutlined /> Whitelists must have at least one address.</span></>}
       </div>
       <br />
-      <div className='flex-center'>
+      {<div className='flex-center'>
         <AddressDisplayList
+          trackerIdList={isIdSelect}
           users={addressMapping.addresses}
           allExcept={!addressMapping.includeAddresses}
           setUsers={(users) => {
@@ -75,7 +78,12 @@ export function AddressMappingSelect({
             }));
           }}
           hideIcons={disabled}
-        /></div></div>
+        /></div>
+      }
+
+    </div>
+
+
     {!disabled && <><br />
       <div className='flex-center'>
 
@@ -89,7 +97,7 @@ export function AddressMappingSelect({
       </div>
     </>}
 
-    {!disabled && visible && <>
+    {!disabled && visible && !isIdSelect && <>
       <AddressListSelect
         users={addressMapping.addresses}
         setUsers={(users) => {
@@ -104,6 +112,31 @@ export function AddressMappingSelect({
         allowMintSearch={allowMintSearch}
       />
     </>}
+
+    {!disabled && visible && isIdSelect && <>
+      <Input
+        placeholder="Enter ID"
+        value={currId}
+        onChange={(e) => {
+          setCurrId(e.target.value);
+        }}
+      />
+      <br />
+
+      <button className="landing-button"
+        style={{ width: '100%' }}
+        onClick={() => {
+          console.log(currId);
+          setAddressMapping(addMappingId({
+            ...addressMapping,
+            addresses: [...addressMapping.addresses, currId],
+          }));
+          console.log(addressMapping);
+          setCurrId("");
+          setVisible(false);
+        }}>Add</button>
+    </>}
+
     <br />
   </div>
 }

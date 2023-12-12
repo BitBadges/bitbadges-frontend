@@ -51,7 +51,7 @@ export function DefaultToApprovedSelectStepItem() {
           options={[
             {
               title: 'Approved by Default',
-              message: `For all users, all incoming transfers (including mints) will be approved by default. Users can opt-out of this in the future.`,
+              message: `For all users, all incoming transfers (including mints) will be approved by default. To block incoming transfers, users must manually set their incoming approvals.`,
               isSelected: getUnhandledUserIncomingApprovals(collection.defaultUserIncomingApprovals, chain.address, true).length === 0
                 && collection.defaultUserIncomingApprovals.every(x => approvalCriteriaHasNoAmountRestrictions(x.approvalCriteria)
                   && approvalCriteriaHasNoAdditionalRestrictions(x.approvalCriteria))

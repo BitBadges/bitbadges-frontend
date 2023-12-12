@@ -1,12 +1,13 @@
 import { Modal, Spin, Tooltip, Typography } from "antd";
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
-import { BalanceInfo, BitBadgesUserInfo, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { BalanceDoc, BitBadgesUserInfo, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 
 
 import { getAccountBalancesView, useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { batchFetchAndUpdateMetadata, useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 import { INFINITE_LOOP_MODE } from "../../constants";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
@@ -15,7 +16,7 @@ import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
 import { CustomizeButtons } from "./MultiCollectionCustomizeButtons";
 
-export const filterBadgeIdsFromBalanceInfos = (balances: BalanceInfo<bigint>[], badgeIdsToRemove: UintRange<bigint>[], removeSpecifiedBadges = true) => {
+export const filterBadgeIdsFromBalanceInfos = (balances: BalanceDoc<bigint>[], badgeIdsToRemove: UintRange<bigint>[], removeSpecifiedBadges = true) => {
   for (const x of balances) {
     x.balances = filterBadgeIdsFromBalances(x.balances, badgeIdsToRemove, removeSpecifiedBadges);
   }
@@ -63,11 +64,12 @@ export function CollectionDisplayWithBadges({
   const balances = accountInfo ? account?.collected.find(collected => collected.collectionId == collectionId)?.balances ?? []
     : collection?.owners.find(x => x.cosmosAddress == 'Total')?.balances ?? [];
 
+  const newBadgeIds = !collection ? badgeObj.badgeIds : [{ start: 1n, end: BigInt(getTotalNumberOfBadges(collection)) }];
+  badgeObj = { ...badgeObj, badgeIds: newBadgeIds };
 
 
-
-
-  return <InformationDisplayCard noBorder inheritBg title='' style={{ margin: 8, alignItems: 'normal' }} >
+  return <InformationDisplayCard noBorder inheritBg title='' style={{ margin: 8, alignItems: 'normal' }
+  } >
     <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
       <div className='link-button-nav flex-center' onClick={() => {
         router.push('/collections/' + collectionId)
@@ -112,7 +114,7 @@ export function CollectionDisplayWithBadges({
       showCustomizeButtons={showCustomizeButtons}
       accountInfo={accountInfo}
     />
-  </InformationDisplayCard>
+  </InformationDisplayCard >
 }
 
 export function MultiCollectionBadgeDisplay({
@@ -144,7 +146,7 @@ export function MultiCollectionBadgeDisplay({
   const currPage = 1;
   const [loaded, setLoaded] = useState<boolean>(false); //Total number of badges in badgeIds[]
 
-  const badgesToShow = getAccountBalancesView(accountInfo, showCustomizeButtons ? 'badgesCollectedWithHidden' : 'badgesCollected') as BalanceInfo<bigint>[];
+  const badgesToShow = getAccountBalancesView(accountInfo, showCustomizeButtons ? 'badgesCollectedWithHidden' : 'badgesCollected') as BalanceDoc<bigint>[];
 
   const allBadgeIds = useMemo(() => {
     //If we are using this as a collection display (i.e. we want to display all badges in the collection)
@@ -167,7 +169,7 @@ export function MultiCollectionBadgeDisplay({
     } else if (accountInfo) {
       for (const collectionId of collectionIds) {
         let balances = deepCopy(badgesToShow.flat() ?? []);
-        
+
 
         if (balances) {
           const balanceInfo = balances.find(balance => balance.collectionId == collectionId);

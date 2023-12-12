@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { DesiredNumberType, getBrowseCollections } from '../api';
 import { updateAccount } from './accounts/AccountsContext';
-import { setCollection } from './collections/CollectionsContext';
+import { updateCollection } from './collections/CollectionsContext';
 
 
 
@@ -36,7 +36,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       for (const collection of browseInfo.collections[category]) {
         if (!updatedIds.has(collection.collectionId)) {
-          setCollection(collection);
+          updateCollection({ ...collection })
           updatedIds.add(collection.collectionId);
         }
       }
@@ -47,9 +47,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       for (const profile of browseInfo.profiles[category]) {
         if (!updatedAccounts.has(profile.cosmosAddress)) {
-          updateAccount({
-            ...profile,
-          });
+          updateAccount({ ...profile, });
           updatedAccounts.add(profile.cosmosAddress);
         }
       }

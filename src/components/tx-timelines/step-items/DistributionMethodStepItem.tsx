@@ -14,7 +14,7 @@ export function DistributionMethodStepItem() {
   const startingCollection = txTimelineContext.startingCollection;
   const updateCollectionApprovals = txTimelineContext.updateCollectionApprovals;
   const setUpdateCollectionApprovals = txTimelineContext.setUpdateCollectionApprovals;
-  const isOffChainBalances = collection?.balancesType === "Off-Chain";
+  const isOffChainBalances = collection?.balancesType === "Off-Chain - Indexed";
 
   const [err, setErr] = useState<Error | null>(null);
 
@@ -40,7 +40,7 @@ export function DistributionMethodStepItem() {
     description: 'You previously created badges which have been sent to the Mint address. Here, you decide who can transfer from the Mint address.',
     node: <>
       {
-        collection?.balancesType === "Off-Chain" ? DistributionComponent :
+        collection?.balancesType === "Off-Chain - Indexed" ? DistributionComponent :
           <UpdateSelectWrapper
             err={err}
             setErr={(err) => { setErr(err) }}

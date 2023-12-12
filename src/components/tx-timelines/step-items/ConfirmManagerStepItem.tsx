@@ -92,7 +92,7 @@ export function ConfirmManagerStepItem() {
                 }}
                 options={[{
                   title: 'No Manager',
-                  message: 'Do not have a manager for this collection. No admin privileges will ever be available for this collection. All collection details will be frozen and final after this transaction.',
+                  message: <>Do not have a manager for this collection. No admin privileges will ever be available for this collection. <span style={{ fontWeight: 'bold', color: 'orange' }}>All collection details will be frozen and final after this transaction. No manager permissions will be executable moving forward.</span></>,
                   isSelected: !hasManager,
                   additionalNode: <>
                     <div className="flex-center">

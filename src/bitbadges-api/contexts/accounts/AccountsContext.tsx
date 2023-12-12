@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Stringify } from 'bitbadgesjs-proto';
-import { AccountViewKey, AddressMappingInfo, AnnouncementInfo, BalanceInfo, BigIntify, BitBadgesUserInfo, BlockinAuthSignatureInfo, ClaimAlertInfo, MINT_ACCOUNT, ReviewInfo, TransferActivityInfo, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { AccountViewKey, AddressMappingDoc, AnnouncementDoc, BalanceDoc, BigIntify, BitBadgesUserInfo, BlockinAuthSignatureDoc, ClaimAlertDoc, MINT_ACCOUNT, ReviewDoc, TransferActivityDoc, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useSelector } from 'react-redux';
 import { AccountReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, updateAccountInfo } from '../../api';
@@ -149,8 +149,8 @@ export function getAuthCodesView(account: BitBadgesUserInfo<bigint> | undefined,
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
-    return account.authCodes.find(y => y._id === x);
-  }) ?? []) as BlockinAuthSignatureInfo<bigint>[];
+    return account.authCodes.find(y => y._legacyId === x);
+  }) ?? []) as BlockinAuthSignatureDoc<bigint>[];
 }
 
 
@@ -158,32 +158,32 @@ export function getAccountActivityView(account: BitBadgesUserInfo<bigint> | unde
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
-    return account.activity.find(y => y._id === x);
-  }) ?? []) as TransferActivityInfo<bigint>[];
+    return account.activity.find(y => y._legacyId === x);
+  }) ?? []) as TransferActivityDoc<bigint>[];
 }
 
 export function getAccountReviewsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
-    return account.reviews.find(y => y._id === x);
-  }) ?? []) as ReviewInfo<bigint>[];
+    return account.reviews.find(y => y._legacyId === x);
+  }) ?? []) as ReviewDoc<bigint>[];
 }
 
 export function getAccountAnnouncementsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
-    return account.announcements.find(y => y._id === x);
-  }) ?? []) as AnnouncementInfo<bigint>[];
+    return account.announcements.find(y => y._legacyId === x);
+  }) ?? []) as AnnouncementDoc<bigint>[];
 }
 
 export function getAccountBalancesView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
-    return account.collected.find(y => y._id === x)
-  }) ?? []) as BalanceInfo<bigint>[];
+    return account.collected.find(y => y._legacyId === x)
+  }) ?? []) as BalanceDoc<bigint>[];
 }
 
 export function getAccountAddressMappingsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
@@ -191,15 +191,15 @@ export function getAccountAddressMappingsView(account: BitBadgesUserInfo<bigint>
 
   return (account.views[viewKey]?.ids.map(x => {
     return account.addressMappings.find(y => y.mappingId === x);
-  }) ?? []) as AddressMappingInfo<bigint>[];
+  }) ?? []) as AddressMappingDoc<bigint>[];
 }
 
 export function getAccountClaimAlertsView(account: BitBadgesUserInfo<bigint> | undefined, viewKey: string) {
   if (!account) return [];
 
   return (account.views[viewKey]?.ids.map(x => {
-    return account.claimAlerts.find(y => y._id === x);
-  }) ?? []) as ClaimAlertInfo<bigint>[];
+    return account.claimAlerts.find(y => y._legacyId === x);
+  }) ?? []) as ClaimAlertDoc<bigint>[];
 }
 
 

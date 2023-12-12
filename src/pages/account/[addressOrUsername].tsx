@@ -30,6 +30,7 @@ import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { FollowProtocolDisplay } from '../../components/display/FollowProtocol';
+import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -61,7 +62,7 @@ function PortfolioPage() {
   useEffect(() => {
     if (accountInfo?.cosmosAddress === chain.cosmosAddress && !chain.loggedIn && chain.cosmosAddress && !warned) {
       notification.info({
-        message: 'Note that you must sign in to customize your portfolio.',
+        message: 'You must sign in to customize your portfolio.',
       });
       setWarned(true);
     }
@@ -258,6 +259,7 @@ function PortfolioPage() {
   }, [editMode]);
 
   const fetchMoreLists = useCallback(async (address: string, viewKey: AccountViewKey) => {
+    console.log('fetch more lists', viewKey);
     await fetchNextForAccountViews(address, [viewKey]);
   }, []);
 
@@ -302,7 +304,7 @@ function PortfolioPage() {
 
     //Fetch on tab change but only if empty and has mroe
     const collectedIsEmpty = !accountInfo?.views['badgesCollected']?.ids.length;
-    const listsIsEmpty = !accountInfo?.views['addressMappings']?.ids.length;
+    const listsIsEmpty = !accountInfo?.views[`${listsTab}`]?.ids.length;
     const createdByIsEmpty = !accountInfo?.views['createdBy']?.ids.length;
     const managingIsEmpty = !accountInfo?.views['managing']?.ids.length;
     const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
@@ -575,223 +577,227 @@ function PortfolioPage() {
 
 
   return (
-    <Content
-      style={{
-        textAlign: 'center',
-        minHeight: '100vh',
-      }}
-    >
-      <div
-        style={{
-          marginLeft: '3vw',
-          marginRight: '3vw',
-          paddingLeft: '1vw',
-          paddingRight: '1vw',
-          paddingTop: '20px',
-        }}
-      >
-        {/* Overview and Tabs */}
-        {accountInfo && <AccountButtonDisplay addressOrUsername={accountInfo.address} />}
+    <ReportedWrapper
+      reported={!!accountInfo?.reported ?? false}
 
-        <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} fullWidth />
-        {tab === 'overview' && (<>
-          <br />
-          <InformationDisplayCard
-            span={24}
-            title="About"
+      node={<>
+        <Content
+          style={{
+            textAlign: 'center',
+            minHeight: '100vh',
+          }}
+        >
+          <div
+            style={{
+              marginLeft: '3vw',
+              marginRight: '3vw',
+              paddingLeft: '1vw',
+              paddingRight: '1vw',
+              paddingTop: '20px',
+            }}
           >
-            <div style={{ overflow: 'auto' }}  >
-              <div className='custom-html-style primary-text' id="description">
-                {/* <Markdown> */}
-                {reactElement}
-                {/* </Markdown> */}
-              </div>
-            </div>
-          </InformationDisplayCard>
-        </>)}
-        {((tab === 'collected') || (tab == 'hidden')) && (<>
+            {/* Overview and Tabs */}
+            {accountInfo && <AccountButtonDisplay addressOrUsername={accountInfo.address} />}
 
-          <br />
-          <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
-            {CustomizeSelect}
-
-            {<div className='primary-text inherit-bg' style={{
-              float: 'right',
-              display: 'flex',
-              alignItems: 'center',
-              marginRight: 16,
-              marginTop: 5,
-            }}>
-              Group By:
-
-              <Select
-                className='selector primary-text inherit-bg'
-                value={groupByCollection ? 'collection' : 'none'}
-                placeholder="Default: None"
-                onChange={(e: any) => {
-                  setGroupByCollection(e === 'collection');
-                }}
-                style={{
-                  float: 'right',
-                  marginLeft: 8,
-                  minWidth: 90
-                }}
-                suffixIcon={
-                  <DownOutlined
-                    className='primary-text'
-                  />
-                }
+            <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} fullWidth />
+            {tab === 'overview' && (<>
+              <br />
+              <InformationDisplayCard
+                span={24}
+                title="About"
               >
-                <Select.Option value="none">None</Select.Option>
-                <Select.Option value="collection">Collection</Select.Option>
-              </Select>
-            </div>
-            }
+                <div style={{ overflow: 'auto' }}  >
+                  <div className='custom-html-style primary-text' id="description">
+                    {/* <Markdown> */}
+                    {reactElement}
+                    {/* </Markdown> */}
+                  </div>
+                </div>
+              </InformationDisplayCard>
+            </>)}
+            {((tab === 'collected') || (tab == 'hidden')) && (<>
 
-            {!editMode && <div className='primary-text inherit-bg'
-              style={{
-                float: 'right',
-                display: 'flex',
-                alignItems: 'center',
-                marginLeft: 16,
-                marginRight: 16,
-                marginTop: 5,
-              }}>
-              View:
+              <br />
+              <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
+                {CustomizeSelect}
 
-              <Select
-                className="selector primary-text inherit-bg"
-                value={cardView ? 'card' : 'image'}
-                placeholder="Default: None"
-                onChange={(e: any) => {
-                  setCardView(e === 'card');
-                }}
-                style={{
+                {<div className='primary-text inherit-bg' style={{
                   float: 'right',
-                  marginLeft: 8
-                }}
-                suffixIcon={
-                  <DownOutlined
-                    className='primary-text'
-                  />
-                }
-              >
-                <Select.Option value="card">Card</Select.Option>
-                <Select.Option value="image">Image</Select.Option>
-              </Select>
-            </div>}
-            {tab != 'hidden' && <>
-              <div className='primary-text inherit-bg'
-                style={{
                   display: 'flex',
                   alignItems: 'center',
-                  // marginLeft: 16,
                   marginRight: 16,
                   marginTop: 5,
-                  flexGrow: 1
                 }}>
-                {FilterSearchDropdown}
+                  Group By:
+
+                  <Select
+                    className='selector primary-text inherit-bg'
+                    value={groupByCollection ? 'collection' : 'none'}
+                    placeholder="Default: None"
+                    onChange={(e: any) => {
+                      setGroupByCollection(e === 'collection');
+                    }}
+                    style={{
+                      float: 'right',
+                      marginLeft: 8,
+                      minWidth: 90
+                    }}
+                    suffixIcon={
+                      <DownOutlined
+                        className='primary-text'
+                      />
+                    }
+                  >
+                    <Select.Option value="none">None</Select.Option>
+                    <Select.Option value="collection">Collection</Select.Option>
+                  </Select>
+                </div>
+                }
+
+                {!editMode && <div className='primary-text inherit-bg'
+                  style={{
+                    float: 'right',
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginLeft: 16,
+                    marginRight: 16,
+                    marginTop: 5,
+                  }}>
+                  View:
+
+                  <Select
+                    className="selector primary-text inherit-bg"
+                    value={cardView ? 'card' : 'image'}
+                    placeholder="Default: None"
+                    onChange={(e: any) => {
+                      setCardView(e === 'card');
+                    }}
+                    style={{
+                      float: 'right',
+                      marginLeft: 8
+                    }}
+                    suffixIcon={
+                      <DownOutlined
+                        className='primary-text'
+                      />
+                    }
+                  >
+                    <Select.Option value="card">Card</Select.Option>
+                    <Select.Option value="image">Image</Select.Option>
+                  </Select>
+                </div>}
+                {tab != 'hidden' && <>
+                  <div className='primary-text inherit-bg'
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      // marginLeft: 16,
+                      marginRight: 16,
+                      marginTop: 5,
+                      flexGrow: 1
+                    }}>
+                    {FilterSearchDropdown}
+
+                  </div>
+                </>}
 
               </div>
-            </>}
+              <br />
 
-          </div>
-          <br />
-
-          <div className='full-width flex-center flex-wrap'>
-            {filteredCollections.map((filteredCollection, idx) => {
-              return <BadgeIdObjTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
-                setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
-              }} />
-            })}
-          </div>
+              <div className='full-width flex-center flex-wrap'>
+                {filteredCollections.map((filteredCollection, idx) => {
+                  return <BadgeIdObjTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
+                    setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
+                  }} />
+                })}
+              </div>
 
 
-        </>)}
+            </>)}
 
-        {tab === 'protocols' && (<>
-          <FollowProtocolDisplay addressOrUsername={accountInfo.address} />
-        </>)}
+            {tab === 'protocols' && (<>
+              <FollowProtocolDisplay addressOrUsername={accountInfo.address} />
+            </>)}
 
-        {/* Tab Content */}
-        {tab === 'collected' && (<>
-          <div className=''>
-            <div className='flex-center flex-wrap'>
-              {
-                <Tabs
-                  tabInfo={
-                    [
-                      {
-                        key: 'All', content: 'All', disabled: false
-                      },
+            {/* Tab Content */}
+            {tab === 'collected' && (<>
+              <div className=''>
+                <div className='flex-center flex-wrap'>
+                  {
+                    <Tabs
+                      tabInfo={
+                        [
+                          {
+                            key: 'All', content: 'All', disabled: false
+                          },
 
-                      {
-                        key: 'Created', content: 'Created', disabled: false
-                      },
-                      {
-                        key: 'Managing', content: 'Managing', disabled: false
-                      },
+                          {
+                            key: 'Created', content: 'Created', disabled: false
+                          },
+                          {
+                            key: 'Managing', content: 'Managing', disabled: false
+                          },
 
-                      ...(editMode ? [{
-                        key: 'Hidden', content: 'Hidden', disabled: false
-                      }] : []),
-                      ...(accountInfo.customPages?.filter(x => editMode || x.badges.length > 0) ?? [])?.map((customPage) => {
-                        return {
-                          key: customPage.title, content:
-                            <div className='flex-center' style={{ marginLeft: editMode ? 8 : undefined }}>
-                              {customPage.title}
-                              {editMode && badgeTab !== 'All' && badgeTab !== 'Hidden' && badgeTab !== '' && badgeTab === customPage.title && <>
+                          ...(editMode ? [{
+                            key: 'Hidden', content: 'Hidden', disabled: false
+                          }] : []),
+                          ...(accountInfo.customPages?.filter(x => editMode || x.badges.length > 0) ?? [])?.map((customPage) => {
+                            return {
+                              key: customPage.title, content:
+                                <div className='flex-center' style={{ marginLeft: editMode ? 8 : undefined }}>
+                                  {customPage.title}
+                                  {editMode && badgeTab !== 'All' && badgeTab !== 'Hidden' && badgeTab !== '' && badgeTab === customPage.title && <>
 
 
-                                <IconButton
-                                  text=''
-                                  onClick={async () => {
-                                    if (!confirm('Are you sure you want to delete this page?')) {
-                                      return
-                                    }
+                                    <IconButton
+                                      text=''
+                                      onClick={async () => {
+                                        if (!confirm('Are you sure you want to delete this page?')) {
+                                          return
+                                        }
 
-                                    const newCustomPages = deepCopy(accountInfo.customPages ?? []);
-                                    newCustomPages.splice(newCustomPages.findIndex(x => x.title === badgeTab), 1);
+                                        const newCustomPages = deepCopy(accountInfo.customPages ?? []);
+                                        newCustomPages.splice(newCustomPages.findIndex(x => x.title === badgeTab), 1);
 
-                                    await updateProfileInfo(chain.address, {
-                                      customPages: newCustomPages
-                                    });
+                                        await updateProfileInfo(chain.address, {
+                                          customPages: newCustomPages
+                                        });
 
-                                    setBadgeTab('All');
-                                  }}
-                                  src={<DeleteOutlined />}
-                                />
-                              </>}
-                            </div>, disabled: false
-                        }
-                      }) ?? [],
-                    ]
-                  }
+                                        setBadgeTab('All');
+                                      }}
+                                      src={<DeleteOutlined />}
+                                    />
+                                  </>}
+                                </div>, disabled: false
+                            }
+                          }) ?? [],
+                        ]
+                      }
 
-                  tab={badgeTab}
-                  setTab={setBadgeTab}
-                  type={'underline'}
-                />}
-              {editMode && <IconButton src={<PlusOutlined />}
-                text=''
-                tooltipMessage='Add a new page to your portfolio.'
-                onClick={() => {
-                  setAddPageIsVisible(true);
-                  setBadgeTab(''); //Reset tab
-                }} />}
-            </div>
+                      tab={badgeTab}
+                      setTab={setBadgeTab}
+                      type={'underline'}
+                    />}
+                  {editMode && <IconButton src={<PlusOutlined />}
+                    text=''
+                    tooltipMessage='Add a new page to your portfolio.'
+                    onClick={() => {
+                      setAddPageIsVisible(true);
+                      setBadgeTab(''); //Reset tab
+                    }} />}
+                </div>
 
-            {badgeTab === 'Hidden' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-              <InfoCircleOutlined /> Hidden badges will be automatically filtered out from standard views and not shown by default.
-            </div>}
-            {badgeTab !== '' && accountInfo.customPages?.find(x => x.title === badgeTab)?.description && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-              {accountInfo.customPages?.find(x => x.title === badgeTab)?.description}
-            </div>}
+                {badgeTab === 'Hidden' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                  <InfoCircleOutlined /> Hidden badges will be automatically filtered out from standard views and not shown by default.
+                </div>}
+                {badgeTab !== '' && accountInfo.customPages?.find(x => x.title === badgeTab)?.description && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                  {accountInfo.customPages?.find(x => x.title === badgeTab)?.description}
+                </div>}
 
-            <br />
+                <br />
 
-            {badgeTab != 'All' && badgeTab != '' && editMode && <>
-              {/* <div className='flex-center'>
+                {badgeTab != 'All' && badgeTab != '' && editMode && <>
+                  {/* <div className='flex-center'>
                 <IconButton
                   src={<SearchOutlined />}
                   text='Add via Search'
@@ -801,555 +807,561 @@ function PortfolioPage() {
                   text='Remove via Search'
                 />
               </div> */}
-              <div className='flex-center'>
+                  <div className='flex-center'>
 
 
-                <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedBadge} inheritBg={!selectedBadge}>
-                  <div className='flex'>
-                    {CustomizeSearchDropdown}
+                    <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedBadge} inheritBg={!selectedBadge}>
+                      <div className='flex'>
+                        {CustomizeSearchDropdown}
 
-                  </div>
+                      </div>
 
-                  {selectedBadge && <>
+                      {selectedBadge && <>
+                        <br />
+                        <div className='flex-center'>
+                          <BadgeIdObjTag badgeIdObj={selectedBadge} onClose={() => { setSelectedBadge(null) }} />
+                        </div>
+                        <br />
+                      </>}
+
+                      {selectedBadge &&
+                        <div className='flex-center flex-wrap'>
+                          <button className='landing-button' onClick={async () => {
+                            if (!selectedBadge) return;
+
+                            let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
+                              deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
+                            currCustomPageBadges = addToArray(currCustomPageBadges, [selectedBadge]);
+
+                            if (badgeTab == 'Hidden') {
+                              await updateProfileInfo(chain.address, {
+                                hiddenBadges: currCustomPageBadges
+                              });
+                            } else {
+                              const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
+                              if (!currCustomPage) return;
+
+                              await updateProfileInfo(chain.address, {
+                                customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
+                              });
+                            }
+
+                            setSelectedBadge(null);
+                          }}>
+                            Add
+                          </button>
+
+                          <button className='landing-button' onClick={async () => {
+                            if (!selectedBadge) return;
+
+                            let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
+                              deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
+                            currCustomPageBadges = removeFromArray(currCustomPageBadges, [selectedBadge]);
+
+                            if (badgeTab == 'Hidden') {
+                              await updateProfileInfo(chain.address, {
+                                hiddenBadges: currCustomPageBadges
+                              });
+                            } else {
+                              const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
+                              if (!currCustomPage) return;
+
+                              await updateProfileInfo(chain.address, {
+                                customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
+                              });
+                            }
+
+                            setSelectedBadge(null);
+                          }}>
+                            Remove
+                          </button>
+                        </div>}
+                    </InformationDisplayCard>
+
+                  </div></>}
+
+                {addPageIsVisible && <div className='flex-center '>
+                  <Col md={12} xs={24} style={{ marginBottom: 8 }}>
+                    <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
+                    <Input
+
+                      defaultValue=""
+                      placeholder="Page Name"
+                      className='form-input'
+                      style={{
+                        maxWidth: 300,
+                        marginRight: 8
+                      }}
+                      onChange={(e) => {
+                        if (e) setNewPageTitle(e.target.value);
+                      }}
+                    />
+                    <br />
+                    <br />
+                    <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
+                    <Input.TextArea
+                      autoSize
+                      defaultValue=""
+                      placeholder="Page Description"
+                      className='form-input'
+                      style={{
+                        maxWidth: 300,
+                        marginRight: 8
+                      }}
+                      onChange={(e) => {
+                        if (e) setNewPageDescription(e.target.value);
+                      }}
+                    />
+                    <br />
                     <br />
                     <div className='flex-center'>
-                      <BadgeIdObjTag badgeIdObj={selectedBadge} onClose={() => { setSelectedBadge(null) }} />
+                      <button className='landing-button' onClick={async () => {
+                        const newCustomPages = deepCopy(accountInfo.customPages ?? []);
+                        newCustomPages.push({
+                          title: newPageTitle,
+                          description: newPageDescription,
+                          badges: []
+                        });
+
+                        await updateProfileInfo(chain.address, {
+                          customPages: newCustomPages
+                        });
+
+                        setAddPageIsVisible(false);
+                        setBadgeTab(newPageTitle);
+                        setNewPageDescription('');
+                        setNewPageTitle('');
+                      }}>
+                        Add Page
+                      </button>
                     </div>
-                    <br />
-                  </>}
-
-                  {selectedBadge &&
-                    <div className='flex-center flex-wrap'>
-                      <button className='landing-button' onClick={async () => {
-                        if (!selectedBadge) return;
-
-                        let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
-                          deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
-                        currCustomPageBadges = addToArray(currCustomPageBadges, [selectedBadge]);
-
-                        if (badgeTab == 'Hidden') {
-                          await updateProfileInfo(chain.address, {
-                            hiddenBadges: currCustomPageBadges
-                          });
-                        } else {
-                          const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
-                          if (!currCustomPage) return;
-
-                          await updateProfileInfo(chain.address, {
-                            customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
-                          });
-                        }
-
-                        setSelectedBadge(null);
-                      }}>
-                        Add
-                      </button>
-
-                      <button className='landing-button' onClick={async () => {
-                        if (!selectedBadge) return;
-
-                        let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
-                          deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
-                        currCustomPageBadges = removeFromArray(currCustomPageBadges, [selectedBadge]);
-
-                        if (badgeTab == 'Hidden') {
-                          await updateProfileInfo(chain.address, {
-                            hiddenBadges: currCustomPageBadges
-                          });
-                        } else {
-                          const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
-                          if (!currCustomPage) return;
-
-                          await updateProfileInfo(chain.address, {
-                            customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
-                          });
-                        }
-
-                        setSelectedBadge(null);
-                      }}>
-                        Remove
-                      </button>
-                    </div>}
-                </InformationDisplayCard>
-
-              </div></>}
-
-            {addPageIsVisible && <div className='flex-center '>
-              <Col md={12} xs={24} style={{ marginBottom: 8 }}>
-                <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
-                <Input
-
-                  defaultValue=""
-                  placeholder="Page Name"
-                  className='form-input'
-                  style={{
-                    maxWidth: 300,
-                    marginRight: 8
-                  }}
-                  onChange={(e) => {
-                    if (e) setNewPageTitle(e.target.value);
-                  }}
-                />
-                <br />
-                <br />
-                <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
-                <Input.TextArea
-                  autoSize
-                  defaultValue=""
-                  placeholder="Page Description"
-                  className='form-input'
-                  style={{
-                    maxWidth: 300,
-                    marginRight: 8
-                  }}
-                  onChange={(e) => {
-                    if (e) setNewPageDescription(e.target.value);
-                  }}
-                />
-                <br />
-                <br />
-                <div className='flex-center'>
-                  <button className='landing-button' onClick={async () => {
-                    const newCustomPages = deepCopy(accountInfo.customPages ?? []);
-                    newCustomPages.push({
-                      title: newPageTitle,
-                      description: newPageDescription,
-                      badges: []
-                    });
-
-                    await updateProfileInfo(chain.address, {
-                      customPages: newCustomPages
-                    });
-
-                    setAddPageIsVisible(false);
-                    setBadgeTab(newPageTitle);
-                    setNewPageDescription('');
-                    setNewPageTitle('');
-                  }}>
-                    Add Page
-                  </button>
-                </div>
-              </Col>
-            </div>}
-
-            {(badgeTab === 'Managing' || badgeTab === 'Created') && (<>
-              <InfiniteScroll
-                dataLength={currView?.ids.length ?? 0}
-                next={async () => {
-                  if (badgeTab === 'Managing') {
-                    await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
-                  } else {
-                    await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
-                  }
-                }}
-                hasMore={currView?.pagination?.hasMore ?? true}
-                loader={<div>
-                  <br />
-                  <Spin size={'large'} />
+                  </Col>
                 </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
-                }
-                initialScrollY={500}
-                style={{ width: '100%', overflow: 'hidden', }}
-              >
-                <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
-                  <MultiCollectionBadgeDisplay
-                    collectionIds={currView?.ids.map(x => BigInt(x)) ?? []}
-                    cardView={cardView}
-                    groupByCollection={true}
-                    defaultPageSize={cardView ? 1 : 10}
-                    hidePagination={true}
-                    hideAddress
-                    showCustomizeButtons={editMode}
-                  />
-                </div>
-              </InfiniteScroll>
 
-              {currView?.ids.length == 0 && !currView?.pagination?.hasMore && (
-                <Empty
-                  className='primary-text'
-                  description={
-                    <span>
-                      No badges found.
-                    </span>
-                  }
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
+                {(badgeTab === 'Managing' || badgeTab === 'Created') && (<>
+                  <InfiniteScroll
+                    dataLength={currView?.ids.length ?? 0}
+                    next={async () => {
+                      if (badgeTab === 'Managing') {
+                        await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
+                      } else {
+                        await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
+                      }
+                    }}
+                    hasMore={currView?.pagination?.hasMore ?? true}
+                    loader={<div>
+                      <br />
+                      <Spin size={'large'} />
+                      <br />
+                      <br />
+                    </div>}
+                    scrollThreshold={"300px"}
+                    endMessage={
+                      <></>
+                    }
+                    initialScrollY={500}
+                    style={{ width: '100%', overflow: 'hidden', }}
+                  >
+                    <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
+                      <MultiCollectionBadgeDisplay
+                        collectionIds={currView?.ids.map(x => BigInt(x)) ?? []}
+                        cardView={cardView}
+                        groupByCollection={true}
+                        defaultPageSize={cardView ? 1 : 10}
+                        hidePagination={true}
+                        hideAddress
+                        showCustomizeButtons={editMode}
+                      />
+                    </div>
+                  </InfiniteScroll>
 
+                  {currView?.ids.length == 0 && !currView?.pagination?.hasMore && (
+                    <Empty
+                      className='primary-text'
+                      description={
+                        <span>
+                          No badges found.
+                        </span>
+                      }
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    />
+                  )}
+
+                </>)}
+
+                {badgeTab !== '' && badgeTab !== 'Managing' && badgeTab !== 'Created' && <>
+                  <InfiniteScroll
+                    dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
+                    next={async () => {
+                      if (badgeTab === 'All') {
+                        if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
+                          await fetchMoreCollected(accountInfo?.address ?? '');
+                        }
+
+                        if (!groupByCollection) {
+                          if (numBadgesDisplayed + 25 > numTotalBadges) {
+                            setNumBadgesDisplayed(numBadgesDisplayed + 25);
+                          } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
+                            setNumBadgesDisplayed(numBadgesDisplayed + 100);
+                          } else {
+                            setNumBadgesDisplayed(numTotalBadges + 25);
+                          }
+                        }
+                      } else if (badgeTab === 'Created') {
+                        await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
+                      } else if (badgeTab === 'Managing') {
+                        await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
+                      }
+                    }}
+                    hasMore={badgeTab === 'All' ?
+                      (collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)) :
+                      (badgeTab === 'Created' ? (createdView?.pagination?.hasMore ?? true) : (badgeTab === 'Managing' ? (accountInfo?.views['managing']?.pagination?.hasMore ?? true) : false))}
+                    loader={<div>
+                      <br />
+                      <Spin size={'large'} />
+                      <br />
+                      <br />
+                    </div>}
+                    scrollThreshold={"300px"}
+                    endMessage={
+                      <></>
+                    }
+                    initialScrollY={0}
+                    style={{ width: '100%', overflow: 'hidden' }}
+                  >
+                    <MultiCollectionBadgeDisplay
+                      collectionIds={badgesToShow.map((collection) => collection.collectionId)}
+                      addressOrUsernameToShowBalance={accountInfo.address}
+                      customPageBadges={badgesToShow}
+                      cardView={cardView}
+                      groupByCollection={groupByCollection}
+                      defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
+                      hidePagination={true}
+                      showCustomizeButtons={editMode}
+                    />
+                  </InfiniteScroll>
+
+                  {badgesToShow.every((collection) => collection.badgeIds.length === 0) && !collectedHasMore && (
+                    <Empty
+                      className='primary-text'
+                      description={
+                        <span>
+                          No badges found.
+                        </span>
+                      }
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    />
+                  )}
+                </>}
+              </div>
             </>)}
 
-            {badgeTab !== '' && badgeTab !== 'Managing' && badgeTab !== 'Created' && <>
-              <InfiniteScroll
-                dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
-                next={async () => {
-                  if (badgeTab === 'All') {
-                    if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
-                      await fetchMoreCollected(accountInfo?.address ?? '');
-                    }
+            {tab === 'lists' && (<>
+              <br />
+              <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
+                {CustomizeSelect}
+              </div>
 
-                    if (!groupByCollection) {
-                      if (numBadgesDisplayed + 25 > numTotalBadges) {
-                        setNumBadgesDisplayed(numBadgesDisplayed + 25);
-                      } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
-                        setNumBadgesDisplayed(numBadgesDisplayed + 100);
-                      } else {
-                        setNumBadgesDisplayed(numTotalBadges + 25);
-                      }
-                    }
-                  } else if (badgeTab === 'Created') {
-                    await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
-                  } else if (badgeTab === 'Managing') {
-                    await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
+
+              <div className='flex-center'>
+                <Tabs
+                  tabInfo={
+                    [
+                      { key: 'addressMappings', content: 'All', disabled: false },
+                      { key: 'explicitlyIncludedAddressMappings', content: 'Included', disabled: false },
+                      { key: 'explicitlyExcludedAddressMappings', content: 'Excluded', disabled: false },
+                      { key: 'createdLists', content: 'Created', disabled: false },
+                      chain.cosmosAddress && chain.cosmosAddress === accountInfo.cosmosAddress
+
+                        ? { key: 'privateLists', content: 'Private', disabled: false } : undefined,
+                      ...(editMode ? [{
+                        key: 'Hidden', content: 'Hidden', disabled: false
+                      }] : []),
+                      ...accountInfo.customListPages?.map((customPage) => {
+                        return {
+                          key: customPage.title, content:
+                            <div className='flex-center' style={{ marginLeft: editMode ? 8 : undefined }}>
+                              {customPage.title}
+                              {editMode && listsTab !== 'All' && listsTab !== 'Hidden' && listsTab !== '' && listsTab === customPage.title && <>
+
+
+                                <IconButton
+                                  text=''
+                                  onClick={async () => {
+                                    if (!confirm('Are you sure you want to delete this page?')) {
+                                      return
+                                    }
+
+                                    const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
+                                    newCustomPages.splice(newCustomPages.findIndex(x => x.title === listsTab), 1);
+
+                                    await updateProfileInfo(chain.address, {
+                                      customListPages: newCustomPages
+                                    });
+
+                                    setListsTab('All');
+                                  }}
+                                  src={<DeleteOutlined />}
+                                />
+                              </>}
+                            </div>, disabled: false
+                        }
+                      }) ?? []
+
+                    ]
                   }
-                }}
-                hasMore={badgeTab === 'All' ?
-                  (collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)) :
-                  (badgeTab === 'Created' ? (createdView?.pagination?.hasMore ?? true) : (badgeTab === 'Managing' ? (accountInfo?.views['managing']?.pagination?.hasMore ?? true) : false))}
-                loader={<div>
+                  tab={listsTab} setTab={(e) => {
+                    setListsTab(e as AccountViewKey);
+                  }}
+                  type='underline'
+                />
+
+                {editMode && <IconButton src={<PlusOutlined />}
+                  text=''
+                  tooltipMessage='Add a new page to your portfolio.'
+                  onClick={() => {
+                    setAddPageIsVisible(true);
+                    setListsTab(''); //Reset tab
+                  }} />}
+              </div>
+              {listsTab === 'Hidden' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                <InfoCircleOutlined /> Hidden lists will be automatically filtered out from standard views and not shown by default.
+              </div>}
+              {listsTab === 'All' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                <InfoCircleOutlined /> These results only include whitelists where the address is included and blacklists where the address is excluded.
+              </div>}
+              {listsTab === 'explicitlyIncludedAddressMappings' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                <InfoCircleOutlined /> These results
+                only include whitelists where the address is included.
+              </div>}
+              {listsTab === 'explicitlyExcludedAddressMappings' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                <InfoCircleOutlined /> These results
+                only include blacklists where the address is excluded.
+              </div>}
+              {listsTab === 'createdLists' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                <InfoCircleOutlined /> These results include lists created by this user.
+              </div>}
+              {listsTab === 'privateLists' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                <InfoCircleOutlined /> These results include private lists created by you and are only visible to you.
+              </div>}
+              {listsTab !== '' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+                {accountInfo.customListPages?.find(x => x.title === badgeTab)?.description}
+              </div>}
+
+              {!isPresetList && listsTab != '' && editMode && <>
+
+                <div className='flex-center'>
+                  <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedList} inheritBg={!selectedList}>
+                    <div className='flex'>
+                      {CustomizeSearchListDropdown}
+                    </div>
+
+                    {selectedList && selectedListMapping && <>
+                      <br />
+                      <div className='flex-center'>
+                        <AddressListCard
+                          addressMapping={selectedListMapping}
+                          addressOrUsername={accountInfo.address}
+                        />
+                      </div>
+                      <br />
+                    </>}
+
+                    {selectedList &&
+                      <div className='flex-center flex-wrap'>
+                        <button className='landing-button' onClick={async () => {
+                          if (!selectedList) return;
+
+                          let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
+                            deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
+
+                          currCustomPageLists = currCustomPageLists.concat([selectedList]);
+
+                          if (listsTab == 'Hidden') {
+                            await updateProfileInfo(chain.address, {
+                              hiddenLists: currCustomPageLists
+                            });
+                          } else {
+                            const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
+                            if (!currCustomPage) return;
+
+                            await updateProfileInfo(chain.address, {
+                              customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
+                            });
+                          }
+
+                          setSelectedList('');
+                        }}>
+                          Add
+                        </button>
+
+                        <button className='landing-button' onClick={async () => {
+                          if (!selectedList) return;
+
+                          let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
+                            deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
+                          currCustomPageLists = currCustomPageLists.filter(x => x !== selectedList);
+
+                          if (listsTab == 'Hidden') {
+                            await updateProfileInfo(chain.address, {
+                              hiddenLists: currCustomPageLists
+                            });
+                          } else {
+                            const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
+                            if (!currCustomPage) return;
+
+                            await updateProfileInfo(chain.address, {
+                              customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
+                            });
+                          }
+
+                          setSelectedList('');
+                        }}>
+                          Remove
+                        </button>
+                      </div>}
+                  </InformationDisplayCard>
+                </div></>}
+
+              {addPageIsVisible && <div className='flex-center '>
+                <Col md={12} xs={24} style={{ marginBottom: 8 }}>
+                  <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
+                  <Input
+
+                    defaultValue=""
+                    placeholder="Page Name"
+                    className='form-input'
+                    style={{
+                      maxWidth: 300,
+                      marginRight: 8
+                    }}
+                    onChange={(e) => {
+                      if (e) setNewPageTitle(e.target.value);
+                    }}
+                  />
                   <br />
-                  <Spin size={'large'} />
-                </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
-                }
-                initialScrollY={0}
-                style={{ width: '100%', overflow: 'hidden' }}
-              >
-                <MultiCollectionBadgeDisplay
-                  collectionIds={badgesToShow.map((collection) => collection.collectionId)}
-                  addressOrUsernameToShowBalance={accountInfo.address}
-                  customPageBadges={badgesToShow}
-                  cardView={cardView}
-                  groupByCollection={groupByCollection}
-                  defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                  hidePagination={true}
-                  showCustomizeButtons={editMode}
-                />
-              </InfiniteScroll>
-
-              {badgesToShow.every((collection) => collection.badgeIds.length === 0) && !collectedHasMore && (
-                <Empty
-                  className='primary-text'
-                  description={
-                    <span>
-                      No badges found.
-                    </span>
-                  }
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
-            </>}
-          </div>
-        </>)}
-
-        {tab === 'lists' && (<>
-          <br />
-          <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
-            {CustomizeSelect}
-          </div>
-
-
-          <div className='flex-center'>
-            <Tabs
-              tabInfo={
-
-
-                [
-                  { key: 'addressMappings', content: 'All', disabled: false },
-                  { key: 'explicitlyIncludedAddressMappings', content: 'Included', disabled: false },
-                  { key: 'explicitlyExcludedAddressMappings', content: 'Excluded', disabled: false },
-                  { key: 'createdLists', content: 'Created', disabled: false },
-                  chain.cosmosAddress && chain.cosmosAddress === accountInfo.cosmosAddress
-
-                    ? { key: 'privateLists', content: 'Private', disabled: false } : undefined,
-                  ...(editMode ? [{
-                    key: 'Hidden', content: 'Hidden', disabled: false
-                  }] : []),
-                  ...accountInfo.customListPages?.map((customPage) => {
-                    return {
-                      key: customPage.title, content:
-                        <div className='flex-center' style={{ marginLeft: editMode ? 8 : undefined }}>
-                          {customPage.title}
-                          {editMode && listsTab !== 'All' && listsTab !== 'Hidden' && listsTab !== '' && listsTab === customPage.title && <>
-
-
-                            <IconButton
-                              text=''
-                              onClick={async () => {
-                                if (!confirm('Are you sure you want to delete this page?')) {
-                                  return
-                                }
-
-                                const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
-                                newCustomPages.splice(newCustomPages.findIndex(x => x.title === listsTab), 1);
-
-                                await updateProfileInfo(chain.address, {
-                                  customListPages: newCustomPages
-                                });
-
-                                setListsTab('All');
-                              }}
-                              src={<DeleteOutlined />}
-                            />
-                          </>}
-                        </div>, disabled: false
-                    }
-                  }) ?? []
-
-                ]
-              }
-              tab={listsTab} setTab={(e) => {
-                setListsTab(e as AccountViewKey);
-              }}
-              type='underline'
-            />
-
-            {editMode && <IconButton src={<PlusOutlined />}
-              text=''
-              tooltipMessage='Add a new page to your portfolio.'
-              onClick={() => {
-                setAddPageIsVisible(true);
-                setListsTab(''); //Reset tab
-              }} />}
-          </div>
-          {listsTab === 'Hidden' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-            <InfoCircleOutlined /> Hidden lists will be automatically filtered out from standard views and not shown by default.
-          </div>}
-          {listsTab === 'All' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-            <InfoCircleOutlined /> These results only include whitelists where the address is included and blacklists where the address is excluded.
-          </div>}
-          {listsTab === 'explicitlyIncludedAddressMappings' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-            <InfoCircleOutlined /> These results
-            only include whitelists where the address is included.
-          </div>}
-          {listsTab === 'explicitlyExcludedAddressMappings' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-            <InfoCircleOutlined /> These results
-            only include blacklists where the address is excluded.
-          </div>}
-          {listsTab === 'createdLists' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-            <InfoCircleOutlined /> These results include lists created by this user.
-          </div>}
-          {listsTab === 'privateLists' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-            <InfoCircleOutlined /> These results include private lists created by you and are only visible to you.
-          </div>}
-          {listsTab !== '' && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
-            {accountInfo.customListPages?.find(x => x.title === badgeTab)?.description}
-          </div>}
-
-          {!isPresetList && listsTab != '' && editMode && <>
-
-            <div className='flex-center'>
-              <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedList} inheritBg={!selectedList}>
-                <div className='flex'>
-                  {CustomizeSearchListDropdown}
-                </div>
-
-                {selectedList && selectedListMapping && <>
+                  <br />
+                  <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
+                  <Input.TextArea
+                    autoSize
+                    defaultValue=""
+                    placeholder="Page Description"
+                    className='form-input'
+                    style={{
+                      maxWidth: 300,
+                      marginRight: 8
+                    }}
+                    onChange={(e) => {
+                      if (e) setNewPageDescription(e.target.value);
+                    }}
+                  />
+                  <br />
                   <br />
                   <div className='flex-center'>
-                    <AddressListCard
-                      addressMapping={selectedListMapping}
-                      addressOrUsername={accountInfo.address}
-                    />
-                  </div>
-                  <br />
-                </>}
+                    <button className='landing-button' onClick={async () => {
+                      const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
+                      newCustomPages.push({
+                        title: newPageTitle,
+                        description: newPageDescription,
+                        mappingIds: []
+                      });
 
-                {selectedList &&
+                      await updateProfileInfo(chain.address, {
+                        customListPages: newCustomPages
+                      });
+
+                      setAddPageIsVisible(false);
+                      setListsTab(newPageTitle);
+                      setNewPageDescription('');
+                      setNewPageTitle('');
+                    }}>
+                      Add Page
+                    </button>
+                  </div>
+                </Col>
+              </div>}
+              {listsTab !== '' && <>
+                {listsTab === 'privateLists' && !chain.loggedIn ? <BlockinDisplay /> : <>
+
                   <div className='flex-center flex-wrap'>
-                    <button className='landing-button' onClick={async () => {
-                      if (!selectedList) return;
-
-                      let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
-                        deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
-
-                      currCustomPageLists = currCustomPageLists.concat([selectedList]);
-
-                      if (listsTab == 'Hidden') {
-                        await updateProfileInfo(chain.address, {
-                          hiddenLists: currCustomPageLists
-                        });
-                      } else {
-                        const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
-                        if (!currCustomPage) return;
-
-                        await updateProfileInfo(chain.address, {
-                          customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
-                        });
+                    <InfiniteScroll
+                      dataLength={listsView.length}
+                      next={async () => {
+                        if (isPresetList) fetchMoreLists(accountInfo?.address ?? '', listsTab)
+                      }}
+                      hasMore={isPresetList && hasMoreAddressMappings}
+                      loader={<div>
+                        <br />
+                        <Spin size={'large'} />
+                        <br />
+                        <br />
+                      </div>}
+                      scrollThreshold={"300px"}
+                      endMessage={
+                        <></>
                       }
+                      initialScrollY={0}
+                      style={{ width: '100%', overflow: 'hidden' }}
+                    >
+                      <div className='full-width flex-center flex-wrap'>
+                        {listsView.map((addressMapping, idx) => {
+                          return <AddressListCard
+                            key={idx}
+                            addressMapping={addressMapping}
+                            addressOrUsername={accountInfo.address}
+                            hideInclusionDisplay={listsTab === 'privateLists' || listsTab === 'createdLists'}
+                          />
+                        })}
+                      </div>
+                    </InfiniteScroll>
 
-                      setSelectedList('');
-                    }}>
-                      Add
-                    </button>
-
-                    <button className='landing-button' onClick={async () => {
-                      if (!selectedList) return;
-
-                      let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
-                        deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
-                      currCustomPageLists = currCustomPageLists.filter(x => x !== selectedList);
-
-                      if (listsTab == 'Hidden') {
-                        await updateProfileInfo(chain.address, {
-                          hiddenLists: currCustomPageLists
-                        });
-                      } else {
-                        const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
-                        if (!currCustomPage) return;
-
-                        await updateProfileInfo(chain.address, {
-                          customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
-                        });
-                      }
-
-                      setSelectedList('');
-                    }}>
-                      Remove
-                    </button>
-                  </div>}
-              </InformationDisplayCard>
-            </div></>}
-
-          {addPageIsVisible && <div className='flex-center '>
-            <Col md={12} xs={24} style={{ marginBottom: 8 }}>
-              <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
-              <Input
-
-                defaultValue=""
-                placeholder="Page Name"
-                className='form-input'
-                style={{
-                  maxWidth: 300,
-                  marginRight: 8
-                }}
-                onChange={(e) => {
-                  if (e) setNewPageTitle(e.target.value);
-                }}
-              />
-              <br />
-              <br />
-              <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
-              <Input.TextArea
-                autoSize
-                defaultValue=""
-                placeholder="Page Description"
-                className='form-input'
-                style={{
-                  maxWidth: 300,
-                  marginRight: 8
-                }}
-                onChange={(e) => {
-                  if (e) setNewPageDescription(e.target.value);
-                }}
-              />
-              <br />
-              <br />
-              <div className='flex-center'>
-                <button className='landing-button' onClick={async () => {
-                  const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
-                  newCustomPages.push({
-                    title: newPageTitle,
-                    description: newPageDescription,
-                    mappingIds: []
-                  });
-
-                  await updateProfileInfo(chain.address, {
-                    customListPages: newCustomPages
-                  });
-
-                  setAddPageIsVisible(false);
-                  setListsTab(newPageTitle);
-                  setNewPageDescription('');
-                  setNewPageTitle('');
-                }}>
-                  Add Page
-                </button>
-              </div>
-            </Col>
-          </div>}
-          {listsTab !== '' && <>
-            {listsTab === 'privateLists' && !chain.loggedIn ? <BlockinDisplay /> : <>
-
-              <div className='flex-center flex-wrap'>
-                <InfiniteScroll
-                  dataLength={listsView.length}
-                  next={async () => {
-                    if (isPresetList) fetchMoreLists(accountInfo?.address ?? '', listsTab)
-                  }}
-                  hasMore={isPresetList && hasMoreAddressMappings}
-                  loader={<div>
-                    <br />
-                    <Spin size={'large'} />
-                  </div>}
-                  scrollThreshold={"300px"}
-                  endMessage={
-                    <></>
-                  }
-                  initialScrollY={0}
-                  style={{ width: '100%', overflow: 'hidden' }}
-                >
-                  <div className='full-width flex-center flex-wrap'>
-                    {listsView.map((addressMapping, idx) => {
-                      return <AddressListCard
-                        key={idx}
-                        addressMapping={addressMapping}
-                        addressOrUsername={accountInfo.address}
-                        hideInclusionDisplay={listsTab === 'privateLists' || listsTab === 'createdLists'}
+                    {listsView.length === 0 && !hasMoreAddressMappings && (
+                      <Empty
+                        className='primary-text'
+                        description={
+                          <span>
+                            No lists found.
+                          </span>
+                        }
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
                       />
-                    })}
+                    )}
                   </div>
-                </InfiniteScroll>
+                </>}
+              </>}
+            </>)}
 
-                {listsView.length === 0 && !hasMoreAddressMappings && (
-                  <Empty
-                    className='primary-text'
-                    description={
-                      <span>
-                        No lists found.
-                      </span>
-                    }
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  />
-                )}
-              </div>
-            </>}
-          </>}
-        </>)}
-
-        {tab === 'reputation' && (<>
-          <ReputationTab
-            reviews={accountInfo?.reviews ?? []}
-            fetchMore={async () => {
-              await fetchNextForAccountViews(accountInfo?.address ?? '', ['latestReviews']);
-            }}
-            hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? true}
-            addressOrUsername={accountInfo?.address ?? ''}
-          />
-        </>
-        )}
+            {tab === 'reputation' && (<>
+              <ReputationTab
+                reviews={accountInfo?.reviews ?? []}
+                fetchMore={async () => {
+                  await fetchNextForAccountViews(accountInfo?.address ?? '', ['latestReviews']);
+                }}
+                hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? true}
+                addressOrUsername={accountInfo?.address ?? ''}
+              />
+            </>
+            )}
 
 
-        {tab === 'activity' && (<>
-          <br />
-          <ActivityTab
-            activity={getAccountActivityView(accountInfo, 'latestActivity') ?? []}
-            fetchMore={async () => fetchNextForAccountViews(accountInfo?.address ?? '', ['latestActivity'])}
-            hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? true}
-          />
-        </>
-        )}
+            {tab === 'activity' && (<>
+              <br />
+              <ActivityTab
+                activity={getAccountActivityView(accountInfo, 'latestActivity') ?? []}
+                fetchMore={async () => fetchNextForAccountViews(accountInfo?.address ?? '', ['latestActivity'])}
+                hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? true}
+              />
+            </>
+            )}
 
 
 
-      </div>
-      <DevMode obj={accountInfo} />
-      <Divider />
-    </Content >
+          </div>
+          <DevMode obj={accountInfo} />
+          <Divider />
+        </Content >
+      </>}
+    />
   );
 }
 

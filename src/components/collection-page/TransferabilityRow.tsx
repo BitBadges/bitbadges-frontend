@@ -162,8 +162,10 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
             <li>{`Must provide valid ${transfer.details ? transfer.details?.challengeDetails.hasPassword
               ? 'password' : 'code' : 'password / code'}`}</li>
             {(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0 && (
-              <li>{transfer.details?.challengeDetails.leavesDetails.leaves.length.toString()} {`valid ${transfer.details ? transfer.details?.challengeDetails.hasPassword
-                ? 'password' : 'code' : 'password / code'}(s) total`}</li>
+              <li>{transfer.details?.challengeDetails.leavesDetails.leaves.length.toString()}
+                {`${transfer.details?.challengeDetails.hasPassword
+                  ? ' password use' : ' valid code'}
+                  ${(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 1 ? 's' : ''} total`}</li>
             )}
             {/* <li>{transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf ? `Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per code / password` : "No limit on claims per code / password"}</li> */}
           </>}
@@ -873,11 +875,21 @@ export function TransferabilityRow({
           color='#1890ff'
           className='primary-text'
         >Whitelist</Tag>}
-        {transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf && <Tag
-          style={{ margin: 4, backgroundColor: '#1890ff' }}
-          color='#1890ff'
-          className='primary-text'
-        >Codes</Tag>}
+        {transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
+          !transfer.details?.challengeDetails.hasPassword &&
+          <Tag
+            style={{ margin: 4, backgroundColor: '#1890ff' }}
+            color='#1890ff'
+            className='primary-text'
+          >Codes</Tag>}
+
+        {transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
+          transfer.details?.challengeDetails.hasPassword &&
+          <Tag
+            style={{ margin: 4, backgroundColor: '#df3372' }}
+            color='#1890ff'
+            className='primary-text'
+          >Password</Tag>}
         {transfer.approvalCriteria?.overridesFromOutgoingApprovals && transfer.fromMappingId !== 'Mint' && <Tag
           style={{ margin: 4, backgroundColor: '#FF5733' }}
           color='#1890ff'

@@ -13,6 +13,7 @@ import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { JSONSetter } from './CustomJSONSetter';
 import { ErrDisplay } from './ErrDisplay';
 import { SwitchForm } from './SwitchForm';
+import { compareObjects } from '../../../utils/compare';
 
 export function UpdateSelectWrapper({
   updateFlag,
@@ -177,6 +178,7 @@ export function UpdateSelectWrapper({
   }
 
 
+
   return (
     <>
       <div className='primary-text flex-center flex-column' >
@@ -213,11 +215,12 @@ export function UpdateSelectWrapper({
               }}
             />}
 
-          {updateFlag && !disableUndo &&
+          {updateFlag && (!disableUndo || customRevertFunction) &&
             <IconButton
               src={<UndoOutlined style={{ fontSize: 16 }} />}
               style={{ cursor: 'pointer' }}
               tooltipMessage={'Undo changes'}
+              disabled={!customRevertFunction && compareObjects(startingValue, currValue)}
               text={'Reset'}
               onClick={() => {
                 if (customRevertFunction) {

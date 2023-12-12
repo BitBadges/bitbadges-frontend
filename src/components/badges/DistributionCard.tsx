@@ -1,16 +1,17 @@
-import { EditOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
+import { EditOutlined, InfoCircleOutlined, LinkOutlined, LockOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto";
 import { ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, getBalancesForId } from "bitbadgesjs-utils";
 
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getTotalNumberOfBadges } from "../../bitbadges-api/utils/badges";
 import { neverHasManager } from "../../bitbadges-api/utils/manager";
+import { getBadgeIdsString } from "../../utils/badgeIds";
 import { PermissionIcon } from "../collection-page/PermissionsInfo";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { TableRow } from "../display/TableRow";
 import { TimelineFieldWrapper } from "../wrappers/TimelineFieldWrapper";
 import { BalanceDisplay } from "./balances/BalanceDisplay";
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function DistributionOverview({
   collectionId,
@@ -47,16 +48,20 @@ export function DistributionOverview({
 
   const isBadgeView = badgeId !== undefined;
 
-  const isOffChainBalances = collection && collection.balancesType == "Off-Chain" ? true : false;
+  const isOffChainBalances = collection && collection.balancesType == "Off-Chain - Indexed" ? true : false;
   const totalSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? [];
   const mintSupplyBalance = collection?.owners.find(x => x.cosmosAddress === 'Mint')?.balances ?? [];
   const maxBadgeId = getTotalNumberOfBadges(collection);
 
+
+
   const lastFetchedAt = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAt ?? 0n
+
+  const isNonIndexed = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
 
   return <InformationDisplayCard title={hideTitle ? '' : 'Distribution'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
     <>
-      {collection && <TableRow label={"Circulating (Total)"} value={
+      {collection && !isNonIndexed && <TableRow label={"Circulating (Total Supply)"} value={
         <div style={{ float: 'right' }}>
           <BalanceDisplay
             hideBadges
@@ -68,7 +73,7 @@ export function DistributionOverview({
           />
         </div>
       } labelSpan={8} valueSpan={16} />}
-      {!isSelectStep && <>
+      {!isSelectStep && !isNonIndexed && <>
         {collection && <TableRow label={"Unminted"} value={
           <div style={{ float: 'right' }}>
             <BalanceDisplay
@@ -82,7 +87,7 @@ export function DistributionOverview({
         } labelSpan={8} valueSpan={16} />}
       </>}
       {!isBadgeView &&
-        <TableRow label={"Number of Unique Badges"} value={`${maxBadgeId}`} labelSpan={12} valueSpan={12} />}
+        <TableRow label={"Number of Unique Badges"} value={`${maxBadgeId}${maxBadgeId > 0 ? ` (IDs ${getBadgeIdsString([{ start: 1n, end: maxBadgeId }])})` : ''}`} labelSpan={12} valueSpan={12} />}
       {!isSelectStep && <TableRow label={"Can more badges be created?"} value={
         <PermissionIcon
           permissions={castBalancesActionPermissionToUniversalPermission(
@@ -92,7 +97,7 @@ export function DistributionOverview({
           badgeIds={badgeId ? [{ start: badgeId, end: badgeId }] : undefined}
         />} labelSpan={20} valueSpan={4} />}
 
-      {!isSelectStep && <TableRow label={"Can transferability be updated (including mints)?"} value={
+      {!isSelectStep && !isOffChainBalances && !isNonIndexed && <TableRow label={"Can transferability be updated (including mints)?"} value={
         <PermissionIcon
           permissions={castCollectionApprovalPermissionToUniversalPermission(
             collection.collectionPermissions.canUpdateCollectionApprovals)}
@@ -101,7 +106,7 @@ export function DistributionOverview({
           badgeIds={badgeId ? [{ start: badgeId, end: badgeId }] : undefined}
         />}
         labelSpan={20} valueSpan={4} />}
-      {isOffChainBalances && !isSelectStep && <TableRow label={"Balances URL"} value={
+      {(isOffChainBalances || isNonIndexed) && !isSelectStep && <TableRow label={"Balances URL"} value={
         <div>
           <>
             <TimelineFieldWrapper
@@ -131,7 +136,7 @@ export function DistributionOverview({
           </>
         </div>
       } labelSpan={9} valueSpan={15} />}
-      {isOffChainBalances && !isSelectStep && <TableRow label={"Update balances URL?"} value={
+      {(isOffChainBalances || isNonIndexed) && !isSelectStep && <TableRow label={"Update balances URL?"} value={
         <PermissionIcon
           permissions={castTimedUpdatePermissionToUniversalPermission(
             collection.collectionPermissions.canUpdateOffChainBalancesMetadata)}
@@ -140,13 +145,22 @@ export function DistributionOverview({
           badgeIds={badgeId ? [{ start: badgeId, end: badgeId }] : undefined}
         />} labelSpan={9} valueSpan={15} />}
 
-      {isOffChainBalances && !isSelectStep && <TableRow label={"Last Updated"} value={
+      {(isOffChainBalances) && !isSelectStep && <TableRow label={"Last Updated"} value={
         <div>
           <>
             {lastFetchedAt ? new Date(Number(lastFetchedAt)).toLocaleString() : '...'}
           </>
         </div>
       } labelSpan={9} valueSpan={15} />}
+      {isNonIndexed && <>
+        <br />
+        <div className="secondary-text">
+          <InfoCircleOutlined /> This collection uses non-indexed balances.
+          This means that balances are stored off-chain and fetched on-demand.
+          Unlike standard off-chain indexed balances, non-indexed balances do not have a verifiable total supply and do not show up in search results.
+          The only way to view balances is to use the balance checker.
+        </div>
+      </>}
     </>
   </InformationDisplayCard>
 }

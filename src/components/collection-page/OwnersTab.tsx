@@ -1,5 +1,5 @@
 import { Empty, Spin } from 'antd';
-import { BalanceInfo, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
+import { BalanceDoc, PaginationInfo, getBalancesForId } from 'bitbadgesjs-utils';
 import { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { getOwnersForBadge } from '../../bitbadges-api/api';
@@ -23,11 +23,13 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
   const isPreview = collection?.collectionId === NEW_COLLECTION_ID;
 
   const [loaded, setLoaded] = useState(false);
-  const [owners, setOwners] = useState<BalanceInfo<bigint>[]>([]);
+  const [owners, setOwners] = useState<BalanceDoc<bigint>[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
     bookmark: '',
     hasMore: true,
   });
+
+  const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
 
   const fetchMore = useCallback(async (bookmark?: string) => {
     if (isPreview) return;
@@ -78,56 +80,60 @@ export function OwnersTab({ collectionId, badgeId, setTab }: {
         </div>
       }
     </InformationDisplayCard>
-    <br />
-    <InformationDisplayCard title="All Owners">
-      <div className='primary-text flex-center flex-column'>
-        <InfiniteScroll
-          dataLength={owners.length}
-          next={() => {
-            fetchMore(pagination.bookmark)
-          }}
+    {!isNonIndexedBalances && <>
+      <br />
+      <InformationDisplayCard title="All Owners">
+        <div className='primary-text flex-center flex-column'>
+          <InfiniteScroll
+            dataLength={owners.length}
+            next={() => {
+              fetchMore(pagination.bookmark)
+            }}
 
-          hasMore={isPreview ? false : pagination.hasMore}
-          loader={<div>
-            <br />
-            <Spin size={'large'} />
-          </div>}
-          scrollThreshold="200px"
-          endMessage={null}
-          style={{ width: '100%' }}
-        >
-          {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
+            hasMore={isPreview ? false : pagination.hasMore}
+            loader={<div>
+              <br />
+              <Spin size={'large'} />
+              <br />
+              <br />
+            </div>}
+            scrollThreshold="200px"
+            endMessage={null}
+            style={{ width: '100%' }}
+          >
+            {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
 
-            return <TableRow
-              key={idx}
-              label={
-                <div>
-                  <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
-                </div>
-              } value={
-                <div style={{ float: 'right' }}>
-                  <BalanceDisplay
-                    hideBadges
-                    floatToRight
-                    collectionId={collectionId}
-                    showingSupplyPreview
-                    hideMessage
-                    balances={badgeId && badgeId > 0n ? getBalancesForId(badgeId, owner.balances).map(x => { return { ...x, badgeIds: [{ start: badgeId, end: badgeId }] } })
-                      : owner.balances}
-                  />
-                </div>
-              } labelSpan={12} valueSpan={12} />
+              return <TableRow
+                key={idx}
+                label={
+                  <div>
+                    <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={16} />
+                  </div>
+                } value={
+                  <div style={{ float: 'right' }}>
+                    <BalanceDisplay
+                      hideBadges
+                      floatToRight
+                      collectionId={collectionId}
+                      showingSupplyPreview
+                      hideMessage
+                      balances={badgeId && badgeId > 0n ? getBalancesForId(badgeId, owner.balances).map(x => { return { ...x, badgeIds: [{ start: badgeId, end: badgeId }] } })
+                        : owner.balances}
+                    />
+                  </div>
+                } labelSpan={12} valueSpan={12} />
 
-          })}
-        </InfiniteScroll>
+            })}
+          </InfiniteScroll>
 
-        {!pagination.hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
-          description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          className='primary-text'
-        />}
-      </div >
+          {!pagination.hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
+            description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            className='primary-text'
+          />}
+        </div >
 
-    </InformationDisplayCard>
+      </InformationDisplayCard>
+    </>}
   </>)
 }

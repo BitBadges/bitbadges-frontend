@@ -274,12 +274,12 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
     }
 
     //Filter duplicates (but prioritize the new ones)
-    cachedCollection.reviews = cachedCollection.reviews.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-    cachedCollection.announcements = cachedCollection.announcements.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-    cachedCollection.activity = cachedCollection.activity.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-    cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-    cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
-    cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._id === val._id) === index);
+    cachedCollection.reviews = cachedCollection.reviews.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    cachedCollection.announcements = cachedCollection.announcements.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    cachedCollection.activity = cachedCollection.activity.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
 
     //Sort activity, history etc
     cachedCollection.activity = cachedCollection.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);

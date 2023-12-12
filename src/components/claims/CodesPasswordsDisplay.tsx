@@ -1,9 +1,9 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Divider, Empty, Row, Spin, Tooltip, Typography, notification } from "antd";
-import { CollectionApprovalWithDetails, convertToCosmosAddress, getAbbreviatedAddress, isAddressValid } from "bitbadgesjs-utils";
-import { useState } from "react";
+import { ClaimAlertDoc, CollectionApprovalWithDetails, PaginationInfo, convertToCosmosAddress, getAbbreviatedAddress, isAddressValid } from "bitbadgesjs-utils";
+import { useEffect, useState } from "react";
 
-import { sendClaimAlert } from "../../bitbadges-api/api";
+import { getClaimAlerts, sendClaimAlert } from "../../bitbadges-api/api";
 import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext";
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
@@ -16,6 +16,7 @@ import QrCodeDisplay from "../display/QrCodeDisplay";
 import { AddressListSelect } from "../address/AddressListSelect";
 import { Tabs } from "../navigation/Tabs";
 import { NumberInput } from "../inputs/NumberInput";
+import { ClaimAlertsTab } from "../collection-page/ClaimAlertsTab";
 
 export function CodesDisplay({
   approval,
@@ -55,6 +56,30 @@ export function CodesDisplay({
   const [claimAlertAddresses, setClaimAlertAddresses] = useState<string[]>([]);
 
   const [startCodeIdx, setStartCodeIdx] = useState<number>(0);
+
+  const [claimAlerts, setClaimAlerts] = useState<ClaimAlertDoc<bigint>[]>([]);
+  const [claimAlertPagination, setClaimAlertPagination] = useState<PaginationInfo>({
+    bookmark: '',
+    hasMore: true,
+  });
+
+
+  async function fetchNextClaimAlerts() {
+    const res = await getClaimAlerts({
+      collectionId,
+      bookmark: claimAlertPagination.bookmark,
+    });
+
+    setClaimAlerts([...claimAlerts, ...res.claimAlerts].filter((x, i, a) => a.findIndex(y => y._legacyId === x._legacyId) === i));
+    setClaimAlertPagination(res.pagination);
+  }
+
+  useEffect(() => {
+
+    if (tab == 'claimAlerts') {
+      fetchNextClaimAlerts();
+    }
+  }, [tab])
 
   return <>
 
@@ -98,8 +123,16 @@ export function CodesDisplay({
               key: 'other',
               content: 'Other',
             },
+            collectionId > 0n ? {
+              key: "claimAlerts",
+              content: 'Sent Claim Alerts',
+            } : undefined
           ]}
         />
+        {
+          tab === 'claimAlerts' && <div>
+            <ClaimAlertsTab claimAlerts={claimAlerts} fetchMore={fetchNextClaimAlerts} hasMore={claimAlertPagination.hasMore} showToAddress />
+          </div>}
         {!approval.details?.challengeDetails?.hasPassword && codes && codes.length > 0 && <>
           {
             codes.length > 1 && tab === 'batch' && <>

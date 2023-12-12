@@ -34,6 +34,8 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
   const [addressOrUsername, setAddressOrUsername] = useState<string>(defaultAddress || signedInAccount?.username || signedInAccount?.address || '');
   const account = useAccount(addressOrUsername);
 
+  const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
+
   const DELAY_MS = 500;
 
   useEffect(() => {
@@ -44,20 +46,23 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         if (!account || !account.address) return;
         if (collectionId === NEW_COLLECTION_ID) return;
 
-        //Check both collections and users for the balances
-        const accountHasBalance = account?.collected.find(x => x.collectionId === collectionId);
-        const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
+        if (!isNonIndexedBalances) {
+          //Check both collections and users for the balances
+          const accountHasBalance = account?.collected.find(x => x.collectionId === collectionId);
+          const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
 
-        if (accountHasBalance) {
-          setCurrBalances(accountHasBalance.balances);
-          return;
-        } else if (collectionHasBalance) {
-          setCurrBalances(collectionHasBalance.balances);
-          return;
+          if (accountHasBalance) {
+            setCurrBalances(accountHasBalance.balances);
+            return;
+          } else if (collectionHasBalance) {
+            setCurrBalances(collectionHasBalance.balances);
+            return;
+          }
         }
 
         const balance = await fetchBalanceForUser(collectionId, account.address);
         setCurrBalances(balance.balances);
+
         return;
       } catch (e) { }
 
@@ -118,7 +123,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         </div>
 
       }
-      {!!setTab && <>
+      {!!setTab && collection.balancesType !== "Off-Chain - Non-Indexed" && <>
         <span className='secondary-text'>Head over to the <a
           onClick={() => { setTab('transferability') }}
 

@@ -115,10 +115,6 @@ export function TransferSelect({
 
     //Calculate from beginning
     let postTransferBalanceObj = originalSenderBalances.map((x) => convertBalance(x, BigIntify));
-    let preTransferBalanceObj = originalSenderBalances.map((x) => convertBalance(x, BigIntify));
-
-    if (!postTransferBalanceObj || postTransferBalanceObj.length == 0) return;
-    if (!preTransferBalanceObj || preTransferBalanceObj.length == 0) return;
 
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...convertedTransfers], true)
 
@@ -306,7 +302,7 @@ export function TransferSelect({
                     activity={transfers.map(x => {
 
                       return {
-                        _id: `collection-${collectionId}-${x.from}-${x.toAddresses.join('-')}`,
+                        _legacyId: `collection-${collectionId}-${x.from}-${x.toAddresses.join('-')}`,
                         from: x.from,
                         balances: x.balances,
                         collectionId: collectionId,
