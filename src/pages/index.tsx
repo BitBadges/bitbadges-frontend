@@ -1,4 +1,4 @@
-import { AuditOutlined, CloudServerOutlined, ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, LockOutlined, QrcodeOutlined, SendOutlined, UpOutlined } from '@ant-design/icons';
+import { ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, QrcodeOutlined, UpOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Divider, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPage } from 'next/types';
