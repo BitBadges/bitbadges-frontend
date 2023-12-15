@@ -271,33 +271,36 @@ const Home: NextPage = () => {
         <Row className='grid grid-cols-1 gap-3 mt-12'>
           <LandingCard
             content={<>
+              <div>
+
+                <img src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" className='h-[4rem]' />
+
+                {/* <br />
+                <CloudServerOutlined
+                  className='figma-blue text-vivid-blue'
+                  style={{ fontSize: 40, margin: 8 }}
+                />
+
+                <AuditOutlined
+                  className='figma-blue text-vivid-blue'
+                  style={{ fontSize: 40, margin: 8 }} />
+                <DeploymentUnitOutlined className='figma-blue text-vivid-blue'
+                  style={{ fontSize: 40, margin: 8 }} />
+
+                <SendOutlined
+                  className='figma-blue text-vivid-blue'
+                  style={{ fontSize: 40, margin: 8 }}
+                />
+
+                <QrcodeOutlined
+                  className='figma-blue text-vivid-blue'
+                  style={{ fontSize: 40, margin: 8 }} />
+                <LockOutlined className='figma-blue text-vivid-blue'
+                  style={{ fontSize: 40, margin: 8 }} /> */}
+
+              </div>
               <div className='grid lg:grid-cols-2 gap-10'>
                 <div>
-                  <img src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" className='h-[4rem]' />
-
-                  <br />
-                  <CloudServerOutlined
-                    className='figma-blue text-vivid-blue'
-                    style={{ fontSize: 40, margin: 8 }}
-                  />
-
-                  <AuditOutlined
-                    className='figma-blue text-vivid-blue'
-                    style={{ fontSize: 40, margin: 8 }} />
-                  <DeploymentUnitOutlined className='figma-blue text-vivid-blue'
-                    style={{ fontSize: 40, margin: 8 }} />
-
-                  <SendOutlined
-                    className='figma-blue text-vivid-blue'
-                    style={{ fontSize: 40, margin: 8 }}
-                  />
-
-                  <QrcodeOutlined
-                    className='figma-blue text-vivid-blue'
-                    style={{ fontSize: 40, margin: 8 }} />
-                  <LockOutlined className='figma-blue text-vivid-blue'
-                    style={{ fontSize: 40, margin: 8 }} />
-
                   <br />
                   <br />
                   <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>

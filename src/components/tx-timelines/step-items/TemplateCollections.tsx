@@ -58,7 +58,7 @@ export function TemplateCollectionSelect() {
               because balances are stored off-chain (learn more <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">here</a>).
               <br />
               <br />
-              <BadgeAvatarDisplay collectionId={16n} badgeIds={[{ start: 1n, end: 1n }]} showIds />
+              <BadgeAvatarDisplay collectionId={15n} badgeIds={[{ start: 1n, end: 1n }]} showIds />
 
             </>,
             isSelected: selectedIdx === 1,
