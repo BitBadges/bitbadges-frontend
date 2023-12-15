@@ -142,18 +142,19 @@ export function BalanceDisplay({
         <Col md={24} xs={24} sm={24}>
           <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
             {!hideTable && <table className="table-auto" style={{ alignItems: 'normal' }}>
-              {<thead>
-                <tr>
-                  {isMustOwnBadgesInput && <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingRight: 4 }}>Collection ID</th>}
-                  <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingRight: 4, minWidth: 70 }}>{'Amount'}</th>
-                  <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4 }}>IDs</th>
-                  <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4 }}>Times
-                    <Tooltip color='black' title={'During this timeframe, the badge are ' + (showingSupplyPreview ? 'in circulation.' : 'owned by this address.')}>
-                      <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                    </Tooltip>
-                  </th>
-                </tr>
-              </thead>
+              {
+                <thead>
+                  <tr>
+                    {isMustOwnBadgesInput && <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingRight: 4 }}>Collection ID</th>}
+                    <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingRight: 4, minWidth: 70 }}>{'Amount'}</th>
+                    <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4 }}>IDs</th>
+                    <th style={{ textAlign: 'center', verticalAlign: "top", fontWeight: 'bold', paddingLeft: 4 }}>Times
+                      <Tooltip color='black' title={'During this timeframe, the badge are ' + (showingSupplyPreview ? 'in circulation.' : 'owned by this address.')}>
+                        <InfoCircleOutlined style={{ marginLeft: 4 }} />
+                      </Tooltip>
+                    </th>
+                  </tr>
+                </thead>
               }
               <tbody>
                 {castedMustOwnBadges.map((balance, idx) => {
@@ -176,6 +177,16 @@ export function BalanceDisplay({
                   return <>
                     {NormalRowComponent}
                   </>
+
+                  // let displayStr = '';
+                  // if (!isMustOwnBadgesInput) displayStr += 'x' + amount.toString() + ' - ';
+                  // if (isMustOwnBadgesInput) displayStr += 'x' + amountRange.start.toString() + ' (Min) - x' + amountRange.end.toString() + ' (Max) - ';
+                  // if (isMustOwnBadgesInput) displayStr += 'Collection ID ' + collectionId.toString() + ' - ';
+                  // displayStr += 'IDs ' + getBadgeIdsString(badgeIds) + ' - ';
+
+                  // return <>
+                  //   {displayStr}{isMustOwnBadgesInput ? (timeString ?? 'Transfer Time') : getTimeRangesElement(ownershipTimes, '', true)}
+                  // </>
                 })}
               </tbody>
               {(castedMustOwnBadges?.length === 0) && <>

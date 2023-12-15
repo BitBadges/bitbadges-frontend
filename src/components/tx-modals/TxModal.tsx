@@ -1,10 +1,9 @@
-import { CloseOutlined, CodeOutlined, InfoCircleOutlined, MinusOutlined } from '@ant-design/icons';
+import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
-import { generatePostBodyBroadcast } from 'bitbadgesjs-utils';
-import { BigIntify, CosmosCoin, Numberify, TransactionStatus } from 'bitbadgesjs-utils';
+import { BigIntify, CosmosCoin, Numberify, TransactionStatus, generatePostBodyBroadcast } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { getStatus, simulateTx } from '../../bitbadges-api/api';
+import { simulateTx } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
@@ -15,7 +14,6 @@ import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import IconButton from '../display/IconButton';
 
 const { Step } = Steps;
 
@@ -71,7 +69,7 @@ export function TxModal(
   const [simulatedGas, setSimulatedGas] = useState(200000n);
   const [simulated, setSimulated] = useState(false);
   const [recommendedAmount, setRecommendedAmount] = useState(0n);
-  const [showJson, setShowJson] = useState(false);
+  // const [showJson, setShowJson] = useState(false);
 
   const signedInAccount = useAccount(chain.cosmosAddress);
 
@@ -283,8 +281,23 @@ export function TxModal(
         if (currIndexerHeight != 0n) await new Promise(resolve => setTimeout(resolve, 1000));
 
         try {
-          const response = await getStatus();
-          currIndexerHeight = response.status.block.height;
+          const response = await statusContext.updateStatus();
+          if (statusContext.maintenanceMode) {
+            notification.info({
+              message: 'Out of Sync',
+              description: `Your transaction was processed on the blockchain, but our servers are running slowly or down.
+              They were last synced at ${new Date(Number(response.block.timestamp)).toLocaleTimeString()}.
+              In the meantime, you may not see your transaction results until our servers are synced back up.
+              You can view your transaction on a block explorer.`,
+              duration: 0,
+            });
+
+            router.push('/');
+            setTransactionStatus(TransactionStatus.None);
+            return;
+          }
+
+          currIndexerHeight = response.block.height;
 
           numTries++;
         } catch (e) {
@@ -446,7 +459,7 @@ export function TxModal(
               <Divider />
             </div>}
           </Col>
-          <Col md={8} xs={24} style={{ textAlign: 'center' }}>
+          {/* <Col md={8} xs={24} style={{ textAlign: 'center' }}>
             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
               Options
             </Typography.Text>
@@ -466,7 +479,7 @@ export function TxModal(
               </div>
 
             </>}
-          </Col>
+          </Col> */}
           {exceedsBalance &&
             <div style={{ textAlign: 'center' }} className='primary-text'>
               <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
@@ -476,13 +489,13 @@ export function TxModal(
 
 
         </div>
-        {showJson && <><div style={{ textAlign: 'center' }} className='primary-text'>
+        {/* {showJson && <><div style={{ textAlign: 'center' }} className='primary-text'>
           <br />
           <DevMode obj={txCosmosMsg} override
           />
           <br />
         </div>
-        </>}
+        </>} */}
 
         <Divider />
         <div className='flex-center'>

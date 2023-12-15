@@ -1,25 +1,24 @@
 import { Layout, Tooltip } from 'antd';
 import 'react-markdown-editor-lite/lib/index.css';
-import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { BigIntify, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
-import { deleteAuthCode, getAuthCode } from '../../../bitbadges-api/api';
-import { getAuthCodesView, useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
-import { AddressDisplay } from '../../../components/address/AddressDisplay';
-import { CollectionHeader } from '../../../components/badges/CollectionHeader';
-import { EmptyIcon } from '../../../components/common/Empty';
-import CustomCarousel from '../../../components/display/Carousel';
-import { Divider } from '../../../components/display/Divider';
-import IconButton from '../../../components/display/IconButton';
-import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
-import QrCodeDisplay from '../../../components/display/QrCodeDisplay';
-import { TableRow } from '../../../components/display/TableRow';
-import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
-import { GO_MAX_UINT_64, getTimeRangesElement } from '../../../utils/dates';
-import { Tabs } from '../../../components/navigation/Tabs';
-import { BlockinDisplay } from '../../../components/blockin/BlockinDisplay';
+import { deleteAuthCode, getAuthCode } from '../../bitbadges-api/api';
+import { getAuthCodesView, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { AddressDisplay } from '../../components/address/AddressDisplay';
+import { CollectionHeader } from '../../components/badges/CollectionHeader';
+import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
+import { EmptyIcon } from '../../components/common/Empty';
+import CustomCarousel from '../../components/display/Carousel';
+import { Divider } from '../../components/display/Divider';
+import IconButton from '../../components/display/IconButton';
+import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
+import QrCodeDisplay from '../../components/display/QrCodeDisplay';
+import { TableRow } from '../../components/display/TableRow';
+import { Tabs } from '../../components/navigation/Tabs';
+import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 
 
 const { Content } = Layout;
@@ -230,89 +229,80 @@ export function AuthCodes() {
   const savedItems = getItems(savedAuthCodes, true);
 
 
-
-
-
-
   return (
-    <DisconnectedWrapper
-      message={'Please connect and sign in to view this page.'}
-      node={
-        <Content
-          className="full-area"
-          style={{ minHeight: '100vh', padding: 8 }}
-        >
+    <Content
+      className="full-area"
+      style={{ minHeight: '100vh', padding: 8 }}
+    >
+      <br />
+      <div className='flex-center'>
+
+        <Tabs
+          tab={tab}
+          setTab={setTab}
+          tabInfo={[
+            { key: 'all', content: 'All' },
+            { key: 'saved', content: 'Saved' }
+          ]}
+          type='underline'
+        />
+      </div>
+      <br />
+      <div className='secondary-text' style={{ textAlign: 'center' }}>
+        <InfoCircleOutlined /> {tab == 'all' ? 'All QR codes for this account (must be signed in).' : 'QR codes you have saved to the browser on this device.'}
+      </div>
+
+      <br />
+      {tab == 'all' && <>
+        {!signedInAccount || !chain.loggedIn ? <>
+          <div className='flex-center flex-column'>
+            <BlockinDisplay />
+          </div>
+        </> : <>
           <br />
+
           <div className='flex-center'>
+            {authCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
 
-            <Tabs
-              tab={tab}
-              setTab={setTab}
-              tabInfo={[
-                { key: 'all', content: 'All' },
-                { key: 'saved', content: 'Saved' }
-              ]}
-              type='underline'
-            />
+              <CustomCarousel
+                title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
+                items={items}
+                showTotalMobile
+              />
+            </InformationDisplayCard>}
           </div>
+
+          {authCodes.length === 0 && <div className='flex-center flex-column'>
+            <EmptyIcon description='No QR codes found. QR codes can be used to prove you own specific badges in-person.' />
+          </div>}
+        </>}
+      </>}
+
+      {tab == 'saved' && <>
+        <>
           <br />
-          <div className='secondary-text' style={{ textAlign: 'center' }}>
-            <InfoCircleOutlined /> {tab == 'all' ? 'All QR codes for this account (must be signed in).' : 'QR codes you have saved to the browser on this device.'}
+
+          <div className='flex-center'>
+            {savedAuthCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
+
+              <CustomCarousel
+                title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
+                items={savedItems}
+                showTotalMobile
+              />
+            </InformationDisplayCard>}
           </div>
 
-          <br />
-          {tab == 'all' && <>
-            {!signedInAccount || !chain.loggedIn ? <>
-              <div className='flex-center flex-column'>
-                <BlockinDisplay />
-              </div>
-            </> : <>
-              <br />
-
-              <div className='flex-center'>
-                {authCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
-
-                  <CustomCarousel
-                    title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
-                    items={items}
-                    showTotalMobile
-                  />
-                </InformationDisplayCard>}
-              </div>
-
-              {authCodes.length === 0 && <div className='flex-center flex-column'>
-                <EmptyIcon description='No QR codes found. QR codes can be used to prove you own specific badges in-person.' />
-              </div>}
-            </>}
-          </>}
-
-          {tab == 'saved' && <>
-            <>
-              <br />
-
-              <div className='flex-center'>
-                {savedAuthCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
-
-                  <CustomCarousel
-                    title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
-                    items={savedItems}
-                    showTotalMobile
-                  />
-                </InformationDisplayCard>}
-              </div>
-
-              {savedAuthCodes.length === 0 && <div className='flex-center flex-column'>
-                <EmptyIcon description='No QR codes saved.' />
-              </div>}
-            </>
-          </>}
-          <Divider />
-          <div className='secondary-text' style={{ textAlign: 'center' }}>
-            Looking to become an authentication provider and create / verify QR codes? See{' '}<a style={{ marginLeft: 3 }} href='https://docs.bitbadges.io/for-developers/generating-auth-qr-codes' target='_blank' rel="noreferrer">the documentation here</a>.
-          </div>
-        </Content>
-      }
-    />
+          {savedAuthCodes.length === 0 && <div className='flex-center flex-column'>
+            <EmptyIcon description='No QR codes saved.' />
+          </div>}
+        </>
+      </>}
+      <Divider />
+      <div className='secondary-text' style={{ textAlign: 'center' }}>
+        Looking to become an authentication provider and create / verify QR codes? See{' '}<a style={{ marginLeft: 3 }} href='https://docs.bitbadges.io/for-developers/generating-auth-qr-codes' target='_blank' rel="noreferrer">the documentation here</a>.
+      </div>
+    </Content>
   );
 }
 

@@ -65,14 +65,12 @@ export function BalanceTypeSelectStepItem() {
         This is more scalable than indexed balances but offers less functionality.
       </div>}
       <br />
-      <br />
       <div className="secondary-text" style={{ textAlign: 'center' }}>
         If you are unsure, choose indexed. Indexed has full support for all features, while non-indexed is more limited and requires technical knowledge to use.
       </div>
 
-      <br />
-      <br />
       {collection.balancesType === "Off-Chain - Non-Indexed" && <div >
+
         <br />
         <div className='full-width'>
           <Input placeholder="Enter the URL for your balances" value={collection.offChainBalancesMetadataTimeline.length > 0 ?

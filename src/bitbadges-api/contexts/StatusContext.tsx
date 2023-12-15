@@ -3,10 +3,13 @@ import { StatusDoc } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { DesiredNumberType, getStatus } from '../api';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { notification } from 'antd';
 
 export type StatusContextType = {
   status: StatusDoc<DesiredNumberType>,
   updateStatus: () => Promise<StatusDoc<DesiredNumberType>>
+
+  maintenanceMode: boolean
 }
 
 const StatusContext = createContext<StatusContextType>({
@@ -35,7 +38,8 @@ const StatusContext = createContext<StatusContextType>({
       lastXGasAmounts: [],
       lastXGasLimits: [],
     }
-  }
+  },
+  maintenanceMode: false,
 });
 
 type Props = {
@@ -56,11 +60,33 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
     lastXGasLimits: [],
   });
 
+  const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
+  const [warned, setWarned] = useState<boolean>(false);
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: status');
     async function fetchStatus() {
       const res = await getStatus();
       setStatus(res.status);
+
+      //If out of sync for > 2 minutes, show maintenance mode
+      if (res.status.block.timestamp < Date.now() - 120000) {
+        setMaintenanceMode(true);
+        if (!warned) {
+          notification.info({
+            message: 'Out of Sync',
+            description: `BitBadges is currently experiencing difficulties. It was last synced at ${new Date(Number(res.status.block.timestamp)).toLocaleTimeString()}.
+            This could be for multiple reasons like planned maintenance, heavy load, or an unexpected error. 
+            You can still interact with the site, but any data after ${new Date(Number(res.status.block.timestamp)).toLocaleTimeString()} may not be shown.`,
+            duration: 0,
+          });
+
+          setWarned(true);
+        }
+      } else {
+        setMaintenanceMode(false);
+        setWarned(false);
+      }
     }
     fetchStatus();
   }, [])
@@ -73,7 +99,8 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
 
   const statusContext: StatusContextType = {
     status,
-    updateStatus
+    updateStatus,
+    maintenanceMode,
   };
 
   return <StatusContext.Provider value={statusContext}>

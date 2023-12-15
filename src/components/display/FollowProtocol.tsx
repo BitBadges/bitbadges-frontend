@@ -20,6 +20,8 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { Divider } from './Divider';
 import { BadgeAvatar } from '../badges/BadgeAvatar';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { fetchCollectionsWithOptions } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 const template2 = require('../tx-timelines/step-items/templates/template2.json');
 
 const { Content } = Layout;
@@ -34,6 +36,10 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
 
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<string>('followers');
+
+  useEffect(() => {
+    fetchCollectionsWithOptions([{ collectionId: 1n, metadataToFetch: { badgeIds: [{ start: 15n, end: 15n }] } }]);
+  }, []);
 
   const fetchMore = useCallback(async () => {
     setLoading(true);
@@ -213,8 +219,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                   badgeIds: [{ start: 1n, end: 1n }]
                 }}
               />
-              {/* 
-              <BalanceOverview collectionId={followDetails?.followingCollectionId ?? 0n} badgeId={1n} /> */}
+
 
             </div>}
             {(!followDetails || !BigInt(followDetails.followingCollectionId)) && <div className='secondary-text'>
@@ -231,22 +236,20 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                   You will always have full control over who you follow.
                   Updating your following is instant, free, and does not require any blockchain transactions
                   because balances are stored off-chain (learn more <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">here</a>).
-                  Once this collection is created, your following will be updated to this collection.
                   <br />
                   <br />
-                  <BadgeAvatarDisplay collectionId={1n} badgeIds={[{ start: 1n, end: 10n }]} showIds />
-                  <br />
-                  <ul>
-                    <li><b>Following (ID 1): </b>Give this badge to users you want to follow.</li>
-                  </ul>
+                  <BadgeAvatarDisplay collectionId={16n} badgeIds={[{ start: 1n, end: 1n }]} showIds />
+
                 </>
                 <>
                   <SubmitMsgNewCollection
-
                     MsgUniversalUpdateCollection={convertMsgUniversalUpdateCollection({
                       ...template2,
                       creator: chain.cosmosAddress,
-                      //TODO: manager timeline?
+                      managerTimeline: [{
+                        manager: chain.cosmosAddress,
+                        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      }],
                     }, BigIntify)}
                     afterTx={async (collectionId: bigint) => {
                       await updateFollowDetails({ followingCollectionId: collectionId });

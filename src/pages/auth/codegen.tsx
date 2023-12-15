@@ -13,7 +13,7 @@ import { EmptyIcon } from '../../components/common/Empty';
 import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
-import { AuthCode } from '../account/[addressOrUsername]/codes';
+import { AuthCode } from '../account/codes';
 import { fetchCollections, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatarDisplay } from '../../components/badges/BadgeAvatarDisplay';
 

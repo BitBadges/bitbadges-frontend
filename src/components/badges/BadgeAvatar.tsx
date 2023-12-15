@@ -53,9 +53,9 @@ export function BadgeAvatar({
     className={badgeId && !noHover ? 'badge-avatar' : undefined}
     src={metadata?.image
       ? metadata.image.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/')
-      : metadata && !metadata.image ? DefaultPlaceholderMetadata.image 
-      : <Spin />}
-    size={size ? size : 45}
+      : metadata && !metadata.image ? DefaultPlaceholderMetadata.image
+        : <Spin />}
+    size={size ? size : 65}
     onClick={() => {
       if (onClick) {
         onClick();

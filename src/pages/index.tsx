@@ -1,10 +1,11 @@
-import { AuditOutlined, ClockCircleOutlined, CloudServerOutlined, ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, LikeOutlined, LockOutlined, OrderedListOutlined, QrcodeOutlined, SendOutlined, UpOutlined } from '@ant-design/icons';
+import { AuditOutlined, CloudServerOutlined, ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, LockOutlined, QrcodeOutlined, SendOutlined, UpOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Divider, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPage } from 'next/types';
 import { useEffect, useState } from 'react';
 import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
+import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
 import { COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
 
@@ -160,6 +161,16 @@ const Home: NextPage = () => {
       metadataToFetch: {
         badgeIds: [{ start: 1n, end: 20n }],
       }
+    }, {
+      collectionId: 2n,
+      metadataToFetch: {
+        badgeIds: [{ start: 1n, end: 20n }],
+      }
+    }, {
+      collectionId: 3n,
+      metadataToFetch: {
+        badgeIds: [{ start: 1n, end: 20n }],
+      }
     }]);
   }, []);
 
@@ -255,6 +266,8 @@ const Home: NextPage = () => {
             </div>
           </Col>
         </Row>
+
+
         <Row className='grid grid-cols-1 gap-3 mt-12'>
           <LandingCard
             content={<>
@@ -263,17 +276,65 @@ const Home: NextPage = () => {
                   <img src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" className='h-[4rem]' />
 
                   <br />
+                  <CloudServerOutlined
+                    className='figma-blue text-vivid-blue'
+                    style={{ fontSize: 40, margin: 8 }}
+                  />
+
+                  <AuditOutlined
+                    className='figma-blue text-vivid-blue'
+                    style={{ fontSize: 40, margin: 8 }} />
+                  <DeploymentUnitOutlined className='figma-blue text-vivid-blue'
+                    style={{ fontSize: 40, margin: 8 }} />
+
+                  <SendOutlined
+                    className='figma-blue text-vivid-blue'
+                    style={{ fontSize: 40, margin: 8 }}
+                  />
+
+                  <QrcodeOutlined
+                    className='figma-blue text-vivid-blue'
+                    style={{ fontSize: 40, margin: 8 }} />
+                  <LockOutlined className='figma-blue text-vivid-blue'
+                    style={{ fontSize: 40, margin: 8 }} />
+
+                  <br />
+                  <br />
                   <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
                     What is BitBadges?
                   </Typography.Text>
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                    BitBadges is the <b>all-in-one</b> platform for creating, collecting, managing, and displaying digital badges.
+                    BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, managing, and displaying digital badges.
+                  </Typography.Text>
+
+
+                  <br />
+                  <br />
+                  <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
+                    How to collect badges?
+                  </Typography.Text>
+                  <br />
+                  <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
+                    Badges can be collected in a variety of ways, such as scanning a QR code, entering a password, or being airdropped one.
+                    The collection creator decides how badges are distributed.
+                    To see how a specific collection distributes badges, check out the page for that collection.
                   </Typography.Text>
 
                   <br />
                   <br />
+                  <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
+                    How is ownership verified?
+                  </Typography.Text>
+                  <br />
+
                   <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
+                    {"All badges are public, meaning you can verify the authenticity and ownership of anyone's badges at any time, both digitally and in-person. "}
+
+                    This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
+                  </Typography.Text>
+
+                  {/* <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     Think of badges as digital tokens that you can collect and own.
                     Chances are, you already own several digital badges, like a social media verification checkmark or concert tickets.
                   </Typography.Text>
@@ -282,7 +343,7 @@ const Home: NextPage = () => {
                   <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     Badges can be used for all sorts of things, giving you various benefits and value. Some might be handy in the real world, like a ticket badge getting you into a concert, while others can be purely digital. Some may signify something about your reputation, like a community service badge. Or, some may be just for fun, like a souvenir badge. It all depends on the badge!
 
-                  </Typography.Text>
+                  </Typography.Text> */}
 
                 </div>
                 <div className="container" style={{ marginTop: 12, }}>
@@ -299,79 +360,62 @@ const Home: NextPage = () => {
                 </div>
 
               </div>
+              <Divider />
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', textAlign: 'center' }} className=''>
+                <InformationDisplayCard noBorder inheritBg title='Utility' subtitle='' md={8} sm={24} xs={24}>
+
+                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={3n} /> <br />
+                  <div className='secondary-text' style={{ fontSize: 14 }}>
+                    Certain badges might offer utility, like access to an event or authenticating you for a website.
+                  </div>
+                </InformationDisplayCard>
+                <InformationDisplayCard noBorder inheritBg title='Achievements' subtitle='' md={8} sm={24} xs={24}>
+                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={5n} /> <br />
+                  <div className='secondary-text' style={{ fontSize: 14 }}>
+                    Show off your achievement badges in your portfolio, like a degree or certification.
+                  </div>
+                </InformationDisplayCard>
+                <InformationDisplayCard noBorder inheritBg title='Reputation' subtitle='' md={8} sm={24} xs={24}>
+                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={9n} /> <br />
+                  <div className='secondary-text' style={{ fontSize: 14 }}>
+                    Your badges become your digital identity. Some might positively impact your reputation while others might negatively impact your reputation.
+                  </div>
+                </InformationDisplayCard>
+
+                <InformationDisplayCard noBorder inheritBg title='Contributions' subtitle='' md={8} sm={24} xs={24}>
+                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={6n} /> <br />
+                  <div className='secondary-text' style={{ fontSize: 14 }}>
+                    Contributions to a project can be rewarded with a badge, like a badge for contributing to an open-source project.
+                  </div>
+                </InformationDisplayCard>
+                <InformationDisplayCard noBorder inheritBg title='For Fun' subtitle='' md={8} sm={24} xs={24}>
+                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={19n} /> <br />
+                  <div className='secondary-text' style={{ fontSize: 14 }}>
+                    Some badges might be just collected for fun, like a souvenir badge.
+                  </div>
+                </InformationDisplayCard>
+                <InformationDisplayCard noBorder inheritBg title='Protocols' subtitle='' md={8} sm={24} xs={24}>
+                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={15n} /> <br />
+                  <div className='secondary-text' style={{ fontSize: 14 }}>
+                    Use badges to implement protocols. For example, the
+                    <a href='https://docs.bitbadges.io/overview/ecosystem/bitbadges-follow-protocol' target='_blank' className='text-vivid-blue' rel="noreferrer"> BitBadges Follow Protocol</a>, or an attendance protocol.
+                  </div>
+                </InformationDisplayCard>
+              </div>
+              <Divider />
+              <div className='flex-center'>
+                And much more!
+              </div>
+
             </>
             }
             customClass="secondary-text"
           />
 
+
         </Row>
 
-        <Row className='grid lg:grid-cols-2 xl:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-3 mt-5'>
-
-          <LandingCard
-
-            content={<>
-              <SendOutlined
-                className='figma-blue text-vivid-blue'
-                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }}
-              />
-
-              <QrcodeOutlined
-                className='figma-blue text-vivid-blue'
-                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-              <LockOutlined className='figma-blue text-vivid-blue'
-                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-
-              <br />
-              <br />
-              <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
-                How to collect badges?
-              </Typography.Text>
-              <br />
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                Badges can be collected in a variety of ways, such as scanning a QR code, entering a password, or being airdropped one.
-                The collection creator decides how badges are distributed.
-                To see how a specific collection distributes badges, check out the page for that collection.
-              </Typography.Text>
-            </>
-            }
-            customClass='secondary-text flex'
-          />
-
-
-
-          <LandingCard
-            content={<>
-              <CloudServerOutlined
-                className='figma-blue text-vivid-blue'
-                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }}
-              />
-
-              <AuditOutlined
-                className='figma-blue text-vivid-blue'
-                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-              <DeploymentUnitOutlined className='figma-blue text-vivid-blue'
-                style={{ fontSize: 40, marginLeft: 8, marginRight: 8 }} />
-
-              <br />
-              <br />
-              <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
-                How is ownership verified?
-              </Typography.Text>
-              <br />
-
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                {"All badges are public, meaning you can view anyone's portfolio and verify the authenticity and ownership of their badges at any time. "}
-
-                This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
-              </Typography.Text>
-            </>
-            }
-            customClass='secondary-text flex'
-          />
-        </Row>
-
-        <br />
       </div >
       <div className='landing-padding' style={{ textAlign: 'center' }}>
         <br />
@@ -399,6 +443,8 @@ const Home: NextPage = () => {
 
 
       </div>
+      {/* reverse-gradient-bg  */}
+
       {/* reverse-gradient-bg  */}
 
       < div className='landing-padding mt-4'>
@@ -465,7 +511,7 @@ const Home: NextPage = () => {
                     </Typography.Text>
                     <br /> <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges utilizes a scalable architecture that can eventually support millions of users and badges through 
+                      BitBadges utilizes a scalable architecture that can eventually support millions of users and badges through
                       outsourcing to off-chain storage where possible and batch operations.
                     </Typography.Text>
                   </>
@@ -511,8 +557,7 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Verify badge ownership at in-person events through our QR codes feature.
-                      Or, verify badge ownership digitally through <a href="https://blockin.gitbook.io/blockin/" target='_blank'>Blockin</a> and our suite of
+                      Verify badge ownership at in-person events through QR codes, or verify badge ownership digitally through <a href="https://blockin.gitbook.io/blockin/" target='_blank'>Blockin</a> and our suite of
                       authentication tools.
 
                     </Typography.Text>
@@ -630,7 +675,7 @@ const Home: NextPage = () => {
               />   */}
             </>
             <>
-              <LandingCard
+              {/* <LandingCard
                 customClass='secondary-text '
                 content={
                   <><LikeOutlined
@@ -709,7 +754,7 @@ const Home: NextPage = () => {
                     </Typography.Text>
                   </>
                 }
-              />
+              /> */}
             </>
           </>
         </Row>

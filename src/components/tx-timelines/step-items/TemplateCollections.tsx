@@ -5,6 +5,7 @@ import { BigIntify, convertMsgUniversalUpdateCollection } from "bitbadgesjs-prot
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { updateFollowDetails } from "../../../bitbadges-api/api";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 
 const template1 = require('./templates/template1.json');
 const template2 = require('./templates/template2.json');
@@ -22,7 +23,10 @@ export function TemplateCollectionSelect() {
           {
             title: 'Experiences',
             message: <>
-              This collection will have six badges of infinite supply that you get to hand out based on your experiences.
+              This collection will have badges of infinite supply that you get to hand out based on your experiences.
+              For example, give the trustworthy badge to users you trust.
+              <br />
+              <br />
               You will always have full control over who gets these badges.
               Updating the balances (who owns which badge?) is instant, free, and does not require any blockchain transactions
               because balances are stored off-chain (learn more <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">here</a>).
@@ -30,16 +34,6 @@ export function TemplateCollectionSelect() {
               <br />
               <br />
               <BadgeAvatarDisplay collectionId={1n} badgeIds={[{ start: 1n, end: 10n }]} showIds />
-              <br />
-              <ul>
-                {/* //following, met IRL, GM badge, scammer, trustworthy, untrustworthy  */}
-                <li><b>Following (ID 1): </b>Give this badge to users you want to follow.</li>
-                <li><b>Met IRL (ID 2): </b>Give this badge to users you have met in real life.</li>
-                <li><b>GM Badge (ID 3): </b>Give this badge to users you want to give a good morning to.</li>
-                <li><b>Scammer (ID 4): </b>Give this badge to users you think are scammers.</li>
-                <li><b>Trustworthy (ID 5): </b>Give this badge to users you think are trustworthy.</li>
-                <li><b>Untrustworthy (ID 6): </b>Give this badge to users you think are untrustworthy.</li>
-              </ul>
             </>,
             isSelected: selectedIdx === 0,
             additionalNode: <>
@@ -47,7 +41,10 @@ export function TemplateCollectionSelect() {
                 MsgUniversalUpdateCollection={convertMsgUniversalUpdateCollection({
                   ...template1,
                   creator: chain.cosmosAddress,
-                  //TODO: manager timeline?
+                  managerTimeline: [{
+                    manager: chain.cosmosAddress,
+                    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  }],
                 }, BigIntify)}
               />
             </>
@@ -59,23 +56,21 @@ export function TemplateCollectionSelect() {
               You will always have full control over who you follow.
               Updating your following is instant, free, and does not require any blockchain transactions
               because balances are stored off-chain (learn more <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">here</a>).
-              Once this collection is created, your following will be updated to this collection.
               <br />
               <br />
-              <BadgeAvatarDisplay collectionId={1n} badgeIds={[{ start: 1n, end: 10n }]} showIds />
-              <br />
-              <ul>
-                <li><b>Following (ID 1): </b>Give this badge to users you want to follow.</li>
-              </ul>
+              <BadgeAvatarDisplay collectionId={16n} badgeIds={[{ start: 1n, end: 1n }]} showIds />
+
             </>,
             isSelected: selectedIdx === 1,
             additionalNode: <>
               <SubmitMsgNewCollection
-
                 MsgUniversalUpdateCollection={convertMsgUniversalUpdateCollection({
                   ...template2,
                   creator: chain.cosmosAddress,
-                  //TODO: manager timeline?
+                  managerTimeline: [{
+                    manager: chain.cosmosAddress,
+                    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  }],
                 }, BigIntify)}
                 afterTx={async (collectionId: bigint) => {
                   await updateFollowDetails({ followingCollectionId: collectionId });
