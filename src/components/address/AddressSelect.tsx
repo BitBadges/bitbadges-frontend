@@ -1,14 +1,13 @@
 import { Dropdown, Input } from 'antd';
-import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 
-import { SearchDropdown } from '../navigation/SearchDropdown';
 import { InfoCircleOutlined, MinusOutlined, SwapOutlined } from '@ant-design/icons';
-import IconButton from '../display/IconButton';
-import { AddressDisplay } from './AddressDisplay';
-import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { getAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { Divider } from '../display/Divider';
+import IconButton from '../display/IconButton';
+import { SearchDropdown } from '../navigation/SearchDropdown';
+import { AddressDisplay } from './AddressDisplay';
 
 export enum EnterMethod {
   Single = 'Single',
@@ -47,12 +46,13 @@ export function AddressSelect({
           onlyAddresses
           allowMintSearch={allowMintSearch}
           searchValue={input}
-          onSearch={async (value: string | BitBadgesUserInfo<bigint>) => {
-            if (typeof value === "string") return
+          onSearch={async (value: string) => {
+            const acc = getAccount(value);
+            if (!acc) return;
 
-            onUserSelect(value.address);
+            onUserSelect(acc?.address);
             setInput('');
-            setLatestAddress(value.address);
+            setLatestAddress(acc?.address);
             setShowSelect(switchable ? false : true);
           }}
         />

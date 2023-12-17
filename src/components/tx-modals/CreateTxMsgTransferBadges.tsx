@@ -151,7 +151,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
           </>}
           <Divider />
           <Typography.Text className='secondary-text'>
-            <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden, the sender's the outgoing and recipient's incoming approvals as well."}
+            <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, the sender's outgoing approvals, and the recipient's incoming approvals (if applicable)."}
           </Typography.Text>
         </InformationDisplayCard>
       </div >

@@ -67,21 +67,19 @@ export function OverviewTab({
             title={<>About</>}
             span={24}
           >
-            <div style={{ maxHeight: 400, overflow: 'auto', }} className='flex-center'>
-              <div className='custom-html-style primary-text' id="description" >
-                {reactElement}
-              </div>
+            <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 400 }} >
+              {reactElement}
             </div>
           </InformationDisplayCard>
-          
-        <br />
-        </>}
-          {!noBalancesStandard && MetadataDisplayElem}
 
-          <PermissionsOverview
-            collectionId={collectionId}
-            span={24}
-          />
+          <br />
+        </>}
+        {!noBalancesStandard && MetadataDisplayElem}
+
+        <PermissionsOverview
+          collectionId={collectionId}
+          span={24}
+        />
       </Col>
 
       <Col md={12} sm={24} xs={24} style={{ paddingRight: 4, paddingLeft: 4 }}>

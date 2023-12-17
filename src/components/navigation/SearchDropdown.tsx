@@ -19,7 +19,7 @@ export function SearchDropdown({
   allowMintSearch
 }: {
   searchValue: string,
-  onSearch: (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean, isCollection?: boolean, isBadge?: boolean) => Promise<void>
+  onSearch: (value: string, isAccount?: boolean, isCollection?: boolean, isBadge?: boolean) => Promise<void>
   onlyAddresses?: boolean
   onlyCollections?: boolean
   onlyLists?: boolean
@@ -84,7 +84,7 @@ export function SearchDropdown({
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
-  }, [searchValue, allowMintSearch, mintAccount])
+  }, [searchValue, allowMintSearch, mintAccount, onlyLists]);
 
 
   //We have three sections of the dropdown:
@@ -97,16 +97,15 @@ export function SearchDropdown({
       await onSearch(searchValue);
     }
   }} theme='dark' style={{ border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
-    {loading ? <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
-      <Spin size={'large'} />
-    </Menu.Item> : <>
+    {<>
       {!onlyCollections && !onlyLists && <>
+
         <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Accounts</Typography.Text>
         <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
           {/* Current Search Value Address Helper - Matches Text Exactly */}
           {!accountsResults.find((result: BitBadgesUserInfo<bigint>) => result.address === searchValue || result.cosmosAddress === searchValue || result.username === searchValue) &&
             <Menu.Item className={(isAddressValid(searchValue) && searchValue !== 'Mint' ? 'dropdown-item' : 'dropdown-item-disabled')}
-              disabled={isAddressValid(searchValue) && searchValue !== 'Mint'}
+              disabled={!loading && isAddressValid(searchValue) && searchValue !== 'Mint'}
               onClick={async () => {
                 await onSearch(searchValue, true, false);
               }}>
@@ -128,7 +127,7 @@ export function SearchDropdown({
           {/* {Account Results} */}
           {accountsResults.map((result: BitBadgesUserInfo<bigint>, idx) => {
             return <Menu.Item key={idx} className='dropdown-item' onClick={async () => {
-              await onSearch(result, true, false);
+              await onSearch(result.address, true, false);
             }}>
               <div className='flex-between'>
                 <div className='flex-center' style={{ alignItems: 'center' }}>
@@ -144,6 +143,9 @@ export function SearchDropdown({
           })}
         </div>
       </>}
+      {loading && <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
+        <Spin size={'large'} />
+      </Menu.Item>}
       {/* Collection Results */}
       {
         !onlyAddresses && !onlyLists && <>

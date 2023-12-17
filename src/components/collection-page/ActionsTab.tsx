@@ -1,20 +1,21 @@
-import { Card, Empty, notification } from 'antd';
+import { Card, Empty } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { getMintApprovals } from '../../bitbadges-api/utils/mintVsNonMint';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { CreateTxMsgDeleteCollectionModal } from '../tx-modals/CreateTxMsgDeleteCollectionModal';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
 import { CreateTxMsgUpdateUserIncomingApprovalsModal } from '../tx-modals/CreateTxMsgUpdateUserIncomingApprovals';
 import { CreateTxMsgUpdateUserOutgoingApprovalsModal } from '../tx-modals/CreateTxMsgUpdateUserOutgoingApprovals';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
-import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { getMintApprovals } from '../../bitbadges-api/utils/mintVsNonMint';
+import { RefreshModal } from '../tx-modals/RefreshModal';
 import { UpdateBalancesModal } from '../tx-modals/UpdateBalancesModal';
-import { useCollection, triggerMetadataRefresh } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 
 export interface Action {
   title: string,
@@ -99,6 +100,7 @@ export function ActionsTab({
   const [outgoingApproveIsVisible, setOutgoingApproveIsVisible] = useState(false);
   const [distributeCodesIsVisible, setDistributeCodesIsVisible] = useState(false);
   const [updateBalancesIsVisible, setUpdateBalancesIsVisible] = useState(false);
+  const [refreshModalIsVisible, setRefreshModalIsVisible] = useState(false);
 
   const actions: Action[] = [];
 
@@ -143,13 +145,7 @@ export function ActionsTab({
     title: "Refresh",
     description: "Refetch the " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection.",
     showModal: async () => {
-      try {
-        await triggerMetadataRefresh(collectionId);
-        notification.success({ message: "Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later." });
-      } catch (e) {
-        console.error(e);
-        notification.error({ message: "Oops! Something went wrong. Please try again later." });
-      }
+      setRefreshModalIsVisible(!refreshModalIsVisible);
     },
   })
 
@@ -269,6 +265,16 @@ export function ActionsTab({
               setVisible={setUpdateBalancesIsVisible}
               collectionId={collectionId}
             />}
+
+          {refreshModalIsVisible &&
+            <RefreshModal
+              visible={refreshModalIsVisible}
+              setVisible={setRefreshModalIsVisible}
+              collectionId={collectionId}
+            />
+          }
+
+
         </div >
       }
     />

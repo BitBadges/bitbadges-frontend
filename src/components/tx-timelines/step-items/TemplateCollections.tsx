@@ -7,7 +7,7 @@ import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { updateFollowDetails } from "../../../bitbadges-api/api";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 
-const template1 = require('./templates/template1.json');
+// const template1 = require('./templates/template1.json');
 const template2 = require('./templates/template2.json');
 
 export function TemplateCollectionSelect() {
@@ -20,35 +20,35 @@ export function TemplateCollectionSelect() {
     node: <div>
       <SwitchForm
         options={[
-          {
-            title: 'Experiences',
-            message: <>
-              This collection will have badges of infinite supply that you get to hand out based on your experiences.
-              For example, give the trustworthy badge to users you trust.
-              <br />
-              <br />
-              You will always have full control over who gets these badges.
-              Updating the balances (who owns which badge?) is instant, free, and does not require any blockchain transactions
-              because balances are stored off-chain (learn more <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">here</a>).
+          // {
+          //   title: 'Experiences',
+          //   message: <>
+          //     This collection will have badges of infinite supply that you get to hand out based on your experiences.
+          //     For example, give the trustworthy badge to users you trust.
+          //     <br />
+          //     <br />
+          //     You will always have full control over who gets these badges.
+          //     Updating the balances (who owns which badge?) is instant, free, and does not require any blockchain transactions
+          //     because balances are stored off-chain (learn more <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">here</a>).
 
-              <br />
-              <br />
-              <BadgeAvatarDisplay collectionId={1n} badgeIds={[{ start: 1n, end: 10n }]} showIds />
-            </>,
-            isSelected: selectedIdx === 0,
-            additionalNode: <>
-              <SubmitMsgNewCollection
-                MsgUniversalUpdateCollection={convertMsgUniversalUpdateCollection({
-                  ...template1,
-                  creator: chain.cosmosAddress,
-                  managerTimeline: [{
-                    manager: chain.cosmosAddress,
-                    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                  }],
-                }, BigIntify)}
-              />
-            </>
-          },
+          //     <br />
+          //     <br />
+          //     <BadgeAvatarDisplay collectionId={1n} badgeIds={[{ start: 1n, end: 10n }]} showIds />
+          //   </>,
+          //   isSelected: selectedIdx === 0,
+          //   additionalNode: <>
+          //     <SubmitMsgNewCollection
+          //       MsgUniversalUpdateCollection={convertMsgUniversalUpdateCollection({
+          //         ...template1,
+          //         creator: chain.cosmosAddress,
+          //         managerTimeline: [{
+          //           manager: chain.cosmosAddress,
+          //           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          //         }],
+          //       }, BigIntify)}
+          //     />
+          //   </>
+          // },
           {
             title: 'Follow Protocol',
             message: <>

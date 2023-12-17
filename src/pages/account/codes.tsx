@@ -19,6 +19,7 @@ import QrCodeDisplay from '../../components/display/QrCodeDisplay';
 import { TableRow } from '../../components/display/TableRow';
 import { Tabs } from '../../components/navigation/Tabs';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
+import { useRouter } from 'next/router';
 
 
 const { Content } = Layout;
@@ -171,6 +172,7 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
 
 export function AuthCodes() {
   const chain = useChainContext();
+  const router = useRouter();
   const signedInAccount = useAccount(chain.address);
 
   const [loading, setLoading] = useState(false);
@@ -300,7 +302,9 @@ export function AuthCodes() {
       </>}
       <Divider />
       <div className='secondary-text' style={{ textAlign: 'center' }}>
-        Looking to become an authentication provider and create / verify QR codes? See{' '}<a style={{ marginLeft: 3 }} href='https://docs.bitbadges.io/for-developers/generating-auth-qr-codes' target='_blank' rel="noreferrer">the documentation here</a>.
+        Looking to become an authentication provider and create / verify QR codes?
+
+        Create <a onClick={() => { router.push('/auth/linkgen') }} target='_blank' rel="noreferrer" >here</a> or verify <a onClick={() => { router.push('/auth/verify') }} target='_blank' rel="noreferrer" >here</a>.
       </div>
     </Content>
   );

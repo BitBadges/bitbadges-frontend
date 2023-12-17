@@ -333,7 +333,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
     <TxModal
       visible={visible}
       setVisible={setVisible}
-      txName="Updated Collection"
+      txName="Update Collection"
       txCosmosMsg={msg}
       createTxFunction={createTxMsgUniversalUpdateCollection}
       beforeTx={beforeTx} //If we have a template msg, we assume everything is handled

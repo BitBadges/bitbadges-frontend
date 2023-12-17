@@ -126,7 +126,8 @@ export function MultiCollectionBadgeDisplay({
   groupByCollection,
   hideCollectionLink,
   showCustomizeButtons,
-  hideAddress
+  hideAddress,
+  isWatchlist
 }: {
   collectionIds: bigint[],
   addressOrUsernameToShowBalance?: string,
@@ -139,6 +140,7 @@ export function MultiCollectionBadgeDisplay({
   hideAddress?: boolean;
   showCustomizeButtons?: boolean
   customPageBadges?: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[]
+  isWatchlist?: boolean
 }) {
 
   const accountInfo = useAccount(addressOrUsernameToShowBalance);
@@ -307,6 +309,7 @@ export function MultiCollectionBadgeDisplay({
                             badgeId={badgeId}
                             showCustomizeButtons={showCustomizeButtons}
                             accountInfo={accountInfo}
+                            isWatchlist={isWatchlist}
                           />
                         </div>
                       </>

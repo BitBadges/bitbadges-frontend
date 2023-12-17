@@ -2,13 +2,13 @@ import { DownOutlined, InfoCircleOutlined, UploadOutlined } from '@ant-design/ic
 import { Button, Checkbox, DatePicker, Form, Input, Select, Space, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
+import { addMetadataToIpfs, fetchMetadataDirectly } from '../../bitbadges-api/api';
 import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
-import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
-import { CodeGenQueryParams } from './codegen';
 import { BalanceInput } from '../../components/inputs/BalanceInput';
+import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { addMetadataToIpfs, fetchMetadataDirectly } from '../../bitbadges-api/api';
+import { CodeGenQueryParams } from './codegen';
 const { Text } = Typography;
 
 

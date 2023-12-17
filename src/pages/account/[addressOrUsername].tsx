@@ -17,24 +17,633 @@ import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { AddressListCard } from '../../components/badges/AddressListCard';
 import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay";
+import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { AccountButtonDisplay } from '../../components/button-displays/AccountButtonDisplay';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { DevMode } from '../../components/common/DevMode';
+import { FollowProtocolDisplay } from '../../components/display/FollowProtocol';
 import IconButton from '../../components/display/IconButton';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { SearchDropdown } from '../../components/navigation/SearchDropdown';
 import { Tabs } from '../../components/navigation/Tabs';
+import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
-import { FollowProtocolDisplay } from '../../components/display/FollowProtocol';
-import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 const { Content } = Layout;
+
+export interface BadgeIdObj {
+  collectionId: bigint,
+  badgeIds: UintRange<bigint>[]
+}
+
+
+export const addToArray = (arr: BadgeIdObj[], badgeIdObjsToAdd: BadgeIdObj[]) => {
+  for (const badgeIdObj of badgeIdObjsToAdd) {
+    const badgeIdsToAdd = badgeIdObj.badgeIds;
+    const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
+    if (existingIdx != -1) {
+      arr[existingIdx].badgeIds = sortUintRangesAndMergeIfNecessary([...arr[existingIdx].badgeIds, ...badgeIdsToAdd], true)
+    } else {
+      arr.push({
+        collectionId: badgeIdObj.collectionId,
+        badgeIds: badgeIdsToAdd
+      })
+    }
+  }
+
+  return arr.filter(x => x.badgeIds.length > 0);
+}
+
+export const removeFromArray = (arr: BadgeIdObj[], badgeIdObjsToRemove: BadgeIdObj[]) => {
+  for (const badgeIdObj of badgeIdObjsToRemove) {
+    const badgeIdsToRemove = badgeIdObj.badgeIds;
+
+
+    const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
+    if (existingIdx != -1) {
+      const [remaining,] = removeUintRangeFromUintRange(badgeIdsToRemove, arr[existingIdx].badgeIds);
+      arr[existingIdx].badgeIds = remaining;
+    }
+  }
+
+  return arr.filter(x => x.badgeIds.length > 0);
+}
+
+export const CollectionsFilterSearchBar = ({ searchValue, setSearchValue, onSearch }: { searchValue: string, setSearchValue: (searchValue: string) => void, onSearch: (searchValue: any, isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => Promise<void> }) => {
+  const SearchBar = <Input
+    defaultValue=""
+    placeholder="Filter by collection or badge"
+    value={searchValue}
+    onChange={async (e) => {
+      setSearchValue(e.target.value);
+    }}
+    className='form-input'
+    style={{}}
+  />;
+
+  const FilterSearchDropdown = <Dropdown
+    open={searchValue !== ''}
+    placement="bottom"
+    overlay={
+      <SearchDropdown
+        onlyCollections
+        onSearch={onSearch}
+        searchValue={searchValue}
+      />
+    }
+    overlayClassName='primary-text inherit-bg'
+    className='inherit-bg'
+    trigger={['hover', 'click']}
+  >
+    {SearchBar}
+  </Dropdown >
+
+  return FilterSearchDropdown;
+}
+
+export const NewPageInputForm = ({
+  visible,
+  setVisible,
+  onAddPage,
+}: {
+  visible: boolean,
+  setVisible: (visible: boolean) => void,
+  onAddPage: (newPageTitle: string, newPageDescription: string) => Promise<void>
+}) => {
+  const [newPageTitle, setNewPageTitle] = useState('');
+  const [newPageDescription, setNewPageDescription] = useState('');
+
+  return <>
+    {visible && <div className='flex-center '>
+      <Col md={12} xs={24} style={{ marginBottom: 8 }}>
+        <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
+        <Input
+
+          defaultValue=""
+          placeholder="Page Name"
+          className='form-input'
+          style={{
+            maxWidth: 300,
+            marginRight: 8
+          }}
+          onChange={(e) => {
+            if (e) setNewPageTitle(e.target.value);
+          }}
+        />
+        <br />
+        <br />
+        <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
+        <Input.TextArea
+          autoSize
+          defaultValue=""
+          placeholder="Page Description"
+          className='form-input'
+          style={{
+            maxWidth: 300,
+            marginRight: 8
+          }}
+          onChange={(e) => {
+            if (e) setNewPageDescription(e.target.value);
+          }}
+        />
+        <br />
+        <br />
+        <div className='flex-center'>
+          <button className='landing-button' onClick={async () => {
+            await onAddPage(newPageTitle, newPageDescription);
+
+            setVisible(false);
+            setNewPageDescription('');
+            setNewPageTitle('');
+          }}>
+            Add Page
+          </button>
+        </div>
+      </Col>
+    </div>}
+  </>
+}
+
+export const BadgeIdObjTag = ({ badgeIdObj, onClose, }: { badgeIdObj: BadgeIdObj, onClose?: () => void }) => {
+  const collection = getCollection(badgeIdObj.collectionId);
+  const metadata = isFullUintRanges(badgeIdObj.badgeIds) ? collection?.cachedCollectionMetadata
+    : getMetadataForBadgeId(badgeIdObj.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
+  return <Tag
+    className='primary-text inherit-bg flex-between'
+    style={{ alignItems: 'center', marginBottom: 8 }}
+    closable
+    closeIcon={onClose ? <CloseCircleOutlined
+      className='primary-text styled-button flex-center'
+      style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
+      size={50}
+    /> : <></>}
+    onClose={onClose}
+  >
+    <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
+      <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
+        <div>
+          <BadgeAvatar
+            size={30}
+            noHover
+            collectionId={badgeIdObj.collectionId}
+            metadataOverride={metadata}
+          />
+        </div>
+        <Typography.Text className="primary-text" style={{ fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
+          <div style={{ marginBottom: 4 }}>
+            {metadata?.name}
+          </div>
+          <div style={{ fontSize: 12 }}>
+            Collection ID: {badgeIdObj.collectionId.toString()}
+            <br />
+
+            {isFullUintRanges(badgeIdObj.badgeIds) ? 'All' : `Badge IDs: ${badgeIdObj.badgeIds.map(x =>
+              x.start === x.end ? `${x.start}` :
+                `${x.start}-${x.end}`).join(', ')}`}
+          </div>
+        </Typography.Text>
+      </div>
+    </div>
+    <br />
+
+
+  </Tag>
+}
+
+export const CustomizeAddRemoveListFromPage = (
+  { addressOrUsername, onAdd, onRemove }: {
+    addressOrUsername: string, onAdd: (mappingId: string) => Promise<void>, onRemove: (mappingId: string) => Promise<void>
+  }
+) => {
+  const accountInfo = useAccount(addressOrUsername);
+
+  const [customizeSearchListValue, setCustomizeSearchListValue] = useState<string>('');
+  const [selectedList, setSelectedList] = useState<string>('');
+  const [selectedListMapping, setSelectedListMapping] = useState<AddressMappingWithMetadata<bigint> | null>(null);
+
+  useEffect(() => {
+    if (!selectedList) return;
+    async function fetchAddressMapping() {
+      const mappingRes = await getAddressMappings({ mappingIds: [selectedList] });
+      if (mappingRes.addressMappings.length > 0) {
+        setSelectedListMapping(mappingRes.addressMappings[0]);
+      }
+    }
+
+    fetchAddressMapping();
+  }, [selectedList]);
+
+  const CustomizeListSearchBar = <Input
+    defaultValue=""
+    placeholder={"Add or remove by searching a list"}
+
+    value={customizeSearchListValue}
+    onChange={async (e) => {
+      setCustomizeSearchListValue(e.target.value);
+    }}
+    className='form-input'
+    style={{}}
+  />;
+
+  const CustomizeSearchListDropdown = <Dropdown
+    open={customizeSearchListValue !== ''}
+    placement="bottom"
+    overlay={
+      <SearchDropdown
+        onlyLists
+        onSearch={async (searchValue: any, isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
+          if (!isAccount && !isCollection && !isBadge && typeof searchValue === 'string') {
+            setSelectedList(searchValue);
+            setCustomizeSearchListValue('');
+          }
+        }}
+        searchValue={customizeSearchListValue}
+      />
+    }
+    overlayClassName='primary-text inherit-bg'
+    className='inherit-bg'
+    trigger={['hover', 'click']}
+  >
+    {CustomizeListSearchBar}
+  </Dropdown>
+
+  if (!accountInfo) return <></>;
+
+  return <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedList} inheritBg={!selectedList}>
+    <div className='flex'>
+      {CustomizeSearchListDropdown}
+    </div>
+
+    {selectedList && selectedListMapping && <>
+      <br />
+      <div className='flex-center'>
+        <AddressListCard
+          addressMapping={selectedListMapping}
+          addressOrUsername={accountInfo.address}
+        />
+      </div>
+      <br />
+    </>}
+
+    {selectedList &&
+      <div className='flex-center flex-wrap'>
+        <button className='landing-button' onClick={async () => {
+          if (!selectedList) return;
+
+          await onAdd(selectedList);
+
+          setSelectedList('');
+        }}>
+          Add
+        </button>
+
+        <button className='landing-button' onClick={async () => {
+          if (!selectedList) return;
+
+          await onRemove(selectedList);
+
+          setSelectedList('');
+        }}>
+          Remove
+        </button>
+      </div>}
+  </InformationDisplayCard>
+}
+
+export const CustomizeAddRemoveBadgeFromPage = (
+  { onAdd, onRemove }: { onAdd: (badgeIdObj: BadgeIdObj) => Promise<void>, onRemove: (badgeIdObj: BadgeIdObj) => Promise<void> }
+
+) => {
+  const [selectedBadge, setSelectedBadge] = useState<BadgeIdObj | null>(null);
+  const [customizeSearchValue, setCustomizeSearchValue] = useState<string>('');
+
+  const CustomizeSearchBar = <Input
+    defaultValue=""
+    placeholder={"Add or remove by searching a collection or badge"}
+
+    value={customizeSearchValue}
+    onChange={async (e) => {
+      setCustomizeSearchValue(e.target.value);
+    }}
+    className='form-input'
+    style={{}}
+  />;
+
+  const CustomizeSearchDropdown = <Dropdown
+    open={customizeSearchValue !== ''}
+    placement="bottom"
+    overlay={
+      <SearchDropdown
+        onlyCollections
+        onSearch={async (searchValue: any, _isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
+          if (typeof searchValue === 'string') {
+            if (isCollection) {
+              setSelectedBadge({
+                collectionId: BigInt(searchValue),
+                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }]
+              });
+            } else if (isBadge) {
+              const collectionId = BigInt(searchValue.split('/')[0]);
+              const badgeId = BigInt(searchValue.split('/')[1]);
+
+              setSelectedBadge({
+                collectionId,
+                badgeIds: [{ start: badgeId, end: badgeId }]
+              });
+            }
+
+
+            setCustomizeSearchValue('');
+          }
+        }}
+        searchValue={customizeSearchValue}
+      />
+    }
+    overlayClassName='primary-text inherit-bg'
+    className='inherit-bg'
+    trigger={['hover', 'click']}
+  >
+    {CustomizeSearchBar}
+  </Dropdown >
+
+  return <>
+    <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedBadge} inheritBg={!selectedBadge}><div className='flex'>
+      {CustomizeSearchDropdown}
+    </div>
+
+      {
+        selectedBadge && <>
+          <br />
+          <div className='flex-center'>
+            <BadgeIdObjTag badgeIdObj={selectedBadge} onClose={() => { setSelectedBadge(null) }} />
+          </div>
+          <br />
+        </>
+      }
+
+      {
+        selectedBadge &&
+        <div className='flex-center flex-wrap'>
+          <button className='landing-button' onClick={async () => {
+            if (!selectedBadge) return;
+
+            await onAdd(selectedBadge);
+
+            setSelectedBadge(null);
+          }}>
+            Add
+          </button>
+
+          <button className='landing-button' onClick={async () => {
+            if (!selectedBadge) return;
+
+            await onRemove(selectedBadge);
+
+            setSelectedBadge(null);
+          }}>
+            Remove
+          </button>
+        </div>
+      }
+    </InformationDisplayCard>
+  </>
+}
+export const OptionsSelects = ({
+  editMode,
+  setEditMode,
+  cardView,
+  setCardView,
+  groupByCollection,
+  setGroupByCollection,
+  addressOrUsername,
+  isListsSelect,
+  searchValue,
+  setSearchValue,
+  filteredCollections,
+  setFilteredCollections,
+}: {
+  editMode: boolean,
+  setEditMode: (editMode: boolean) => void,
+  cardView: boolean,
+  setCardView: (cardView: boolean) => void,
+  groupByCollection: boolean,
+  setGroupByCollection: (groupByCollection: boolean) => void,
+  addressOrUsername: string,
+  isListsSelect?: boolean,
+  searchValue: string,
+  setSearchValue: (searchValue: string) => void,
+  filteredCollections: BadgeIdObj[],
+  setFilteredCollections: (filteredCollections: BadgeIdObj[]) => void,
+}) => {
+  const chain = useChainContext();
+  const accountInfo = useAccount(addressOrUsername);
+
+  if (!accountInfo) return <></>;
+
+  const CustomizeSelect = <>{
+    chain.address === accountInfo.address && chain.loggedIn && (
+      <div className='primary-text inherit-bg' style={{
+        float: 'right',
+        display: 'flex',
+        alignItems: 'center',
+        marginRight: 16,
+        marginTop: 5,
+      }}>
+        Mode:
+
+        <Select
+          className='selector primary-text inherit-bg'
+          value={editMode ? 'edit' : 'none'}
+          placeholder="Default: None"
+          onChange={(e: any) => {
+            setEditMode(e === 'edit');
+            setCardView(true);
+          }}
+          style={{
+            float: 'right',
+            marginLeft: 8,
+          }}
+          suffixIcon={
+            <DownOutlined
+              className='primary-text'
+            />
+          }
+        >
+          <Select.Option value="none">Normal User</Select.Option>
+          <Select.Option value="edit">Customize</Select.Option>
+        </Select>
+      </div>
+    )
+  }</>
+
+  const FilterSearchDropdown = <CollectionsFilterSearchBar onSearch={async (searchValue: any, _isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
+    if (typeof searchValue === 'string') {
+      if (isCollection) {
+        setFilteredCollections([...filteredCollections, {
+          collectionId: BigInt(searchValue),
+          badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }]
+        }]);
+      } else if (isBadge) {
+        const collectionId = BigInt(searchValue.split('/')[0]);
+        const badgeId = BigInt(searchValue.split('/')[1]);
+
+        setFilteredCollections([...filteredCollections, {
+          collectionId,
+          badgeIds: [{ start: badgeId, end: badgeId }]
+        }]);
+      }
+
+      setSearchValue('');
+    }
+  }} searchValue={searchValue} setSearchValue={setSearchValue} />
+
+  return <>
+    <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
+      {CustomizeSelect}
+
+      {!isListsSelect && <div className='primary-text inherit-bg' style={{
+        float: 'right',
+        display: 'flex',
+        alignItems: 'center',
+        marginRight: 16,
+        marginTop: 5,
+      }}>
+        Group By:
+
+        <Select
+          className='selector primary-text inherit-bg'
+          value={groupByCollection ? 'collection' : 'none'}
+          placeholder="Default: None"
+          onChange={(e: any) => {
+            setGroupByCollection(e === 'collection');
+          }}
+          style={{
+            float: 'right',
+            marginLeft: 8,
+            minWidth: 90
+          }}
+          suffixIcon={
+            <DownOutlined
+              className='primary-text'
+            />
+          }
+        >
+          <Select.Option value="none">None</Select.Option>
+          <Select.Option value="collection">Collection</Select.Option>
+        </Select>
+      </div>
+      }
+
+      {!editMode && !isListsSelect && <div className='primary-text inherit-bg'
+        style={{
+          float: 'right',
+          display: 'flex',
+          alignItems: 'center',
+          marginLeft: 16,
+          marginRight: 16,
+          marginTop: 5,
+        }}>
+        View:
+
+        <Select
+          className="selector primary-text inherit-bg"
+          value={cardView ? 'card' : 'image'}
+          placeholder="Default: None"
+          onChange={(e: any) => {
+            setCardView(e === 'card');
+          }}
+          style={{
+            float: 'right',
+            marginLeft: 8
+          }}
+          suffixIcon={
+            <DownOutlined
+              className='primary-text'
+            />
+          }
+        >
+          <Select.Option value="card">Card</Select.Option>
+          <Select.Option value="image">Image</Select.Option>
+        </Select>
+      </div>}
+      {!isListsSelect && <>
+        <div className='primary-text inherit-bg'
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            // marginLeft: 16,
+            marginRight: 16,
+            marginTop: 5,
+            flexGrow: 1
+          }}>
+          {FilterSearchDropdown}
+        </div>
+      </>}
+
+    </div>
+  </>
+
+}
+
+export const ListInfiniteScroll = (
+  { fetchMore, hasMore, listsView, addressOrUsername, showInclusionDisplay }: {
+    addressOrUsername: string,
+    showInclusionDisplay?: boolean,
+    fetchMore: () => Promise<void>,
+    hasMore: boolean,
+    listsView: AddressMappingWithMetadata<bigint>[]
+  }
+) => {
+
+
+  return <div className='flex-center flex-wrap'>
+    <InfiniteScroll
+      dataLength={listsView.length}
+      next={fetchMore}
+      hasMore={hasMore}
+      loader={<div>
+        <br />
+        <Spin size={'large'} />
+        <br />
+        <br />
+      </div>}
+      scrollThreshold={"300px"}
+      endMessage={
+        <></>
+      }
+      initialScrollY={0}
+      style={{ width: '100%', overflow: 'hidden' }}
+    >
+      <div className='full-width flex-center flex-wrap'>
+        {listsView.map((addressMapping, idx) => {
+          return <AddressListCard
+            key={idx}
+            addressMapping={addressMapping}
+            addressOrUsername={addressOrUsername}
+            hideInclusionDisplay={!showInclusionDisplay}
+          />
+        })}
+      </div>
+    </InfiniteScroll>
+
+    {listsView.length === 0 && !hasMore && (
+      <Empty
+        className='primary-text'
+        description={
+          <span>
+            No lists found.
+          </span>
+        }
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+      />
+    )}
+  </div>
+}
 
 function PortfolioPage() {
   const router = useRouter();
@@ -47,9 +656,6 @@ function PortfolioPage() {
   const accountInfo = useAccount(addressOrUsername as string);
   const [tab, setTab] = useState(accountInfo?.readme ? 'overview' : 'collected');
   const [addPageIsVisible, setAddPageIsVisible] = useState(false);
-
-  const [newPageTitle, setNewPageTitle] = useState('');
-  const [newPageDescription, setNewPageDescription] = useState('');
   const [warned, setWarned] = useState(false);
 
   useEffect(() => {
@@ -123,52 +729,7 @@ function PortfolioPage() {
     }
   }
 
-  const SearchBar = <Input
-    defaultValue=""
-    placeholder="Filter by collection or badge"
-    value={searchValue}
-    onChange={async (e) => {
-      setSearchValue(e.target.value);
-    }}
-    className='form-input'
-    style={{}}
-  />;
 
-  const FilterSearchDropdown = <Dropdown
-    open={searchValue !== ''}
-    placement="bottom"
-    overlay={
-      <SearchDropdown
-        onlyCollections
-        onSearch={async (searchValue: any, _isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
-          if (typeof searchValue === 'string') {
-            if (isCollection) {
-              setFilteredCollections([...filteredCollections, {
-                collectionId: BigInt(searchValue),
-                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }]
-              }]);
-            } else if (isBadge) {
-              const collectionId = BigInt(searchValue.split('/')[0]);
-              const badgeId = BigInt(searchValue.split('/')[1]);
-
-              setFilteredCollections([...filteredCollections, {
-                collectionId,
-                badgeIds: [{ start: badgeId, end: badgeId }]
-              }]);
-            }
-
-            setSearchValue('');
-          }
-        }}
-        searchValue={searchValue}
-      />
-    }
-    overlayClassName='primary-text inherit-bg'
-    className='inherit-bg'
-    trigger={['hover', 'click']}
-  >
-    {SearchBar}
-  </Dropdown >
 
   useEffect(() => {
     if (!accountInfo?.address) return;
@@ -347,8 +908,6 @@ function PortfolioPage() {
   }, [addressOrUsername]);
 
 
-
-
   const [reactElement, setReactElement] = useState<ReactElement | null>(null);
 
   useLayoutEffect(() => {
@@ -358,220 +917,9 @@ function PortfolioPage() {
     setReactElement(reactElement);
   }, [accountInfo?.readme]);
 
-  const [customizeSearchValue, setCustomizeSearchValue] = useState<string>('');
-
-  interface BadgeIdObj {
-    collectionId: bigint,
-    badgeIds: UintRange<bigint>[]
-  }
-
-  const addToArray = (arr: BadgeIdObj[], badgeIdObjsToAdd: BadgeIdObj[]) => {
-    for (const badgeIdObj of badgeIdObjsToAdd) {
-      const badgeIdsToAdd = badgeIdObj.badgeIds;
-      const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
-      if (existingIdx != -1) {
-        arr[existingIdx].badgeIds = sortUintRangesAndMergeIfNecessary([...arr[existingIdx].badgeIds, ...badgeIdsToAdd], true)
-      } else {
-        arr.push({
-          collectionId: badgeIdObj.collectionId,
-          badgeIds: badgeIdsToAdd
-        })
-      }
-    }
-
-    return arr.filter(x => x.badgeIds.length > 0);
-  }
-
-  const removeFromArray = (arr: BadgeIdObj[], badgeIdObjsToRemove: BadgeIdObj[]) => {
-    for (const badgeIdObj of badgeIdObjsToRemove) {
-      const badgeIdsToRemove = badgeIdObj.badgeIds;
-
-
-      const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
-      if (existingIdx != -1) {
-        const [remaining,] = removeUintRangeFromUintRange(badgeIdsToRemove, arr[existingIdx].badgeIds);
-        arr[existingIdx].badgeIds = remaining;
-      }
-    }
-
-    return arr.filter(x => x.badgeIds.length > 0);
-  }
-
-  const [selectedBadge, setSelectedBadge] = useState<BadgeIdObj | null>(null);
-
-  const CustomizeSearchBar = <Input
-    defaultValue=""
-    placeholder={"Add or remove by searching a collection or badge"}
-
-    value={customizeSearchValue}
-    onChange={async (e) => {
-      setCustomizeSearchValue(e.target.value);
-    }}
-    className='form-input'
-    style={{}}
-  />;
-
-  const CustomizeSearchDropdown = <Dropdown
-    open={customizeSearchValue !== ''}
-    placement="bottom"
-    overlay={
-      <SearchDropdown
-        onlyCollections
-        onSearch={async (searchValue: any, _isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
-          if (typeof searchValue === 'string') {
-            if (isCollection) {
-              setSelectedBadge({
-                collectionId: BigInt(searchValue),
-                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }]
-              });
-            } else if (isBadge) {
-              const collectionId = BigInt(searchValue.split('/')[0]);
-              const badgeId = BigInt(searchValue.split('/')[1]);
-
-              setSelectedBadge({
-                collectionId,
-                badgeIds: [{ start: badgeId, end: badgeId }]
-              });
-            }
-
-
-            setCustomizeSearchValue('');
-          }
-        }}
-        searchValue={customizeSearchValue}
-      />
-    }
-    overlayClassName='primary-text inherit-bg'
-    className='inherit-bg'
-    trigger={['hover', 'click']}
-  >
-    {CustomizeSearchBar}
-  </Dropdown >
-
-  const [customizeSearchListValue, setCustomizeSearchListValue] = useState<string>('');
-  const [selectedList, setSelectedList] = useState<string>('');
-  const selectedListMapping = accountInfo?.addressMappings?.find(x => x.mappingId === selectedList);
-
-  const CustomizeListSearchBar = <Input
-    defaultValue=""
-    placeholder={"Add or remove by searching a list"}
-
-    value={customizeSearchListValue}
-    onChange={async (e) => {
-      setCustomizeSearchListValue(e.target.value);
-    }}
-    className='form-input'
-    style={{}}
-  />;
-
-  const CustomizeSearchListDropdown = <Dropdown
-    open={customizeSearchListValue !== ''}
-    placement="bottom"
-    overlay={
-      <SearchDropdown
-        onlyLists
-        onSearch={async (searchValue: any, isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
-          if (!isAccount && !isCollection && !isBadge && typeof searchValue === 'string') {
-            setSelectedList(searchValue);
-            setCustomizeSearchListValue('');
-          }
-        }}
-        searchValue={customizeSearchListValue}
-      />
-    }
-    overlayClassName='primary-text inherit-bg'
-    className='inherit-bg'
-    trigger={['hover', 'click']}
-  >
-    {CustomizeListSearchBar}
-  </Dropdown >
-
   if (!accountInfo) {
     return <></>
   }
-
-  const BadgeIdObjTag = ({ badgeIdObj, onClose, }: { badgeIdObj: BadgeIdObj, onClose?: () => void }) => {
-    const collection = getCollection(badgeIdObj.collectionId);
-    const metadata = isFullUintRanges(badgeIdObj.badgeIds) ? collection?.cachedCollectionMetadata
-      : getMetadataForBadgeId(badgeIdObj.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
-    return <Tag
-      className='primary-text inherit-bg flex-between'
-      style={{ alignItems: 'center', marginBottom: 8 }}
-      closable
-      closeIcon={onClose ? <CloseCircleOutlined
-        className='primary-text styled-button flex-center'
-        style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
-        size={50}
-      /> : <></>}
-      onClose={onClose}
-    >
-      <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
-        <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
-          <div>
-            <BadgeAvatar
-              size={30}
-              noHover
-              collectionId={badgeIdObj.collectionId}
-              metadataOverride={metadata}
-            />
-          </div>
-          <Typography.Text className="primary-text" style={{ fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
-            <div style={{ marginBottom: 4 }}>
-              {metadata?.name}
-            </div>
-            <div style={{ fontSize: 12 }}>
-              Collection ID: {badgeIdObj.collectionId.toString()}
-              <br />
-
-              {isFullUintRanges(badgeIdObj.badgeIds) ? 'All' : `Badge IDs: ${badgeIdObj.badgeIds.map(x =>
-                x.start === x.end ? `${x.start}` :
-                  `${x.start}-${x.end}`).join(', ')}`}
-            </div>
-          </Typography.Text>
-        </div>
-      </div>
-      <br />
-
-
-    </Tag>
-  }
-
-  const CustomizeSelect = <>{
-    chain.address === accountInfo.address && chain.loggedIn && (
-      <div className='primary-text inherit-bg' style={{
-        float: 'right',
-        display: 'flex',
-        alignItems: 'center',
-        marginRight: 16,
-        marginTop: 5,
-      }}>
-        Mode:
-
-        <Select
-          className='selector primary-text inherit-bg'
-          value={editMode ? 'edit' : 'none'}
-          placeholder="Default: None"
-          onChange={(e: any) => {
-            setEditMode(e === 'edit');
-            setCardView(true);
-          }}
-          style={{
-            float: 'right',
-            marginLeft: 8,
-          }}
-          suffixIcon={
-            <DownOutlined
-              className='primary-text'
-            />
-          }
-        >
-          <Select.Option value="none">Normal User</Select.Option>
-          <Select.Option value="edit">Customize</Select.Option>
-        </Select>
-      </div>
-    )
-  }</>
-
 
   const currView = badgeTab === 'Managing' ? accountInfo.views['managing'] : badgeTab === 'Created' ? accountInfo.views['createdBy'] : accountInfo.views['badgesCollected'];
 
@@ -606,102 +954,20 @@ function PortfolioPage() {
                 span={24}
                 title="About"
               >
-                <div style={{ overflow: 'auto' }}  >
-                  <div className='custom-html-style primary-text' id="description">
-                    {/* <Markdown> */}
-                    {reactElement}
-                    {/* </Markdown> */}
-                  </div>
+                <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto' }}>
+                  {/* <Markdown> */}
+                  {reactElement}
+                  {/* </Markdown> */}
                 </div>
               </InformationDisplayCard>
             </>)}
             {((tab === 'collected') || (tab == 'hidden')) && (<>
 
               <br />
-              <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
-                {CustomizeSelect}
-
-                {<div className='primary-text inherit-bg' style={{
-                  float: 'right',
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginRight: 16,
-                  marginTop: 5,
-                }}>
-                  Group By:
-
-                  <Select
-                    className='selector primary-text inherit-bg'
-                    value={groupByCollection ? 'collection' : 'none'}
-                    placeholder="Default: None"
-                    onChange={(e: any) => {
-                      setGroupByCollection(e === 'collection');
-                    }}
-                    style={{
-                      float: 'right',
-                      marginLeft: 8,
-                      minWidth: 90
-                    }}
-                    suffixIcon={
-                      <DownOutlined
-                        className='primary-text'
-                      />
-                    }
-                  >
-                    <Select.Option value="none">None</Select.Option>
-                    <Select.Option value="collection">Collection</Select.Option>
-                  </Select>
-                </div>
-                }
-
-                {!editMode && <div className='primary-text inherit-bg'
-                  style={{
-                    float: 'right',
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginLeft: 16,
-                    marginRight: 16,
-                    marginTop: 5,
-                  }}>
-                  View:
-
-                  <Select
-                    className="selector primary-text inherit-bg"
-                    value={cardView ? 'card' : 'image'}
-                    placeholder="Default: None"
-                    onChange={(e: any) => {
-                      setCardView(e === 'card');
-                    }}
-                    style={{
-                      float: 'right',
-                      marginLeft: 8
-                    }}
-                    suffixIcon={
-                      <DownOutlined
-                        className='primary-text'
-                      />
-                    }
-                  >
-                    <Select.Option value="card">Card</Select.Option>
-                    <Select.Option value="image">Image</Select.Option>
-                  </Select>
-                </div>}
-                {tab != 'hidden' && <>
-                  <div className='primary-text inherit-bg'
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      // marginLeft: 16,
-                      marginRight: 16,
-                      marginTop: 5,
-                      flexGrow: 1
-                    }}>
-                    {FilterSearchDropdown}
-
-                  </div>
-                </>}
-
-              </div>
+              <OptionsSelects
+                searchValue={searchValue} setSearchValue={setSearchValue} filteredCollections={filteredCollections} setFilteredCollections={setFilteredCollections}
+                editMode={editMode} setEditMode={setEditMode}
+                cardView={cardView} setCardView={setCardView} groupByCollection={groupByCollection} setGroupByCollection={setGroupByCollection} addressOrUsername={addressOrUsername as string} />
               <br />
 
               <div className='full-width flex-center flex-wrap'>
@@ -808,135 +1074,63 @@ function PortfolioPage() {
                 />
               </div> */}
                   <div className='flex-center'>
+                    <CustomizeAddRemoveBadgeFromPage onAdd={async (selectedBadge: BadgeIdObj) => {
+                      let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
+                        deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
+                      currCustomPageBadges = addToArray(currCustomPageBadges, [selectedBadge]);
 
-
-                    <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedBadge} inheritBg={!selectedBadge}>
-                      <div className='flex'>
-                        {CustomizeSearchDropdown}
-
-                      </div>
-
-                      {selectedBadge && <>
-                        <br />
-                        <div className='flex-center'>
-                          <BadgeIdObjTag badgeIdObj={selectedBadge} onClose={() => { setSelectedBadge(null) }} />
-                        </div>
-                        <br />
-                      </>}
-
-                      {selectedBadge &&
-                        <div className='flex-center flex-wrap'>
-                          <button className='landing-button' onClick={async () => {
-                            if (!selectedBadge) return;
-
-                            let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
-                              deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
-                            currCustomPageBadges = addToArray(currCustomPageBadges, [selectedBadge]);
-
-                            if (badgeTab == 'Hidden') {
-                              await updateProfileInfo(chain.address, {
-                                hiddenBadges: currCustomPageBadges
-                              });
-                            } else {
-                              const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
-                              if (!currCustomPage) return;
-
-                              await updateProfileInfo(chain.address, {
-                                customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
-                              });
-                            }
-
-                            setSelectedBadge(null);
-                          }}>
-                            Add
-                          </button>
-
-                          <button className='landing-button' onClick={async () => {
-                            if (!selectedBadge) return;
-
-                            let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
-                              deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
-                            currCustomPageBadges = removeFromArray(currCustomPageBadges, [selectedBadge]);
-
-                            if (badgeTab == 'Hidden') {
-                              await updateProfileInfo(chain.address, {
-                                hiddenBadges: currCustomPageBadges
-                              });
-                            } else {
-                              const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
-                              if (!currCustomPage) return;
-
-                              await updateProfileInfo(chain.address, {
-                                customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
-                              });
-                            }
-
-                            setSelectedBadge(null);
-                          }}>
-                            Remove
-                          </button>
-                        </div>}
-                    </InformationDisplayCard>
-
-                  </div></>}
-
-                {addPageIsVisible && <div className='flex-center '>
-                  <Col md={12} xs={24} style={{ marginBottom: 8 }}>
-                    <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
-                    <Input
-
-                      defaultValue=""
-                      placeholder="Page Name"
-                      className='form-input'
-                      style={{
-                        maxWidth: 300,
-                        marginRight: 8
-                      }}
-                      onChange={(e) => {
-                        if (e) setNewPageTitle(e.target.value);
-                      }}
-                    />
-                    <br />
-                    <br />
-                    <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
-                    <Input.TextArea
-                      autoSize
-                      defaultValue=""
-                      placeholder="Page Description"
-                      className='form-input'
-                      style={{
-                        maxWidth: 300,
-                        marginRight: 8
-                      }}
-                      onChange={(e) => {
-                        if (e) setNewPageDescription(e.target.value);
-                      }}
-                    />
-                    <br />
-                    <br />
-                    <div className='flex-center'>
-                      <button className='landing-button' onClick={async () => {
-                        const newCustomPages = deepCopy(accountInfo.customPages ?? []);
-                        newCustomPages.push({
-                          title: newPageTitle,
-                          description: newPageDescription,
-                          badges: []
+                      if (badgeTab == 'Hidden') {
+                        await updateProfileInfo(chain.address, {
+                          hiddenBadges: currCustomPageBadges
                         });
+                      } else {
+                        const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
+                        if (!currCustomPage) return;
 
                         await updateProfileInfo(chain.address, {
-                          customPages: newCustomPages
+                          customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
                         });
+                      }
 
-                        setAddPageIsVisible(false);
-                        setBadgeTab(newPageTitle);
-                        setNewPageDescription('');
-                        setNewPageTitle('');
-                      }}>
-                        Add Page
-                      </button>
-                    </div>
-                  </Col>
-                </div>}
+
+                    }} onRemove={async (selectedBadge: BadgeIdObj) => {
+                      let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
+                        deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
+                      currCustomPageBadges = removeFromArray(currCustomPageBadges, [selectedBadge]);
+
+                      if (badgeTab == 'Hidden') {
+                        await updateProfileInfo(chain.address, {
+                          hiddenBadges: currCustomPageBadges
+                        });
+                      } else {
+                        const currCustomPage = accountInfo?.customPages?.find(x => x.title === badgeTab);
+                        if (!currCustomPage) return;
+
+                        await updateProfileInfo(chain.address, {
+                          customPages: accountInfo?.customPages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
+                        });
+                      }
+                    }} />
+
+                  </div>
+                </>}
+                <NewPageInputForm visible={addPageIsVisible} setVisible={setAddPageIsVisible} onAddPage={async (
+                  newPageTitle: string,
+                  newPageDescription: string
+                ) => {
+                  const newCustomPages = deepCopy(accountInfo.customPages ?? []);
+                  newCustomPages.push({
+                    title: newPageTitle,
+                    description: newPageDescription,
+                    badges: []
+                  });
+
+                  await updateProfileInfo(chain.address, {
+                    customPages: newCustomPages
+                  });
+
+                  setBadgeTab(newPageTitle);
+                }} />
 
                 {(badgeTab === 'Managing' || badgeTab === 'Created') && (<>
                   <InfiniteScroll
@@ -1058,9 +1252,15 @@ function PortfolioPage() {
 
             {tab === 'lists' && (<>
               <br />
-              <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
-                {CustomizeSelect}
-              </div>
+              <OptionsSelects
+                isListsSelect
+                searchValue={searchValue} setSearchValue={setSearchValue} filteredCollections={filteredCollections} setFilteredCollections={setFilteredCollections}
+                editMode={editMode} setEditMode={setEditMode}
+                cardView={cardView} setCardView={setCardView}
+                groupByCollection={groupByCollection} setGroupByCollection={setGroupByCollection}
+                addressOrUsername={addressOrUsername as string}
+              />
+
 
 
               <div className='flex-center'>
@@ -1151,182 +1351,76 @@ function PortfolioPage() {
               {!isPresetList && listsTab != '' && editMode && <>
 
                 <div className='flex-center'>
-                  <InformationDisplayCard title='' md={12} xs={24} style={{ marginBottom: 8 }} noBorder={!selectedList} inheritBg={!selectedList}>
-                    <div className='flex'>
-                      {CustomizeSearchListDropdown}
-                    </div>
+                  <CustomizeAddRemoveListFromPage
+                    addressOrUsername={accountInfo.address}
+                    onAdd={async (selectedList: string) => {
+                      let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
+                        deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
 
-                    {selectedList && selectedListMapping && <>
-                      <br />
-                      <div className='flex-center'>
-                        <AddressListCard
-                          addressMapping={selectedListMapping}
-                          addressOrUsername={accountInfo.address}
-                        />
-                      </div>
-                      <br />
-                    </>}
+                      currCustomPageLists = currCustomPageLists.concat([selectedList]);
 
-                    {selectedList &&
-                      <div className='flex-center flex-wrap'>
-                        <button className='landing-button' onClick={async () => {
-                          if (!selectedList) return;
+                      if (listsTab == 'Hidden') {
+                        await updateProfileInfo(chain.address, {
+                          hiddenLists: currCustomPageLists
+                        });
+                      } else {
+                        const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
+                        if (!currCustomPage) return;
 
-                          let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
-                            deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
+                        await updateProfileInfo(chain.address, {
+                          customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
+                        });
+                      }
+                    }} onRemove={async (selectedList: string) => {
+                      let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
+                        deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
+                      currCustomPageLists = currCustomPageLists.filter(x => x !== selectedList);
 
-                          currCustomPageLists = currCustomPageLists.concat([selectedList]);
+                      if (listsTab == 'Hidden') {
+                        await updateProfileInfo(chain.address, {
+                          hiddenLists: currCustomPageLists
+                        });
+                      } else {
+                        const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
+                        if (!currCustomPage) return;
 
-                          if (listsTab == 'Hidden') {
-                            await updateProfileInfo(chain.address, {
-                              hiddenLists: currCustomPageLists
-                            });
-                          } else {
-                            const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
-                            if (!currCustomPage) return;
-
-                            await updateProfileInfo(chain.address, {
-                              customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
-                            });
-                          }
-
-                          setSelectedList('');
-                        }}>
-                          Add
-                        </button>
-
-                        <button className='landing-button' onClick={async () => {
-                          if (!selectedList) return;
-
-                          let currCustomPageLists = listsTab == 'Hidden' ? deepCopy(accountInfo?.hiddenLists ?? []) :
-                            deepCopy(accountInfo?.customListPages?.find(x => x.title === listsTab)?.mappingIds ?? []);
-                          currCustomPageLists = currCustomPageLists.filter(x => x !== selectedList);
-
-                          if (listsTab == 'Hidden') {
-                            await updateProfileInfo(chain.address, {
-                              hiddenLists: currCustomPageLists
-                            });
-                          } else {
-                            const currCustomPage = accountInfo?.customListPages?.find(x => x.title === listsTab);
-                            if (!currCustomPage) return;
-
-                            await updateProfileInfo(chain.address, {
-                              customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
-                            });
-                          }
-
-                          setSelectedList('');
-                        }}>
-                          Remove
-                        </button>
-                      </div>}
-                  </InformationDisplayCard>
+                        await updateProfileInfo(chain.address, {
+                          customListPages: accountInfo?.customListPages?.map(x => x.title === listsTab ? { ...currCustomPage, mappingIds: currCustomPageLists } : x)
+                        });
+                      }
+                    }} />
                 </div></>}
 
-              {addPageIsVisible && <div className='flex-center '>
-                <Col md={12} xs={24} style={{ marginBottom: 8 }}>
-                  <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
-                  <Input
+              <NewPageInputForm visible={addPageIsVisible} setVisible={setAddPageIsVisible} onAddPage={async (
+                newPageTitle: string,
+                newPageDescription: string
+              ) => {
+                const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
+                newCustomPages.push({
+                  title: newPageTitle,
+                  description: newPageDescription,
+                  mappingIds: []
+                });
 
-                    defaultValue=""
-                    placeholder="Page Name"
-                    className='form-input'
-                    style={{
-                      maxWidth: 300,
-                      marginRight: 8
-                    }}
-                    onChange={(e) => {
-                      if (e) setNewPageTitle(e.target.value);
-                    }}
-                  />
-                  <br />
-                  <br />
-                  <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
-                  <Input.TextArea
-                    autoSize
-                    defaultValue=""
-                    placeholder="Page Description"
-                    className='form-input'
-                    style={{
-                      maxWidth: 300,
-                      marginRight: 8
-                    }}
-                    onChange={(e) => {
-                      if (e) setNewPageDescription(e.target.value);
-                    }}
-                  />
-                  <br />
-                  <br />
-                  <div className='flex-center'>
-                    <button className='landing-button' onClick={async () => {
-                      const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
-                      newCustomPages.push({
-                        title: newPageTitle,
-                        description: newPageDescription,
-                        mappingIds: []
-                      });
+                await updateProfileInfo(chain.address, {
+                  customListPages: newCustomPages
+                });
 
-                      await updateProfileInfo(chain.address, {
-                        customListPages: newCustomPages
-                      });
 
-                      setAddPageIsVisible(false);
-                      setListsTab(newPageTitle);
-                      setNewPageDescription('');
-                      setNewPageTitle('');
-                    }}>
-                      Add Page
-                    </button>
-                  </div>
-                </Col>
-              </div>}
+                setListsTab(newPageTitle);
+
+              }} />
               {listsTab !== '' && <>
                 {listsTab === 'privateLists' && !chain.loggedIn ? <BlockinDisplay /> : <>
-
-                  <div className='flex-center flex-wrap'>
-                    <InfiniteScroll
-                      dataLength={listsView.length}
-                      next={async () => {
-                        if (isPresetList) fetchMoreLists(accountInfo?.address ?? '', listsTab)
-                      }}
-                      hasMore={isPresetList && hasMoreAddressMappings}
-                      loader={<div>
-                        <br />
-                        <Spin size={'large'} />
-                        <br />
-                        <br />
-                      </div>}
-                      scrollThreshold={"300px"}
-                      endMessage={
-                        <></>
-                      }
-                      initialScrollY={0}
-                      style={{ width: '100%', overflow: 'hidden' }}
-                    >
-                      <div className='full-width flex-center flex-wrap'>
-                        {listsView.map((addressMapping, idx) => {
-                          return <AddressListCard
-                            key={idx}
-                            addressMapping={addressMapping}
-                            addressOrUsername={accountInfo.address}
-                            hideInclusionDisplay={listsTab === 'privateLists' || listsTab === 'createdLists'}
-                          />
-                        })}
-                      </div>
-                    </InfiniteScroll>
-
-                    {listsView.length === 0 && !hasMoreAddressMappings && (
-                      <Empty
-                        className='primary-text'
-                        description={
-                          <span>
-                            No lists found.
-                          </span>
-                        }
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      />
-                    )}
-                  </div>
+                  <ListInfiniteScroll
+                    fetchMore={async () => {
+                      if (isPresetList) fetchMoreLists(accountInfo?.address ?? '', listsTab)
+                    }}
+                    hasMore={isPresetList && hasMoreAddressMappings}
+                    listsView={listsView}
+                    addressOrUsername={accountInfo?.address ?? ''}
+                    showInclusionDisplay={listsTab === 'privateLists' || listsTab === 'createdLists'}
+                  />
                 </>}
               </>}
             </>)}

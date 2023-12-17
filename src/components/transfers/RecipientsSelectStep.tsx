@@ -57,7 +57,7 @@ export function RecipientsSelectStep({
       {showApprovalsMessage && <>
         <Divider />
         <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
-          <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, and if not overriden, the sender's the outgoing and recipient's incoming approvals as well."}
+          <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, the sender's outgoing approvals, and the recipient's incoming approvals (if applicable)."}
         </Typography.Text></>}
     </Col>
     </div>,

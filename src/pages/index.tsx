@@ -185,7 +185,7 @@ const Home: NextPage = () => {
             }}><span className='mr-2'>Collect {' '}</span><img src='/images/bitbadgeslogotext.png' alt='BitBadges Logo' className='inline-logo primary-pink' />
               {' '} to build your digital identity!</div>
             <br />
-            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can be migrated to mainnet once launched. $BADGE will be redistributed via an airdrop based on betanet contributions.</p>
+            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. $BADGE will be redistributed via an airdrop based on betanet contributions.</p>
             <div className='flex flex-wrap full-width mt-3'>
               <Button
                 size='large'
@@ -272,37 +272,11 @@ const Home: NextPage = () => {
           <LandingCard
             content={<>
               <div>
-
                 <img src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" className='h-[4rem]' />
-
-                {/* <br />
-                <CloudServerOutlined
-                  className='figma-blue text-vivid-blue'
-                  style={{ fontSize: 40, margin: 8 }}
-                />
-
-                <AuditOutlined
-                  className='figma-blue text-vivid-blue'
-                  style={{ fontSize: 40, margin: 8 }} />
-                <DeploymentUnitOutlined className='figma-blue text-vivid-blue'
-                  style={{ fontSize: 40, margin: 8 }} />
-
-                <SendOutlined
-                  className='figma-blue text-vivid-blue'
-                  style={{ fontSize: 40, margin: 8 }}
-                />
-
-                <QrcodeOutlined
-                  className='figma-blue text-vivid-blue'
-                  style={{ fontSize: 40, margin: 8 }} />
-                <LockOutlined className='figma-blue text-vivid-blue'
-                  style={{ fontSize: 40, margin: 8 }} /> */}
-
               </div>
               <div className='grid lg:grid-cols-2 gap-10'>
-                <div>
-                  <br />
-                  <br />
+
+                <div style={{ marginTop: 12 }}>
                   <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
                     What is BitBadges?
                   </Typography.Text>
@@ -349,12 +323,12 @@ const Home: NextPage = () => {
                   </Typography.Text> */}
 
                 </div>
-                <div className="container" style={{ marginTop: 12, }}>
+                <div className="container" style={{ marginTop: 12 }}>
                   <iframe
                     className='responsive-iframe rounded-2xl'
                     // width={'60%'}
                     // height={209 * 1.2}
-                    src="https://www.youtube.com/embed/vgL1BR4PZNU"
+                    src="https://www.youtube.com/embed/7IbHA6LQZt4?si=v9eN4w70p3XwkmD7"
                     title="Create a Badge in 45 Seconds w/ BitBadges"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

@@ -69,90 +69,7 @@ function BrowsePage() {
         <div className='full-width'>
           <br />
 
-          <Typography.Text strong className='primary-text text-4xl' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
-            Profiles
-          </Typography.Text>
-          <div className="profile-carousel">
-            <CustomCarousel
 
-              title={
-                <Tabs
-
-                  theme='dark'
-                  tabInfo={browseInfo ? Object.keys(browseInfo.profiles).map(category => {
-
-                    return {
-                      key: category,
-                      label: category.charAt(0).toUpperCase() + category.slice(1),
-                      content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </Typography.Text>
-                    }
-                  }) : []}
-                  setTab={setTab}
-                  tab={tab}
-                />
-              }
-              items={browseInfo?.profiles[tab]?.map((_, idx) => {
-                const itemWidth = 330; // Set the width of each carousel item (adjust as needed)
-                const numItems = Math.round(containerWidth / itemWidth) ? Math.round(containerWidth / itemWidth) : 1;
-
-
-                const idxArr = new Array(numItems);
-                for (let i = 0; i < idxArr.length; i++) {
-                  idxArr[i] = idx + i;
-                }
-                if (idx % numItems !== 0) return null
-
-                return <div key={idx} className='flex flex-center-if-mobile full-width'
-
-                >{idxArr.map(idx => {
-                  if (idx >= browseInfo?.profiles[tab]?.length) return null
-                  const profile = browseInfo?.profiles[tab][idx];
-                  return <InformationDisplayCard title='' key={idx} style={{}}>
-                    <>
-                      <div style={{ alignItems: 'normal' }}>
-                        <AccountButtonDisplay
-                          addressOrUsername={profile.address}
-                          hideButtons
-                        />
-                      </div>
-                      {/* 
-
-                      <b>Pinned <FontAwesomeIcon
-                        icon={faThumbtack}
-                        style={{
-                          color: 'gold',
-                          marginRight: 8,
-                        }}
-                      />
-                      </b>
-                      <MultiCollectionBadgeDisplay
-                        collectionIds={profile.collected.map(collected => collected.collectionId)}
-                        addressOrUsernameToShowBalance={profile.address}
-                        cardView={cardView}
-                        customPageBadges={profile.customPages?.find(x => x.title === 'Pinned Badges')?.badges ?? []}
-                        // size={75}
-                        hidePagination
-                        defaultPageSize={3}
-                      /> */}
-
-
-                      <div style={{ marginTop: '1rem' }}></div>
-                      <a className='text-vivid-blue' onClick={() => {
-                        router.push(`/account/${profile.address}`)
-                      }}
-                        style={{ fontSize: 16 }}
-                      >
-                        See full profile
-                      </a>
-                    </>
-                  </InformationDisplayCard>
-                }).filter(x => x)}</div>
-              }).filter(x => x) ?? []}
-            />
-          </div>
-          < Divider />
           <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Badges
           </Typography.Text>
@@ -250,7 +167,69 @@ function BrowsePage() {
             }).filter(x => x) ?? []}
           />
 
-          <Divider />
+          <Divider /><Typography.Text strong className='primary-text text-4xl' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            Profiles
+          </Typography.Text>
+          <div className="profile-carousel">
+            <CustomCarousel
+
+              title={
+                <Tabs
+
+                  theme='dark'
+                  tabInfo={browseInfo ? Object.keys(browseInfo.profiles).map(category => {
+
+                    return {
+                      key: category,
+                      label: category.charAt(0).toUpperCase() + category.slice(1),
+                      content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </Typography.Text>
+                    }
+                  }) : []}
+                  setTab={setTab}
+                  tab={tab}
+                />
+              }
+              items={browseInfo?.profiles[tab]?.map((_, idx) => {
+                const itemWidth = 330; // Set the width of each carousel item (adjust as needed)
+                const numItems = Math.round(containerWidth / itemWidth) ? Math.round(containerWidth / itemWidth) : 1;
+
+
+                const idxArr = new Array(numItems);
+                for (let i = 0; i < idxArr.length; i++) {
+                  idxArr[i] = idx + i;
+                }
+                if (idx % numItems !== 0) return null
+
+                return <div key={idx} className='flex flex-center-if-mobile full-width'
+
+                >{idxArr.map(idx => {
+                  if (idx >= browseInfo?.profiles[tab]?.length) return null
+                  const profile = browseInfo?.profiles[tab][idx];
+                  return <InformationDisplayCard title='' key={idx} style={{}}>
+                    <>
+                      <div style={{ alignItems: 'normal' }}>
+                        <AccountButtonDisplay
+                          addressOrUsername={profile.address}
+                          hideButtons
+                        />
+                      </div>
+                      <div style={{ marginTop: '1rem' }}></div>
+                      <a className='text-vivid-blue' onClick={() => {
+                        router.push(`/account/${profile.address}`)
+                      }}
+                        style={{ fontSize: 16 }}
+                      >
+                        See full profile
+                      </a>
+                    </>
+                  </InformationDisplayCard>
+                }).filter(x => x)}</div>
+              }).filter(x => x) ?? []}
+            />
+          </div>
+          < Divider />
           <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Activity
           </Typography.Text>

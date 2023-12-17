@@ -68,7 +68,7 @@ export const BlockinDisplay = ({
       updateChallengeParams();
     }
 
-  }, [address, chain]);
+  }, [address, chain, connected]);
 
   const handleSignChallenge = async (challenge: string) => {
     const response = await signChallenge(challenge);

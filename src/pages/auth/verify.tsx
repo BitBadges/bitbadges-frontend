@@ -173,7 +173,7 @@ function BlockinCodesScreen() {
         minHeight: '100vh'
       }}
     >
-      <div className='flex'>
+      <div className='flex flex-wrap'>
         <InformationDisplayCard title='Enter QR Code' md={12} xs={24} sm={24} >
           <Input.TextArea
             rows={10}
@@ -185,12 +185,14 @@ function BlockinCodesScreen() {
           />
           <br />
           <br />
-          <div className='flex-center'>
-            <Switch checkedChildren="Auto Clear (5s)" unCheckedChildren="Auto Clear" onChange={(checked) => {
-              if (checked) setAutoClearMs(5000);
-              else setAutoClearMs(0);
-            }} />
-            <div className='secondary-text' style={{ marginLeft: 8 }}>
+          <div className='flex-center flex-wrap'>
+            <div>
+              <Switch checkedChildren="Auto Clear (5s)" unCheckedChildren="Auto Clear" onChange={(checked) => {
+                if (checked) setAutoClearMs(5000);
+                else setAutoClearMs(0);
+              }} />
+            </div>
+            <div className='secondary-text' style={{ marginLeft: 8, textAlign: 'center' }}>
               <InfoCircleOutlined />
               {autoClearMs > 0 ? ` QR Code will be auto verified upon entered and cleared after ${autoClearMs / 1000} seconds.` : ' To verify, you manually click "Verify QR Code"'}
             </div>

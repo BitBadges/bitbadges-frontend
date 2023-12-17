@@ -13,11 +13,10 @@ import { useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { signOut } from '../../bitbadges-api/api';
 
-import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
-import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { getAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import DarkModeSwitcher from '../DarkModeSwitcher';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
@@ -43,10 +42,11 @@ export function WalletHeader() {
   const address = chain.address;
   const avatar = account?.profilePicUrl ?? account?.avatar;
 
-  const onSearch = async (value: string | BitBadgesUserInfo<bigint>, isAccount?: boolean, isCollection?: boolean, isBadge?: boolean) => {
+  const onSearch = async (value: string, isAccount?: boolean, isCollection?: boolean, isBadge?: boolean) => {
 
-    if (isAccount && typeof value !== "string") {
-      router.push('/account/' + value.address);
+    if (isAccount) {
+      const account = getAccount(value);
+      router.push('/account/' + account?.address);
     } else if (isCollection || isBadge) {
       router.push('/collections/' + value);
     } else {
@@ -203,7 +203,9 @@ export function WalletHeader() {
       </Menu.Item>
     }
 
-
+    {connected && <>
+      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + 'watchlist')}>Watchlist</Menu.Item>
+    </>}
     {connected && <>
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
     </>}

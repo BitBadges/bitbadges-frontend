@@ -1,6 +1,8 @@
+import { DeleteOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
+import IconButton from '../display/IconButton';
 
-export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass }: {
+export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass, onDeleteCurrTab }: {
   tab: string;
   setTab: (tab: string) => void;
   tabInfo: ({ key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element } | undefined)[];
@@ -9,13 +11,49 @@ export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedK
   noSelectedKeys?: boolean;
   type?: 'underline' | 'default';
   customClass?: string;
+  onDeleteCurrTab?: (tab: string) => Promise<void>;
 }) {
-  const tabInfoFiltered = tabInfo.filter((tab) => tab != undefined) as { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
+  let tabInfoFiltered = tabInfo.filter((tab) => tab != undefined) as { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
 
   const widthPerTab = fullWidth
     ? `calc(100% / ${tabInfoFiltered.length})`
     : undefined;
   const selectedTab = tab
+
+  if (onDeleteCurrTab) {
+    tabInfoFiltered = tabInfoFiltered.map((tab) => {
+      if (tab.key == selectedTab) {
+        return {
+          ...tab,
+          content: <div className='flex-center' style={{ marginLeft: 8 }}>
+            {tab.key}
+            {<>
+
+
+              <IconButton
+                text=''
+                onClick={async () => {
+                  if (!confirm('Are you sure you want to delete?')) {
+                    return
+                  }
+
+                  await onDeleteCurrTab(tab.key);
+
+                  //first tab that is not this one
+                  const newTab = tabInfoFiltered.find(x => x.key != tab.key)?.key ?? '';
+                  setTab(newTab);
+
+                }}
+                src={<DeleteOutlined />}
+              />
+            </>}
+          </div>,
+        }
+      } else {
+        return tab;
+      }
+    })
+  }
 
 
   const tabs = tabInfoFiltered.map((tab,) => {

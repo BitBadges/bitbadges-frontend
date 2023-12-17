@@ -23,18 +23,17 @@ export function BadgeButtonDisplay({
   }
 }) {
   const [reportIsVisible, setReportIsVisible] = useState(false);
-  const accountInfo = socials;
 
-  const twitterLink = 'https://twitter.com/' + accountInfo?.twitter;
-  const telegramLink = 'https://t.me/' + accountInfo?.telegram;
-  const githubLink = 'https://github.com/' + accountInfo?.github;
-  const discordLink = 'https://discord.com/invite/' + accountInfo?.discord;
+  const twitterLink = 'https://twitter.com/' + socials?.twitter;
+  const telegramLink = 'https://t.me/' + socials?.telegram;
+  const githubLink = 'https://github.com/' + socials?.github;
+  const discordLink = 'https://discord.com/invite/' + socials?.discord;
 
   return (
     <div>
 
       <div style={{ position: 'absolute', right: 10, display: 'flex' }}>
-        {accountInfo?.twitter && (
+        {socials?.twitter && (
           <a href={twitterLink} target="_blank" rel="noreferrer">
             <Tooltip title="Twitter" placement="bottom">
               <Avatar
@@ -48,7 +47,7 @@ export function BadgeButtonDisplay({
             </Tooltip>
           </a>
         )}
-        {accountInfo?.telegram && (
+        {socials?.telegram && (
           <a href={telegramLink} target="_blank" rel="noreferrer">
             <Tooltip title="Telegram" placement="bottom">
               <Avatar
@@ -61,7 +60,7 @@ export function BadgeButtonDisplay({
             </Tooltip>
           </a>
         )}
-        {accountInfo?.github && (
+        {socials?.github && (
           <a href={githubLink} target="_blank" rel="noreferrer">
             <Tooltip title="GitHub" placement="bottom">
               <Avatar
@@ -76,7 +75,7 @@ export function BadgeButtonDisplay({
             </Tooltip>
           </a>
         )}
-        {accountInfo?.discord && (
+        {socials?.discord && (
           <a href={discordLink} target="_blank" rel="noreferrer">
             <Tooltip title="Discord" placement="bottom">
               <Avatar
@@ -104,6 +103,22 @@ export function BadgeButtonDisplay({
             </Tooltip>
           </a>
         )}
+
+
+        {/* {<a
+          onClick={async () => { }}
+          target="_blank" rel="noreferrer">
+          <Tooltip title="Add / Remove - Watchlist" placement="bottom">
+            <Avatar
+              size="large"
+              onClick={() => { }}
+              className="styled-button account-socials-button"
+              src={<EyeOutlined />}
+            >
+
+            </Avatar>
+          </Tooltip>
+        </a>} */}
 
         {!(global.navigator && global.navigator.canShare && global.navigator.canShare(
           {

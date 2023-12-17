@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { getCodeForPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
-import { InfoCircleOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
@@ -164,30 +164,26 @@ export function CreateTxMsgClaimBadgeModal(
     }
   }, [code, claimItem, approval]);
 
-  useEffect(() => {
+  async function fetchCodeForPassword() {
     if (!visible || !code) return;
-    if (INFINITE_LOOP_MODE) console.log('useEffect: code to submit ');
-    // If the claim is password-based, we need to fetch the code to submit to the blockchain from the server
-    async function fetchCode() {
-      if (approval && approval.details?.hasPassword) {
-        let claimItemCid = '';
-        if (approval.uri?.startsWith('ipfs://')) {
-          claimItemCid = approval.uri.split('ipfs://')[1];
-          claimItemCid = claimItemCid.split('/')[0];
-        }
-        if (code) {
-          try {
-            const res = await getCodeForPassword(collectionId, claimItemCid, code);
-            setPasswordCodeToSubmit(res.code);
-            console.log(res.code);
-          } catch (e) {
 
-          }
+    if (approval && approval.details?.hasPassword) {
+      let claimItemCid = '';
+      if (approval.uri?.startsWith('ipfs://')) {
+        claimItemCid = approval.uri.split('ipfs://')[1];
+        claimItemCid = claimItemCid.split('/')[0];
+      }
+      if (code) {
+        try {
+          const res = await getCodeForPassword(collectionId, claimItemCid, code);
+          setPasswordCodeToSubmit(res.code);
+          console.log(res.code);
+        } catch (e) {
+
         }
       }
     }
-    fetchCode();
-  }, [claimItem, approval, code, collectionId, visible, setVisible, tree, chain.cosmosAddress, leafIndex, isWhitelist, challengeTracker]);
+  }
 
   if (!collection || !visible) return <></>;
 
@@ -210,7 +206,7 @@ export function CreateTxMsgClaimBadgeModal(
 
         </div>
         <br />
-        <div className='flex'>
+        <div className='flex flex-wrap'>
           <InformationDisplayCard md={12} xs={24} sm={24} title='Details' style={{ textAlign: 'center' }} subtitle={'Customize the details for this claim, such as the recipient or enter claim codes, if applicable.'}>
             <br />
             <div className="flex-center full-width">
@@ -234,18 +230,38 @@ export function CreateTxMsgClaimBadgeModal(
                                 placeholder={`Enter ${details?.hasPassword ? 'Password' : 'Code'}`}
                                 value={code}
                                 onInput={(e: any) => {
-                                  if (setCode) setCode(e.target.value);
-                                }}
+                                  if (setCode) {
+                                    setCode(e.target.value);
+                                    setPasswordCodeToSubmit('');
+                                  }
+                                }
+                                }
                                 className="primary-text inherit-bg"
                                 style={{
                                   textAlign: 'center',
                                   marginTop: 10,
                                 }}
                               />
-                              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                                <InfoCircleOutlined /> {`To be able to claim, you must enter a valid ${details?.hasPassword ? 'password' : 'code'}.`}
+                              {details?.hasPassword && <>
                                 <br />
-                              </Typography.Text>
+                                <br />
+                                <div className='flex-center'>
+                                  <button className='landing-button' disabled={!!passwordCodeToSubmit} onClick={fetchCodeForPassword} style={{ width: '100%' }}>Check</button>
+                                </div>
+                                {!passwordCodeToSubmit && <>
+                                  <div className='secondary-text'>
+                                    <InfoCircleOutlined /> {`If correct, this will count as a use of the password (1 per address, ${details?.challengeDetails?.leavesDetails?.leaves.length - (leafIndex + 1)} total).`}
+                                  </div>
+                                </>}
+
+                                {!!passwordCodeToSubmit && <>
+
+                                  <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
+                                    {`The password is valid`} <CheckCircleFilled style={{ color: '#00FF00' }} />
+                                  </Typography.Text>
+                                </>}
+
+                              </>}
                             </>
                           }
                           {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0) ? <></> : <>
