@@ -61,7 +61,7 @@ export function TemplateCollectionSelect() {
               <BadgeAvatarDisplay collectionId={15n} badgeIds={[{ start: 1n, end: 1n }]} showIds />
 
             </>,
-            isSelected: selectedIdx === 1,
+            isSelected: selectedIdx === 0,
             additionalNode: <>
               <SubmitMsgNewCollection
                 MsgUniversalUpdateCollection={convertMsgUniversalUpdateCollection({

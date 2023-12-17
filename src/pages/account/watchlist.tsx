@@ -239,7 +239,7 @@ function WatchlistPage() {
               {accountInfo.watchedBadgePages?.find(x => x.title === badgeTab)?.description}
             </div>}
 
-            {accountInfo.watchedBadgePages?.length === 0 && !addPageIsVisible && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+            {!(accountInfo.watchedBadgePages?.length) && !addPageIsVisible && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
               You have no custom pages. Sign in, go into customize mode, and click the plus button to add one.
             </div>}
 
@@ -386,7 +386,7 @@ function WatchlistPage() {
             {accountInfo.watchedListPages?.find(x => x.title === badgeTab)?.description}
           </div>}
 
-          {accountInfo.watchedListPages?.length === 0 && !addPageIsVisible && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
+          {!(accountInfo.watchedListPages?.length) && !addPageIsVisible && <div className='secondary-text' style={{ marginBottom: 16, marginTop: 4 }}>
             You have no custom pages. Sign in, go into customize mode, and click the plus button to add one.
           </div>}
           {listsTab != '' && editMode && <>
@@ -423,7 +423,7 @@ function WatchlistPage() {
 
           <NewPageInputForm
 
-            visible={addPageIsVisible} setVisible={setAddPageIsVisible} 
+            visible={addPageIsVisible} setVisible={setAddPageIsVisible}
             onAddPage={async (
               newPageTitle: string,
               newPageDescription: string,
