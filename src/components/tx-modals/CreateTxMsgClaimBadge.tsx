@@ -14,12 +14,11 @@ import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/co
 import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
+import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { PredeterminedCard, TransferabilityRow } from '../collection-page/TransferabilityRow';
+import { PredeterminedCard } from '../collection-page/TransferabilityRow';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TxModal } from './TxModal';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
-import { Divider } from '../display/Divider';
 
 
 //Claim badge is exclusively used for predetermined balances

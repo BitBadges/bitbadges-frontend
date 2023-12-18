@@ -1,5 +1,5 @@
 import { CheckCircleFilled, CloseCircleFilled, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, InputNumber, Progress, Radio, Statistic, Tag, Tooltip, Typography, notification } from 'antd';
+import { Button, Col, InputNumber, Radio, Statistic, Tag, Tooltip, Typography, notification } from 'antd';
 import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
 import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -13,6 +13,7 @@ import { fetchCollectionsWithOptions, useCollection } from '../../bitbadges-api/
 import { approvalCriteriaHasNoAmountRestrictions, approvalCriteriaUsesPredeterminedBalances, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
+import { compareObjects } from '../../utils/compare';
 import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressDisplayList } from '../address/AddressDisplayList';
@@ -25,10 +26,9 @@ import { TableRow } from '../display/TableRow';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
+import { transferableApproval } from '../tx-timelines/step-items/TransferabilitySelectStepItem';
 import { ApprovalSelectWrapper } from './ApprovalsTab';
 import { BalanceOverview } from './BalancesInfo';
-import { compareObjects } from '../../utils/compare';
-import { transferableApproval } from '../tx-timelines/step-items/TransferabilitySelectStepItem';
 
 export const getTableHeader = () => {
   return <tr >
