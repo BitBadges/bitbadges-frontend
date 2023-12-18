@@ -231,10 +231,10 @@ export function AuthCodes() {
   const savedItems = getItems(savedAuthCodes, true);
 
 
-  return (
+  return (<>
     <Content
       className="full-area"
-      style={{ minHeight: '100vh', padding: 8 }}
+      style={{ minHeight: '80vh', padding: 8 }}
     >
       <br />
       <div className='flex-center'>
@@ -301,12 +301,14 @@ export function AuthCodes() {
         </>
       </>}
       <Divider />
-      <div className='secondary-text' style={{ textAlign: 'center' }}>
-        Looking to become an authentication provider and create / verify QR codes?
-
-        Create <a onClick={() => { router.push('/auth/linkgen') }} target='_blank' rel="noreferrer" >here</a> or verify <a onClick={() => { router.push('/auth/verify') }} target='_blank' rel="noreferrer" >here</a>.
-      </div>
     </Content>
+    {/* //aign to bottom of page */}
+    <div className='secondary-text' style={{ textAlign: 'center', margin: 16 }}>
+      Looking to become an authentication provider and create / verify QR codes?
+
+      Create <a onClick={() => { router.push('/auth/linkgen') }} target='_blank' rel="noreferrer" >here</a> or verify <a onClick={() => { router.push('/auth/verify') }} target='_blank' rel="noreferrer" >here</a>.
+    </div>
+  </>
   );
 }
 

@@ -64,6 +64,15 @@ function WatchlistPage() {
   const [editMode, setEditMode] = useState(false);
   const [listsTab, setListsTab] = useState<string>(accountInfo?.watchedListPages && accountInfo?.watchedListPages?.length > 0 ? accountInfo?.watchedListPages[0].title : '');
   const [searchValue, setSearchValue] = useState<string>('');
+  const [tabSetInitial, setTabSetInitial] = useState(!!accountInfo);
+
+  useEffect(() => {
+    if (!accountInfo) return;
+    if (tabSetInitial) return;
+    setTabSetInitial(true);
+    if (!listsTab) setListsTab(accountInfo?.watchedListPages && accountInfo?.watchedListPages?.length > 0 ? accountInfo?.watchedListPages[0].title : '');
+    if (!badgeTab) setBadgeTab(accountInfo?.watchedBadgePages && accountInfo?.watchedBadgePages?.length > 0 ? accountInfo?.watchedBadgePages[0].title : '');
+  }, [accountInfo, badgeTab, listsTab, tabSetInitial]);
 
   useEffect(() => {
     if (listsTab !== '') {

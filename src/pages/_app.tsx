@@ -32,7 +32,6 @@ import { WalletHeader } from '../components/navigation/WebsiteHeader';
 // 2. Create wagmiConfig
 const metadata = {
   name: 'BitBadges',
-  description: 'BitBadges is a protocol for creating, managing, and sharing digital badges on the blockchain.',
   url: 'https://bitbadges.io',
   icons: ['https://avatars.githubusercontent.com/u/86890740']
 }

@@ -19,7 +19,6 @@ function BrowsePage() {
   const browseInfo = browseContext.browse;
   const router = useRouter();
   const [tab, setTab] = useState('featured');
-  // const [cardView, setCardView] = useState(false);
   const cardView = false;
 
   const [badgesTab, setBadgesTab] = useState('latest');

@@ -1,28 +1,37 @@
 import {
   CopyOutlined,
+  EyeOutlined,
   FlagOutlined,
   LinkOutlined,
   ShareAltOutlined,
   TwitterOutlined
 } from '@ant-design/icons';
-import { Avatar, Col, Tooltip, message } from 'antd';
+import { Avatar, Col, Tooltip, message, notification } from 'antd';
 import { useState } from 'react';
 import { ReportModal } from '../tx-modals/ReportModal';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { updateAccountInfo } from '../../bitbadges-api/api';
+import { addToArray } from '../../pages/account/[addressOrUsername]';
+import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 export function BadgeButtonDisplay({
   website,
   collectionId,
   mappingId,
+  badgeId,
   socials,
 }: {
   website?: string,
   collectionId?: bigint,
+  badgeId?: bigint,
   mappingId?: string,
   socials?: {
     [key: string]: string
   }
 }) {
+  const chain = useChainContext();
   const [reportIsVisible, setReportIsVisible] = useState(false);
+  const signedInAccount = useAccount(chain.address);
 
   const twitterLink = 'https://twitter.com/' + socials?.twitter;
   const telegramLink = 'https://t.me/' + socials?.telegram;
@@ -104,21 +113,118 @@ export function BadgeButtonDisplay({
           </a>
         )}
 
+        {signedInAccount && chain.address && chain.loggedIn && !mappingId && !!collectionId && !!badgeId && <a
+          onClick={async () => {
 
-        {/* {<a
-          onClick={async () => { }}
+            const mainWatchlistPage = signedInAccount?.watchedBadgePages?.find(x => x.title === 'Main') ?? { title: 'Main', description: '', badges: [] };
+
+            const newBadges = addToArray(mainWatchlistPage.badges, [{
+              collectionId: collectionId,
+              badgeIds: [{ start: badgeId, end: badgeId }],
+            }]);
+
+            //Update or append
+            let newPages;
+            if (signedInAccount?.watchedBadgePages?.find(x => x.title === 'Main')) {
+              newPages = signedInAccount?.watchedBadgePages?.map(x => {
+                if (x.title === 'Main') {
+                  return {
+                    ...x,
+                    badges: newBadges
+                  }
+                }
+                return x;
+              });
+
+            } else {
+              newPages = [
+                {
+                  title: 'Main',
+                  description: '',
+                  badges: newBadges
+                },
+                ...signedInAccount?.watchedBadgePages ?? [],
+              ]
+            }
+            await updateAccountInfo({
+              ...signedInAccount,
+              watchedBadgePages: newPages
+            });
+
+            updateAccount({
+              ...signedInAccount,
+              watchedBadgePages: newPages
+            });
+
+            notification.success({
+              message: 'Success',
+              description: 'Added to watchlist!',
+            });
+          }}
           target="_blank" rel="noreferrer">
-          <Tooltip title="Add / Remove - Watchlist" placement="bottom">
+          <Tooltip title="Add to Watchlist" placement="bottom">
             <Avatar
               size="large"
-              onClick={() => { }}
               className="styled-button account-socials-button"
               src={<EyeOutlined />}
-            >
-
-            </Avatar>
+            />
           </Tooltip>
-        </a>} */}
+        </a>}
+
+        {signedInAccount && chain.address && chain.loggedIn && mappingId && <a
+          onClick={async () => {
+
+            const mainWatchlistPage = signedInAccount?.watchedListPages?.find(x => x.title === 'Main') ?? { title: 'Main', description: '', mappingIds: [] };
+
+            const newMappingIds = [...new Set([...mainWatchlistPage.mappingIds, mappingId])];
+
+            let newPages;
+            //Update or append
+            if (signedInAccount?.watchedListPages?.find(x => x.title === 'Main')) {
+              newPages = signedInAccount?.watchedListPages?.map(x => {
+                if (x.title === 'Main') {
+                  return {
+                    ...x,
+                    mappingIds: newMappingIds
+                  }
+                }
+                return x;
+              });
+
+            } else {
+
+              newPages = [
+                {
+                  title: 'Main',
+                  description: '',
+                  mappingIds: newMappingIds
+                },
+                ...signedInAccount?.watchedListPages ?? []
+              ]
+            }
+            await updateAccountInfo({
+              ...signedInAccount,
+              watchedListPages: newPages
+            });
+            updateAccount({
+              ...signedInAccount,
+              watchedListPages: newPages
+            });
+
+            notification.success({
+              message: 'Success',
+              description: 'Added to watchlist!',
+            });
+          }}
+          target="_blank" rel="noreferrer">
+          <Tooltip title="Add to Watchlist" placement="bottom">
+            <Avatar
+              size="large"
+              className="styled-button account-socials-button"
+              src={<EyeOutlined />}
+            />
+          </Tooltip>
+        </a>}
 
         {!(global.navigator && global.navigator.canShare && global.navigator.canShare(
           {

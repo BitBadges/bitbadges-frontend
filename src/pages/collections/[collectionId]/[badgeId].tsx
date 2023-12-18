@@ -118,7 +118,7 @@ export function BadgePage({ collectionPreview }
               paddingTop: '20px',
             }}
           >
-            <BadgeButtonDisplay website={metadata?.externalUrl} collectionId={collectionIdNumber} socials={metadata?.socials} />
+            <BadgeButtonDisplay website={metadata?.externalUrl} badgeId={badgeIdNumber} collectionId={collectionIdNumber} socials={metadata?.socials} />
 
             {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
 

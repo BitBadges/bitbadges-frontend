@@ -282,7 +282,7 @@ const Home: NextPage = () => {
                   </Typography.Text>
                   <br />
                   <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                    BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, managing, and displaying digital badges.
+                    BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, managing, and displaying digital NFT badges.
                   </Typography.Text>
 
 
