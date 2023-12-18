@@ -19,13 +19,15 @@ export function AddressSelect({
   onUserSelect,
   disabled,
   allowMintSearch,
-  switchable = true
+  switchable = true,
+  fontSize
 }: {
   defaultValue?: string,
   onUserSelect: (currUserInfo: string) => void,
   disabled?: boolean,
   allowMintSearch?: boolean
   switchable?: boolean
+  fontSize?: number
 }) {
 
   const defaultAccount = useAccount(defaultValue);
@@ -78,7 +80,7 @@ export function AddressSelect({
     <div className='full-width'>
       {switchable &&
         <div className='flex-center flex-wrap primary-text'>
-          <AddressDisplay addressOrUsername={latestAddress ?? ''} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => {
+          <AddressDisplay addressOrUsername={latestAddress ?? ''} fontSize={fontSize} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => {
 
             setShowSelect(!showSelect)
           }} />

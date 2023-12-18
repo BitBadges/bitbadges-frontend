@@ -1,5 +1,5 @@
 import { CheckCircleFilled, CloseCircleFilled, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, InputNumber, Progress, Radio, Tag, Tooltip, Typography, notification } from 'antd';
+import { Button, Col, InputNumber, Progress, Radio, Statistic, Tag, Tooltip, Typography, notification } from 'antd';
 import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
 import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -27,6 +27,8 @@ import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransfer
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { ApprovalSelectWrapper } from './ApprovalsTab';
 import { BalanceOverview } from './BalancesInfo';
+import { compareObjects } from '../../utils/compare';
+import { transferableApproval } from '../tx-timelines/step-items/TransferabilitySelectStepItem';
 
 export const getTableHeader = () => {
   return <tr >
@@ -95,7 +97,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
     ))
   );
 
-  return <InformationDisplayCard title='Restrictions' md={12} xs={24} sm={24}>
+  return <InformationDisplayCard title='Restrictions' inheritBg noBorder md={12} xs={24} sm={24}>
     <ul className='list-disc px-8' style={{ textAlign: 'left' }}>
       {transfer.approvalCriteria?.requireFromDoesNotEqualInitiatedBy && !isOutgoingDisplay && (
         <li>{"From address must NOT equal approver's address"}</li>
@@ -175,19 +177,31 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
         transfer.approvalCriteria?.predeterminedBalances && (transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
           transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.manualBalances.length > 0) &&
         (
-          <li>{"Predetermined balances for each transfer"}</li>
+          <li>{"Predetermined balances for each transfer (see balances section)"}</li>
         )
       }
 
 
-      <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="overall" componentType="list" setAddress={setAddress} />
-      <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="to" componentType="list" setAddress={setAddress} />
-      <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="from" componentType="list" setAddress={setAddress} />
-      <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="initiatedBy" componentType="list" setAddress={setAddress} />
+      <MaxNumTransfersComponent hideDisplay transfer={transfer} collectionId={collectionId} address={address} type="overall" componentType="list" setAddress={setAddress} />
+      <MaxNumTransfersComponent hideDisplay transfer={transfer} collectionId={collectionId} address={address} type="to" componentType="list" setAddress={setAddress} />
+      <MaxNumTransfersComponent hideDisplay transfer={transfer} collectionId={collectionId} address={address} type="from" componentType="list" setAddress={setAddress} />
+      <MaxNumTransfersComponent hideDisplay transfer={transfer} collectionId={collectionId} address={address} type="initiatedBy" componentType="list" setAddress={setAddress} />
+      <ApprovalAmountsComponent hideDisplay transfer={transfer} collectionId={collectionId} address={address} type="overall" componentType="list" setAddress={setAddress} />
+      <ApprovalAmountsComponent hideDisplay transfer={transfer} collectionId={collectionId} address={address} type="to" componentType="list" setAddress={setAddress} />
+      <ApprovalAmountsComponent hideDisplay transfer={transfer} collectionId={collectionId} address={address} type="from" componentType="list" setAddress={setAddress} />
+      <ApprovalAmountsComponent hideDisplay transfer={transfer} collectionId={collectionId} address={address} type="initiatedBy" componentType="list" setAddress={setAddress} />
+
+      <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="overall" componentType="card" setAddress={setAddress} />
+      <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="to" componentType="card" setAddress={setAddress} />
+      <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="from" componentType="card" setAddress={setAddress} />
+      <MaxNumTransfersComponent transfer={transfer} collectionId={collectionId} address={address} type="initiatedBy" componentType="card" setAddress={setAddress} />
+
       <ApprovalAmountsComponent transfer={transfer} collectionId={collectionId} address={address} type="overall" componentType="list" setAddress={setAddress} />
       <ApprovalAmountsComponent transfer={transfer} collectionId={collectionId} address={address} type="to" componentType="list" setAddress={setAddress} />
       <ApprovalAmountsComponent transfer={transfer} collectionId={collectionId} address={address} type="from" componentType="list" setAddress={setAddress} />
       <ApprovalAmountsComponent transfer={transfer} collectionId={collectionId} address={address} type="initiatedBy" componentType="list" setAddress={setAddress} />
+
+
       {
         approvalCriteriaHasNoAmountRestrictions(transfer.approvalCriteria) && (
           <li>
@@ -439,21 +453,30 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
               </>}
               <br />
             </> : <></>}
-            <Typography.Text className="secondary-text" style={{ fontSize: 14 }} strong>
-              {`Current - Claim #${BigInt(numIncrements) + 1n}`}
-            </Typography.Text>
-            <br /><br />
+
             {!hasIncrements ? <>
               {transfer.approvalCriteria && transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
+                {hasIncrements && <> <Typography.Text className="secondary-text" style={{ fontSize: 14 }} strong>
+                  {`Current - Claim #${BigInt(numIncrements) + 1n}`}
+                </Typography.Text>
+                  <br /><br /></>}
                 <BalanceDisplay
                   message={hasIncrements ? `` : 'Balances - All or Nothing'}
                   hideMessage={hasIncrements}
                   balances={hasOverlap ? incrementedBalances : []}
                   collectionId={collectionId}
                 />
+                {!hasIncrements && <>
+                  <br />
+                  <div className='secondary-text' style={{ fontSize: 14 }}>
+                    <InfoCircleOutlined style={{ marginRight: 4 }} /> All or nothing means that all the specified badges must be transferred to be successful.
+                  </div>
+                </>}
+
               </>
               )}
             </> : !hasOverlap || exceedsMaxNumTransfers ? <div className='primary-text'>
+
               <br />
               <WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} /> This claim number is not possible because
               {exceedsMaxNumTransfers && <> it exceeds the max cumulative uses for this approval.</>}
@@ -497,10 +520,12 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
   address,
   setAddress,
   collectionId,
-  trackedBehindTheScenes
+  hideDisplay,
+  trackedBehindTheScenes,
 }: {
   transfer: CollectionApprovalWithDetails<bigint>,
   address?: string,
+  hideDisplay?: boolean,
   setAddress: (address: string) => void,
   collectionId: bigint,
   showUntracked?: boolean, type: "overall" | "to" | "from" | "initiatedBy", componentType: 'list' | 'card', trackedBehindTheScenes?: boolean
@@ -513,12 +538,12 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
 
   const maxNumTransfersKey = type === "overall" ? "overallMaxNumTransfers" : type === "to" ? "perToAddressMaxNumTransfers" : type === "from" ? "perFromAddressMaxNumTransfers" : "perInitiatedByAddressMaxNumTransfers";
   const message = type === "overall" ?
-    `All approved users cumulatively can transfer x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times` :
+    `All approved users cumulatively can use this approval a max of x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times` :
     type === "to" ?
-      `Each unique to address can transfer x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times` :
+      `Each unique to address can use this approval a max of x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times` :
       type === "from" ?
-        `Each unique from address can transfer x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times` :
-        `Each unique approved address can transfer x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times`;
+        `Each unique from address can use this approval a max of x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times` :
+        `Each unique approved address can use this approval a max of x${transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey].toString()} times`;
   const untrackedMessage = type === "overall" ?
     `The cumulative number of transfers for all approved users is not tracked` :
     type === "to" ?
@@ -534,7 +559,8 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
 
   const numUsed = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type
     && y.approvedAddress === (type === "overall" ? "" : account?.cosmosAddress ?? ''))?.numTransfers ?? 0n;
-  const percent = (Number(numUsed) / Number(transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey])) * 100;
+  console.log(collection?.approvalsTrackers);
+
   return <>
     {componentType === 'list' && <>
       {transfer.approvalCriteria?.maxNumTransfers && transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] > 0 ? (
@@ -545,24 +571,26 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
     </>}
 
 
-    <div className='flex-center flex-column primary-text full-width' style={{ textAlign: 'center' }}>
+    {!hideDisplay && <div className='flex flex-column primary-text' style={{ textAlign: 'center', alignItems: 'normal', margin: 16 }}>
       <br />
-      {(<>{type === "overall" ? <b>All Approved Users - Number of Uses</b> : <>
-        <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable />
-        <b>Number of Uses</b>
-      </>
-      }
-      </>)}
 
       {transfer.approvalCriteria?.maxNumTransfers &&
-        <Progress percent={percent} type='line' className='primary-text' format={() => {
-          if (!(transfer.approvalCriteria?.maxNumTransfers)) return null;
-          return <div className='flex-center flex-column primary-text'>
-            {`${numUsed.toString()} / ${!limit ? '?' : transfer.approvalCriteria.maxNumTransfers[maxNumTransfersKey].toString()}`}
-          </div>
-        }} />
+        <Statistic
+          valueStyle={{ color: '#fff' }}
+          value={`${numUsed.toString()} / ${!limit ? '?' : transfer.approvalCriteria.maxNumTransfers[maxNumTransfersKey].toString()}`}
+          title={<>{type === "overall" ? <b className='primary-text'>Cumulative Uses - All Addresses</b> : <>
+            <b className='primary-text'>Uses as {type === "to" ? 'To' : type === "from" ? 'From' : 'Approved'} Address</b>
+            <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable fontSize={12} />
+          </>
+          }
+          </>}
+          className='primary-text'
+          style={{ width: '100%', alignItems: 'normal', textAlign: 'center' }}
+        />
       }
-    </div >
+
+    </div >}
+
   </>
 }
 
@@ -572,11 +600,13 @@ const ApprovalAmountsComponent = ({
   address,
   setAddress,
   collectionId,
+  hideDisplay,
   showUntracked, type, componentType }: {
     transfer: CollectionApprovalWithDetails<bigint>,
     address?: string,
     setAddress: (address: string) => void,
     collectionId: bigint,
+    hideDisplay?: boolean,
     showUntracked?: boolean, type: "overall" | "to" | "from" | "initiatedBy", componentType?: 'list' | 'card'
   }) => {
 
@@ -623,26 +653,27 @@ const ApprovalAmountsComponent = ({
         )}
       </>
     </>}
-    <div className='flex-center flex-column primary-text'>
-      <br />
-      {(<>{type === "overall" ? <b>All Approved Users</b> : <>
-        <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable />
-      </>
-      }
-      </>)}
-
-      {(
-        <>
-          <BalanceDisplay
-            message={<>
-            </>}
-            hideBadges
-            balances={approvedAmounts}
-            collectionId={collectionId}
-          />
+    {!hideDisplay &&
+      <div className='flex-center flex-column primary-text'>
+        <br />
+        {(<>{type === "overall" ? <b>All Approved Users</b> : <>
+          <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable />
         </>
-      )}
-    </div>
+        }
+        </>)}
+
+        {(
+          <>
+            <BalanceDisplay
+              message={<>
+              </>}
+              hideBadges
+              balances={approvedAmounts}
+              collectionId={collectionId}
+            />
+          </>
+        )}
+      </div>}
   </>
 }
 
@@ -1013,6 +1044,7 @@ export function TransferabilityRow({
         <div className='flex-center'>
 
           <IconButton
+            secondary
             src={<UndoOutlined />}
             onClick={() => onRestore(transfer.approvalId)}
             text='Restore'
@@ -1027,6 +1059,7 @@ export function TransferabilityRow({
       {!disapproved &&
         <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
           <IconButton
+            secondary
             src={editIsVisible ? <MinusOutlined /> : <EditOutlined />}
             onClick={() => {
               setEditIsVisible(!editIsVisible);
@@ -1046,6 +1079,7 @@ export function TransferabilityRow({
         <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
 
           <IconButton
+            secondary
             src={<DeleteOutlined />}
             onClick={() => onDelete(transfer.approvalId)}
             size={40}
@@ -1056,6 +1090,19 @@ export function TransferabilityRow({
         </div>}
 
     </td>
+
+    if (!transfer.details && compareObjects(transferableApproval, transfer)) {
+      transfer.details = {
+        name: 'Transferable',
+        description: 'Excluding transfers from the Mint address, this approval allows any address to transfer any badge to any address.',
+        challengeDetails: {
+          leavesDetails: {
+            leaves: [],
+            isHashed: false,
+          }
+        },
+      }
+    }
 
     return <>
       <br />
@@ -1078,16 +1125,85 @@ export function TransferabilityRow({
 
           </>
           }
+          {showMoreIsVisible && !disapproved && <>
+            <div className='flex-center flex-wrap full-width' style={{ alignItems: 'normal' }}>
+              <DetailsCard
+                isEdit={!!onDelete || editable}
 
+                transfer={transfer} allTransfers={allTransfers} isIncomingDisplay={isIncomingDisplay} isOutgoingDisplay={isOutgoingDisplay} collectionId={collectionId} address={address} setAddress={setAddress} />
+
+              <InformationDisplayCard inheritBg noBorder title='Balances' md={12} xs={24} sm={24}>
+                <Radio.Group
+                  buttonStyle='solid'
+                  onChange={(e) => {
+                    setBalanceTab(e.target.value);
+                  }}
+                  value={balanceTab}
+                >
+                  {hasPredetermined && <Radio.Button value='current'>
+                    <div className='primary-text hover:text-gray-400'>
+                      Badges to Receive
+                    </div>
+                  </Radio.Button>}
+                  <Radio.Button value='remaining'><div className='primary-text hover:text-gray-400'>
+                    Sender Balances
+                  </div></Radio.Button>
+                  <Radio.Button value="all"><div className='primary-text hover:text-gray-400'>
+                    All Badges
+                  </div></Radio.Button>
+                </Radio.Group>
+                <br /><br />
+                {balanceTab === 'all' && collection && <>
+                  <div className='flex-center'>
+                    <BadgeAvatarDisplay
+                      collectionId={collectionId}
+                      badgeIds={transfer.badgeIds}
+                      filterGreaterThanMax
+                      showIds
+                    />
+
+                  </div>
+                </>}
+                {balanceTab === 'remaining' && <>
+                  {transfer.fromMapping.addresses.length > 1 || !transfer.fromMapping.includeAddresses ? <>
+                    <div className='secondary-text'>
+                      <InfoCircleOutlined /> There are multiple addresses approved as senders.
+                    </div>
+                    <br />
+                  </> : <></>}
+                  <BalanceOverview
+                    collectionId={collectionId}
+                    hideSelect={transfer.fromMapping?.addresses.length === 1 && transfer.fromMapping.includeAddresses}
+                    defaultAddress={transfer.fromMapping?.addresses.length >= 1 && transfer.fromMapping.includeAddresses ? transfer.fromMapping?.addresses[0] : undefined}
+
+                  />
+                </>}
+                {balanceTab === 'current' && <>
+                  {hasPredetermined && <>
+                    <PredeterminedCard
+                      transfer={transfer}
+                      orderNumber={orderNumber}
+                      setOrderNumber={setOrderNumber}
+                      collectionId={collectionId}
+                      address={address}
+                      setAddress={setAddress}
+                    />
+                  </>}
+
+                </>}
+
+              </InformationDisplayCard>
+
+            </div>
+          </>}
           {!disapproved && <>
-            {transfer.details?.description &&
-              <><br /> <Typography.Text style={{ fontSize: 16 }} className='primary-text'>{transfer.details?.description || 'No description found.'}</Typography.Text><br /><br /></>}
-
+            <br />
             <div className="flex-center flex-wrap">
 
               {!onDelete && currentManager && currentManager === chain.cosmosAddress && transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria.merkleChallenge.useCreatorAddressAsLeaf && <div>
 
                 <IconButton
+                  secondary
                   src={<DatabaseOutlined size={40} />}
                   onClick={() => setFetchCodesModalIsVisible(true)}
                   text={'Codes'}
@@ -1103,6 +1219,7 @@ export function TransferabilityRow({
               </div>}
               {collectionId !== NEW_COLLECTION_ID && showMoreIsVisible &&
                 <IconButton
+                  secondary
                   src={<CloudSyncOutlined size={40} />}
                   onClick={() => refreshTrackers(true)}
                   text={'Refresh'}
@@ -1111,6 +1228,8 @@ export function TransferabilityRow({
                 />}
               {!disapproved &&
                 <IconButton
+
+                  secondary
                   src={showMoreIsVisible ? <MenuFoldOutlined size={40} /> : <MenuUnfoldOutlined size={40} />}
                   onClick={() => {
                     setShowMoreIsVisible(!showMoreIsVisible)
@@ -1123,6 +1242,8 @@ export function TransferabilityRow({
                 />}
               {!editable && !onDelete && !hideActions && !disapproved &&
                 <IconButton
+
+                  secondary
                   src={<SwapOutlined />}
                   onClick={() => setTransferIsVisible(!transferIsVisible)}
                   text={"Transfer"}
@@ -1182,77 +1303,7 @@ export function TransferabilityRow({
               />
             }
 
-            {showMoreIsVisible && !disapproved && <>
-              <div className='flex-center flex-wrap full-width' style={{ alignItems: 'normal' }}>
-                <DetailsCard
-                  isEdit={!!onDelete || editable}
 
-                  transfer={transfer} allTransfers={allTransfers} isIncomingDisplay={isIncomingDisplay} isOutgoingDisplay={isOutgoingDisplay} collectionId={collectionId} address={address} setAddress={setAddress} />
-
-                <InformationDisplayCard title='Balances' md={12} xs={24} sm={24}>
-                  <Radio.Group
-                    buttonStyle='solid'
-                    onChange={(e) => {
-                      setBalanceTab(e.target.value);
-                    }}
-                    value={balanceTab}
-                  >
-                    {hasPredetermined && <Radio.Button value='current'>
-                      <div className='primary-text hover:text-gray-400'>
-                        Approved
-                      </div>
-                    </Radio.Button>}
-                    <Radio.Button value='remaining'><div className='primary-text hover:text-gray-400'>
-                      Sender Balances
-                    </div></Radio.Button>
-                    <Radio.Button value="all"><div className='primary-text hover:text-gray-400'>
-                      All Badges
-                    </div></Radio.Button>
-                  </Radio.Group>
-                  <br /><br />
-                  {balanceTab === 'all' && collection && <>
-                    <div className='flex-center'>
-                      <BadgeAvatarDisplay
-                        collectionId={collectionId}
-                        badgeIds={transfer.badgeIds}
-                        filterGreaterThanMax
-                        showIds
-                      />
-
-                    </div>
-                  </>}
-                  {balanceTab === 'remaining' && <>
-                    {transfer.fromMapping.addresses.length > 1 || !transfer.fromMapping.includeAddresses ? <>
-                      <div className='secondary-text'>
-                        <InfoCircleOutlined /> There are multiple addresses approved as senders.
-                      </div>
-                      <br />
-                    </> : <></>}
-                    <BalanceOverview
-                      collectionId={collectionId}
-                      hideSelect={transfer.fromMapping?.addresses.length === 1 && transfer.fromMapping.includeAddresses}
-                      defaultAddress={transfer.fromMapping?.addresses.length >= 1 && transfer.fromMapping.includeAddresses ? transfer.fromMapping?.addresses[0] : undefined}
-
-                    />
-                  </>}
-                  {balanceTab === 'current' && <>
-                    {hasPredetermined && <>
-                      <PredeterminedCard
-                        transfer={transfer}
-                        orderNumber={orderNumber}
-                        setOrderNumber={setOrderNumber}
-                        collectionId={collectionId}
-                        address={address}
-                        setAddress={setAddress}
-                      />
-                    </>}
-
-                  </>}
-
-                </InformationDisplayCard>
-
-              </div>
-            </>}
           </>}
 
           {editIsVisible && collection && transfer && setAllTransfers &&

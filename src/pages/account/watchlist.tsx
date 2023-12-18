@@ -1,22 +1,20 @@
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
-import { Divider, Empty, Layout, Spin, notification } from 'antd';
+import { Divider, Layout, notification } from 'antd';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import { AccountViewKey, AddressMappingWithMetadata, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { useEffect, useMemo, useState } from 'react';
-import InfiniteScroll from 'react-infinite-scroll-component';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 import { getAddressMappings } from '../../bitbadges-api/api';
-import { fetchAccounts, getAccountAddressMappingsView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
-import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay";
 import { DevMode } from '../../components/common/DevMode';
 import IconButton from '../../components/display/IconButton';
 import { Tabs } from '../../components/navigation/Tabs';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { BadgeIdObj, BadgeIdObjTag, CustomizeAddRemoveBadgeFromPage, CustomizeAddRemoveListFromPage, ListInfiniteScroll, NewPageInputForm, OptionsSelects, addToArray, removeFromArray } from './[addressOrUsername]';
+import { BatchBadgeDetails, BatchBadgeDetailsTag, BadgeInfiniteScroll, CustomizeAddRemoveBadgeFromPage, CustomizeAddRemoveListFromPage, ListInfiniteScroll, NewPageInputForm, OptionsSelects, addToArray, removeFromArray } from './[addressOrUsername]';
 
 const { Content } = Layout;
 
@@ -29,10 +27,6 @@ function WatchlistPage() {
   const [tab, setTab] = useState(accountInfo?.readme ? 'overview' : 'collected');
   const [addPageIsVisible, setAddPageIsVisible] = useState(false);
   const [warned, setWarned] = useState(false);
-
-  useEffect(() => {
-    setNumBadgesDisplayed(25);
-  }, [tab]);
 
   useEffect(() => {
     if (accountInfo?.cosmosAddress === chain.cosmosAddress && !chain.loggedIn && chain.cosmosAddress && !warned) {
@@ -49,7 +43,6 @@ function WatchlistPage() {
     if (badgeTab !== '') {
       setAddPageIsVisible(false);
     }
-    setNumBadgesDisplayed(25);
   }, [badgeTab]);
 
 
@@ -60,7 +53,6 @@ function WatchlistPage() {
   }[]>([]);
   const [groupByCollection, setGroupByCollection] = useState(false);
 
-  const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
   const [editMode, setEditMode] = useState(false);
   const [listsTab, setListsTab] = useState<string>(accountInfo?.watchedListPages && accountInfo?.watchedListPages?.length > 0 ? accountInfo?.watchedListPages[0].title : '');
   const [searchValue, setSearchValue] = useState<string>('');
@@ -155,13 +147,6 @@ function WatchlistPage() {
   }, [listsTab, accountInfo?.watchedListPages]);
 
   const listsView = customView
-  useEffect(() => {
-    if (tab === 'lists') {
-      const listsView = getAccountAddressMappingsView(accountInfo, listsTab);
-      const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
-      fetchAccounts([...new Set(createdBys)]);
-    }
-  }, [tab, accountInfo, listsTab]);
 
   if (!accountInfo) {
     return <></>
@@ -196,12 +181,13 @@ function WatchlistPage() {
           <OptionsSelects
             searchValue={searchValue} setSearchValue={setSearchValue} filteredCollections={filteredCollections} setFilteredCollections={setFilteredCollections}
             editMode={editMode} setEditMode={setEditMode}
-            cardView={cardView} setCardView={setCardView} groupByCollection={groupByCollection} setGroupByCollection={setGroupByCollection} addressOrUsername={chain.address as string} />
+            cardView={cardView} setCardView={setCardView}
+            groupByCollection={groupByCollection} setGroupByCollection={setGroupByCollection} addressOrUsername={chain.address as string} />
           <br />
 
           <div className='full-width flex-center flex-wrap'>
             {filteredCollections.map((filteredCollection, idx) => {
-              return <BadgeIdObjTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
+              return <BatchBadgeDetailsTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
                 setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
               }} />
             })}
@@ -257,7 +243,7 @@ function WatchlistPage() {
             {badgeTab != '' && editMode && <>
               <div className='flex-center'>
 
-                <CustomizeAddRemoveBadgeFromPage onAdd={async (selectedBadge: BadgeIdObj) => {
+                <CustomizeAddRemoveBadgeFromPage onAdd={async (selectedBadge: BatchBadgeDetails) => {
                   let currCustomPageBadges = deepCopy(accountInfo?.watchedBadgePages?.find(x => x.title === badgeTab)?.badges ?? []);
                   currCustomPageBadges = addToArray(currCustomPageBadges, [selectedBadge]);
 
@@ -269,7 +255,7 @@ function WatchlistPage() {
                     watchedBadgePages: accountInfo?.watchedBadgePages?.map(x => x.title === badgeTab ? { ...currCustomPage, badges: currCustomPageBadges } : x)
                   });
 
-                }} onRemove={async (selectedBadge: BadgeIdObj) => {
+                }} onRemove={async (selectedBadge: BatchBadgeDetails) => {
                   let currCustomPageBadges = deepCopy(accountInfo?.watchedBadgePages?.find(x => x.title === badgeTab)?.badges ?? []);
                   currCustomPageBadges = removeFromArray(currCustomPageBadges, [selectedBadge]);
 
@@ -304,47 +290,17 @@ function WatchlistPage() {
 
 
             {badgeTab !== '' && <>
-              <InfiniteScroll
-                dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
-                next={async () => { }}
+              <BadgeInfiniteScroll
+                fetchMore={async () => { }}
                 hasMore={false}
-                loader={<div>
-                  <br />
-                  <Spin size={'large'} />
-                  <br />
-                  <br />
-                </div>}
-                scrollThreshold={"300px"}
-                endMessage={
-                  <></>
-                }
-                initialScrollY={0}
-                style={{ width: '100%', overflow: 'hidden' }}
-              >
-                <MultiCollectionBadgeDisplay
-                  collectionIds={badgesToShow.map((collection) => collection.collectionId)}
-                  addressOrUsernameToShowBalance={accountInfo.address}
-                  customPageBadges={badgesToShow}
-                  cardView={cardView}
-                  groupByCollection={groupByCollection}
-                  defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                  hidePagination={true}
-                  showCustomizeButtons={editMode}
-                  isWatchlist
-                />
-              </InfiniteScroll>
+                cardView={cardView}
+                groupByCollection={groupByCollection}
+                addressOrUsername={accountInfo?.address ?? ''}
+                editMode={editMode}
+                badgesToShow={badgesToShow}
+                isWatchlist
+              />
 
-              {badgesToShow.every((collection) => collection.badgeIds.length === 0) && (
-                <Empty
-                  className='primary-text'
-                  description={
-                    <span>
-                      No badges found.
-                    </span>
-                  }
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
             </>}
           </div>
         </>)}

@@ -1,4 +1,4 @@
-import { CloseCircleOutlined, DeleteOutlined, DownOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, DownOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Col, Divider, Dropdown, Empty, Input, Layout, Select, Spin, Tag, Typography, notification } from 'antd';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import { AccountViewKey, AddressMappingWithMetadata, Numberify, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
@@ -36,13 +36,13 @@ const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 const { Content } = Layout;
 
-export interface BadgeIdObj {
+export interface BatchBadgeDetails {
   collectionId: bigint,
   badgeIds: UintRange<bigint>[]
 }
 
 
-export const addToArray = (arr: BadgeIdObj[], badgeIdObjsToAdd: BadgeIdObj[]) => {
+export const addToArray = (arr: BatchBadgeDetails[], badgeIdObjsToAdd: BatchBadgeDetails[]) => {
   for (const badgeIdObj of badgeIdObjsToAdd) {
     const badgeIdsToAdd = badgeIdObj.badgeIds;
     const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
@@ -59,7 +59,7 @@ export const addToArray = (arr: BadgeIdObj[], badgeIdObjsToAdd: BadgeIdObj[]) =>
   return arr.filter(x => x.badgeIds.length > 0);
 }
 
-export const removeFromArray = (arr: BadgeIdObj[], badgeIdObjsToRemove: BadgeIdObj[]) => {
+export const removeFromArray = (arr: BatchBadgeDetails[], badgeIdObjsToRemove: BatchBadgeDetails[]) => {
   for (const badgeIdObj of badgeIdObjsToRemove) {
     const badgeIdsToRemove = badgeIdObj.badgeIds;
 
@@ -169,7 +169,7 @@ export const NewPageInputForm = ({
   </>
 }
 
-export const BadgeIdObjTag = ({ badgeIdObj, onClose, }: { badgeIdObj: BadgeIdObj, onClose?: () => void }) => {
+export const BatchBadgeDetailsTag = ({ badgeIdObj, onClose, }: { badgeIdObj: BatchBadgeDetails, onClose?: () => void }) => {
   const collection = getCollection(badgeIdObj.collectionId);
   const metadata = isFullUintRanges(badgeIdObj.badgeIds) ? collection?.cachedCollectionMetadata
     : getMetadataForBadgeId(badgeIdObj.badgeIds[0].start, collection?.cachedBadgeMetadata ?? []);
@@ -316,10 +316,10 @@ export const CustomizeAddRemoveListFromPage = (
 }
 
 export const CustomizeAddRemoveBadgeFromPage = (
-  { onAdd, onRemove }: { onAdd: (badgeIdObj: BadgeIdObj) => Promise<void>, onRemove: (badgeIdObj: BadgeIdObj) => Promise<void> }
+  { onAdd, onRemove }: { onAdd: (badgeIdObj: BatchBadgeDetails) => Promise<void>, onRemove: (badgeIdObj: BatchBadgeDetails) => Promise<void> }
 
 ) => {
-  const [selectedBadge, setSelectedBadge] = useState<BadgeIdObj | null>(null);
+  const [selectedBadge, setSelectedBadge] = useState<BatchBadgeDetails | null>(null);
   const [customizeSearchValue, setCustomizeSearchValue] = useState<string>('');
 
   const CustomizeSearchBar = <Input
@@ -380,7 +380,7 @@ export const CustomizeAddRemoveBadgeFromPage = (
         selectedBadge && <>
           <br />
           <div className='flex-center'>
-            <BadgeIdObjTag badgeIdObj={selectedBadge} onClose={() => { setSelectedBadge(null) }} />
+            <BatchBadgeDetailsTag badgeIdObj={selectedBadge} onClose={() => { setSelectedBadge(null) }} />
           </div>
           <br />
         </>
@@ -437,8 +437,8 @@ export const OptionsSelects = ({
   isListsSelect?: boolean,
   searchValue: string,
   setSearchValue: (searchValue: string) => void,
-  filteredCollections: BadgeIdObj[],
-  setFilteredCollections: (filteredCollections: BadgeIdObj[]) => void,
+  filteredCollections: BatchBadgeDetails[],
+  setFilteredCollections: (filteredCollections: BatchBadgeDetails[]) => void,
 }) => {
   const chain = useChainContext();
   const accountInfo = useAccount(addressOrUsername);
@@ -645,6 +645,111 @@ export const ListInfiniteScroll = (
   </div>
 }
 
+export const BadgeInfiniteScroll = ({
+  addressOrUsername,
+  badgesToShow,
+  cardView,
+  editMode,
+  hasMore,
+  fetchMore,
+  groupByCollection,
+  isWatchlist
+}: {
+  addressOrUsername: string,
+  badgesToShow: BatchBadgeDetails[],
+  cardView: boolean,
+  editMode: boolean,
+  hasMore: boolean,
+  fetchMore: () => Promise<void>,
+  groupByCollection: boolean,
+  isWatchlist?: boolean
+}) => {
+  const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
+  const accountInfo = useAccount(addressOrUsername);
+
+  const numTotalBadges = useMemo(() => {
+
+    //Calculate total number of badge IDs
+    let total = 0n;
+    for (const obj of badgesToShow) {
+      //TODO: Will this be weird if we have not fetched the collection yet. 
+      const collection = getCollection(obj.collectionId);
+      if (!collection) continue;
+
+      //Filter out > max badge ID
+      const maxBadgeId = getTotalNumberOfBadges(collection);
+
+      const [remaining, _] = removeUintRangeFromUintRange([{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }], obj.badgeIds);
+      obj.badgeIds = remaining;
+
+      for (const range of obj.badgeIds) {
+        const numBadgesInRange = range.end - range.start + 1n;
+        total += numBadgesInRange;
+      }
+    }
+
+    return Numberify(total);
+  }, [badgesToShow]);
+
+  const totalNumToShow = groupByCollection ? badgesToShow.length : numTotalBadges;
+
+  if (groupByCollection) {
+    badgesToShow = badgesToShow.slice(0, numBadgesDisplayed);
+  }
+
+  hasMore = hasMore || numBadgesDisplayed < totalNumToShow;
+
+
+  return <>
+    <InfiniteScroll
+      dataLength={numBadgesDisplayed}
+      next={async () => {
+        await fetchMore();
+        setNumBadgesDisplayed(numBadgesDisplayed + 25);
+      }}
+      hasMore={hasMore}
+      loader={<div>
+        <br />
+        <Spin size={'large'} />
+        <br />
+        <br />
+      </div>}
+      scrollThreshold={"300px"}
+      endMessage={
+        <></>
+      }
+      initialScrollY={0}
+      style={{ width: '100%', overflow: 'hidden' }}
+    >
+      <MultiCollectionBadgeDisplay
+        collectionIds={badgesToShow.map((collection) => collection.collectionId)}
+        addressOrUsernameToShowBalance={accountInfo?.address}
+        cardView={cardView}
+        customPageBadges={badgesToShow}
+        groupByCollection={groupByCollection}
+        defaultPageSize={numBadgesDisplayed}
+        hidePagination={true}
+        showCustomizeButtons={editMode}
+        isWatchlist={isWatchlist}
+      />
+    </InfiniteScroll>
+
+    {
+      badgesToShow.every((collection) => collection.badgeIds.length === 0) && !hasMore && (
+        <Empty
+          className='primary-text'
+          description={
+            <span>
+              No badges found.
+            </span>
+          }
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
+      )
+    }
+  </>
+}
+
 function PortfolioPage() {
   const router = useRouter();
 
@@ -657,13 +762,6 @@ function PortfolioPage() {
   const [tab, setTab] = useState(accountInfo?.readme ? 'overview' : 'collected');
   const [addPageIsVisible, setAddPageIsVisible] = useState(false);
   const [warned, setWarned] = useState(false);
-
-  useEffect(() => {
-    // if (tab === 'managing' || tab === 'createdBy') {
-    //   setEditMode(false);
-    // }
-    setNumBadgesDisplayed(25);
-  }, [tab]);
 
   useEffect(() => {
     if (accountInfo?.cosmosAddress === chain.cosmosAddress && !chain.loggedIn && chain.cosmosAddress && !warned) {
@@ -680,10 +778,7 @@ function PortfolioPage() {
     if (badgeTab !== '') {
       setAddPageIsVisible(false);
     }
-    setNumBadgesDisplayed(25);
   }, [badgeTab]);
-
-
 
 
   const [cardView, setCardView] = useState(true);
@@ -692,8 +787,6 @@ function PortfolioPage() {
     badgeIds: UintRange<bigint>[]
   }[]>([]);
   const [groupByCollection, setGroupByCollection] = useState(false);
-
-  const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25);
   const [editMode, setEditMode] = useState(false);
   const [listsTab, setListsTab] = useState<string>('addressMappings');
   const [searchValue, setSearchValue] = useState<string>('');
@@ -738,6 +831,7 @@ function PortfolioPage() {
       fetchBalanceForUser(id.collectionId, accountInfo?.address);
     }
   }, [filteredCollections, accountInfo?.address]);
+  let currView = !accountInfo ? undefined : badgeTab === 'Managing' ? accountInfo.views['managing'] : badgeTab === 'Created' ? accountInfo.views['createdBy'] : accountInfo.views['badgesCollected'];
 
   let badgesToShow = useMemo(() => {
 
@@ -762,6 +856,18 @@ function PortfolioPage() {
             collectionId: balanceInfo.collectionId
           }));
         }
+      } else {
+        const badgesToAdd = currView?.ids.map((id) => {
+          const collectionId = getCollection(BigInt(id))?.collectionId;
+          if (!collectionId) return null;
+
+          return {
+            collectionId,
+            badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }]
+          }
+        }).filter(x => x) as BatchBadgeDetails[] ?? [];
+
+        allBadgeIds.push(...badgesToAdd);
       }
     } else {
       allBadgeIds.push(...deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []))
@@ -796,24 +902,9 @@ function PortfolioPage() {
 
     console.log(allBadgeIds);
     return allBadgeIds.filter(x => x.badgeIds.length > 0);
-  }, [accountInfo, badgeTab, filteredCollections]);
-
-  const numTotalBadges = useMemo(() => {
-
-    //Calculate badge IDs for each collection
+  }, [accountInfo, badgeTab, filteredCollections, currView?.ids]);
 
 
-    //Calculate total number of badge IDs
-    let total = 0n;
-    for (const obj of badgesToShow) {
-      for (const range of obj.badgeIds) {
-        const numBadgesInRange = range.end - range.start + 1n;
-        total += numBadgesInRange;
-      }
-    }
-
-    return Numberify(total);
-  }, [badgesToShow]);
 
   const fetchMoreCollected = useCallback(async (address: string) => {
     await fetchNextForAccountViews(address, editMode ? ['badgesCollectedWithHidden'] : ['badgesCollected']);
@@ -857,8 +948,6 @@ function PortfolioPage() {
   const listsView = isPresetList ? getAccountAddressMappingsView(accountInfo, listsTab) : customView
   const collectedHasMore = editMode ? accountInfo?.views['badgesCollectedWithHidden']?.pagination?.hasMore ?? true :
     accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true;
-
-  const createdView = accountInfo?.views['createdBy'];
   const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch more collected');
@@ -887,13 +976,6 @@ function PortfolioPage() {
     }
   }, [tab, accountInfo, fetchMoreLists, fetchMoreCreatedBy, fetchMoreManaging, fetchMoreCollected, listsTab, isPresetList, badgeTab, chain.loggedIn]);
 
-  useEffect(() => {
-    if (tab === 'lists') {
-      const listsView = getAccountAddressMappingsView(accountInfo, listsTab);
-      const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
-      fetchAccounts([...new Set(createdBys)]);
-    }
-  }, [tab, accountInfo, listsTab]);
 
 
   useEffect(() => {
@@ -920,8 +1002,6 @@ function PortfolioPage() {
   if (!accountInfo) {
     return <></>
   }
-
-  const currView = badgeTab === 'Managing' ? accountInfo.views['managing'] : badgeTab === 'Created' ? accountInfo.views['createdBy'] : accountInfo.views['badgesCollected'];
 
 
   return (
@@ -972,7 +1052,7 @@ function PortfolioPage() {
 
               <div className='full-width flex-center flex-wrap'>
                 {filteredCollections.map((filteredCollection, idx) => {
-                  return <BadgeIdObjTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
+                  return <BatchBadgeDetailsTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
                     setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
                   }} />
                 })}
@@ -989,8 +1069,18 @@ function PortfolioPage() {
             {tab === 'collected' && (<>
               <div className=''>
                 <div className='flex-center flex-wrap'>
+
                   {
                     <Tabs
+                      onDeleteCurrTab={!editMode || badgeTab == '' || badgeTab == 'All' || badgeTab == 'Hidden'
+                        || badgeTab == 'Managing' || badgeTab == 'Created' ? undefined : async (badgeTab: string) => {
+                          const newCustomPages = deepCopy(accountInfo.customPages ?? []);
+                          newCustomPages.splice(newCustomPages.findIndex(x => x.title === badgeTab), 1);
+
+                          await updateProfileInfo(chain.address, {
+                            customPages: newCustomPages
+                          });
+                        }}
                       tabInfo={
                         [
                           {
@@ -1007,48 +1097,22 @@ function PortfolioPage() {
                           ...(editMode ? [{
                             key: 'Hidden', content: 'Hidden', disabled: false
                           }] : []),
-                          ...(accountInfo.customPages?.filter(x => editMode || x.badges.length > 0) ?? [])?.map((customPage) => {
+                          ...(accountInfo.customPages)?.map(x => {
                             return {
-                              key: customPage.title, content:
-                                <div className='flex-center' style={{ marginLeft: editMode ? 8 : undefined }}>
-                                  {customPage.title}
-                                  {editMode && badgeTab !== 'All' && badgeTab !== 'Hidden' && badgeTab !== '' && badgeTab === customPage.title && <>
-
-
-                                    <IconButton
-                                      text=''
-                                      onClick={async () => {
-                                        if (!confirm('Are you sure you want to delete this page?')) {
-                                          return
-                                        }
-
-                                        const newCustomPages = deepCopy(accountInfo.customPages ?? []);
-                                        newCustomPages.splice(newCustomPages.findIndex(x => x.title === badgeTab), 1);
-
-                                        await updateProfileInfo(chain.address, {
-                                          customPages: newCustomPages
-                                        });
-
-                                        setBadgeTab('All');
-                                      }}
-                                      src={<DeleteOutlined />}
-                                    />
-                                  </>}
-                                </div>, disabled: false
+                              key: x.title, content: x.title, disabled: false
                             }
-                          }) ?? [],
+                          }) ?? []
                         ]
                       }
-
                       tab={badgeTab}
                       setTab={setBadgeTab}
                       type={'underline'}
                     />}
-                  {editMode && <IconButton src={<PlusOutlined />}
+                  {editMode && <IconButton src={!addPageIsVisible ? <PlusOutlined /> : <MinusOutlined />}
                     text=''
                     tooltipMessage='Add a new page to your portfolio.'
                     onClick={() => {
-                      setAddPageIsVisible(true);
+                      setAddPageIsVisible(!addPageIsVisible);
                       setBadgeTab(''); //Reset tab
                     }} />}
                 </div>
@@ -1062,19 +1126,9 @@ function PortfolioPage() {
 
                 <br />
 
-                {badgeTab != 'All' && badgeTab != '' && editMode && <>
-                  {/* <div className='flex-center'>
-                <IconButton
-                  src={<SearchOutlined />}
-                  text='Add via Search'
-                />
-                <IconButton
-                  src={<SearchOutlined />}
-                  text='Remove via Search'
-                />
-              </div> */}
+                {badgeTab != 'All' && badgeTab != '' && badgeTab != 'Created' && badgeTab != 'Managing' && editMode && <>
                   <div className='flex-center'>
-                    <CustomizeAddRemoveBadgeFromPage onAdd={async (selectedBadge: BadgeIdObj) => {
+                    <CustomizeAddRemoveBadgeFromPage onAdd={async (selectedBadge: BatchBadgeDetails) => {
                       let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
                         deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
                       currCustomPageBadges = addToArray(currCustomPageBadges, [selectedBadge]);
@@ -1093,7 +1147,7 @@ function PortfolioPage() {
                       }
 
 
-                    }} onRemove={async (selectedBadge: BadgeIdObj) => {
+                    }} onRemove={async (selectedBadge: BatchBadgeDetails) => {
                       let currCustomPageBadges = badgeTab == 'Hidden' ? deepCopy(accountInfo?.hiddenBadges ?? []) :
                         deepCopy(accountInfo?.customPages?.find(x => x.title === badgeTab)?.badges ?? []);
                       currCustomPageBadges = removeFromArray(currCustomPageBadges, [selectedBadge]);
@@ -1132,120 +1186,27 @@ function PortfolioPage() {
                   setBadgeTab(newPageTitle);
                 }} />
 
-                {(badgeTab === 'Managing' || badgeTab === 'Created') && (<>
-                  <InfiniteScroll
-                    dataLength={currView?.ids.length ?? 0}
-                    next={async () => {
-                      if (badgeTab === 'Managing') {
-                        await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
-                      } else {
-                        await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
-                      }
-                    }}
-                    hasMore={currView?.pagination?.hasMore ?? true}
-                    loader={<div>
-                      <br />
-                      <Spin size={'large'} />
-                      <br />
-                      <br />
-                    </div>}
-                    scrollThreshold={"300px"}
-                    endMessage={
-                      <></>
-                    }
-                    initialScrollY={500}
-                    style={{ width: '100%', overflow: 'hidden', }}
-                  >
-                    <div className='full-width flex-center flex-wrap' style={{ alignItems: 'normal' }}>
-                      <MultiCollectionBadgeDisplay
-                        collectionIds={currView?.ids.map(x => BigInt(x)) ?? []}
-                        cardView={cardView}
-                        groupByCollection={true}
-                        defaultPageSize={cardView ? 1 : 10}
-                        hidePagination={true}
-                        hideAddress
-                        showCustomizeButtons={editMode}
-                      />
-                    </div>
-                  </InfiniteScroll>
 
-                  {currView?.ids.length == 0 && !currView?.pagination?.hasMore && (
-                    <Empty
-                      className='primary-text'
-                      description={
-                        <span>
-                          No badges found.
-                        </span>
-                      }
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    />
-                  )}
 
-                </>)}
-
-                {badgeTab !== '' && badgeTab !== 'Managing' && badgeTab !== 'Created' && <>
-                  <InfiniteScroll
-                    dataLength={!groupByCollection ? numBadgesDisplayed : badgesToShow.length}
-                    next={async () => {
+                {badgeTab !== '' && <>
+                  {/* // badgeTab !== 'Managing' && badgeTab !== 'Created' && <> */}
+                  <BadgeInfiniteScroll
+                    addressOrUsername={addressOrUsername as string}
+                    badgesToShow={badgesToShow}
+                    cardView={cardView}
+                    editMode={editMode}
+                    hasMore={badgeTab === 'All' ? (collectedHasMore) : badgeTab === 'Managing' ? (accountInfo?.views['managing']?.pagination?.hasMore ?? true) : badgeTab === 'Created' ? (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true) : false}
+                    fetchMore={async () => {
                       if (badgeTab === 'All') {
-                        if (numBadgesDisplayed + 25 > numTotalBadges || groupByCollection) {
-                          await fetchMoreCollected(accountInfo?.address ?? '');
-                        }
-
-                        if (!groupByCollection) {
-                          if (numBadgesDisplayed + 25 > numTotalBadges) {
-                            setNumBadgesDisplayed(numBadgesDisplayed + 25);
-                          } else if (numBadgesDisplayed + 100 <= numTotalBadges) {
-                            setNumBadgesDisplayed(numBadgesDisplayed + 100);
-                          } else {
-                            setNumBadgesDisplayed(numTotalBadges + 25);
-                          }
-                        }
-                      } else if (badgeTab === 'Created') {
-                        await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
+                        await fetchMoreCollected(accountInfo?.address ?? '');
                       } else if (badgeTab === 'Managing') {
                         await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
+                      } else if (badgeTab === 'Created') {
+                        await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
                       }
                     }}
-                    hasMore={badgeTab === 'All' ?
-                      (collectedHasMore || (!groupByCollection && numBadgesDisplayed < numTotalBadges)) :
-                      (badgeTab === 'Created' ? (createdView?.pagination?.hasMore ?? true) : (badgeTab === 'Managing' ? (accountInfo?.views['managing']?.pagination?.hasMore ?? true) : false))}
-                    loader={<div>
-                      <br />
-                      <Spin size={'large'} />
-                      <br />
-                      <br />
-                    </div>}
-                    scrollThreshold={"300px"}
-                    endMessage={
-                      <></>
-                    }
-                    initialScrollY={0}
-                    style={{ width: '100%', overflow: 'hidden' }}
-                  >
-                    <MultiCollectionBadgeDisplay
-                      collectionIds={badgesToShow.map((collection) => collection.collectionId)}
-                      addressOrUsernameToShowBalance={accountInfo.address}
-                      customPageBadges={badgesToShow}
-                      cardView={cardView}
-                      groupByCollection={groupByCollection}
-                      defaultPageSize={groupByCollection ? badgesToShow.length : numBadgesDisplayed}
-                      hidePagination={true}
-                      showCustomizeButtons={editMode}
-                    />
-                  </InfiniteScroll>
-
-                  {badgesToShow.every((collection) => collection.badgeIds.length === 0) && !collectedHasMore && (
-                    <Empty
-                      className='primary-text'
-                      description={
-                        <span>
-                          No badges found.
-                        </span>
-                      }
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    />
-                  )}
+                    groupByCollection={groupByCollection}
+                  />
                 </>}
               </div>
             </>)}
@@ -1265,6 +1226,15 @@ function PortfolioPage() {
 
               <div className='flex-center'>
                 <Tabs
+                  onDeleteCurrTab={!editMode || listsTab == '' || listsTab == 'addressMappings' || listsTab == 'Hidden' || listsTab == 'explicitlyIncludedAddressMappings'
+                    || listsTab == 'explicitlyExcludedAddressMappings' || listsTab == 'privateLists' || listsTab == 'createdLists' ? undefined : async (listsTab: string) => {
+                      const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
+                      newCustomPages.splice(newCustomPages.findIndex(x => x.title === listsTab), 1);
+
+                      await updateProfileInfo(chain.address, {
+                        customListPages: newCustomPages
+                      });
+                    }}
                   tabInfo={
                     [
                       { key: 'addressMappings', content: 'All', disabled: false },
@@ -1279,35 +1249,9 @@ function PortfolioPage() {
                       }] : []),
                       ...accountInfo.customListPages?.map((customPage) => {
                         return {
-                          key: customPage.title, content:
-                            <div className='flex-center' style={{ marginLeft: editMode ? 8 : undefined }}>
-                              {customPage.title}
-                              {editMode && listsTab !== 'All' && listsTab !== 'Hidden' && listsTab !== '' && listsTab === customPage.title && <>
-
-
-                                <IconButton
-                                  text=''
-                                  onClick={async () => {
-                                    if (!confirm('Are you sure you want to delete this page?')) {
-                                      return
-                                    }
-
-                                    const newCustomPages = deepCopy(accountInfo.customListPages ?? []);
-                                    newCustomPages.splice(newCustomPages.findIndex(x => x.title === listsTab), 1);
-
-                                    await updateProfileInfo(chain.address, {
-                                      customListPages: newCustomPages
-                                    });
-
-                                    setListsTab('All');
-                                  }}
-                                  src={<DeleteOutlined />}
-                                />
-                              </>}
-                            </div>, disabled: false
+                          key: customPage.title, content: customPage.title, disabled: false
                         }
                       }) ?? []
-
                     ]
                   }
                   tab={listsTab} setTab={(e) => {
@@ -1316,11 +1260,11 @@ function PortfolioPage() {
                   type='underline'
                 />
 
-                {editMode && <IconButton src={<PlusOutlined />}
+                {editMode && <IconButton src={!addPageIsVisible ? <PlusOutlined /> : <MinusOutlined />}
                   text=''
                   tooltipMessage='Add a new page to your portfolio.'
                   onClick={() => {
-                    setAddPageIsVisible(true);
+                    setAddPageIsVisible(!addPageIsVisible);
                     setListsTab(''); //Reset tab
                   }} />}
               </div>
@@ -1437,7 +1381,6 @@ function PortfolioPage() {
             </>
             )}
 
-
             {tab === 'activity' && (<>
               <br />
               <ActivityTab
@@ -1447,9 +1390,6 @@ function PortfolioPage() {
               />
             </>
             )}
-
-
-
           </div>
           <DevMode obj={accountInfo} />
           <Divider />

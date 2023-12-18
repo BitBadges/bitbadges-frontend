@@ -40,8 +40,6 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
     }
   });
 
-  console.log('activity', activity);
-
   return <>
     <div className='flex-between' style={{ width: '100%' }}>
       <div className='primary-text'>

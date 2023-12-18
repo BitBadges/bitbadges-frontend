@@ -199,15 +199,9 @@ export function CreateTxMsgClaimBadgeModal(
       title: 'Claim Details',
       disabled: cantClaim || !(isValidProof || !requiresProof),
       description: <div>
-        <div className='secondary-text' style={{ textAlign: 'center' }}>
-          <InfoCircleOutlined /> Below are the details for this claim.
-          All claims have a parent approval from which they are derived. All criteria in the parent approval must be satisfied in order to claim,
-          and once the claim is processed, it will increment the counters in the parent approval.
 
-        </div>
-        <br />
         <div className='flex flex-wrap'>
-          <InformationDisplayCard md={12} xs={24} sm={24} title='Details' style={{ textAlign: 'center' }} subtitle={'Customize the details for this claim, such as the recipient or enter claim codes, if applicable.'}>
+          <InformationDisplayCard md={12} xs={24} sm={24} title='Details' style={{ textAlign: 'center' }} subtitle={'Enter details for this claim, such as the recipient or enter claim codes, if applicable.'}>
             <br />
             <div className="flex-center full-width">
               <div style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
@@ -220,7 +214,7 @@ export function CreateTxMsgClaimBadgeModal(
                       </div>
                     </> : <>
                       {isMint && claim && claim.root && !claim.useCreatorAddressAsLeaf && setCode ?
-                        <div>
+                        <div className='full-width' style={{ alignItems: 'center' }}>
                           {
                             <>
                               <Typography.Text strong className='primary-text' style={{ fontSize: 18, marginBottom: 12 }}>
@@ -239,6 +233,7 @@ export function CreateTxMsgClaimBadgeModal(
                                 className="primary-text inherit-bg"
                                 style={{
                                   textAlign: 'center',
+                                  width: '100%',
                                   marginTop: 10,
                                 }}
                               />
@@ -331,7 +326,7 @@ export function CreateTxMsgClaimBadgeModal(
             </>}
           </InformationDisplayCard>
         </div>
-        <Divider />
+        {/* <Divider />
         <div className='secondary-text' style={{ textAlign: 'center' }}>
           <InfoCircleOutlined /> Below are the details for the parent approval of this claim.
           All criteria for the parent approval must be met in order to claim.
@@ -346,7 +341,15 @@ export function CreateTxMsgClaimBadgeModal(
           setAddress={setAddress}
           isIncomingDisplay //just a hack to not show transfer icon
           defaultShowDetails
-        />
+        /> */}
+
+        <br />
+        <div className='secondary-text' style={{ textAlign: 'center' }}>
+          <InfoCircleOutlined /> These are the details for this claim.
+          All claims have a parent approval from which they are derived (which is the one you clicked to get here). All criteria in the parent approval must be satisfied in order to claim,
+          and once the claim is processed, it will increment the counters in the parent approval.
+        </div>
+        <br />
       </div >
     }
   ]

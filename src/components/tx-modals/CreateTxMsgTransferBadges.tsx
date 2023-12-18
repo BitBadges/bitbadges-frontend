@@ -8,14 +8,13 @@ import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 
+import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
-import { TransferDisplay } from '../transfers/TransferDisplay';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
-import { useAccount, fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { useCollection, fetchBalanceForUser, fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, fromTransferabilityRow }: {
@@ -192,15 +191,15 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         // await fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
       }}
       requireRegistration
-      displayMsg={<div className='primary-text'>
-        <TransferDisplay
+      // displayMsg={<div className='primary-text'>
+      //   <TransferDisplay
 
-          transfers={convertedTransfers}
-          collectionId={collectionId}
-          setTransfers={setTransfers}
-        />
-        <Divider />
-      </div>}
+      //     transfers={convertedTransfers}
+      //     collectionId={collectionId}
+      //     setTransfers={setTransfers}
+      //   />
+      //   <Divider />
+      // </div>}
     >
       {children}
     </TxModal>

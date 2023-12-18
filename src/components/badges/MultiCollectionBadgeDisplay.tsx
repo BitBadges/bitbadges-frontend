@@ -204,7 +204,7 @@ export function MultiCollectionBadgeDisplay({
 
   const badgeIdsToDisplay = useMemo(() => {
     if (!groupByCollection) {
-      return getBadgesToDisplay(allBadgeIds, currPage, defaultPageSize);
+      return getBadgesToDisplay(allBadgeIds, currPage, defaultPageSize).filter(x => x.badgeIds.length > 0);
     } else {
       return allBadgeIds;
     }

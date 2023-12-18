@@ -155,7 +155,7 @@ export const CustomizeButtons =
                 onClick={async () => {
 
 
-                  const hiddenBadge = isHidden ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
+                  const hiddenBadge = isCollectionHidden ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
 
                   await updateAccountInfo(deepCopy({
                     ...accountInfo,
@@ -169,7 +169,7 @@ export const CustomizeButtons =
                   }))
 
                   notification.success({
-                    message: "All badges from this collection will now be" + (!isHidden ? ' hidden' : ' shown') + " for your profile."
+                    message: "All badges from this collection will now be" + (!isCollectionHidden ? ' hidden' : ' shown') + " for your profile."
                   })
 
                 }

@@ -85,7 +85,7 @@ export function CodesDisplay({
 
     <Row className='flex-center primary-text' style={{ textAlign: 'center', width: '100%' }}>
 
-      <InformationDisplayCard md={24} xs={24} sm={24} title={hasPassword ? 'Password' : 'Codes'} subtitle={'Codes / passwords will be auto-populated on the claim page if the user navigates to the uniquely generated URL or scans the QR code. Users can also enter them manually.'}>
+      <InformationDisplayCard inheritBg noBorder md={24} xs={24} sm={24} title={hasPassword ? 'Password' : 'Codes'} subtitle={'Codes / passwords will be auto-populated on the claim page if the user navigates to the uniquely generated URL or scans the QR code. Users can also enter them manually.'}>
 
 
         <br />
