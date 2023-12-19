@@ -1,9 +1,13 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { useLayoutEffect, useState } from 'react';
+import { ReactElement, useLayoutEffect, useState } from 'react';
 
+import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import HtmlToReact from 'html-to-react';
+import MarkdownIt from 'markdown-it';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
 import { AddressListCard } from '../components/badges/AddressListCard';
+import { CollectionHeader } from '../components/badges/CollectionHeader';
 import { MultiCollectionBadgeDisplay } from "../components/badges/MultiCollectionBadgeDisplay";
 import { AccountButtonDisplay } from '../components/button-displays/AccountButtonDisplay';
 import { ActivityTab } from '../components/collection-page/TransferActivityDisplay';
@@ -11,17 +15,20 @@ import CustomCarousel from '../components/display/Carousel';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
 import { Tabs } from '../components/navigation/Tabs';
 
+
 const { Content } = Layout;
+const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 function BrowsePage() {
   const browseContext = useBrowseContext();
-
+  const HtmlToReactParser = HtmlToReact.Parser();
   const browseInfo = browseContext.browse;
   const router = useRouter();
   const [tab, setTab] = useState('featured');
   const cardView = false;
 
-  const [badgesTab, setBadgesTab] = useState('latest');
+  const [collectionsTab, setCollectionsTab] = useState('featured');
+  const [badgesTab, setBadgesTab] = useState('featured');
   const [listsTab, setListsTab] = useState('latest');
 
   const [containerWidth, setContainerWidth] = useState<number>(0);
@@ -43,6 +50,41 @@ function BrowsePage() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  const allItems: ReactElement[] = [];
+  for (let idx = 0; idx < (browseInfo?.badges[badgesTab] ?? []).length; idx++) {
+    const badgeObj = browseInfo?.badges[badgesTab][idx];
+    if (!badgeObj) continue;
+
+    const collection = badgeObj.collection;
+    const badgeIds = badgeObj.badgeIds;
+
+    allItems.push(...badgeIds.map(badgeIdRange => {
+      const start = badgeIdRange.start;
+      const end = badgeIdRange.end;
+      let arr = [];
+      for (let i = 0; i < end - start + 1n; i++) {
+        arr.push(start + BigInt(i));
+      }
+
+      return arr.map((_, idx) => {
+        const badgeId = start + BigInt(idx);
+        const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
+        const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
+
+        return <InformationDisplayCard title='' key={idx} style={{ minWidth: 350 }}>
+          <CollectionHeader collectionId={collection.collectionId} badgeId={badgeId} />
+          <br />
+          <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
+            {reactElement}
+          </div>
+          {/* <br />
+          <BalanceOverview collectionId={collection.collectionId} badgeId={badgeId} /> */}
+        </InformationDisplayCard>
+      }).flat();
+
+    }).flat());
+  }
 
   return (
     <Content
@@ -67,10 +109,53 @@ function BrowsePage() {
         {!browseInfo && <Spin size='large' />}
         <div className='full-width'>
           <br />
-
-
           <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Badges
+          </Typography.Text>
+          <CustomCarousel
+            title={
+              <Tabs
+                fullWidth
+                theme='dark'
+                tabInfo={browseInfo ? Object.keys(browseInfo.badges).map(category => {
+
+                  return {
+                    key: category,
+                    label: category.charAt(0).toUpperCase() + category.slice(1),
+                    content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </Typography.Text>
+                  }
+                }) : []}
+                setTab={setBadgesTab}
+                tab={badgesTab}
+              />
+            }
+            items={(browseInfo && allItems?.map((_, idx) => {
+              const itemWidth = 350; // Set the width of each carousel item (adjust as needed)
+              const numItems = Math.floor(containerWidth / itemWidth) ? Math.floor(containerWidth / itemWidth) : 1;
+
+              const idxArr = new Array(numItems);
+              for (let i = 0; i < idxArr.length; i++) {
+                idxArr[i] = idx + i;
+              }
+              if (idx % numItems !== 0) return null
+
+
+              return <div key={idx} className='flex flex-center-if-mobile'>
+                {idxArr.map(idx => {
+                  if (idx >= allItems?.length) return null
+                  return allItems[idx];
+
+                }).filter(x => x).flat()}
+              </div>
+            }).filter(x => x))?.flat() ?? []
+            }
+          />
+          < Divider />
+
+          <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+            Collections
           </Typography.Text>
           <CustomCarousel
             title={
@@ -87,11 +172,11 @@ function BrowsePage() {
                     </Typography.Text>
                   }
                 }) : []}
-                setTab={setBadgesTab}
-                tab={badgesTab}
+                setTab={setCollectionsTab}
+                tab={collectionsTab}
               />
             }
-            items={(browseInfo && browseInfo.collections[badgesTab]?.map((_, idx) => {
+            items={(browseInfo && browseInfo.collections[collectionsTab]?.map((_, idx) => {
 
 
 
@@ -106,8 +191,8 @@ function BrowsePage() {
 
               return <div key={idx} className='flex flex-center-if-mobile'
               >{idxArr.map(idx => {
-                if (idx >= browseInfo?.collections[badgesTab]?.length) return null
-                const collection = browseInfo?.collections[badgesTab][idx];
+                if (idx >= browseInfo?.collections[collectionsTab]?.length) return null
+                const collection = browseInfo?.collections[collectionsTab][idx];
                 return <InformationDisplayCard title='' key={idx} style={{ minWidth: 350 }}>
                   <MultiCollectionBadgeDisplay
                     collectionIds={[collection.collectionId]}

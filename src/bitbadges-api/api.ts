@@ -27,7 +27,7 @@ async function handleApiError(error: any): Promise<void> {
   if (error && error.response && error.response.data) {
     const data: ErrorResponse = error.response.data;
 
-    //if localhost 
+    //if localhost, show errors but not on actual site
     if (window.location.hostname === "localhost") {
       notification.error({
         message: "Oops! We ran into an error!",
@@ -498,34 +498,3 @@ export async function getRefreshStatus(collectionId: bigint): Promise<RefreshSta
     return Promise.reject(error);
   }
 }
-
-/** Update Helper Functions for Pagination and Dynamic Fetches */
-/** Update Helper Functions for Pagination and Dynamic Fetches */
-export async function updateUserSeenActivity() {
-  return await BitBadgesApi.updateAccountInfo({ seenActivity: Date.now() }); // Authenticated route, no need to pass in the address
-}
-
-// // Gets metadata batches for a collection starting from startBatchId ?? 0 and incrementing METADATA_PAGE_LIMIT times
-// export async function fetchAndUpdateMetadata(collection: BitBadgesCollection<bigint>, metadataFetchOptions: MetadataFetchOptions) {
-//   const promises = [];
-//   promises.push(BitBadgesApi.getMetadataForCollection(collection.collectionId, { metadataToFetch: metadataFetchOptions }));
-
-//   const metadataResponses = await Promise.all(promises);
-
-//   for (const metadataRes of metadataResponses) {
-//     if (metadataRes.collectionMetadata) {
-//       const isCollectionMetadataResEmpty = Object.keys(metadataRes.collectionMetadata).length === 0;
-//       collection.cachedCollectionMetadata = !isCollectionMetadataResEmpty ? metadataRes.collectionMetadata : collection.cachedCollectionMetadata;
-//     }
-
-//     if (metadataRes.badgeMetadata) {
-//       const vals = Object.values(metadataRes.badgeMetadata);
-//       for (const val of vals) {
-//         if (!val) continue;
-//         collection.cachedBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, val);
-//       }
-//     }
-//   }
-
-//   return collection;
-// }

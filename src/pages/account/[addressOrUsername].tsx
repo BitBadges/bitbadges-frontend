@@ -121,14 +121,13 @@ export const NewPageInputForm = ({
   return <>
     {visible && <div className='flex-center '>
       <Col md={12} xs={24} style={{ marginBottom: 8 }}>
-        <b className='primary-text' style={{ textAlign: 'center' }}>Name</b><br />
+        <b className='primary-text' style={{}}>Name</b><br />
         <Input
 
           defaultValue=""
-          placeholder="Page Name"
+          placeholder="Title of your page"
           className='form-input'
           style={{
-            maxWidth: 300,
             marginRight: 8
           }}
           onChange={(e) => {
@@ -137,14 +136,13 @@ export const NewPageInputForm = ({
         />
         <br />
         <br />
-        <b className='primary-text' style={{ textAlign: 'center' }}>Description</b><br />
+        <b className='primary-text' style={{}}>Description</b><br />
         <Input.TextArea
-          autoSize
+          rows={10}
           defaultValue=""
-          placeholder="Page Description"
+          placeholder="Give a brief description of your page."
           className='form-input'
           style={{
-            maxWidth: 300,
             marginRight: 8
           }}
           onChange={(e) => {
@@ -153,14 +151,16 @@ export const NewPageInputForm = ({
         />
         <br />
         <br />
-        <div className='flex-center'>
-          <button className='landing-button' onClick={async () => {
-            await onAddPage(newPageTitle, newPageDescription);
+        <div className='flex-center full-width'>
+          <button className='landing-button'
+            style={{ width: '100%' }}
+            onClick={async () => {
+              await onAddPage(newPageTitle, newPageDescription);
 
-            setVisible(false);
-            setNewPageDescription('');
-            setNewPageTitle('');
-          }}>
+              setVisible(false);
+              setNewPageDescription('');
+              setNewPageTitle('');
+            }}>
             Add Page
           </button>
         </div>
@@ -1363,7 +1363,7 @@ function PortfolioPage() {
                     hasMore={isPresetList && hasMoreAddressMappings}
                     listsView={listsView}
                     addressOrUsername={accountInfo?.address ?? ''}
-                    showInclusionDisplay={listsTab === 'privateLists' || listsTab === 'createdLists'}
+                    showInclusionDisplay={!(listsTab === 'privateLists' || listsTab === 'createdLists')}
                   />
                 </>}
               </>}

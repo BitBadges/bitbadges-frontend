@@ -76,12 +76,6 @@ export type AccountsActionTypes =
   | FetchAccountsSuccessAction
   | DeleteAccountsAction;
 
-// const fetchAccountsSuccess = (accountsToFetch: AccountRequestParams[]): FetchAccountsSuccessAction => ({
-//   type: FETCH_ACCOUNTS_SUCCESS,
-//   payload: accountsToFetch,
-// });
-
-
 export const deleteAccountsRedux = (accountsToDelete: string[]): DeleteAccountsAction => ({
   type: DELETE_ACCOUNTS,
   payload: accountsToDelete
@@ -92,11 +86,6 @@ export const fetchAccountsRequest = (accountsToFetch: AccountRequestParams[]): F
   type: FETCH_ACCOUNTS_REQUEST,
   payload: accountsToFetch,
 });
-
-// const fetchAccountsStart = (fetching: AccountRequestParams[]): FetchAccountsStartAction => ({
-//   type: FETCH_ACCOUNTS_START,
-//   payload: fetching,
-// });
 
 const fetchAccountsFailure = (error: string): FetchAccountsFailureAction => ({
   type: FETCH_ACCOUNTS_FAILURE,
@@ -349,14 +338,6 @@ export const accountReducer = (state = initialState, action: { type: string; pay
         }
       }
       return { ...state, accounts, cosmosAddressesByUsernames };
-
-    // return { ...state, loading: true, error: '', queue: [...state.queue, ...action.payload] };
-    // case 'FETCH_ACCOUNTS_START':
-    //   return { ...state, loading: false, error: '', queue: [], fetching: [...state.fetching, ...action.payload] }
-    // case 'FETCH_ACCOUNTS_FAILURE':
-    //   return { ...state, loading: false, error: action.payload };
-    // case 'FETCH_ACCOUNTS_SUCCESS':
-    // return { ...state, fetching: state.fetching.filter(x => !action.payload.some((y: any) => JSON.stringify(x) === JSON.stringify(y))) }
     default:
       return state;
   }

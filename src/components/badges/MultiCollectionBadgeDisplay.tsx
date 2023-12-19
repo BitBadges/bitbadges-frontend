@@ -15,6 +15,7 @@ import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
 import { CustomizeButtons } from "./MultiCollectionCustomizeButtons";
+import { CollectionHeader } from "./CollectionHeader";
 
 export const filterBadgeIdsFromBalanceInfos = (balances: BalanceDoc<bigint>[], badgeIdsToRemove: UintRange<bigint>[], removeSpecifiedBadges = true) => {
   for (const x of balances) {
@@ -71,7 +72,7 @@ export function CollectionDisplayWithBadges({
   return <InformationDisplayCard noBorder inheritBg title='' style={{ margin: 8, alignItems: 'normal' }
   } >
     <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
-      <div className='link-button-nav flex-center' onClick={() => {
+      {/* <div className='link-button-nav flex-center' onClick={() => {
         router.push('/collections/' + collectionId)
         Modal.destroyAll()
       }} style={{ alignItems: 'center', justifyContent: 'center' }}>
@@ -84,7 +85,8 @@ export function CollectionDisplayWithBadges({
           {collection?.cachedCollectionMetadata?.name}
         </Typography.Text>
 
-      </div>
+      </div> */}
+      <CollectionHeader collectionId={collectionId} multiDisplay />
       {collection && !hideAddress &&
         <div className="flex-center">
           <Typography.Text className="primary-text" style={{ fontWeight: 'bold', marginRight: 10 }}>

@@ -7,11 +7,12 @@ import { useCollection } from '../../bitbadges-api/contexts/collections/Collecti
 
 const { Text } = Typography;
 
-export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, metadataOverride }: {
+export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, metadataOverride, multiDisplay }: {
   collectionId: bigint;
   badgeId?: bigint;
   hideCollectionLink?: boolean;
   metadataOverride?: Metadata<bigint>
+  multiDisplay?: boolean
 }) {
   const router = useRouter();
 
@@ -26,16 +27,16 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
           <BadgeAvatar
             collectionId={collectionId}
             badgeId={badgeId}
-            size={200}
+            size={multiDisplay ? 150 : 200}
             noHover
             metadataOverride={metadataOverride}
           />
-          <div style={{ maxWidth: 500, textAlign: 'center' }}>
-            <Text strong className='primary-text' style={{ fontSize: 30 }}>
+          <div style={{ maxWidth: 500, textAlign: 'center', minWidth: 200 }}>
+            {!multiDisplay && <Text strong className='primary-text' style={{ fontSize: 30 }}>
               {metadata?.name}
-            </Text>
+            </Text>}
             {!hideCollectionLink && <><br />
-              <Text strong className='primary-text' style={{ fontSize: 16 }}>
+              <Text strong className='primary-text' style={{ fontSize: multiDisplay ? 20 : 16 }}>
                 <a onClick={() => {
                   router.push(`/collections/${collectionId}`)
                 }}>{collectionMetadata?.name}</a>

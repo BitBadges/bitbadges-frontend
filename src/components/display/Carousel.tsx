@@ -16,6 +16,11 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
   const [isMobile, setIsMobile] = React.useState(false);
 
   useEffect(() => {
+    setCurrPage(0);
+
+  }, [items])
+
+  useEffect(() => {
     setIsMobile(window.innerWidth < 768);
 
     const handleResize = () => {

@@ -241,7 +241,7 @@ code {
   }
 
  .dark .styled-button {
-      background: #001529 !important;
+      background: #001529;
       /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
       border: 2px solid white;
       color: white;
