@@ -344,19 +344,19 @@ const Home: NextPage = () => {
 
                   <br /><BadgeAvatar size={100} collectionId={1n} badgeId={3n} /> <br />
                   <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Certain badges might offer utility, like access to an event or authenticating you for a website.
+                    Certain badges might offer utility, like access to an event or authenticating you for a website. For example, a ticket badge might get you into a concert.
                   </div>
                 </InformationDisplayCard>
                 <InformationDisplayCard noBorder inheritBg title='Achievements' subtitle='' md={8} sm={24} xs={24}>
                   <br /><BadgeAvatar size={100} collectionId={1n} badgeId={5n} /> <br />
                   <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Show off your achievement badges in your portfolio, like a degree or certification.
+                    Show off your achievement badges in your portfolio, like a degree or certification. Badges can be used to prove your skills and experience.
                   </div>
                 </InformationDisplayCard>
                 <InformationDisplayCard noBorder inheritBg title='Reputation' subtitle='' md={8} sm={24} xs={24}>
                   <br /><BadgeAvatar size={100} collectionId={1n} badgeId={9n} /> <br />
                   <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Your badges become your digital identity. Some might positively impact your reputation while others might negatively impact your reputation.
+                    Your badges become your digital identity. Some might positively impact your reputation while others might negatively impact your reputation. Or, some may just be informational.
                   </div>
                 </InformationDisplayCard>
 
@@ -379,10 +379,6 @@ const Home: NextPage = () => {
                     <a href='https://docs.bitbadges.io/overview/ecosystem/bitbadges-follow-protocol' target='_blank' className='text-vivid-blue' rel="noreferrer"> BitBadges Follow Protocol</a>, or an attendance protocol.
                   </div>
                 </InformationDisplayCard>
-              </div>
-              <Divider />
-              <div className='flex-center'>
-                And much more!
               </div>
 
             </>

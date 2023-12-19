@@ -1,7 +1,6 @@
-import { Modal, Spin, Tooltip, Typography } from "antd";
+import { Spin, Tooltip, Typography } from "antd";
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BalanceDoc, BitBadgesUserInfo, getBadgesToDisplay, getBalancesForId, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 
 
@@ -14,8 +13,8 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BadgeAvatar } from "./BadgeAvatar";
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay";
 import { BadgeCard } from "./BadgeCard";
-import { CustomizeButtons } from "./MultiCollectionCustomizeButtons";
 import { CollectionHeader } from "./CollectionHeader";
+import { CustomizeButtons } from "./MultiCollectionCustomizeButtons";
 
 export const filterBadgeIdsFromBalanceInfos = (balances: BalanceDoc<bigint>[], badgeIdsToRemove: UintRange<bigint>[], removeSpecifiedBadges = true) => {
   for (const x of balances) {
@@ -56,8 +55,6 @@ export function CollectionDisplayWithBadges({
   addressOrUsernameToShowBalance?: string
   hideCollectionLink?: boolean
 }) {
-
-  const router = useRouter();
   const collectionId = badgeObj.collectionId;
   const collection = useCollection(collectionId);
   const account = useAccount(addressOrUsernameToShowBalance);
