@@ -249,7 +249,7 @@ function BlockinCodesScreen() {
 
                         </div>
                         <div className='flex-center'>
-                          <button className='landing-button' onClick={() => router.push(`/account/${chain.address}/codes`)} style={{ minWidth: 222 }}>
+                          <button className='landing-button' onClick={() => router.push(`/account/codes`)} style={{ minWidth: 222 }}>
                             View All My Codes
                           </button>
                         </div>
