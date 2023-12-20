@@ -218,11 +218,14 @@ export function TxModal(
       //We return the new Msg from beforeTx() because we don't have time to wait for the React state (passe in cosmosMsg) to update
 
       //Note this 
-      if (!isRegister && beforeTx && !finalMsg) {
-
-        let newMsg = await beforeTx(false);
-        if (newMsg) cosmosMsg = newMsg;
-        setFinalMsg(newMsg);
+      if (!isRegister && beforeTx) {
+        if (!finalMsg) {
+          let newMsg = await beforeTx(false);
+          if (newMsg) cosmosMsg = newMsg;
+          setFinalMsg(newMsg);
+        } else {
+          cosmosMsg = finalMsg;
+        }
       }
 
       //Sign and broadcast transaction

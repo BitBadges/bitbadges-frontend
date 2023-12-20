@@ -6,6 +6,10 @@ export const GO_MAX_UINT_64 = 18446744073709551615n;
 export const FOREVER_THRESHOLD = 7277881234n * 1000n;
 
 export function getTimeRangesElement(validFrom?: UintRange<bigint>[], prefix = "", includeTime = false, futureOnly = false, numbersOnly?: boolean): JSX.Element {
+  if (validFrom?.length == 0) {
+    return <span>None</span>
+  }
+  
   let strWithTime = getTimeRangesString(validFrom, prefix, true, futureOnly, numbersOnly);
   let strWithoutTime = getTimeRangesString(validFrom, prefix, false, futureOnly, numbersOnly);
 
