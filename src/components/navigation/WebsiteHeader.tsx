@@ -390,6 +390,7 @@ export function WalletHeader() {
                   return;
                 }
                 router.push(`/${e}`)
+                setSearchIsVisible(false);
               }}
               noSelectedKeys
               tabInfo={[

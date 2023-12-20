@@ -1,8 +1,8 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { ReactElement, useLayoutEffect, useState } from 'react';
+import { ReactElement, useLayoutEffect, useMemo, useState } from 'react';
 
-import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { BigIntify, convertBitBadgesCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
@@ -51,40 +51,47 @@ function BrowsePage() {
     };
   }, []);
 
-  const allItems: ReactElement[] = [];
-  for (let idx = 0; idx < (browseInfo?.badges[badgesTab] ?? []).length; idx++) {
-    const badgeObj = browseInfo?.badges[badgesTab][idx];
-    if (!badgeObj) continue;
+  const allItems = useMemo(() => {
+    const allItems: ReactElement[] = [];
+    for (let idx = 0; idx < (browseInfo?.badges[badgesTab] ?? []).length; idx++) {
+      const badgeObj = browseInfo?.badges[badgesTab][idx];
+      if (!badgeObj) continue;
 
-    const collection = badgeObj.collection;
-    const badgeIds = badgeObj.badgeIds;
+      const collection = convertBitBadgesCollection(badgeObj.collection, BigIntify);
+      const badgeIds = badgeObj.badgeIds.map(x => { return { start: BigInt(x.start), end: BigInt(x.end) } });
 
-    allItems.push(...badgeIds.map(badgeIdRange => {
-      const start = badgeIdRange.start;
-      const end = badgeIdRange.end;
-      let arr = [];
-      for (let i = 0; i < end - start + 1n; i++) {
-        arr.push(start + BigInt(i));
-      }
+      allItems.push(...badgeIds.map(badgeIdRange => {
+        const start = badgeIdRange.start;
+        const end = badgeIdRange.end;
+        let arr = [];
+        for (let i = 0; i < end - start + 1n; i++) {
+          arr.push(start + BigInt(i));
+        }
 
-      return arr.map((_, idx) => {
-        const badgeId = start + BigInt(idx);
-        const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
-        const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
+        return arr.map((_, idx) => {
+          const badgeId = start + BigInt(idx);
+          const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
+          const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
 
-        return <InformationDisplayCard title='' key={idx} style={{ minWidth: 350 }}>
-          <CollectionHeader collectionId={collection.collectionId} badgeId={badgeId} />
-          <br />
-          <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
-            {reactElement}
-          </div>
-          {/* <br />
-          <BalanceOverview collectionId={collection.collectionId} badgeId={badgeId} /> */}
-        </InformationDisplayCard>
-      }).flat();
+          return <InformationDisplayCard title='' key={collection.collectionId + "" + idx} style={{ minWidth: 350 }}>
+            <CollectionHeader collectionId={collection.collectionId} badgeId={badgeId} />
+            <br />
+            <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
+              {reactElement}
+            </div>
+            {/* <br />
+            <BalanceOverview collectionId={collection.collectionId} badgeId={badgeId} /> */}
+          </InformationDisplayCard>
+        }).flat();
 
-    }).flat());
-  }
+      }).flat());
+    }
+
+    return allItems;
+  }, [browseInfo, badgesTab, HtmlToReactParser]);
+
+  console.log(allItems.length)
+
 
   return (
     <Content
@@ -141,7 +148,7 @@ function BrowsePage() {
               }
               if (idx % numItems !== 0) return null
 
-
+              console.log(idxArr.length);
               return <div key={idx} className='flex flex-center-if-mobile'>
                 {idxArr.map(idx => {
                   if (idx >= allItems?.length) return null
