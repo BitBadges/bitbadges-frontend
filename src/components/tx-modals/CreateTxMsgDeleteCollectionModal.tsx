@@ -46,6 +46,7 @@ export function CreateTxMsgDeleteCollectionModal({ collectionId, visible, setVis
       setVisible={setVisible}
       txName="Delete Collection"
       txCosmosMsg={txCosmosMsg}
+      txType='MsgDeleteCollection'
       createTxFunction={createTxMsgDeleteCollection}
       onSuccessfulTx={async () => {
         //Force refresh page

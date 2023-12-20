@@ -28,19 +28,19 @@ async function handleApiError(error: any): Promise<void> {
     const data: ErrorResponse = error.response.data;
 
     //if localhost, show errors but not on actual site
-    if (window.location.hostname === "localhost") {
+    // if (window.location.hostname === "localhost") {
       notification.error({
         message: "Oops! We ran into an error!",
         description: data.message ? data.message : "Unknown error",
       });
-    }
+    // }
   } else {
-    if (window.location.hostname === "localhost") {
+    // if (window.location.hostname === "localhost") {
       notification.error({
         message: "Oops! We ran into an error!",
         description: error.message ? error.message : "Unknown error: " + error,
       });
-    }
+    // }
   }
 
 

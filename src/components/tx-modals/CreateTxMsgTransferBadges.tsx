@@ -183,6 +183,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       disabled={requiresWhitelistProof && !isValidProof}
       setVisible={setVisible}
       txName="Transfer Badge(s)"
+      txType='MsgTransferBadges'
       txCosmosMsg={txCosmosMsg}
       width={'90%'}
       createTxFunction={createTxMsgTransferBadges}

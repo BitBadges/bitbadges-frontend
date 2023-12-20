@@ -394,6 +394,7 @@ export function CreateTxMsgClaimBadgeModal(
       visible={visible}
       setVisible={setVisible}
       txName="Claim Badge"
+      txType='MsgTransferBadges'
       txCosmosMsg={txCosmosMsg}
       createTxFunction={createTxMsgTransferBadges}
       disabled={requiresProof && !isValidProof}
