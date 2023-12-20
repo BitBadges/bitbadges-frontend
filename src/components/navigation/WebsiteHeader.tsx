@@ -55,6 +55,8 @@ export function WalletHeader() {
 
     setSearchValue('');
     Modal.destroyAll()
+
+    setSearchIsVisible(false);
   };
 
 
@@ -390,7 +392,6 @@ export function WalletHeader() {
                   return;
                 }
                 router.push(`/${e}`)
-                setSearchIsVisible(false);
               }}
               noSelectedKeys
               tabInfo={[
