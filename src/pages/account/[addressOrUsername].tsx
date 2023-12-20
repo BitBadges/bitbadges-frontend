@@ -178,9 +178,9 @@ export const BatchBadgeDetailsTag = ({ badgeIdObj, onClose, }: { badgeIdObj: Bat
     style={{ alignItems: 'center', marginBottom: 8 }}
     closable
     closeIcon={onClose ? <CloseCircleOutlined
-      className='primary-text styled-button flex-center'
+      className='primary-text styled-button-normal flex-center'
       style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
-      size={50}
+      size={100}
     /> : <></>}
     onClose={onClose}
   >

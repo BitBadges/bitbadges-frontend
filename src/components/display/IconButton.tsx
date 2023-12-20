@@ -22,7 +22,7 @@ const IconButton: React.FC<IconButtonProps> = ({ secondary, src, text, style, on
 
       <div className='flex-center flex-column' style={{ margin: 8 }}>
         <Avatar
-          className={secondary ? 'styled-button' : 'styled-icon-button'}
+          className={secondary ? 'styled-button-normal' : 'styled-icon-button'}
           src={src}
           style={{
 

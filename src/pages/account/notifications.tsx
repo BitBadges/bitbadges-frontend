@@ -1,4 +1,4 @@
-import { Badge, Empty, Layout, Spin, Typography } from 'antd';
+import { Badge, Empty, Layout, Spin } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
@@ -105,9 +105,8 @@ export function Notifications() {
 
 
     return <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-      <Typography.Text className='primary-text' strong style={{ fontSize: 16 }}>
+      
         {title}
-      </Typography.Text>
       {'      '}
       {count > 0 && toShow && <Badge style={{ marginLeft: 6 }} count={count} overflowCount={10}>
       </Badge>}

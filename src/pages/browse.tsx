@@ -122,9 +122,9 @@ function BrowsePage() {
                   return {
                     key: category,
                     label: category.charAt(0).toUpperCase() + category.slice(1),
-                    content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                    content: <div>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </Typography.Text>
+                    </div>
                   }
                 }) : []}
                 setTab={setBadgesTab}
@@ -167,9 +167,9 @@ function BrowsePage() {
                   return {
                     key: category,
                     label: category.charAt(0).toUpperCase() + category.slice(1),
-                    content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                    content: <div style={{ fontSize: 18, fontWeight: 'bold' }}>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </Typography.Text>
+                    </div>
                   }
                 }) : []}
                 setTab={setCollectionsTab}
@@ -217,9 +217,9 @@ function BrowsePage() {
                   return {
                     key: category,
                     label: category.charAt(0).toUpperCase() + category.slice(1),
-                    content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                    content: <div style={{ fontSize: 18, fontWeight: 'bold' }}>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </Typography.Text>
+                    </div>
                   }
                 }) : []}
                 setTab={setListsTab}
@@ -266,9 +266,9 @@ function BrowsePage() {
                     return {
                       key: category,
                       label: category.charAt(0).toUpperCase() + category.slice(1),
-                      content: <Typography.Text className='primary-text' strong style={{ fontSize: 18, fontWeight: 'bold' }}>
+                      content: <div style={{ fontSize: 18, fontWeight: 'bold' }}>
                         {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </Typography.Text>
+                      </div>
                     }
                   }) : []}
                   setTab={setTab}
@@ -291,6 +291,7 @@ function BrowsePage() {
                 >{idxArr.map(idx => {
                   if (idx >= browseInfo?.profiles[tab]?.length) return null
                   const profile = browseInfo?.profiles[tab][idx];
+
                   return <InformationDisplayCard title='' key={idx} style={{}}>
                     <>
                       <div style={{ alignItems: 'normal' }}>
@@ -299,6 +300,8 @@ function BrowsePage() {
                           hideButtons
                         />
                       </div>
+
+                      <br />
                       <div style={{ marginTop: '1rem' }}></div>
                       <a className='text-vivid-blue' onClick={() => {
                         router.push(`/account/${profile.address}`)

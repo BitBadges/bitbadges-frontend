@@ -104,7 +104,7 @@ code {
 
 
 .card-bg {
-  @apply bg-white
+  background: linear-gradient(0deg, rgb(241, 240, 240) 10%, white 100%);
 }
 
 .dark .card-bg {
@@ -261,15 +261,16 @@ code {
 
 .styled-button-normal {
     background: inherit;
+
     /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
-    border: 1px solid black;
+    border: 2px solid black;
     color: black;
 }
 
 .dark .styled-button-normal {
   background: inherit;
   /* transition: background 0.3s, border-color 0.3s, color 0.3s; */
-  border: 1px solid white;
+  border: 2px solid white;
   color: white;
 }
 

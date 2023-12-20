@@ -162,7 +162,7 @@ export function WalletHeader() {
                 }}
                 size="large"
                 onClick={disabled ? () => { } : () => { setVisible(true) }}
-                className="styled-button"
+                className="styled-button-normal"
               >
                 <SwapOutlined />
               </Avatar>

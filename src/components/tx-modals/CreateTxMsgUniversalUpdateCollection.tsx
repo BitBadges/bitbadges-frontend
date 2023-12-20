@@ -128,6 +128,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
           badgeMetadata: txTimelineContext.updateBadgeMetadataTimeline && txTimelineContext.badgeAddMethod === MetadataAddMethod.Manual
             ? prunedMetadata : undefined,
         }
+
         const toUpload = body.collectionMetadata || body.badgeMetadata;
         if (toUpload) {
           notification.info({
