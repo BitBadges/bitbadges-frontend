@@ -135,6 +135,7 @@ export function ConfirmManagerStepItem() {
                     {hasManager && <div>
 
                       <TimelineEditor
+                        emptyValue="No Manager"
                         timelineName="Manager"
                         valueToAdd={{
                           manager: convertToCosmosAddress(address),
@@ -183,7 +184,8 @@ export function TimelineEditor<T extends TimelineItem<bigint>>({
   setTimeline,
   createNode,
   valueToAdd,
-  timelineName
+  timelineName,
+  emptyValue,
 
 }: {
   timeline: T[],
@@ -192,6 +194,7 @@ export function TimelineEditor<T extends TimelineItem<bigint>>({
   createNode: JSX.Element,
   valueToAdd: T,
   timelineName?: string
+  emptyValue: string,
 }) {
   const [addIsVisible, setAddIsVisible] = useState(false);
   const [timeRanges, setTimeRanges] = useState<UintRange<bigint>[]>([{ start: 1n, end: GO_MAX_UINT_64 }]);
@@ -333,6 +336,7 @@ export function TimelineEditor<T extends TimelineItem<bigint>>({
     <br />
     <div className="secondary-text" >
       <InfoCircleOutlined /> This is a timeline-based property, meaning it can be set to have different values at different times.
+      If there is not a value set for a given time, the following value will be used: {emptyValue}.
     </div>
   </>
 
