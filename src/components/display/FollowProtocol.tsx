@@ -4,7 +4,7 @@ import 'react-markdown-editor-lite/lib/index.css';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { BigIntify, GetFollowDetailsRouteSuccessResponse } from 'bitbadgesjs-utils';
 import { useCallback, useEffect, useState } from 'react';
-import { getFollowDetails, updateFollowDetails } from '../../bitbadges-api/api';
+import { getFollowDetails } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -17,11 +17,11 @@ import { InformationDisplayCard } from './InformationDisplayCard';
 
 import { convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { AddressDisplay } from '../address/AddressDisplay';
-import { Divider } from './Divider';
-import { BadgeAvatar } from '../badges/BadgeAvatar';
-import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { fetchCollectionsWithOptions } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { AddressDisplay } from '../address/AddressDisplay';
+import { BadgeAvatar } from '../badges/BadgeAvatar';
+import { Divider } from './Divider';
 const template2 = require('../tx-timelines/step-items/templates/template2.json');
 
 const { Content } = Layout;
@@ -251,9 +251,10 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                       }],
                     }, BigIntify)}
-                    afterTx={async (collectionId: bigint) => {
-                      await updateFollowDetails({ followingCollectionId: collectionId });
-                    }}
+                    isBitBadgesFollowProtocol
+                    // afterTx={async (collectionId: bigint) => {
+                    //   // await updateFollowDetails({ followingCollectionId: collectionId });
+                    // }}
                   />
                 </>
               </>}

@@ -212,8 +212,8 @@ function CollectionPage({
 
               {tab === 'history' && !isPreview && <div className='primary-text'>
                 <br />
-                {collection.updateHistory.map((update, i) => {
-                  return <TxHistory key={i} tx={update} creationTx={i == 0} />
+                {collection.updateHistory.sort((a, b) => Number(a.blockTimestamp) > Number(b.blockTimestamp) ? -1 : 1).map((update, i) => {
+                  return <TxHistory key={i} tx={update} creationTx={i == collection.updateHistory.length - 1} />
                 })}
               </div>}
             </>

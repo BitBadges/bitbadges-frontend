@@ -1,14 +1,14 @@
 import { notification } from 'antd';
-import { MsgCreateAddressMappings, createTxMsgCreateAddressMappings } from 'bitbadgesjs-proto';
+import { MsgCreateAddressMappings } from 'bitbadgesjs-proto';
 import { convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
-import { NEW_COLLECTION_ID, MsgUniversalUpdateCollectionProps, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { TxModal } from './TxModal';
+import { MsgUniversalUpdateCollectionProps, NEW_COLLECTION_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { TxModal } from './TxModal';
 
 export function CreateTxMsgCreateAddressMappingModal(
   { visible, setVisible, children, inheritedTxState }
@@ -25,17 +25,17 @@ export function CreateTxMsgCreateAddressMappingModal(
 
   const txTimelineContext = useTxTimelineContext();
 
-  const msg: MsgCreateAddressMappings = {
-    creator: chain.cosmosAddress,
-    addressMappings: inheritedTxState?.addressMapping ? [{
-      ...inheritedTxState.addressMapping,
-      addresses: inheritedTxState.addressMapping.addresses.map(x => convertToCosmosAddress(x))
-    }] : []
-  }
+  
+  const updateIPFSUris = useCallback(async (simulate: boolean) => {
 
-  async function updateIPFSUris(simulate: boolean) {
     if (!inheritedTxState || !collection) return;
-
+    const msg: MsgCreateAddressMappings = {
+      creator: chain.cosmosAddress,
+      addressMappings: inheritedTxState?.addressMapping ? [{
+        ...inheritedTxState.addressMapping,
+        addresses: inheritedTxState.addressMapping.addresses.map(x => convertToCosmosAddress(x))
+      }] : []
+    }
     let uri = '';
     //If metadata was added manually, we need to add it to IPFS and update the URIs in msg
     if (simulate) {
@@ -61,33 +61,47 @@ export function CreateTxMsgCreateAddressMappingModal(
     console.log("FINAL MSG", MsgUniversalUpdateCollection);
 
     return MsgUniversalUpdateCollection;
-  }
+  }, [inheritedTxState, collection, chain.cosmosAddress]);
 
   const msgSteps: any[] = [];
 
+  const txsInfo = useMemo(() => {
+    const msg = {
+      creator: chain.cosmosAddress,
+      addressMappings: inheritedTxState?.addressMapping ? [{
+        ...inheritedTxState.addressMapping,
+        addresses: inheritedTxState.addressMapping.addresses.map(x => convertToCosmosAddress(x))
+      }] : []
+    }
+
+    return [
+      {
+        type: 'MsgCreateAddressMappings',
+        msg: msg,
+        beforeTx: async (simulate: boolean) => {
+          const newMsg = await updateIPFSUris(simulate);
+          return newMsg;
+        },
+        afterTx: async () => {
+          notification.success({ message: 'Created successfully!' });
+          router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
+          txTimelineContext.resetState();
+        }
+      }
+    ]
+  }, [inheritedTxState?.addressMapping, chain.cosmosAddress, router, txTimelineContext, updateIPFSUris]);
+
   return (
     <TxModal
-      visible={visible}
-      setVisible={setVisible}
-      txName="Address List"
-      txCosmosMsg={msg}
-      txType='MsgCreateAddressMappings'
-      createTxFunction={createTxMsgCreateAddressMappings}
-      msgSteps={msgSteps}
-      beforeTx={async (simulate: boolean) => {
-        const newMsg = await updateIPFSUris(simulate);
-        return newMsg
-      }}
-
-      onSuccessfulTx={async () => {
-        notification.success({ message: 'Created successfully!' });
-        router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
-
-        txTimelineContext.resetState();
-      }}
-      requireRegistration
-    >
-      {children}
-    </TxModal>
+    visible={visible}
+    setVisible={setVisible}
+    txsInfo={txsInfo}
+    txName="Address List"
+    msgSteps={msgSteps}
+    requireRegistration
+  >
+    {children}
+  </TxModal>
+  
   );
 }

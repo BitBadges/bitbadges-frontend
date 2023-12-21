@@ -36,6 +36,7 @@
     "axios": "^1.6.2",
     "bech32": "^2.0.0",
     "bitbadgesjs-utils": "^1.1.376",
+    "bitbadgesjs-proto": "^0.1.200",
     "blockin": "^1.2.74",
     "bs58": "^5.0.0",
     "dotenv": "^16.0.2",

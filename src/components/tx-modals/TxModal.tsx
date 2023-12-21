@@ -6,23 +6,73 @@ import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'rea
 import { simulateTx } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
+import {
+  MsgUniversalUpdateCollection,
+  MsgCreateAddressMappings,
+  MsgCreateCollection,
+  MsgDeleteCollection,
+  MsgTransferBadges,
+  MsgUpdateUserApprovals,
+  MsgUpdateCollection,
+  MsgCreateProtocol,
+  MsgUpdateProtocol,
+  MsgDeleteProtocol,
+  MsgSetCollectionForProtocol,
+  MsgSend
+} from 'bitbadgesjs-proto';
 
+import { 
+  MsgCreateAddressMappings as ProtoMsgCreateAddressMappings, 
+  MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection,
+  MsgCreateCollection as ProtoMsgCreateCollection,
+  MsgDeleteCollection as ProtoMsgDeleteCollection,
+  MsgTransferBadges as ProtoMsgTransferBadges,
+  MsgUpdateUserApprovals as ProtoMsgUpdateUserApprovals,
+  MsgUpdateCollection as ProtoMsgUpdateCollection,
+} from 'bitbadgesjs-proto/dist/proto/badges/tx_pb';
+
+import {
+  MsgCreateProtocol as ProtoMsgCreateProtocol,
+  MsgUpdateProtocol as ProtoMsgUpdateProtocol,
+  MsgDeleteProtocol as ProtoMsgDeleteProtocol,
+  MsgSetCollectionForProtocol as ProtoMsgSetCollectionForProtocol,
+} from 'bitbadgesjs-proto/dist/proto/protocols/tx_pb';
+
+import {
+  MsgSend as ProtoMsgSend,
+} from 'bitbadgesjs-proto/dist/proto/cosmos/bank/v1beta1/tx_pb';
+
+import { convertMsgUniversalUpdateCollection, 
+  convertMsgCreateCollection,
+  convertMsgUpdateCollection,
+  convertMsgDeleteCollection,
+  convertMsgTransferBadges,
+  convertMsgUpdateUserApprovals,
+
+  
+  createTransactionPayload } from 'bitbadgesjs-proto';
 import { fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
-import { formatAndCreateGenericTx } from '../../bitbadges-api/cosmos-sdk/transactions';
 import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
-import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 import IconButton from '../display/IconButton';
+import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { MessageGenerated, createProtoMsg } from 'bitbadgesjs-proto';
 
 const { Step } = Steps;
 
+export interface TxInfo {
+  type: string,
+  msg: object,
+  generateProtoMsg?: (msg: object) => any,
+  beforeTx?: (simulate: boolean) => Promise<any>,
+  afterTx?: (collectionId: bigint) => Promise<void>,
+}
+
 export function TxModal(
   {
-    createTxFunction,
-    txType,
-    txCosmosMsg,
+    txsInfo,
     visible,
     setVisible,
     txName,
@@ -31,14 +81,13 @@ export function TxModal(
     closeIcon,
     bodyStyle,
     msgSteps,
-    displayMsg, onSuccessfulTx, beforeTx, disabled,
+    displayMsg, 
+    disabled,
     requireRegistration,
     coinsToTransfer,
     width
   }: {
-    createTxFunction: any,
-    txCosmosMsg: object,
-    txType: string,
+    txsInfo: TxInfo[],
     visible: boolean,
     setVisible: (visible: boolean) => void,
     txName: string,
@@ -46,8 +95,7 @@ export function TxModal(
     style?: React.CSSProperties,
     closeIcon?: React.ReactNode,
     bodyStyle?: React.CSSProperties,
-    onSuccessfulTx?: (collectionId: bigint) => Promise<void>,
-    beforeTx?: (simulate: boolean) => Promise<any>,
+    
     msgSteps?: StepProps[],
     displayMsg?: string | ReactNode
     // width?: number | string
@@ -62,6 +110,7 @@ export function TxModal(
   const router = useRouter();
   const statusContext = useStatusContext();
 
+
   const [irreversibleChecked, setIrreversibleChecked] = useState(false);
   const [betaChecked, setBetaChecked] = useState(false);
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(TransactionStatus.None);
@@ -73,15 +122,100 @@ export function TxModal(
   const [simulatedGas, setSimulatedGas] = useState(200000n);
   const [simulated, setSimulated] = useState(false);
   const [recommendedAmount, setRecommendedAmount] = useState(0n);
-  const [showJson, setShowJson] = useState(null);
+  const [showJson, setShowJson] = useState<object[] | null>(null);
 
-  const [finalMsg, setFinalMsg] = useState(null);
+  const [finalMsgs, setFinalMsgs] = useState<MessageGenerated[] | null>(null);
 
   const signedInAccount = useAccount(chain.cosmosAddress);
 
+  const txsInfoPopulated = useMemo(() => {
+    return txsInfo.map((tx) => {
+      let createFunction = undefined;
+      switch (tx.type) {
+        case 'MsgUniversalUpdateCollection':
+          createFunction = (msg: MsgUniversalUpdateCollection<bigint>) => {
+            return new ProtoMsgUniversalUpdateCollection(convertMsgUniversalUpdateCollection(msg, String))
+          }
+          break;
+        case 'MsgCreateAddressMappings':
+          createFunction = (msg: MsgCreateAddressMappings) => {
+            return new ProtoMsgCreateAddressMappings(msg)
+          }
+          break;
+        case 'MsgCreateCollection':
+          createFunction = (msg: MsgCreateCollection<bigint>) => {
+            return new ProtoMsgCreateCollection(convertMsgCreateCollection(msg, String))
+          }
+          break;
+        case 'MsgDeleteCollection':
+          createFunction = (msg: MsgDeleteCollection<bigint>) => {
+            return new ProtoMsgDeleteCollection(convertMsgDeleteCollection(msg, String))
+          }
+          break;
+        case 'MsgTransferBadges':
+          createFunction = (msg: MsgTransferBadges<bigint>) => {
+            return new ProtoMsgTransferBadges(convertMsgTransferBadges(msg, String))
+          }
+          break;
+        case 'MsgUpdateUserApprovals':
+          createFunction = (msg: MsgUpdateUserApprovals<bigint>) => {
+            return new ProtoMsgUpdateUserApprovals(convertMsgUpdateUserApprovals(msg, String))
+          }
+          break;
+        case 'MsgUpdateCollection':
+          createFunction = (msg: MsgUpdateCollection<bigint>) => {
+            return new ProtoMsgUpdateCollection(convertMsgUpdateCollection(msg, String))
+          }
+          break;
+        case 'MsgCreateProtocol':
+          createFunction = (msg: MsgCreateProtocol) => {
+            return new ProtoMsgCreateProtocol(msg)
+          }
+          break;
+        case 'MsgUpdateProtocol':
+          createFunction = (msg: MsgUpdateProtocol) => {
+            return new ProtoMsgUpdateProtocol(msg)
+          }
+          break;
+        case 'MsgDeleteProtocol':
+          createFunction = (msg: MsgDeleteProtocol) => {
+            return new ProtoMsgDeleteProtocol(msg)
+          }
+          break;
+        case 'MsgSetCollectionForProtocol':
+          createFunction = (msg: MsgSetCollectionForProtocol<bigint>) => {
+            return new ProtoMsgSetCollectionForProtocol({
+              ...msg,
+              collectionId: msg.collectionId.toString(),
+            })
+          }
+          break;
+        case 'MsgSend':
+          createFunction = (params: MsgSend<bigint>) => {
+            return new ProtoMsgSend({
+              fromAddress: chain.cosmosAddress, //TODO: Better way to do this?
+              toAddress: params.destinationAddress,
+              amount: [{
+                denom: params.denom,
+                amount: params.amount.toString(),
+              }],
+            })
+          }
+          break;
+      }
+  
+  
+      return {
+        ...tx,
+        generateProtoMsg: (tx.generateProtoMsg ?? createFunction) as (msg: object) => any,
+      }
+    })
+  }, [txsInfo, chain.cosmosAddress]);
+
+
   useEffect(() => {
-    setFinalMsg(null);
-  }, [txCosmosMsg]);
+    setFinalMsgs(null);
+  }, [txsInfo]);
 
   const fee = useMemo(() => {
     return {
@@ -99,8 +233,8 @@ export function TxModal(
       },
       sender: {
         accountAddress: signedInAccount?.cosmosAddress ?? "",
-        sequence: signedInAccount?.sequence ?? "0",
-        accountNumber: signedInAccount?.accountNumber ?? "0",
+        sequence: Number(signedInAccount?.sequence ?? "0"),
+        accountNumber: Number(signedInAccount?.accountNumber ?? "0"),
         pubkey: signedInAccount?.publicKey ?? "",
       },
       fee,
@@ -150,23 +284,30 @@ export function TxModal(
 
         const gasPrice = Number(status.lastXGasAmounts.reduce((a, b) => a + b, 0n)) / Number(status.lastXGasLimits.reduce((a, b) => a + b, 0n));
 
-        let cosmosMsg = txCosmosMsg;
-        if (beforeTx) {
-          let newMsg = await beforeTx(true);
-          if (newMsg) cosmosMsg = newMsg;
+        const generatedMsgs: MessageGenerated[] = []
 
+        for (const tx of txsInfoPopulated) {
+          const { generateProtoMsg, beforeTx, msg } = tx;
+
+          let cosmosMsg = msg;
+          if (beforeTx) {
+            let newMsg = await beforeTx(true);
+            if (newMsg) cosmosMsg = newMsg;
+          }
+
+          generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
         }
 
-        //Sign and broadcast transaction
-        const unsignedTxSimulated = await formatAndCreateGenericTx(createTxFunction, {
+
+        const unsignedTxSimulated = await createTransactionPayload({
           chain: {
             ...CHAIN_DETAILS,
             chain: chain.chain as any,
           },
           sender: {
             accountAddress: signedInAccount?.cosmosAddress,
-            sequence: signedInAccount?.sequence ?? "0",
-            accountNumber: signedInAccount?.accountNumber ?? "0",
+            sequence: Number(signedInAccount?.sequence ?? "0"),
+            accountNumber: Number(signedInAccount?.accountNumber ?? "0"),
             pubkey: signedInAccount?.publicKey ?? "",
           },
           fee: {
@@ -175,8 +316,9 @@ export function TxModal(
             gas: `100000000000`,
           },
           memo: '',
-        }, cosmosMsg);
+        }, generatedMsgs);
 
+        
         console.log(unsignedTxSimulated);
         const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
         const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
@@ -202,13 +344,13 @@ export function TxModal(
       }
     }
     simulate();
-  }, [currentStep, visible, signedInAccount, chain, beforeTx, createTxFunction, updateStatus, txCosmosMsg, msgStepsLength]);
+  }, [currentStep, visible, signedInAccount, txsInfoPopulated, chain, updateStatus, msgStepsLength]);
 
   const onStepChange = (value: number) => {
     setCurrentStep(value);
   };
 
-  const submitTx = async (createTxFunction: any, cosmosMsg: object, isRegister: boolean) => {
+  const submitTx = async (txsInfo: TxInfo[], isRegister: boolean) => {
     setError('');
     setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
 
@@ -217,21 +359,34 @@ export function TxModal(
       //Currently used for updating IPFS metadata URIs right before tx
       //We return the new Msg from beforeTx() because we don't have time to wait for the React state (passe in cosmosMsg) to update
 
-      //Note this 
-      if (!isRegister && beforeTx) {
-        if (!finalMsg) {
-          let newMsg = await beforeTx(false);
-          if (newMsg) cosmosMsg = newMsg;
-          setFinalMsg(newMsg);
-        } else {
-          cosmosMsg = finalMsg;
+      const generatedMsgs: MessageGenerated[] = []
+      for (let i = 0; i < txsInfo.length; i++) {
+        const tx = txsInfo[i];
+        const { generateProtoMsg, beforeTx, msg } = tx;
+
+        if (!generateProtoMsg) throw new Error('generateProtoMsg is undefined');
+
+        let cosmosMsg = msg;  
+        if (!isRegister && beforeTx) {
+          if (!finalMsgs || !finalMsgs.length) {
+            let newMsg = await beforeTx(false);
+            if (newMsg) cosmosMsg = newMsg;
+          } else {
+            cosmosMsg = finalMsgs[i];
+          }
         }
+
+        generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
       }
+      setFinalMsgs(generatedMsgs);
+      //Note this 
+      
 
       //Sign and broadcast transaction
       // txDetails.sender.sequence = "0"
 
-      const unsignedTxSimulated = await formatAndCreateGenericTx(createTxFunction, txDetails, cosmosMsg);
+      const unsignedTxSimulated = await createTransactionPayload(txDetails, generatedMsgs);
+
       const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
       console.log("SIMULATING TX", rawTxSimulated);
       const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
@@ -262,7 +417,7 @@ export function TxModal(
 
       // console.log(cosmosMsg.transfers);
       // console.log((cosmosMsg as any).transfers.map((x: any) => convertTransfer(x, Stringify, true)));
-      const unsignedTx = await formatAndCreateGenericTx(createTxFunction, finalTxDetails, cosmosMsg);
+      const unsignedTx = await createTransactionPayload(finalTxDetails, generatedMsgs);
       console.log("Unsigned TX:", unsignedTx);
       const rawTx = await chain.signTxn(unsignedTx, false);
       console.log("Raw TX:", rawTx);
@@ -383,8 +538,14 @@ export function TxModal(
 
   const handleSubmitTx = async () => {
     try {
-      const collectionId = await submitTx(createTxFunction, txCosmosMsg, false);
-      if (onSuccessfulTx) onSuccessfulTx(collectionId ?? 0n);
+      const collectionId = await submitTx(txsInfoPopulated, false);
+
+      for (const tx of txsInfoPopulated) {
+        const { afterTx } = tx;
+        if (afterTx) {
+          await afterTx(collectionId ?? 0n);
+        }
+      }
 
       setVisible(false);
     } catch (err: any) {
@@ -488,14 +649,26 @@ export function TxModal(
                     if (showJson) {
                       setShowJson(null);
                     } else {
-                      if (beforeTx && !finalMsg) {
-                        const msgToShow = await beforeTx?.(false);
-                        setShowJson(msgToShow);
-                        setFinalMsg(msgToShow);
-                      } else if (finalMsg) {
-                        setShowJson(finalMsg);
+                      if (!finalMsgs) {
+                        const generatedMsgs: MessageGenerated[] = []
+                        for (const tx of txsInfoPopulated) {
+                          const { generateProtoMsg, beforeTx, msg } = tx;
+
+                          let cosmosMsg = msg;
+                          if (beforeTx) {
+                            let newMsg = await beforeTx(false);
+                            if (newMsg) cosmosMsg = newMsg;
+                          }
+
+                          generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
+                        }
+
+                        setFinalMsgs(generatedMsgs);
+                        setShowJson(generatedMsgs.map(x => x.message));
+                      } else if (finalMsgs) {
+                        setShowJson(finalMsgs);
                       } else {
-                        setShowJson(txCosmosMsg as any);
+                        setShowJson(txsInfoPopulated.map((tx) => tx.msg));
                       }
                     }
                   }} />
@@ -506,8 +679,43 @@ export function TxModal(
                     text={'Dev Mode'}
                     tooltipMessage='Go into developer mode and edit this final transaction JSON.'
                     onClick={async () => {
+                      const msgsToRedirect: any[] = [];
+                      if (!finalMsgs) {
+                        const generatedMsgs: MessageGenerated[] = [];
+                        for (const tx of txsInfoPopulated) {
+                          const { generateProtoMsg, beforeTx, msg } = tx;
+
+                          let cosmosMsg = msg;
+                          if (beforeTx) {
+                            let newMsg = await beforeTx(false);
+                            if (newMsg) cosmosMsg = newMsg;
+                          }
+
+
+                          msgsToRedirect.push(cosmosMsg);
+                          generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
+                        }
+
+                        setFinalMsgs(generatedMsgs);
+                      } else {
+                        msgsToRedirect.push(...finalMsgs.map(x => x.message));
+                      }
+
+                      if (msgsToRedirect.length > 1) alert('Cannot enter developer mode for multiple transactions.');
+                      if (msgsToRedirect.length === 0) alert('Cannot enter developer mode for no transactions.');
+
+                      const populatedTxInfos = txsInfoPopulated.map((tx, idx) => {
+                        return {
+                          type: tx.type,
+                          msg: msgsToRedirect[idx],
+                        } 
+                      });
+
+                        
+
                       if (confirm("Are you sure you want to enter developer mode? This may cause you to lose progress.")) {
-                        router.push(`/dev/broadcast?txType=${txType}&txMsg=${encodeURIComponent(JSON.stringify(txCosmosMsg))}`);
+                        router.push(`/dev/broadcast?txsInfo=${encodeURIComponent(JSON.stringify(populatedTxInfos))}`);
+                        setVisible(false);
                       }
                     }} />}
               </div>
@@ -528,8 +736,7 @@ export function TxModal(
         </div>
         {showJson && <><div style={{ textAlign: 'center' }} className='primary-text'>
           <br />
-          <DevMode obj={showJson} override
-          />
+          <DevMode obj={showJson} override />
           <br />
         </div>
         </>}
@@ -604,7 +811,7 @@ export function TxModal(
       </div>
     }
 
-    <DevMode obj={txCosmosMsg} />
+    <DevMode obj={txsInfoPopulated} />
   </>
 
   return (

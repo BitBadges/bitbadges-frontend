@@ -231,6 +231,8 @@ export function SubmitMsgCreateAddressMapping() {
 
           const metadataUrl = metadataRes.collectionMetadataResult?.cid ? 'ipfs://' + metadataRes.collectionMetadataResult?.cid : '';
           const mappingId = onChainStorage ? addressMapping.mappingId : chain.cosmosAddress + "_" + addressMapping.mappingId;
+
+          console.log(!isUpdateAddressMapping, mappingId, addressMapping.mappingId);
           await updateAddressMappings({
             addressMappings: [{
               ...addressMapping,
@@ -240,7 +242,7 @@ export function SubmitMsgCreateAddressMapping() {
               private: privateMode,
             }],
           });
-          router.push(`/addresses/${mappingId}`);
+          router.push(`/addresses/${!isUpdateAddressMapping ? mappingId : addressMapping.mappingId}`);
 
         }
         setLoading(false);

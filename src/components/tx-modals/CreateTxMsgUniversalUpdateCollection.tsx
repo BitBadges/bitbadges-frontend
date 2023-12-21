@@ -1,24 +1,27 @@
-import { BadgeMetadataTimeline, CollectionApproval, MsgUniversalUpdateCollection, createTxMsgUniversalUpdateCollection } from 'bitbadgesjs-proto';
+import { BadgeMetadataTimeline, CollectionApproval, MsgUniversalUpdateCollection } from 'bitbadgesjs-proto';
 import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { addApprovalDetailsToOffChainStorage, addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 
+import { notification } from 'antd';
 import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { neverHasManager } from '../../bitbadges-api/utils/manager';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getPermissionDetails } from '../collection-page/PermissionsInfo';
 import { isCompletelyForbidden } from '../tx-timelines/step-items/CanUpdateOffChainBalancesStepItem';
-import { TxModal } from './TxModal';
+import { TxInfo, TxModal } from './TxModal';
 import { createBalancesMapAndAddToStorage } from './UpdateBalancesModal';
-import { notification } from 'antd';
+
+
 
 export function CreateTxMsgUniversalUpdateCollectionModal(
   { visible, setVisible, children,
-    MsgUniversalUpdateCollection, afterTx
+    MsgUniversalUpdateCollection, afterTxParam,
+    isBitBadgesFollowProtocol
 
   }
     : {
@@ -26,7 +29,8 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
       setVisible: (visible: boolean) => void,
       children?: React.ReactNode,
       MsgUniversalUpdateCollection?: MsgUniversalUpdateCollection<bigint>,
-      afterTx?: (collectionId: bigint) => Promise<void>
+      afterTxParam?: (collectionId: bigint) => Promise<void>
+      isBitBadgesFollowProtocol?: boolean,
     }) {
   const chain = useChainContext();
   const router = useRouter();
@@ -34,7 +38,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
   const txTimelineContext = useTxTimelineContext();
   const collectionId = txTimelineContext.existingCollectionId ?? NEW_COLLECTION_ID;
   const collection = useCollection(NEW_COLLECTION_ID);
-
+  const txsInfo = useMemo(() => {
   const msg: MsgUniversalUpdateCollection<bigint> = MsgUniversalUpdateCollection ?? {
     creator: chain.cosmosAddress,
     collectionId: collectionId ? collectionId : 0n,
@@ -311,46 +315,72 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
     return offChainBalancesMetadataTimeline;
   }
 
-  const beforeTx = async (simulate: boolean) => {
+  
 
-    if (!MsgUniversalUpdateCollection) {
-      const newMsg = await getFinalMsgWithStoredUris(simulate);
-      return newMsg
-    } else if (MsgUniversalUpdateCollection && MsgUniversalUpdateCollection?.balancesType == "Off-Chain - Indexed") {
-      //If we have off-chain balances, we should create a new URI for them
-      const offChainBalancesMetadataTimeline = await getOffChainBalances(simulate);
+  
 
-      const newMsg = {
-        ...msg,
-        offChainBalancesMetadataTimeline: offChainBalancesMetadataTimeline,
+    const beforeTx = async (simulate: boolean) => {
+
+      if (!MsgUniversalUpdateCollection) {
+        const newMsg = await getFinalMsgWithStoredUris(simulate);
+        return newMsg
+      } else if (MsgUniversalUpdateCollection && MsgUniversalUpdateCollection?.balancesType == "Off-Chain - Indexed") {
+        //If we have off-chain balances, we should create a new URI for them
+        const offChainBalancesMetadataTimeline = await getOffChainBalances(simulate);
+  
+        const newMsg = {
+          ...msg,
+          offChainBalancesMetadataTimeline: offChainBalancesMetadataTimeline,
+        }
+        return newMsg;
+      } else {
+        return msg;
       }
-      return newMsg;
-    } else {
-      return msg;
     }
-  }
+
+    const txsInfo: TxInfo[] =  [
+      {
+        type: 'MsgUniversalUpdateCollection',
+        msg: msg,
+        beforeTx: beforeTx,
+        afterTx: async (collectionId: bigint) => {
+
+          if (collectionId && collectionId > 0n) {
+            await fetchCollections([collectionId], true);
+            router.push(`/collections/${collectionId}`);
+          } else {
+            //navigating to a new collection page is handled in TxModal bc we need nextCollectionId
+          }
+
+          if (afterTxParam) await afterTxParam(collectionId);
+          txTimelineContext.resetState();
+        }
+      }
+    ]
+
+    if (isBitBadgesFollowProtocol) {
+      txsInfo.push(
+        {
+          type: 'MsgSetCollectionForProtocol',
+          msg: {
+            creator: chain.cosmosAddress,
+            name: 'Follow',
+            collectionId: 0n, //tells it to get the previously created collection ID
+          },
+        }
+    );
+    }
+
+    return txsInfo;
+  }, [MsgUniversalUpdateCollection, collectionId, txTimelineContext, collection, chain.cosmosAddress, router, afterTxParam, isBitBadgesFollowProtocol]);
 
   return (
     <TxModal
       visible={visible}
       setVisible={setVisible}
       txName="Update Collection"
-      txType='MsgUniversalUpdateCollection'
-      txCosmosMsg={msg}
-      createTxFunction={createTxMsgUniversalUpdateCollection}
-      beforeTx={beforeTx} //If we have a template msg, we assume everything is handled
-      onSuccessfulTx={async (collectionId: bigint) => {
-
-        if (collectionId && collectionId > 0n) {
-          await fetchCollections([collectionId], true);
-          router.push(`/collections/${collectionId}`);
-        } else {
-          //navigating to a new collection page is handled in TxModal bc we need nextCollectionId
-        }
-
-        if (afterTx) await afterTx(collectionId);
-        txTimelineContext.resetState();
-      }}
+    
+      txsInfo={txsInfo}
       requireRegistration
     >
       {children}

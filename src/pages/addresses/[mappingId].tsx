@@ -187,8 +187,8 @@ function AddressMappingPage() {
                       <InfoCircleOutlined /> This address list is stored on-chain. The list is permanently frozen and non-deletable.
                     </div>}
                   <br />
-                  {mapping?.updateHistory.sort((a, b) => a.block > b.block ? -1 : 1).map((update, i) => {
-                    return <TxHistory tx={update} key={i} creationTx={i == 0} />
+                  {mapping?.updateHistory.sort((a, b) => a.blockTimestamp > b.blockTimestamp ? -1 : 1).map((update, i) => {
+                    return <TxHistory tx={update} key={i} creationTx={i == mapping?.updateHistory.length - 1} />
                   })}
                 </div>
               </>}
@@ -198,9 +198,9 @@ function AddressMappingPage() {
                   <InformationDisplayCard
                     title="About"
                   >
-                      <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
-                        {reactElement}
-                      </div>
+                    <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
+                      {reactElement}
+                    </div>
                   </InformationDisplayCard>
                   <br />
                 </>}

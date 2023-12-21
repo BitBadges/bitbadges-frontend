@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { CreateTxMsgUniversalUpdateCollectionModal } from '../../tx-modals/CreateTxMsgUniversalUpdateCollection';
 import { MsgUniversalUpdateCollection } from 'bitbadgesjs-proto';
 
-export function SubmitMsgNewCollection({ MsgUniversalUpdateCollection, afterTx }: {
+export function SubmitMsgNewCollection({ MsgUniversalUpdateCollection, afterTx, isBitBadgesFollowProtocol }: {
   afterTx?: (collectionId: bigint) => Promise<void>,
-  MsgUniversalUpdateCollection?: MsgUniversalUpdateCollection<bigint>
+  MsgUniversalUpdateCollection?: MsgUniversalUpdateCollection<bigint>,
+  isBitBadgesFollowProtocol?: boolean,
 }) {
   const [visible, setVisible] = useState<boolean>(false);
 
@@ -20,7 +21,9 @@ export function SubmitMsgNewCollection({ MsgUniversalUpdateCollection, afterTx }
       visible={visible}
       setVisible={setVisible}
       MsgUniversalUpdateCollection={MsgUniversalUpdateCollection}
-      afterTx={afterTx}
+      afterTxParam={afterTx}
+      
+      isBitBadgesFollowProtocol={isBitBadgesFollowProtocol}
     />
   </div >
 }

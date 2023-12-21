@@ -1,9 +1,9 @@
 import { Input, Typography } from 'antd';
-import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
+import { MsgTransferBadges } from 'bitbadgesjs-proto';
 import { CollectionApprovalWithDetails, convertToCosmosAddress, isInAddressMapping, searchUintRangesForId } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getCodeForPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
@@ -184,11 +184,57 @@ export function CreateTxMsgClaimBadgeModal(
     }
   }
 
-  if (!collection || !visible) return <></>;
-
   const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(passwordCodeToSubmit).toString();
   const proofObj = tree?.getProof(leaf, leafIndex !== undefined && leafIndex >= 0 ? leafIndex : undefined);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
+
+  const txsInfo = useMemo(() => {
+    const txCosmosMsg: MsgTransferBadges<bigint> = {
+      creator: chain.cosmosAddress,
+      collectionId: collectionId,
+      transfers: [{
+        from: "Mint",
+        toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
+        balances: [],
+        precalculateBalancesFromApproval: {
+          approvalId: precalculationId ?? '',
+          approvalLevel: hasPredetermined ? "collection" : "",
+          approverAddress: "",
+        },
+        merkleProofs: requiresProof ? [{
+          aunts: proofObj ? proofObj.map((proof) => {
+            return {
+              aunt: proof.data.toString('hex'),
+              onRight: proof.position === 'right'
+            }
+          }) : [],
+          leaf: isWhitelist ? '' : passwordCodeToSubmit,
+        }] : [],
+        memo: '',
+        prioritizedApprovals: hasPredetermined ? [{
+          approvalId: precalculationId ?? '',
+          approvalLevel: hasPredetermined ? "collection" : "",
+          approverAddress: "",
+        }] : [],
+        onlyCheckPrioritizedApprovals: false,
+      }],
+    };
+
+    return [
+      {
+        type: 'MsgTransferBadges',
+        msg: txCosmosMsg,
+        afterTx: async () => {
+          await fetchCollections([collectionId], true);
+        }
+      }
+    ]
+  }, [collectionId, chain.cosmosAddress, recipient, precalculationId, hasPredetermined, requiresProof, proofObj, isWhitelist, passwordCodeToSubmit]);
+
+
+  if (!collection || !visible) return <></>;
+
+  
 
   const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0))
   const reservedAddress = claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0);
@@ -354,54 +400,22 @@ export function CreateTxMsgClaimBadgeModal(
   ]
 
 
-  const txCosmosMsg: MsgTransferBadges<bigint> = {
-    creator: chain.cosmosAddress,
-    collectionId: collectionId,
-    transfers: [{
-      from: "Mint",
-      toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
-      balances: [],
-      precalculateBalancesFromApproval: {
-        approvalId: precalculationId ?? '',
-        approvalLevel: hasPredetermined ? "collection" : "",
-        approverAddress: "",
-      },
-      merkleProofs: requiresProof ? [{
-        aunts: proofObj ? proofObj.map((proof) => {
-          return {
-            aunt: proof.data.toString('hex'),
-            onRight: proof.position === 'right'
-          }
-        }) : [],
-        leaf: isWhitelist ? '' : passwordCodeToSubmit,
-      }] : [],
-      memo: '',
-      prioritizedApprovals: hasPredetermined ? [{
-        approvalId: precalculationId ?? '',
-        approvalLevel: hasPredetermined ? "collection" : "",
-        approverAddress: "",
-      }] : [],
-      onlyCheckPrioritizedApprovals: false,
-    }],
-  };
+ 
 
 
-  console.log(txCosmosMsg);
+  
 
+  
+  console.log(txsInfo);
   return (
     <TxModal
       width={'90%'}
       visible={visible}
       setVisible={setVisible}
+      txsInfo={txsInfo}
       txName="Claim Badge"
-      txType='MsgTransferBadges'
-      txCosmosMsg={txCosmosMsg}
-      createTxFunction={createTxMsgTransferBadges}
       disabled={requiresProof && !isValidProof}
       requireRegistration
-      onSuccessfulTx={async () => {
-        await fetchCollections([collectionId], true);
-      }}
       msgSteps={items}
     >
       {children}

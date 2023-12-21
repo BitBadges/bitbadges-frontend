@@ -1,10 +1,10 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Divider, Typography } from 'antd';
-import { MsgTransferBadges, createTxMsgTransferBadges } from 'bitbadgesjs-proto';
+import { MsgTransferBadges } from 'bitbadgesjs-proto';
 import { CollectionApprovalWithDetails, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
@@ -82,41 +82,9 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
     fetchAccounts(transfers.map(x => x.toAddresses).flat());
   }, [transfers]);
 
-  const convertedTransfers = transfers.map(x => {
-    return {
-      from: senderAccount?.cosmosAddress ?? '',
-      balances: x.balances,
-      toAddresses: x.toAddresses,
-      precalculateBalancesFromApproval: {
-        approvalId: '',
-        approvalLevel: '',
-        approverAddress: '',
-      },
-      merkleProofs: requiresWhitelistProof ? [{
-        aunts: proofObj ? proofObj.map((proof) => {
-          return {
-            aunt: proof.data.toString('hex'),
-            onRight: proof.position === 'right'
-          }
-        }) : [],
-        leaf: '',
-      }] : [],
-      memo: '',
-      prioritizedApprovals: [],
-      onlyCheckPrioritizedApprovals: false,
-    }
-  })
+  
 
-  const txCosmosMsg: MsgTransferBadges<bigint> = {
-    creator: chain.cosmosAddress,
-    collectionId: collectionId,
-    transfers: convertedTransfers.map(x => {
-      return {
-        ...x,
-        toAddresses: x.toAddresses.map(y => convertToCosmosAddress(y)),
-      }
-    })
-  };
+  
 
   const items = [
     {
@@ -174,33 +142,68 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
     }
   ];
 
+  const txsInfo = useMemo(() => {
+    const convertedTransfers = transfers.map(x => {
+      return {
+        from: senderAccount?.cosmosAddress ?? '',
+        balances: x.balances,
+        toAddresses: x.toAddresses,
+        precalculateBalancesFromApproval: {
+          approvalId: '',
+          approvalLevel: '',
+          approverAddress: '',
+        },
+        merkleProofs: requiresWhitelistProof ? [{
+          aunts: proofObj ? proofObj.map((proof) => {
+            return {
+              aunt: proof.data.toString('hex'),
+              onRight: proof.position === 'right'
+            }
+          }) : [],
+          leaf: '',
+        }] : [],
+        memo: '',
+        prioritizedApprovals: [],
+        onlyCheckPrioritizedApprovals: false,
+      }
+    })
+
+    const txCosmosMsg: MsgTransferBadges<bigint> = {
+      creator: chain.cosmosAddress,
+      collectionId: collectionId,
+      transfers: convertedTransfers.map(x => {
+        return {
+          ...x,
+          toAddresses: x.toAddresses.map(y => convertToCosmosAddress(y)),
+        }
+      })
+    };
+
+    return [
+      {
+        type: 'MsgTransferBadges',
+        msg: txCosmosMsg,
+        afterTx: async () => {
+          await fetchCollections([collectionId], true);
+          // await fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
+        }
+      }
+    ]
+  }, [chain.cosmosAddress, collectionId, transfers, proofObj, requiresWhitelistProof, senderAccount]);
+
   return (
     <TxModal
-      msgSteps={items}
-      visible={visible && (isValidProof || !requiresWhitelistProof)}
-      disabled={requiresWhitelistProof && !isValidProof}
-      setVisible={setVisible}
-      txName="Transfer Badge(s)"
-      txType='MsgTransferBadges'
-      txCosmosMsg={txCosmosMsg}
-      width={'90%'}
-      createTxFunction={createTxMsgTransferBadges}
-      onSuccessfulTx={async () => {
-        await fetchCollections([collectionId], true);
-        // await fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
-      }}
-      requireRegistration
-    // displayMsg={<div className='primary-text'>
-    //   <TransferDisplay
+    msgSteps={items}
+    visible={visible && (isValidProof || !requiresWhitelistProof)}
+    disabled={requiresWhitelistProof && !isValidProof}
+    setVisible={setVisible}
+    txsInfo={txsInfo}
+    txName="Transfer Badge(s)"
+    width={'90%'}
+    requireRegistration
+  >
+    {children}
+  </TxModal>
 
-    //     transfers={convertedTransfers}
-    //     collectionId={collectionId}
-    //     setTransfers={setTransfers}
-    //   />
-    //   <Divider />
-    // </div>}
-    >
-      {children}
-    </TxModal>
   );
 }

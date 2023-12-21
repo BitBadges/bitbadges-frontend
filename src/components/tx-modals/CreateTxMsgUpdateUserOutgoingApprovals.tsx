@@ -1,11 +1,11 @@
-import { MsgUpdateUserApprovals, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
+import { MsgUpdateUserApprovals } from 'bitbadgesjs-proto';
 import { UserOutgoingApprovalWithDetails } from 'bitbadgesjs-utils';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
+import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
 import { TxModal } from './TxModal';
-import { useCollection, fetchBalanceForUser, fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
@@ -26,6 +26,23 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
     getApproveeBalance();
   }, [chain.cosmosAddress, collectionId]);
 
+  
+
+  const items = [
+    {
+      title: 'Select',
+      description: <div style={{ textAlign: 'center', }}>
+        <UserApprovalsTab
+          collectionId={collectionId}
+          isOutgoingApprovalEdit
+          userOutgoingApprovals={newOutgoingApprovals}
+          setUserOutgoingApprovals={setNewOutgoingApprovals}
+        />
+      </div>
+    },
+  ];
+
+  const txsInfo = useMemo(() => {
   const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
     creator: chain.cosmosAddress,
     collectionId: collectionId,
@@ -46,36 +63,29 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
     updateAutoApproveSelfInitiatedOutgoingTransfers: false,
   };
 
-  const items = [
+  return [
     {
-      title: 'Select',
-      description: <div style={{ textAlign: 'center', }}>
-        <UserApprovalsTab
-          collectionId={collectionId}
-          isOutgoingApprovalEdit
-          userOutgoingApprovals={newOutgoingApprovals}
-          setUserOutgoingApprovals={setNewOutgoingApprovals}
-        />
-      </div>
-    },
-  ];
+      type: 'MsgUpdateUserApprovals',
+      msg: txCosmosMsg,
+      afterTx: async () => {
+        await fetchCollections([collectionId], true);
+      }
+    }
+  ]
+}, [chain.cosmosAddress, collectionId, newOutgoingApprovals]);
 
   return (
     <TxModal
-      msgSteps={items}
-      visible={visible}
-      setVisible={setVisible}
-      txName="Update Approvals"
-      txType='MsgUpdateUserApprovals'
-      txCosmosMsg={txCosmosMsg}
-      style={{ minWidth: '95%' }}
-      createTxFunction={createTxMsgUpdateUserApprovals}
-      onSuccessfulTx={async () => {
-        await fetchCollections([collectionId], true);
-      }}
-      requireRegistration
-    >
-      {children}
-    </TxModal>
+    msgSteps={items}
+    visible={visible}
+    setVisible={setVisible}
+    txsInfo={txsInfo}
+    txName="Update Approvals"
+    requireRegistration
+    style={{ minWidth: '95%' }}
+  >
+    {children}
+  </TxModal>
+  
   );
 }

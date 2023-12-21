@@ -1,12 +1,12 @@
-import { MsgUpdateUserApprovals, createTxMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
+import { MsgUpdateUserApprovals } from 'bitbadgesjs-proto';
 import { UserIncomingApprovalWithDetails } from 'bitbadgesjs-utils';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
+import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
 import { TxModal } from './TxModal';
-import { useCollection, fetchBalanceForUser, fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
@@ -29,6 +29,25 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
   }, [chain.cosmosAddress, collectionId]);
 
 
+  
+
+  const items = [
+    {
+      title: 'Edit Approvals',
+      description: <div className='flex-center flex-wrap' style={{ textAlign: 'center', }}>
+        <UserApprovalsTab
+          collectionId={collectionId}
+          isIncomingApprovalEdit
+          setUserIncomingApprovals={async (newApprovals) => {
+            setNewIncomingApprovals(newApprovals);
+          }}
+          userIncomingApprovals={newIncomingApprovals}
+        />
+      </div>
+    },
+  ];
+
+  const txsInfo = useMemo(() => {
   const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
     creator: chain.cosmosAddress,
     collectionId: collectionId,
@@ -49,41 +68,30 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
     autoApproveSelfInitiatedOutgoingTransfers: false,
   };
 
-  const items = [
+  return [
     {
-      title: 'Edit Approvals',
-      description: <div className='flex-center flex-wrap' style={{ textAlign: 'center', }}>
-        <UserApprovalsTab
-          collectionId={collectionId}
-          isIncomingApprovalEdit
-          setUserIncomingApprovals={async (newApprovals) => {
-            setNewIncomingApprovals(newApprovals);
-          }}
-          userIncomingApprovals={newIncomingApprovals}
-        />
-      </div>
-    },
-  ];
-
-  console.log(txCosmosMsg);
+      type: 'MsgUpdateUserApprovals',
+      msg: txCosmosMsg,
+      afterTx: async () => {
+        await fetchCollections([collectionId], true);
+      }
+    }
+  ]
+}, [chain.cosmosAddress, collectionId, newIncomingApprovals]);
+  console.log(txsInfo);
 
   return (
     <TxModal
       msgSteps={items}
       visible={visible}
       setVisible={setVisible}
+      txsInfo={txsInfo}
       txName="Update Approvals"
-
-      txType='MsgUpdateUserApprovals'
-      txCosmosMsg={txCosmosMsg}
-      createTxFunction={createTxMsgUpdateUserApprovals}
-      onSuccessfulTx={async () => {
-        await fetchCollections([collectionId], true);
-      }}
       requireRegistration
       style={{ minWidth: '95%' }}
     >
       {children}
     </TxModal>
+
   );
 }

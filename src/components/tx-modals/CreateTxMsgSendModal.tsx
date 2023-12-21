@@ -1,11 +1,11 @@
 import { InputNumber } from 'antd';
-import { MsgSend, createTxMsgSend } from 'bitbadgesjs-proto';
+import { MsgSend } from 'bitbadgesjs-proto';
 import React, { useMemo, useState } from 'react';
 
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressSelect } from '../address/AddressSelect';
 import { TxModal } from './TxModal';
-import { useAccount, fetchAccountsWithOptions } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 export function CreateTxMsgSendModal({ visible, setVisible, children,
 }: {
@@ -57,29 +57,35 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
     }
   ];
 
+  const txsInfo = useMemo(() => {
+    return [
+      {
+        type: 'MsgSend',
+        msg: msgSend,
+        afterTx: async () => {
+          await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true, fetchBalance: true }], true);
+        }
+      }
+    ]
+  }, [msgSend, chain.cosmosAddress]);
 
   return (
     <TxModal
-      msgSteps={msgSteps}
-      visible={visible}
-      setVisible={setVisible}
-      txName="Send $BADGE"
+    msgSteps={msgSteps}
+    visible={visible}
+    setVisible={setVisible}
+    txsInfo={txsInfo}
+    txName="Send $BADGE"
+    requireRegistration
+    coinsToTransfer={[
+      {
+        denom: 'badge',
+        amount: BigInt(sendAmount)
+      }
+    ]}
+  >
+    {children}
+  </TxModal>
 
-      txType='MsgSend'
-      txCosmosMsg={msgSend}
-      createTxFunction={createTxMsgSend}
-      onSuccessfulTx={async () => {
-        await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true, fetchBalance: true }], true);
-      }}
-      requireRegistration
-      coinsToTransfer={[
-        {
-          denom: 'badge',
-          amount: BigInt(sendAmount)
-        }
-      ]}
-    >
-      {children}
-    </TxModal >
   );
 }

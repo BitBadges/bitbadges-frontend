@@ -9,7 +9,9 @@ import { AddressDisplayList } from "./AddressDisplayList";
 import { AddressListSelect } from "./AddressListSelect";
 
 
-export const addMappingId = (addressMapping: AddressMapping): AddressMapping => {
+export const addMappingId = (addressMapping: AddressMapping, autoGenerateMappingId: boolean): AddressMapping => {
+  if (!autoGenerateMappingId) return addressMapping;
+
   const mappingId = getReservedMappingId(addressMapping);
 
   // Create a new AddressMapping with the calculated mappingId
@@ -27,7 +29,8 @@ export function AddressMappingSelect({
   disabled,
   showErrorOnEmpty,
   allowMintSearch,
-  isIdSelect
+  isIdSelect,
+  autoGenerateMappingId = true
 }: {
   addressMapping: AddressMapping,
   setAddressMapping: (addressMapping: AddressMapping) => void,
@@ -35,6 +38,7 @@ export function AddressMappingSelect({
   showErrorOnEmpty?: boolean,
   allowMintSearch?: boolean,
   isIdSelect?: boolean,
+  autoGenerateMappingId?: boolean,
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -54,7 +58,7 @@ export function AddressMappingSelect({
             setAddressMapping(addMappingId({
               ...addressMapping,
               includeAddresses: e,
-            }));
+            }, autoGenerateMappingId));
           }}
           className="primary-text inherit-bg"
         ></Switch> - {isIdSelect ? 'IDs' : 'Addresses'} ({addressMapping.addresses.length})</b></div>
@@ -75,7 +79,7 @@ export function AddressMappingSelect({
             setAddressMapping(addMappingId({
               ...addressMapping,
               addresses: users,
-            }));
+            }, autoGenerateMappingId));
           }}
           hideIcons={disabled}
         /></div>
@@ -104,7 +108,7 @@ export function AddressMappingSelect({
           setAddressMapping(addMappingId({
             ...addressMapping,
             addresses: users,
-          }));
+          }, autoGenerateMappingId));
           setVisible(false);
         }}
         hideAddresses
@@ -130,7 +134,7 @@ export function AddressMappingSelect({
           setAddressMapping(addMappingId({
             ...addressMapping,
             addresses: [...addressMapping.addresses, currId],
-          }));
+          }, autoGenerateMappingId));
           console.log(addressMapping);
           setCurrId("");
           setVisible(false);

@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { SubmitMsgNewCollection } from "../form-items/SubmitMsgUniversalUpdateCollection";
 import { BigIntify, convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
+import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
-import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
-import { updateFollowDetails } from "../../../bitbadges-api/api";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
+import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
+import { SubmitMsgNewCollection } from "../form-items/SubmitMsgUniversalUpdateCollection";
+import { SwitchForm } from "../form-items/SwitchForm";
 
 // const template1 = require('./templates/template1.json');
 const template2 = require('./templates/template2.json');
@@ -19,6 +18,7 @@ export function TemplateCollectionSelect() {
     description: '',
     node: <div>
       <SwitchForm
+        
         options={[
           // {
           //   title: 'Experiences',
@@ -72,9 +72,10 @@ export function TemplateCollectionSelect() {
                     timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
                   }],
                 }, BigIntify)}
-                afterTx={async (collectionId: bigint) => {
-                  await updateFollowDetails({ followingCollectionId: collectionId });
-                }}
+                isBitBadgesFollowProtocol
+                // afterTx={async (collectionId: bigint) => {
+                //   await updateFollowDetails({ followingCollectionId: collectionId });
+                // }}
               />
             </>
           }

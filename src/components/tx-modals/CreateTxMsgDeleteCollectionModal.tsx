@@ -1,7 +1,7 @@
 import { notification } from 'antd';
-import { MsgDeleteCollection, createTxMsgDeleteCollection } from 'bitbadgesjs-proto';
+import { MsgDeleteCollection } from 'bitbadgesjs-proto';
 import { useRouter } from 'next/router';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { TxModal } from './TxModal';
 
@@ -16,10 +16,7 @@ export function CreateTxMsgDeleteCollectionModal({ collectionId, visible, setVis
   const chain = useChainContext();
   const router = useRouter();
 
-  const txCosmosMsg: MsgDeleteCollection<bigint> = {
-    creator: chain.cosmosAddress,
-    collectionId: collectionId,
-  };
+  
 
   const items = [
     {
@@ -39,23 +36,35 @@ export function CreateTxMsgDeleteCollectionModal({ collectionId, visible, setVis
     }
   ]
 
+  const txsInfo = useMemo(() => {
+    const txCosmosMsg: MsgDeleteCollection<bigint> = {
+      creator: chain.cosmosAddress,
+      collectionId: collectionId,
+    };
+
+    return [
+      {
+        type: 'MsgDeleteCollection',
+        msg: txCosmosMsg,
+        afterTx: async () => {
+          notification.success({ message: 'Collection deleted successfully! Redirecting to home page...' });
+          router.push('/');
+        }
+      }
+    ]
+  }, [chain.cosmosAddress, collectionId, router]);
+
   return (
     <TxModal
-      msgSteps={items}
-      visible={visible}
-      setVisible={setVisible}
-      txName="Delete Collection"
-      txCosmosMsg={txCosmosMsg}
-      txType='MsgDeleteCollection'
-      createTxFunction={createTxMsgDeleteCollection}
-      onSuccessfulTx={async () => {
-        //Force refresh page
-        notification.success({ message: 'Collection deleted successfully! Redirecting to home page...' });
-        router.push('/');
-      }}
-      requireRegistration
-    >
-      {children}
-    </TxModal>
+    msgSteps={items}
+    visible={visible}
+    setVisible={setVisible}
+    txsInfo={txsInfo}
+    txName="Delete Collection"
+    requireRegistration
+  >
+    {children}
+  </TxModal>
+
   );
 }
