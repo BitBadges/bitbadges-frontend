@@ -246,7 +246,7 @@ export function UpdateSelectWrapper({
             />}
         </div>
         {!isMint &&
-          <div style={{ marginTop: 10 }}>
+          <div style={{ marginTop: 10, marginBottom: 10 }}>
             <Switch
               checkedChildren="Update"
               unCheckedChildren="Do not update"
@@ -257,6 +257,7 @@ export function UpdateSelectWrapper({
               }}
               className='primary-text'
             />
+            <br />
           </div>}
         {(permissionDataSource?.hasForbiddenTimes) && updateFlag && !(err) &&
           <div className='' style={{ textAlign: 'center' }}>
@@ -270,7 +271,7 @@ export function UpdateSelectWrapper({
           </div>}
 
         {(err) && <><br /><ErrDisplay err={err} /></>}
-      </div>
+      </div >
 
       {!updateFlag &&
         <div style={{ textAlign: 'center' }} className='primary-text' >
@@ -288,33 +289,41 @@ export function UpdateSelectWrapper({
             ]}
             onSwitchChange={() => { }}
           />
-        </div>}
+          <br />
+        </div>
+      }
 
-      {showPermission && jsonPropertyPath !== "defaultUserIncomingApprovals" ? <>
-        <InformationDisplayCard title={question}>
-          <PermissionDisplay
-            permissions={castFunction(prevPermissions)}
-            usedFlags={flags as UsedFlags}
-            neverHasManager={noManager}
-            mintOnly={mintOnly}
-            nonMintOnly={nonMintOnly}
+      {
+        showPermission && jsonPropertyPath !== "defaultUserIncomingApprovals" ? <>
+          <InformationDisplayCard title={question}>
+            <PermissionDisplay
+              permissions={castFunction(prevPermissions)}
+              usedFlags={flags as UsedFlags}
+              neverHasManager={noManager}
+              mintOnly={mintOnly}
+              nonMintOnly={nonMintOnly}
+            />
+          </InformationDisplayCard>
+          <br />
+        </> : <></>
+      }
+      {
+        updateFlag && !customJson && <>
+          {node}
+        </>
+      }
+      {
+        updateFlag && customJson && <>
+          <JSONSetter
+            setErr={setJsonErr}
+            jsonPropertyPath={jsonPropertyPath}
+            customValue={customValue}
+            customSetValueFunction={customSetValueFunction}
           />
-        </InformationDisplayCard>
-        <br />
-      </> : <></>}
-      {updateFlag && !customJson && <>
-        {node}
-      </>}
-      {updateFlag && customJson && <>
-        <JSONSetter
-          setErr={setJsonErr}
-          jsonPropertyPath={jsonPropertyPath}
-          customValue={customValue}
-          customSetValueFunction={customSetValueFunction}
-        />
-        <br />
-        {jsonErr && <ErrDisplay err={jsonErr} />}
-      </>}
+          <br />
+          {jsonErr && <ErrDisplay err={jsonErr} />}
+        </>
+      }
     </>
   )
 }

@@ -48,7 +48,7 @@ export function BadgeButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="styled-button account-socials-button"
+                className="styled-button-normal account-socials-button"
                 src={"https://about.twitter.com/content/dam/about-twitter/en/brand-toolkit/brand-download-img-1.jpg.twimg.1920.jpg"}
               >
                 {/* <TwitterOutlined /> */}
@@ -62,7 +62,7 @@ export function BadgeButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="styled-button account-socials-button"
+                className="styled-button-normal account-socials-button"
                 src={"https://1000logos.net/wp-content/uploads/2021/04/Telegram-logo.png"}
               >
               </Avatar>
@@ -75,7 +75,7 @@ export function BadgeButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="styled-button account-socials-button"
+                className="styled-button-normal account-socials-button"
                 // src={ }
                 src={"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"}
               >
@@ -90,7 +90,7 @@ export function BadgeButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="styled-button account-socials-button"
+                className="styled-button-normal account-socials-button"
                 src={"https://global-uploads.webflow.com/5e157548d6f7910beea4e2d6/604150242d4c6f111dc4e0e8_AMXD2mEvYtyJeooktUtHlCW0f3vrpbwrCN0KjvULcmHdfWBRaAyxA9cSiPn_t6wHhI4mm1qbImd2ewbgBQwm-EtT8hZVevgGiACcBFZ58UQC6EPLcV-mQtaHVb02PzhRrjrpYsnz.png"}
               >
                 {/* <DiscordOutlined /> */}
@@ -105,7 +105,7 @@ export function BadgeButtonDisplay({
               <Avatar
                 size="large"
                 onClick={() => { }}
-                className="styled-button account-socials-button"
+                className="styled-button-normal account-socials-button"
               >
                 <LinkOutlined />
               </Avatar>
@@ -165,7 +165,7 @@ export function BadgeButtonDisplay({
           <Tooltip title="Add to Watchlist" placement="bottom">
             <Avatar
               size="large"
-              className="styled-button account-socials-button"
+              className="styled-button-normal account-socials-button"
               src={<EyeOutlined />}
             />
           </Tooltip>
@@ -220,7 +220,7 @@ export function BadgeButtonDisplay({
           <Tooltip title="Add to Watchlist" placement="bottom">
             <Avatar
               size="large"
-              className="styled-button account-socials-button"
+              className="styled-button-normal account-socials-button"
               src={<EyeOutlined />}
             />
           </Tooltip>
@@ -267,7 +267,7 @@ export function BadgeButtonDisplay({
         </>} placement="bottom">
           <Avatar
             size="large"
-            className="styled-button account-socials-button"
+            className="styled-button-normal account-socials-button"
           >
             <ShareAltOutlined />
           </Avatar>
@@ -276,7 +276,7 @@ export function BadgeButtonDisplay({
         </>} placement="bottom">
           <Avatar
             size="large"
-            className="styled-button account-socials-button"
+            className="styled-button-normal account-socials-button"
             onClick={() => {
               navigator.share({
 
@@ -296,7 +296,7 @@ export function BadgeButtonDisplay({
         </>} placement="bottom">
           <Avatar
             size="large"
-            className="styled-button account-socials-button"
+            className="styled-button-normal account-socials-button"
             onClick={() => {
               setReportIsVisible(true);
             }}

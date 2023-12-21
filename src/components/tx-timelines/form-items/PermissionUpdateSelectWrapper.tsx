@@ -194,7 +194,7 @@ export function PermissionUpdateSelectWrapper({
 
         {!isMint &&
           <Switch
-            style={{ marginLeft: 10 }}
+            style={{ marginLeft: 10, marginBottom: 10 }}
             checked={checked}
             checkedChildren="Update"
             unCheckedChildren="Do Not Update"
@@ -235,6 +235,7 @@ export function PermissionUpdateSelectWrapper({
               }]}
               onSwitchChange={() => { }}
             />
+            <br />
           </div>
         </>}
 

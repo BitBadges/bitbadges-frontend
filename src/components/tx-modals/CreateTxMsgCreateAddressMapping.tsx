@@ -71,6 +71,7 @@ export function CreateTxMsgCreateAddressMappingModal(
       setVisible={setVisible}
       txName="Address List"
       txCosmosMsg={msg}
+      txType='MsgCreateAddressMappings'
       createTxFunction={createTxMsgCreateAddressMappings}
       msgSteps={msgSteps}
       beforeTx={async (simulate: boolean) => {

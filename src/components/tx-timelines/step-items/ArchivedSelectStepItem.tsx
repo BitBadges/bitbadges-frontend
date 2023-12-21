@@ -1,11 +1,31 @@
-import { getFullIsArchivedTimeline } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
+import { Switch } from "antd";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { TimelineEditor } from "./ConfirmManagerStepItem";
+
+const ArchivedSwitch = ({
+  isArchived,
+  setIsArchived,
+}: {
+  isArchived: boolean,
+  setIsArchived: (isArchived: boolean) => void,
+}) => {
+
+  return <Switch
+    checked={isArchived}
+    onChange={(checked) => {
+      setIsArchived(checked);
+    }}
+    checkedChildren="Archived"
+    unCheckedChildren="Not Archived"
+  />
+
+}
 
 export function IsArchivedSelectStepItem() {
 
@@ -16,7 +36,7 @@ export function IsArchivedSelectStepItem() {
   const setCanArchiveCollection = txTimelineContext.setUpdateIsArchivedTimeline;
 
   const [err, setErr] = useState<Error | null>(null);
-
+  const [currIsArchived, setCurrIsArchived] = useState(false);
   if (!collection) return EmptyStepItem;
 
   return {
@@ -42,6 +62,8 @@ export function IsArchivedSelectStepItem() {
                 alignItems: 'center',
               }}
             >
+
+
 
               <SwitchForm
                 // noSelectUntilClick
@@ -71,7 +93,30 @@ export function IsArchivedSelectStepItem() {
                   {
                     title: 'Archived (Read-Only)',
                     message: 'Moving forward, this collection will be archived and read-only. All transactions will fail until the collection is unarchived.',
-                    isSelected: collection.isArchivedTimeline.length > 0 && getFullIsArchivedTimeline(collection.isArchivedTimeline).every(x => x.isArchived),
+                    isSelected: collection.isArchivedTimeline.length > 0 && !collection.isArchivedTimeline.every(x => !x.isArchived),
+                    additionalNode: <TimelineEditor
+                      emptyValue="Not Archived"
+                      timeline={collection.isArchivedTimeline}
+                      timelineName="Archived Status"
+                      setTimeline={(timeline) => {
+                        updateCollection({
+                          collectionId: NEW_COLLECTION_ID,
+                          isArchivedTimeline: timeline,
+                        })
+                      }}
+                      displayNode={(timeline) => {
+                        return <>{timeline.isArchived ? <>
+                          Archived
+                        </> : <>
+                          Not Archived
+                        </>}</>
+                      }}
+                      createNode={<div><br /><ArchivedSwitch isArchived={currIsArchived} setIsArchived={setCurrIsArchived} /></div>}
+                      valueToAdd={{
+                        isArchived: currIsArchived,
+                        timelineTimes: [] //overwrite
+                      }}
+                    />
                   },
                 ]}
               />

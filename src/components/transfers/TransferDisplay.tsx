@@ -117,7 +117,7 @@ export function TransferDisplay({
     {deletable && setTransfers && transfers.length > 0 && <div style={{ textAlign: 'center' }}>
       <br />
       <Avatar
-        className='styled-button'
+        className='styled-button-normal'
         style={{ cursor: 'pointer', fontSize: 14 }}
         onClick={() => {
           setTransfers(transfers.filter((_, index) => index !== page));

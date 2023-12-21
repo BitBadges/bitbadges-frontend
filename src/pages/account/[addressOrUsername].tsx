@@ -8,8 +8,6 @@ import { useRouter } from 'next/router';
 import { ReactElement, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-
-
 import { getAddressMappings } from '../../bitbadges-api/api';
 import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountBalancesView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
@@ -178,9 +176,9 @@ export const BatchBadgeDetailsTag = ({ badgeIdObj, onClose, }: { badgeIdObj: Bat
     style={{ alignItems: 'center', marginBottom: 8 }}
     closable
     closeIcon={onClose ? <CloseCircleOutlined
-      className='primary-text styled-button flex-center'
+      className='primary-text styled-button-normal flex-center'
       style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
-      size={50}
+      size={100}
     /> : <></>}
     onClose={onClose}
   >
@@ -805,9 +803,9 @@ function PortfolioPage() {
   tabInfo.push(
     { key: 'collected', content: 'Badges', disabled: false },
     { key: 'lists', content: 'Lists' },
-    { key: 'protocols', content: 'Protocols' },
     { key: 'activity', content: 'Activity', disabled: false },
     { key: 'reputation', content: 'Reviews' },
+    { key: 'protocols', content: 'Protocols' },
   )
 
 

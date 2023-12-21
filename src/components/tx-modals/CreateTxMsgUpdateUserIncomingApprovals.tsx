@@ -73,6 +73,8 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
       visible={visible}
       setVisible={setVisible}
       txName="Update Approvals"
+
+      txType='MsgUpdateUserApprovals'
       txCosmosMsg={txCosmosMsg}
       createTxFunction={createTxMsgUpdateUserApprovals}
       onSuccessfulTx={async () => {

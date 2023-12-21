@@ -55,6 +55,8 @@ export function WalletHeader() {
 
     setSearchValue('');
     Modal.destroyAll()
+
+    setSearchIsVisible(false);
   };
 
 
@@ -162,7 +164,7 @@ export function WalletHeader() {
                 }}
                 size="large"
                 onClick={disabled ? () => { } : () => { setVisible(true) }}
-                className="styled-button"
+                className="styled-button-normal"
               >
                 <SwapOutlined />
               </Avatar>

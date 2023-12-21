@@ -1,4 +1,4 @@
-import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { CloseOutlined, CodeOutlined, InfoCircleOutlined, MinusOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus, generatePostBodyBroadcast } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -14,11 +14,14 @@ import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import IconButton from '../display/IconButton';
 
 const { Step } = Steps;
 
 export function TxModal(
-  { createTxFunction,
+  {
+    createTxFunction,
+    txType,
     txCosmosMsg,
     visible,
     setVisible,
@@ -35,6 +38,7 @@ export function TxModal(
   }: {
     createTxFunction: any,
     txCosmosMsg: object,
+    txType: string,
     visible: boolean,
     setVisible: (visible: boolean) => void,
     txName: string,
@@ -69,10 +73,15 @@ export function TxModal(
   const [simulatedGas, setSimulatedGas] = useState(200000n);
   const [simulated, setSimulated] = useState(false);
   const [recommendedAmount, setRecommendedAmount] = useState(0n);
-  // const [showJson, setShowJson] = useState(false);
+  const [showJson, setShowJson] = useState(null);
+
+  const [finalMsg, setFinalMsg] = useState(null);
 
   const signedInAccount = useAccount(chain.cosmosAddress);
 
+  useEffect(() => {
+    setFinalMsg(null);
+  }, [txCosmosMsg]);
 
   const fee = useMemo(() => {
     return {
@@ -145,6 +154,7 @@ export function TxModal(
         if (beforeTx) {
           let newMsg = await beforeTx(true);
           if (newMsg) cosmosMsg = newMsg;
+
         }
 
         //Sign and broadcast transaction
@@ -209,8 +219,13 @@ export function TxModal(
 
       //Note this 
       if (!isRegister && beforeTx) {
-        let newMsg = await beforeTx(false);
-        if (newMsg) cosmosMsg = newMsg;
+        if (!finalMsg) {
+          let newMsg = await beforeTx(false);
+          if (newMsg) cosmosMsg = newMsg;
+          setFinalMsg(newMsg);
+        } else {
+          cosmosMsg = finalMsg;
+        }
       }
 
       //Sign and broadcast transaction
@@ -459,7 +474,7 @@ export function TxModal(
               <Divider />
             </div>}
           </Col>
-          {/* <Col md={8} xs={24} style={{ textAlign: 'center' }}>
+          <Col md={8} xs={24} style={{ textAlign: 'center' }}>
             <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', alignItems: 'center', fontSize: 24 }} className='primary-text flex-center'>
               Options
             </Typography.Text>
@@ -469,17 +484,39 @@ export function TxModal(
                   src={showJson ? <MinusOutlined /> : <CodeOutlined />}
                   text={'Show Final JSON'}
                   tooltipMessage='Show the JSON of the Cosmos SDK message sent to the blockchain.'
-                  onClick={() => {
-                    setShowJson(!showJson);
+                  onClick={async () => {
+                    if (showJson) {
+                      setShowJson(null);
+                    } else {
+                      if (beforeTx && !finalMsg) {
+                        const msgToShow = await beforeTx?.(false);
+                        setShowJson(msgToShow);
+                        setFinalMsg(msgToShow);
+                      } else if (finalMsg) {
+                        setShowJson(finalMsg);
+                      } else {
+                        setShowJson(txCosmosMsg as any);
+                      }
+                    }
                   }} />
 
+                {txName !== 'MsgSend' &&
+                  <IconButton
+                    src={<CodeOutlined />}
+                    text={'Dev Mode'}
+                    tooltipMessage='Go into developer mode and edit this final transaction JSON.'
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to enter developer mode? This may cause you to lose progress.")) {
+                        router.push(`/dev/broadcast?txType=${txType}&txMsg=${encodeURIComponent(JSON.stringify(txCosmosMsg))}`);
+                      }
+                    }} />}
               </div>
               <div className='secondary-text' style={{ textAlign: 'center' }}>
                 <InfoCircleOutlined /> These are advanced options.
               </div>
 
             </>}
-          </Col> */}
+          </Col>
           {exceedsBalance &&
             <div style={{ textAlign: 'center' }} className='primary-text'>
               <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16, color: 'red' }}>
@@ -489,13 +526,13 @@ export function TxModal(
 
 
         </div>
-        {/* {showJson && <><div style={{ textAlign: 'center' }} className='primary-text'>
+        {showJson && <><div style={{ textAlign: 'center' }} className='primary-text'>
           <br />
-          <DevMode obj={txCosmosMsg} override
+          <DevMode obj={showJson} override
           />
           <br />
         </div>
-        </>} */}
+        </>}
 
         <Divider />
         <div className='flex-center'>

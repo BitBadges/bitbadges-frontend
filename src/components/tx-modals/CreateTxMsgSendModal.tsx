@@ -64,6 +64,8 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
       visible={visible}
       setVisible={setVisible}
       txName="Send $BADGE"
+
+      txType='MsgSend'
       txCosmosMsg={msgSend}
       createTxFunction={createTxMsgSend}
       onSuccessfulTx={async () => {

@@ -29,7 +29,7 @@ function Broadcast() {
   const routerTxMsg = router.query.txMsg;
 
   const [txType, setTxType] = useState(routerTxType as string || 'MsgCreateCollection');
-  const [inputMsg, setInputMsg] = useState(routerTxMsg as string || JSON.stringify(sampleMsgUniversalUpdateCollection, null, 2));
+  const [inputMsg, setInputMsg] = useState((routerTxMsg ? JSON.stringify(JSON.parse(routerTxMsg as string), null, 2) : undefined) || JSON.stringify(sampleMsgUniversalUpdateCollection, null, 2));
   const [notified, setNotified] = useState(false);
 
   useEffect(() => {
@@ -38,7 +38,8 @@ function Broadcast() {
     }
 
     if (routerTxMsg) {
-      setInputMsg(routerTxMsg as string);
+      setInputMsg(JSON.stringify(JSON.parse(routerTxMsg as string), null, 2));
+      setMsg(JSON.parse(routerTxMsg as string));
     }
 
     if (!notified && (routerTxType || routerTxMsg)) {
@@ -93,7 +94,7 @@ function Broadcast() {
             <Select
               className="selector primary-text inherit-bg"
               style={{ marginLeft: 4 }}
-              defaultValue={txType}
+              value={txType}
               onChange={(value) => {
                 setTxType(value);
                 const json = getJSON(value);
@@ -208,6 +209,7 @@ function Broadcast() {
               createTxFunction={convertFunction}
               txCosmosMsg={msg}
               txName={txType}
+              txType={txType}
             />}
         </div>
       }

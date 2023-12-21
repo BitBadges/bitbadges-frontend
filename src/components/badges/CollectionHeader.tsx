@@ -21,9 +21,10 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
   const collectionMetadata = collection?.cachedCollectionMetadata;
 
   return <div className='primary-text'>
+    
     <Row className='flex-center'>
       <Col span={12} className='flex-center'>
-        <div className='flex-center flex-column'>
+        <div className='flex-center flex-column' >
           <BadgeAvatar
             collectionId={collectionId}
             badgeId={badgeId}

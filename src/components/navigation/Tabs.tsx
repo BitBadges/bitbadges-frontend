@@ -80,8 +80,12 @@ export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedK
         className={
           'primary-text inherit-bg ' + (customClass ? ' ' + customClass : '')}
       >
-        <div className={'primary-text border-vivid-blue        ' + (type == 'underline' ? ' hover:text-gray-400' : '')}
-          style={{ borderBottom: type == 'underline' && selectedTab == tab.key ? '2px solid blue' : undefined }}>
+        <div className={'primary-text border-vivid-blue' + (type == 'underline' ? ' hover:text-gray-400' : '')}
+          style={{
+            color: tab.key == selectedTab && type != 'underline' ? 'white' : undefined,
+            borderBottom: type == 'underline' && selectedTab == tab.key ? '2px solid blue' : undefined,
+            fontSize: 18, fontWeight: 'bolder'
+          }}>
           {tab.content}
         </div>
 

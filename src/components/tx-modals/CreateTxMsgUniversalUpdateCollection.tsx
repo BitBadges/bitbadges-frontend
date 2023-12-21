@@ -128,6 +128,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
           badgeMetadata: txTimelineContext.updateBadgeMetadataTimeline && txTimelineContext.badgeAddMethod === MetadataAddMethod.Manual
             ? prunedMetadata : undefined,
         }
+
         const toUpload = body.collectionMetadata || body.badgeMetadata;
         if (toUpload) {
           notification.info({
@@ -334,6 +335,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
       visible={visible}
       setVisible={setVisible}
       txName="Update Collection"
+      txType='MsgUniversalUpdateCollection'
       txCosmosMsg={msg}
       createTxFunction={createTxMsgUniversalUpdateCollection}
       beforeTx={beforeTx} //If we have a template msg, we assume everything is handled

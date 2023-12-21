@@ -66,8 +66,12 @@ function CollectionPage({
     )
   }
 
-  if (noBalancesStandard || isNonIndexedBalances) {
+  if (noBalancesStandard) {
     tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity');
+  }
+
+  if (isNonIndexedBalances) {
+    tabInfo = tabInfo.filter(tab => tab.key !== 'approvals' && tab.key !== 'activity');
   }
 
   //Get collection information
@@ -147,10 +151,10 @@ function CollectionPage({
               {tab === 'badges' && (
                 <BadgesTab collectionId={collectionIdNumber} />
               )}
-              {tab === 'transferability' && !isOffChainBalances && (
+              {tab === 'transferability' && !isOffChainBalances && !isNonIndexedBalances && (
                 <TransferabilityTab collectionId={collectionIdNumber} />
               )}
-              {tab === 'transferability' && isOffChainBalances && (
+              {tab === 'transferability' && (isOffChainBalances || isNonIndexedBalances) && (
                 <OffChainTransferabilityTab collectionId={collectionIdNumber} />
               )}
 

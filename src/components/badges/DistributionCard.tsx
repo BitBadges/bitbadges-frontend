@@ -25,7 +25,9 @@ export function DistributionOverview({
   lg,
   xl,
   xxl,
-  hideTitle
+  hideTitle,
+  noBorder,
+  inheritBg
 }: {
   collectionId: bigint
   span?: number
@@ -39,6 +41,8 @@ export function DistributionOverview({
   xxl?: number
   style?: React.CSSProperties
   hideTitle?: boolean
+  noBorder?: boolean
+  inheritBg?: boolean
 }) {
 
   const collection = useCollection(collectionId);
@@ -58,9 +62,46 @@ export function DistributionOverview({
   const lastFetchedAt = collection.owners.find(x => x.cosmosAddress === "Mint")?.fetchedAt ?? 0n
 
   const isNonIndexed = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
+  let balancesTypeInfoStr = '';
+  if (collection?.balancesType === "Off-Chain - Indexed") {
+    balancesTypeInfoStr = 'Balances are stored off the blockchain and controlled via a typical server (chosen by the manager). Transferring and obtaining badges is not facilitated via the blockchain but rather via this server. Balances are indexed, meaning all owners and their balances are known. Also, a log of update activity is kept.';
+  } else if (collection?.balancesType === "Standard") {
+    balancesTypeInfoStr = 'Transferring and obtaining badges is all facilitated via blockchain transactions.';
+  } else if (collection?.balancesType === "Inherited") {
+    balancesTypeInfoStr = 'Balances of a badge are inherited from some parent badge. When you obtain or transfer the parent badge, the child badge will also be obtained or transferred.';
+  } else if (collection?.balancesType === "Off-Chain - Non-Indexed") {
+    balancesTypeInfoStr = 'Balances are stored off-chain and controlled via a typical server. There is no verifiable total supply, and these balances do not show up in standard search results. The only way to view balances is with the balance checker.';
+  }
 
-  return <InformationDisplayCard title={hideTitle ? '' : 'Distribution'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
+  return <InformationDisplayCard
+    noBorder={noBorder} inheritBg={inheritBg}
+    title={hideTitle ? '' : 'Distribution'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
     <>
+      {collection && <TableRow label={"Balances Storage"} value={
+        <>
+          <div className='' style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
+            {collection?.balancesType === "Off-Chain - Indexed" ?
+              <div>
+                <>
+                  <TimelineFieldWrapper
+                    createNode={(timelineVal: OffChainBalancesMetadataTimeline<bigint>) => {
+                      return <a href={timelineVal?.offChainBalancesMetadata.uri.startsWith('ipfs://') ? `https://bitbadges-ipfs.infura-ipfs.io/ipfs/${timelineVal?.offChainBalancesMetadata.uri.substring(7)}` : timelineVal?.offChainBalancesMetadata.uri
+                      } target='_blank' rel='noreferrer'>Off-Chain</a>
+                    }}
+                    emptyNode={
+                      <>None</>
+                    }
+                    timeline={collection?.offChainBalancesMetadataTimeline ?? []}
+                  />
+                </>
+              </div>
+              : collection?.balancesType}
+            <Tooltip color='black' title={balancesTypeInfoStr}>
+              <InfoCircleOutlined style={{ marginLeft: 8 }} />
+            </Tooltip>
+          </div>
+        </>} labelSpan={9} valueSpan={15} />
+      }
       {collection && !isNonIndexed && <TableRow label={"Circulating (Total Supply)"} value={
         <div style={{ float: 'right' }}>
           <BalanceDisplay
@@ -152,6 +193,7 @@ export function DistributionOverview({
           </>
         </div>
       } labelSpan={9} valueSpan={15} />}
+      {!isSelectStep && <>
       {isNonIndexed && <>
         <br />
         <div className="secondary-text">
@@ -160,6 +202,23 @@ export function DistributionOverview({
           Unlike standard off-chain indexed balances, non-indexed balances do not have a verifiable total supply and do not show up in search results.
           The only way to view balances is to use the balance checker.
         </div>
+      </>}
+      {isOffChainBalances && <>
+        <br />
+        <div className="secondary-text">
+          <InfoCircleOutlined /> This collection uses indexed off-chain balances.
+          This means that balances are stored off-chain and fetched from the host server.
+          They have a verifiable total supply, an indexed ledger of update activity, and show up in search results like portfolios.
+        </div>
+      </>}
+      {!isOffChainBalances && !isNonIndexed && <>
+        <br />
+        <div className="secondary-text">
+          <InfoCircleOutlined /> This collection uses standard on-chain balances.
+          This means that balances are stored on-chain and are updated via transfer and approval blockchain transactions.
+          It has a verifiable total supply, an indexed ledger of update activity, and will show up in search results like portfolios.
+        </div>
+      </>}
       </>}
     </>
   </InformationDisplayCard>

@@ -18,12 +18,12 @@ export function TimelineTimesIcon<T extends TimelineItem<bigint>>({ timeline, cr
       {timelineTimes.map((x, idx) => {
         return <>
           <div className='flex' style={{ alignItems: 'center' }}>
-            <b><FieldTimeOutlined style={{ marginLeft: 8 }} /> Time {idx + 1} </b>:{' '}
+            <b style={{ marginRight: 4 }}><FieldTimeOutlined style={{ marginLeft: 8, }} /> Time {idx + 1}: </b>{' '}
             {getTimeRangesElement(x, '', true)}
             <br />
           </div>
           <div className='flex' style={{ alignItems: 'center' }}>
-            <b><EditOutlined style={{ marginLeft: 8 }} /> Value {idx + 1} </b>:{' '}
+            <b style={{ marginRight: 4 }}><EditOutlined style={{ marginLeft: 8 }} /> Value {idx + 1}: </b>{' '}
             {createNode(timeline[idx])}
             <br />
           </div>
