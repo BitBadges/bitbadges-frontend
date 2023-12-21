@@ -67,6 +67,8 @@ function BlockinCodesScreen() {
     fetchAccounts([blockinParams.address]);
   }, [blockinParams?.address]);
 
+
+
   if (!challengeParams || !blockinParams) {
     return <div style={{
       marginLeft: '3vw',
@@ -77,6 +79,7 @@ function BlockinCodesScreen() {
       height: '100vh'
     }}>
       <EmptyIcon description='No message to sign found...' />
+
     </div>;
   }
 
@@ -253,8 +256,6 @@ function BlockinCodesScreen() {
                             View All My Codes
                           </button>
                         </div>
-
-
                       </InformationDisplayCard>
                     }
                   </div>

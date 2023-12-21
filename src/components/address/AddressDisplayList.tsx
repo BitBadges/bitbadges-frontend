@@ -168,8 +168,9 @@ export function AddressDisplayList({
     })}
 
 
-    {usersToDisplay.filter(x => x != 'All').length > 1 && <>
+    {usersToDisplay.filter(x => x != 'All').length > 1 && <div className='flex-center flex-column'>
       <br />
+
       <a
 
         onClick={async () => {
@@ -202,6 +203,6 @@ export function AddressDisplayList({
         </div>
         <br /><br />
       </>}
-    </>}
+    </div>}
   </div>
 }

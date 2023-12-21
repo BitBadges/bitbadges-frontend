@@ -6,8 +6,6 @@ import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-
-
 import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -191,15 +189,15 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         // await fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
       }}
       requireRegistration
-      // displayMsg={<div className='primary-text'>
-      //   <TransferDisplay
+    // displayMsg={<div className='primary-text'>
+    //   <TransferDisplay
 
-      //     transfers={convertedTransfers}
-      //     collectionId={collectionId}
-      //     setTransfers={setTransfers}
-      //   />
-      //   <Divider />
-      // </div>}
+    //     transfers={convertedTransfers}
+    //     collectionId={collectionId}
+    //     setTransfers={setTransfers}
+    //   />
+    //   <Divider />
+    // </div>}
     >
       {children}
     </TxModal>
