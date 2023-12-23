@@ -7,7 +7,7 @@ import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collectio
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
 import { ToolIcon, tools } from '../components/display/ToolIcon';
-import { COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
+import { BITCOIN_LOGO, COSMOS_LOGO, ETH_LOGO, SOLANA_LOGO } from '../constants';
 
 
 export const LandingCard = ({ content, customClass, }: {
@@ -446,6 +446,11 @@ const Home: NextPage = () => {
                         size={48}
                         style={{ marginRight: 8 }}
                       />
+                      <Avatar
+                        src={BITCOIN_LOGO}
+                        size={48}
+                        style={{ marginRight: 8 }}
+                      />
                     </div>
                     <br />
 
@@ -462,6 +467,9 @@ const Home: NextPage = () => {
                         size={25}
                       />, Solana <Avatar
                         src={SOLANA_LOGO}
+                        size={25}
+                      />, Bitcoin <Avatar
+                        src={BITCOIN_LOGO}
                         size={25}
                       />, and Cosmos <Avatar
                         src={COSMOS_LOGO}

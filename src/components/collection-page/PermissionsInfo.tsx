@@ -771,7 +771,7 @@ export function UserPermissionsOverview({
 }) {
   const collection = useCollection(collectionId);
   const account = useAccount(addressOrUsername);
-  const permissions = displayDefaults ? collection?.defaultUserPermissions : collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress)?.userPermissions;
+  const permissions = displayDefaults ? collection?.defaultBalances.userPermissions : collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress)?.userPermissions;
   if (!permissions || !account) return <></>
 
   const incomingToCollectionCasted = castUserIncomingApprovalPermissionToCollectionApprovalPermission(permissions.canUpdateIncomingApprovals, account.address);

@@ -1,5 +1,5 @@
 import { Spin, Tooltip, Typography } from 'antd';
-import { cosmosToEth } from 'bitbadgesjs-utils';
+import { cosmosToBtc, cosmosToEth } from 'bitbadgesjs-utils';
 import { BigIntify, MINT_ACCOUNT, SupportedChain, convertBitBadgesUserInfo, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
@@ -42,7 +42,8 @@ export function Address({
   if (userInfo && overrideChain && userInfo?.chain !== overrideChain && overrideChain === SupportedChain.COSMOS) {
     newAddress = userInfo.cosmosAddress;
   } else if (userInfo && overrideChain && userInfo?.chain !== overrideChain) {
-    newAddress = cosmosToEth(userInfo.cosmosAddress);
+    if (overrideChain === SupportedChain.BTC) newAddress = cosmosToBtc(userInfo.cosmosAddress);
+    else if (overrideChain === SupportedChain.ETH) newAddress = cosmosToEth(userInfo.cosmosAddress);
   }
 
 
@@ -52,7 +53,8 @@ export function Address({
   let chain = overrideChain ?? userInfo?.chain;
 
   const isValidAddress = isAddressValid(address) || address == 'All' || address == 'All Other';
-  const displayAddress = addressName ? addressName : getChainForAddress(address) === SupportedChain.ETH && chain === SupportedChain.ETH && resolvedName && resolvedName.endsWith('.eth') ? resolvedName : getAbbreviatedAddress(address);
+  const displayAddress = addressName ? addressName : 
+  resolvedName ? resolvedName : getAbbreviatedAddress(address);
 
   const innerContent = !hideTooltip && userInfo ? (
     <Tooltip
@@ -92,7 +94,13 @@ export function Address({
                   {`${address}`}
                   <br />
                   <br />
-
+                  {userInfo.alias ? <>
+                    <div className='flex-center'>
+                      This is a reserved alias account for {userInfo.alias.collectionId ? `collection ${userInfo.alias.collectionId.toString()}` : `address list ${userInfo.alias.mappingId?.toString()}`}.
+                      It is not a real account and cannot initiate transactions.
+                      However, it has a portfolio and can receive badges.
+                    </div>
+                  </> : <>
                   {"Other equivalent addresses: "}
                   <br />
                   {!doNotShowName && (addressName || resolvedName) && <div className='flex-center'>
@@ -104,7 +112,7 @@ export function Address({
                     />
                     <br />
                   </div>}
-                  {getChainForAddress(address) === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center'>
+                  {getChainForAddress(address) === SupportedChain.ETH && isAddressValid(address) && <div className='flex-center flex-column'>
                     <AddressDisplay
                       addressOrUsername={convertToCosmosAddress(address)}
                       overrideChain={SupportedChain.COSMOS}
@@ -112,9 +120,16 @@ export function Address({
                       hideTooltip
                       doNotShowName
                     />
-                    <br />
+                    <AddressDisplay
+                      addressOrUsername={cosmosToBtc(convertToCosmosAddress(address))}
+                      overrideChain={SupportedChain.BTC}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
                   </div>}
-                  {getChainForAddress(address) === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center'>
+
+                  {getChainForAddress(address) === SupportedChain.COSMOS && isAddressValid(address) && <div className='flex-center flex-column'>
                     <AddressDisplay
                       addressOrUsername={cosmosToEth(address)}
                       overrideChain={SupportedChain.ETH}
@@ -122,11 +137,33 @@ export function Address({
                       hideTooltip
                       doNotShowName
                     />
-                    <br />
+                    <AddressDisplay
+                      addressOrUsername={cosmosToBtc(convertToCosmosAddress(address))}
+                      overrideChain={SupportedChain.BTC}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
                   </div>}
 
-                  {(getChainForAddress(address) === SupportedChain.COSMOS || getChainForAddress(address) === SupportedChain.ETH)
-                    && isAddressValid(address) && userInfo.solAddress && <div className='flex-center'>
+                  {getChainForAddress(address) === SupportedChain.BTC && isAddressValid(address) && <div className='flex-center flex-column'>
+                    <AddressDisplay
+                      addressOrUsername={cosmosToEth(convertToCosmosAddress(address))}
+                      overrideChain={SupportedChain.ETH}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
+                    <AddressDisplay
+                      addressOrUsername={(convertToCosmosAddress(address))}
+                      overrideChain={SupportedChain.COSMOS}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
+                  </div>}
+
+                  {(getChainForAddress(address) !== SupportedChain.SOLANA) && isAddressValid(address) && userInfo.solAddress && <div className='flex-center flex-column'>
                       <AddressDisplay
                         addressOrUsername={userInfo.solAddress}
                         overrideChain={SupportedChain.SOLANA}
@@ -134,9 +171,8 @@ export function Address({
                         hideTooltip
                         doNotShowName
                       />
-                      <br />
                     </div>}
-                  {getChainForAddress(address) === SupportedChain.SOLANA && isAddressValid(address) && <div className='flex-center'>
+                  {getChainForAddress(address) === SupportedChain.SOLANA && isAddressValid(address) && <div className='flex-center flex-column'>
                     <AddressDisplay
                       addressOrUsername={convertToCosmosAddress(address)}
                       overrideChain={SupportedChain.COSMOS}
@@ -144,7 +180,13 @@ export function Address({
                       hideTooltip
                       doNotShowName
                     />
-                    <br />
+                    <AddressDisplay
+                      addressOrUsername={cosmosToBtc(convertToCosmosAddress(address))}
+                      overrideChain={SupportedChain.BTC}
+                      hidePortfolioLink
+                      hideTooltip
+                      doNotShowName
+                    />
                   </div>}
                   {getChainForAddress(address) === SupportedChain.SOLANA && isAddressValid(address) && <div className='flex-center'>
                     <AddressDisplay
@@ -154,8 +196,8 @@ export function Address({
                       hideTooltip
                       doNotShowName
                     />
-                    <br />
                   </div>}
+                  </>}
                 </div>
           }</div>
         </>

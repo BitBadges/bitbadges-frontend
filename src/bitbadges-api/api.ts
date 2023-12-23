@@ -7,7 +7,6 @@ import {
   GetMetadataForCollectionRouteRequestBody, GetMetadataForCollectionRouteSuccessResponse, GetOwnersForBadgeRouteRequestBody, GetOwnersForBadgeRouteSuccessResponse, GetSearchRouteRequestBody, GetSearchRouteSuccessResponse, GetSignInChallengeRouteRequestBody, GetSignInChallengeRouteSuccessResponse, GetStatusRouteRequestBody, GetStatusRouteSuccessResponse, GetTokensFromFaucetRouteRequestBody, GetTokensFromFaucetRouteSuccessResponse, NumberType, RefreshMetadataRouteRequestBody, RefreshMetadataRouteSuccessResponse,
   RefreshStatusRouteSuccessResponse,
   SendClaimAlertsRouteRequestBody, SendClaimAlertsRouteSuccessResponse, SignOutRequestBody, SignOutSuccessResponse, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, UpdateAddressMappingsRouteRequestBody, UpdateAddressMappingsRouteSuccessResponse,
-  UpdateFollowDetailsRouteRequestBody, UpdateFollowDetailsRouteSuccessResponse,
   VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse
 } from 'bitbadgesjs-utils';
 import Joi from 'joi';
@@ -466,15 +465,6 @@ export async function sendClaimAlert(requestBody: SendClaimAlertsRouteRequestBod
 export async function getFollowDetails(requestBody: GetFollowDetailsRouteRequestBody): Promise<GetFollowDetailsRouteSuccessResponse<bigint>> {
   try {
     return await BitBadgesApi.getFollowDetails(requestBody);
-  } catch (error) {
-    await handleApiError(error);
-    return Promise.reject(error);
-  }
-}
-
-export async function updateFollowDetails(requestBody: UpdateFollowDetailsRouteRequestBody<bigint>): Promise<UpdateFollowDetailsRouteSuccessResponse> {
-  try {
-    return await BitBadgesApi.updateFollowDetails(requestBody);
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);

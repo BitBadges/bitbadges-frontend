@@ -42,16 +42,20 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
   const msg: MsgUniversalUpdateCollection<bigint> = MsgUniversalUpdateCollection ?? {
     creator: chain.cosmosAddress,
     collectionId: collectionId ? collectionId : 0n,
-    defaultIncomingApprovals: collection ? collection?.defaultUserIncomingApprovals : [],
-    defaultOutgoingApprovals: collection ? collection?.defaultUserOutgoingApprovals : [],
-    defaultUserPermissions: collection ? collection?.defaultUserPermissions : {
-      canUpdateIncomingApprovals: [],
-      canUpdateOutgoingApprovals: [],
-      canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-      canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+    defaultBalances: collection ? collection?.defaultBalances : {
+      balances: [],
+      incomingApprovals: [],
+      outgoingApprovals: [],
+      userPermissions: {
+        canUpdateIncomingApprovals: [],
+        canUpdateOutgoingApprovals: [],
+        canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+        canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+      },
+      autoApproveSelfInitiatedIncomingTransfers:  true,
+      autoApproveSelfInitiatedOutgoingTransfers:  true,
     },
-    defaultAutoApproveSelfInitiatedIncomingTransfers: true,
-    defaultAutoApproveSelfInitiatedOutgoingTransfers: true,
+    
     badgesToCreate: txTimelineContext.badgesToCreate,
     updateCollectionPermissions: txTimelineContext.updateCollectionPermissions,
     balancesType: collection ? collection?.balancesType : "",
@@ -364,7 +368,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
           type: 'MsgSetCollectionForProtocol',
           msg: {
             creator: chain.cosmosAddress,
-            name: 'Follow',
+            name: 'BitBadges Follow Protocol',
             collectionId: 0n, //tells it to get the previously created collection ID
           },
         }

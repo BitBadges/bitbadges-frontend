@@ -8,7 +8,7 @@ import { useCookies } from 'react-cookie';
 import { DesiredNumberType, getSignInChallenge, signOut, verifySignIn } from "../../bitbadges-api/api";
 import { SignChallengeResponse, useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
-import { INFINITE_LOOP_MODE, SOLANA_LOGO } from "../../constants";
+import { INFINITE_LOOP_MODE, SOLANA_LOGO, BITCOIN_LOGO } from "../../constants";
 import { GO_MAX_UINT_64 } from "../../utils/dates";
 import { AddressDisplay } from "../address/AddressDisplay";
 import { BlockiesAvatar } from "../address/Blockies";
@@ -160,6 +160,12 @@ export const BlockinDisplay = ({
               logo: SOLANA_LOGO,
               abbreviation: 'SOL',
               getAddressExplorerUrl: (address: string) => `https://explorer.solana.com/address/${address}`,
+            },
+            {
+              name: 'Bitcoin',
+              logo: BITCOIN_LOGO,
+              abbreviation: 'BTC',
+              getAddressExplorerUrl: (address: string) => `https://www.blockchain.com/btc/address/${address}`,
             }
           ]}
 
@@ -171,8 +177,6 @@ export const BlockinDisplay = ({
           logout={async () => {
             await logout();
             setLoggedIn(false);
-
-
           }}
           selectedChainName={chain}
           displayedAssets={[

@@ -556,8 +556,8 @@ export function UserApprovalsTab({
         </div>
         <Divider />
         <UserApprovalsTab
-          userIncomingApprovals={collection.defaultUserIncomingApprovals}
-          userOutgoingApprovals={collection.defaultUserOutgoingApprovals}
+          userIncomingApprovals={collection.defaultBalances.incomingApprovals}
+          userOutgoingApprovals={collection.defaultBalances.outgoingApprovals}
           collectionId={collectionId}
           hideUpdateHistory
           hideSelect

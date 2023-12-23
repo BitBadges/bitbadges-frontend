@@ -61,6 +61,7 @@ export function Notifications() {
 
   useEffect(() => {
     const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
+    
     fetchAccounts([...new Set(createdBys)]);
   }, [listsView]);
 

@@ -28,6 +28,7 @@ import { SolanaContextProvider } from '../bitbadges-api/contexts/chains/SolanaCo
 import { CollectionRequestParams, collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
 import { WalletFooter } from '../components/navigation/WebsiteFooter';
 import { WalletHeader } from '../components/navigation/WebsiteHeader';
+import { BitcoinContextProvider } from '../bitbadges-api/contexts/chains/BitcoinContext';
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -231,6 +232,7 @@ const App = ({ Component, pageProps }: AppProps) => {
   return (
     <WagmiConfig config={wagmiConfig}>
       <Provider store={store}>
+        <BitcoinContextProvider>
         <CosmosContextProvider>
           <EthereumContextProvider>
             <SolanaContextProvider>
@@ -274,6 +276,7 @@ const App = ({ Component, pageProps }: AppProps) => {
             </SolanaContextProvider>
           </EthereumContextProvider>
         </CosmosContextProvider>
+        </BitcoinContextProvider>
       </Provider>
     </WagmiConfig >
   )

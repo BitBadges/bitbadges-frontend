@@ -38,6 +38,9 @@ export function getChainLogo(chain: string) {
     case SupportedChain.SOLANA:
       chainLogo = SOLANA_LOGO;
       break;
+    case SupportedChain.BTC:
+      chainLogo = BITCOIN_LOGO;
+      break;
     default:
       chainLogo = ETH_LOGO;
       break;

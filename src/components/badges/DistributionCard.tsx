@@ -102,7 +102,26 @@ export function DistributionOverview({
           </div>
         </>} labelSpan={9} valueSpan={15} />
       }
-      {collection && !isNonIndexed && <TableRow label={"Circulating (Total Supply)"} value={
+      {collection.defaultBalances.balances.length > 0 && <> 
+        <TableRow label={"Default Balances"} value={
+          <div style={{ float: 'right' }}>
+            <BalanceDisplay
+              hideBadges
+              floatToRight
+              collectionId={collectionId}
+              hideMessage
+              balances={collection.defaultBalances.balances}
+            />
+          </div>
+        } labelSpan={8} valueSpan={16} />
+        <div className="secondary-text">
+          <InfoCircleOutlined /> Every user is given the default balances upon first interaction.
+        </div>
+        <br/>
+      </>}
+      {collection && !isNonIndexed && <><TableRow label={
+        collection.defaultBalances.balances.length > 0 ? "Created" : "Circulating (Total Supply)"
+      } value={
         <div style={{ float: 'right' }}>
           <BalanceDisplay
             hideBadges
@@ -113,7 +132,15 @@ export function DistributionOverview({
             balances={badgeId && badgeId > 0n ? getBalancesForId(badgeId, totalSupplyBalance) : totalSupplyBalance}
           />
         </div>
-      } labelSpan={8} valueSpan={16} />}
+      } labelSpan={8} valueSpan={16} />
+      {collection.defaultBalances.balances.length > 0 && <>
+        <div className="secondary-text">
+          <InfoCircleOutlined /> In addition to the default balances, badges can be created and distributed.
+          </div>
+          <br/>
+          </>}
+      </>}
+
       {!isSelectStep && !isNonIndexed && <>
         {collection && <TableRow label={"Unminted"} value={
           <div style={{ float: 'right' }}>

@@ -353,6 +353,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         merkleChallenges: [],
         approvalsTrackers: [],
         updateHistory: [],
+        aliasAddress: '',
         managerTimeline: [{
           manager: chain.cosmosAddress,
           timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -423,16 +424,19 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canUpdateStandards: [],
         },
         offChainBalancesMetadataTimeline: [],
-        defaultUserIncomingApprovals: [],
-        defaultUserOutgoingApprovals: [],
-        defaultUserPermissions: {
-          canUpdateIncomingApprovals: [],
-          canUpdateOutgoingApprovals: [],
-          canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-          canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+        defaultBalances: {
+          balances: [],
+          incomingApprovals: [],
+          outgoingApprovals: [],
+          userPermissions: {
+            canUpdateIncomingApprovals: [],
+            canUpdateOutgoingApprovals: [],
+            canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+          },
+          autoApproveSelfInitiatedIncomingTransfers: false,
+          autoApproveSelfInitiatedOutgoingTransfers: false,
         },
-        defaultAutoApproveSelfInitiatedIncomingTransfers: false,
-        defaultAutoApproveSelfInitiatedOutgoingTransfers: false,
         createdBy: '',
         createdBlock: 0n,
         createdTimestamp: 0n,
@@ -455,7 +459,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
         if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
 
-          await fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager)]);
+          await fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager), existingCollection.aliasAddress]);
         }
 
         startingCollectionDefault = {
@@ -499,8 +503,19 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       updateCollection({
         collectionId: NEW_COLLECTION_ID,
         collectionApprovals: [],
-        defaultUserIncomingApprovals: [],
-        defaultUserOutgoingApprovals: [],
+        defaultBalances: {
+          balances: [],
+          incomingApprovals: [],
+          outgoingApprovals: [],
+          userPermissions: {
+            canUpdateIncomingApprovals: [],
+            canUpdateOutgoingApprovals: [],
+            canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+          },
+          autoApproveSelfInitiatedIncomingTransfers: false,
+          autoApproveSelfInitiatedOutgoingTransfers: false,
+        },
       });
     } else if (simulatedCollection?.balancesType === "Standard") {
       setUpdateCollectionApprovals(true);
@@ -513,8 +528,19 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       updateCollection({
         collectionId: NEW_COLLECTION_ID,
         collectionApprovals: [],
-        defaultUserIncomingApprovals: [],
-        defaultUserOutgoingApprovals: [],
+        defaultBalances: {
+          balances: [],
+          incomingApprovals: [],
+          outgoingApprovals: [],
+          userPermissions: {
+            canUpdateIncomingApprovals: [],
+            canUpdateOutgoingApprovals: [],
+            canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+          },
+          autoApproveSelfInitiatedIncomingTransfers: false,
+          autoApproveSelfInitiatedOutgoingTransfers: false,
+        },
         offChainBalancesMetadataTimeline: [],
       });
     }

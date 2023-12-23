@@ -10,7 +10,7 @@ import {
   UserDeleteOutlined
 } from '@ant-design/icons';
 import { Avatar, Col, Layout, Spin, Tooltip, message, notification } from 'antd';
-import { BigIntify, FollowDetailsDoc, SupportedChain, TransferWithIncrements, convertOffChainBalancesMap, getBalanceForIdAndTime } from 'bitbadgesjs-utils';
+import { BigIntify, GetFollowDetailsRouteSuccessResponse, SupportedChain, TransferWithIncrements, convertOffChainBalancesMap, getBalanceForIdAndTime } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
 import { useEffect, useState } from 'react';
@@ -83,8 +83,9 @@ export function AccountButtonDisplay({
   // const blurLink = 'https://blur.network/0x' + address;
 
   const [loading, setLoading] = useState(false);
-  const [followDetails, setFollowDetails] = useState<FollowDetailsDoc<bigint>>();
+  const [followDetails, setFollowDetails] = useState<GetFollowDetailsRouteSuccessResponse<bigint>>();
   const [following, setFollowing] = useState(false);
+  const isAliasAccount = !!accountInfo?.alias;
 
   useEffect(() => {
     if (!signedInAccountInfo?.cosmosAddress) return;
@@ -102,6 +103,9 @@ export function AccountButtonDisplay({
     }
     checkFollowing();
   }, [followDetails, accountInfo?.cosmosAddress, hideButtons]);
+
+
+  
 
   const addToFollowCollection = async () => {
     if (loading || !accountInfo?.cosmosAddress) return;
@@ -223,8 +227,7 @@ export function AccountButtonDisplay({
     setLoading(false);
   }
 
-
-
+  
   return (
     <div>
       {!hideButtons && <div style={!hideDisplay ? { position: 'absolute', right: 10, display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
@@ -256,7 +259,7 @@ export function AccountButtonDisplay({
           </a>
         )} */}
 
-        {accountInfo?.chain === SupportedChain.COSMOS && (
+        {accountInfo?.chain === SupportedChain.COSMOS && !isAliasAccount && (
           <a href={stargazeLink} target="_blank" rel="noreferrer">
             <Tooltip title="Stargaze" placement="bottom">
               <Avatar

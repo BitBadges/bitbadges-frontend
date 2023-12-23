@@ -44,7 +44,6 @@ export function DefaultToApprovedSelectStepItem() {
       setUpdateFlag={setUpdateFlag}
       jsonPropertyPath='defaultUserIncomingApprovals'
       permissionName='canUpdateDefaultUserIncomingApprovals'
-
       node={<>
         <SwitchForm
           showCustomOption
@@ -52,21 +51,24 @@ export function DefaultToApprovedSelectStepItem() {
             {
               title: 'Approved by Default',
               message: `For all users, all incoming transfers (including mints) will be approved by default. To block incoming transfers, users must manually set their incoming approvals.`,
-              isSelected: getUnhandledUserIncomingApprovals(collection.defaultUserIncomingApprovals, chain.address, true).length === 0
-                && collection.defaultUserIncomingApprovals.every(x => approvalCriteriaHasNoAmountRestrictions(x.approvalCriteria)
+              isSelected: getUnhandledUserIncomingApprovals(collection.defaultBalances.incomingApprovals, chain.address, true).length === 0
+                && collection.defaultBalances.incomingApprovals.every(x => approvalCriteriaHasNoAmountRestrictions(x.approvalCriteria)
                   && approvalCriteriaHasNoAdditionalRestrictions(x.approvalCriteria))
 
             },
             {
               title: 'Opt-In Only',
               message: 'By default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints).',
-              isSelected: collection.defaultUserIncomingApprovals.length === 0
+              isSelected: collection.defaultBalances.incomingApprovals.length === 0
             },
           ]}
           onSwitchChange={(idx) => {
             updateCollection({
               collectionId: NEW_COLLECTION_ID,
-              defaultUserIncomingApprovals: idx === 0 ? forcefulOption : [],
+              defaultBalances: {
+                ...collection.defaultBalances,
+                incomingApprovals: idx === 0 ? forcefulOption : []
+              }
             });
           }}
         />
@@ -74,8 +76,8 @@ export function DefaultToApprovedSelectStepItem() {
           <EditableApprovalsDisplay
             approvals={
               castIncomingTransfersToCollectionTransfers(
-                collection.defaultUserIncomingApprovals.length > 0 ?
-                  collection.defaultUserIncomingApprovals :
+                collection.defaultBalances.incomingApprovals.length > 0 ?
+                  collection.defaultBalances.incomingApprovals :
                   appendDefaultForIncoming([], chain.address), chain.address)}
             collection={collection}
             approvalLevel='incoming'
@@ -88,7 +90,10 @@ export function DefaultToApprovedSelectStepItem() {
             setApprovals={(approvals) => {
               updateCollection({
                 collectionId: NEW_COLLECTION_ID,
-                defaultUserIncomingApprovals: approvals
+                defaultBalances: {
+                  ...collection.defaultBalances,
+                  incomingApprovals: approvals
+                }
               })
             }}
             approverAddress={chain.address}

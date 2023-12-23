@@ -1,4 +1,4 @@
-import { Col, Divider, Empty, Input, Layout, Modal, Row, Spin, Typography } from 'antd';
+import { Col, Divider, Empty, Input, Layout, Modal, Row, Spin, Tooltip, Typography } from 'antd';
 import { AddressMappingDoc, AddressMappingWithMetadata, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
 import HtmlToReact from 'html-to-react';
@@ -96,8 +96,10 @@ function AddressMappingPage() {
         mapping = mappings.addressMappings[0];
 
         setMapping(mapping);
-
-        await fetchAccounts(mapping?.createdBy ? [mapping.createdBy] : []);
+        const toFetch = [];
+        if (mapping.createdBy) toFetch.push(mapping.createdBy);
+        if (mapping.aliasAddress) toFetch.push(mapping.aliasAddress);
+        if (toFetch.length > 0) await fetchAccounts(toFetch);
         if (mapping.metadata) {
           setMetadata(mapping.metadata);
           if (mapping.metadata?.description) {
@@ -233,6 +235,21 @@ function AddressMappingPage() {
                               </div>
                             </div>
                           } labelSpan={9} valueSpan={15} />}
+                            {mapping?.aliasAddress && <TableRow label={
+          <>{"Alias Account"}<Tooltip color='black' title={"This is a fake address that is reserved to represent this mapping. It is not a real account and cannot initiate transactions. However, it has a portfolio and can receive badges."}>
+                  <InfoCircleOutlined style={{ marginLeft: 8 }} />
+                </Tooltip>
+            </>} value={
+            <div className='flex-between' style={{ textAlign: 'right' }}>
+              <div></div>
+              <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
+                <AddressDisplay 
+                  fontSize={16}
+                  addressOrUsername={mapping.aliasAddress}
+                />
+              </div>
+              
+            </div>} labelSpan={7} valueSpan={17} />}
                           <TableRow label={"Storage"} value={isOnChain ?
                             "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
                         </InformationDisplayCard>

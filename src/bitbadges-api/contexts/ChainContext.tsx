@@ -6,6 +6,7 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { useCosmosContext } from './chains/CosmosContext';
 import { useEthereumContext } from './chains/EthereumContext';
 import { useSolanaContext } from './chains/SolanaContext';
+import { useBitcoinContext } from './chains/BitcoinContext';
 
 export type SignChallengeResponse = {
   signature: string
@@ -85,6 +86,7 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
   const ethereumContext = useEthereumContext();
   const cosmosContext = useCosmosContext();
   const solanaContext = useSolanaContext();
+  const bitcoinContext = useBitcoinContext();
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: chainContext');
@@ -99,6 +101,8 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
     currentChainContext = cosmosContext;
   } else if (chain?.startsWith('Solana')) {
     currentChainContext = solanaContext;
+  } else if (chain?.startsWith('Bitcoin')) {
+    currentChainContext = bitcoinContext;
   } else {
     currentChainContext = ethereumContext;
   }

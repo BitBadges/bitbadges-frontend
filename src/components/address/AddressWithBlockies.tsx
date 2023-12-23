@@ -1,5 +1,5 @@
 import { Avatar, Tooltip } from "antd";
-import { BigIntify, SupportedChain, convertBitBadgesUserInfo, getChainForAddress } from "bitbadgesjs-utils";
+import { BigIntify, SupportedChain, convertBitBadgesUserInfo, cosmosToBtc, getChainForAddress } from "bitbadgesjs-utils";
 import { getChainLogo } from "../../constants";
 import { Address } from "./Address";
 import { BlockiesAvatar } from "./Blockies";
@@ -29,12 +29,10 @@ export function AddressWithBlockies({
 
   const userInfo = fetchedAccount ? convertBitBadgesUserInfo({
     ...fetchedAccount,
-    address:
-      overrideChain ?
-        overrideChain === SupportedChain.COSMOS ?
-          fetchedAccount.cosmosAddress :
-          overrideChain === SupportedChain.ETH ?
-            fetchedAccount.ethAddress
+    address:      overrideChain ? 
+    overrideChain === SupportedChain.BTC ? cosmosToBtc(fetchedAccount.cosmosAddress) :
+    overrideChain === SupportedChain.COSMOS ? fetchedAccount.cosmosAddress :
+          overrideChain === SupportedChain.ETH ?            fetchedAccount.ethAddress
             : fetchedAccount.solAddress
         : chainContext.cosmosAddress == fetchedAccount.address ? chainContext.address : fetchedAccount.address,
     chain: overrideChain ? overrideChain : chainContext.cosmosAddress == fetchedAccount.address ? chainContext.chain : fetchedAccount.chain

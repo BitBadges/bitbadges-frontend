@@ -799,13 +799,15 @@ function PortfolioPage() {
   if (accountInfo?.readme) {
     tabInfo.push({ key: 'overview', content: 'Overview', disabled: false });
   }
+  const isAliasAccount = !!accountInfo?.alias;
+
 
   tabInfo.push(
     { key: 'collected', content: 'Badges', disabled: false },
     { key: 'lists', content: 'Lists' },
     { key: 'activity', content: 'Activity', disabled: false },
     { key: 'reputation', content: 'Reviews' },
-    { key: 'protocols', content: 'Protocols' },
+    !isAliasAccount ? { key: 'protocols', content: 'Protocols' } : undefined,
   )
 
 
@@ -1001,7 +1003,7 @@ function PortfolioPage() {
     return <></>
   }
 
-
+  
   return (
     <ReportedWrapper
       reported={!!accountInfo?.reported ?? false}
