@@ -10,6 +10,9 @@ import { BalanceInput } from "../../inputs/BalanceInput";
 import { validateUintRangeArr } from "../form-items/CustomJSONSetter";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { BadgeIdRangesInput } from "../../inputs/BadgeIdRangesInput";
+import { Balance } from "bitbadgesjs-proto";
+import { GO_MAX_UINT_64 } from "../../../utils/dates";
 
 export function BadgeSupplySelectStepItem() {
 
@@ -42,9 +45,34 @@ export function BadgeSupplySelectStepItem() {
     setBadgesToCreate([]);
   }
 
+  const isNonIndexed = collection?.balancesType == 'Off-Chain - Non-Indexed';
+
+  const onAddBadges = (balance: Balance<bigint>, reset?: boolean) => {
+
+      if (!collection) return;
+      const currBadgesToCreate = reset ? [] : deepCopyBalances(badgesToCreate);
+      const newBadgesToCreate = deepCopyBalances([...currBadgesToCreate, balance])
+      const prevNumberOfBadges = startingCollection ? getTotalNumberOfBadges(startingCollection) : 0n;
+      const maxBadgeIdAdded = sortUintRangesAndMergeIfNecessary(newBadgesToCreate.map(x => x.badgeIds).flat(), true).pop()?.end || 0n;
+
+      const newBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, {
+        metadata: DefaultPlaceholderMetadata,
+        badgeIds: [{ start: prevNumberOfBadges + 1n, end: maxBadgeIdAdded }]
+      });
+
+      updateCollection({
+        collectionId: NEW_COLLECTION_ID,
+        cachedBadgeMetadata: newBadgeMetadata
+      });
+
+      setBadgesToCreate(newBadgesToCreate);
+    
+  }
   return {
     title: `Create Badges`,
-    description: 'Define the circulating supplys for badges in your collection. You can customize and distribute these badges in later steps.',
+    description: 
+    isNonIndexed ? 'Define the bumber of badges to be used in your collection.' :
+    'Define the circulating supplys for badges in your collection. You can customize and distribute these badges in later steps.',
     node: <UpdateSelectWrapper
       err={err}
       setErr={(err) => { setErr(err) }}
@@ -72,43 +100,45 @@ export function BadgeSupplySelectStepItem() {
       customRevertFunction={revertFunction}
       node={
         <div className='primary-text' style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-          <div className="flex-center" style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-            <DistributionOverview
-              md={12} xs={24} sm={24} lg={12} xl={12} xxl={12}
+          {isNonIndexed && <div className="flex-center flex-column" style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+            <BadgeIdRangesInput 
+              hideSelect
+              hideNumberSelects
               collectionId={NEW_COLLECTION_ID}
-              isSelectStep={true}
+              
+              uintRanges={badgesToCreate.map(x => x.badgeIds).flat()} setUintRanges={(uintRanges) => {
+                if (!collection) return;
+
+                onAddBadges({
+                  badgeIds: uintRanges,
+                  ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  amount: 1n
+                }, true);
+              }
+            } />
+          </div>}
+          {!isNonIndexed && <>
+            <div className="flex-center" style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+              <DistributionOverview
+                md={12} xs={24} sm={24} lg={12} xl={12} xxl={12}
+                collectionId={NEW_COLLECTION_ID}
+                isSelectStep={true}
+              />
+            </div>
+            <br />
+            <BalanceInput
+              sequentialOnly
+              balancesToShow={balancesToShow}
+              onAddBadges={(balance) => onAddBadges(balance)}
+              hideDisplay
+              message="Circulating Supplys"
+              onRemoveAll={revertFunction}
             />
-          </div>
-          <br />
-          <BalanceInput
-            sequentialOnly
-            balancesToShow={balancesToShow}
-            onAddBadges={(balance) => {
-              if (!collection) return;
-
-              const newBadgesToCreate = deepCopyBalances([...badgesToCreate, balance])
-              const prevNumberOfBadges = startingCollection ? getTotalNumberOfBadges(startingCollection) : 0n;
-              const maxBadgeIdAdded = sortUintRangesAndMergeIfNecessary(newBadgesToCreate.map(x => x.badgeIds).flat(), true).pop()?.end || 0n;
-
-              const newBadgeMetadata = updateBadgeMetadata(collection.cachedBadgeMetadata, {
-                metadata: DefaultPlaceholderMetadata,
-                badgeIds: [{ start: prevNumberOfBadges + 1n, end: maxBadgeIdAdded }]
-              });
-
-              updateCollection({
-                collectionId: NEW_COLLECTION_ID,
-                cachedBadgeMetadata: newBadgeMetadata
-              });
-
-              setBadgesToCreate(newBadgesToCreate);
-            }}
-            hideDisplay
-            message="Circulating Supplys"
-            onRemoveAll={revertFunction}
-          />
-          <Divider />
-          <DevMode obj={badgesToCreate} />
+            <Divider />
+            <DevMode obj={badgesToCreate} />
+          </>}
         </div >
+       
       }
     />,
     disabled: (!existingCollectionId && badgesToCreate?.length == 0) || !!err,

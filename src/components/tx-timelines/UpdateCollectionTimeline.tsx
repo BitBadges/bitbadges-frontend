@@ -214,7 +214,9 @@ export function UpdateCollectionTimeline() {
         toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
         hasManager && toShowCompleteControl ? ChooseControlStepItem : EmptyStepItem,
         !completeControl && hasManager && toShowCanManagerBeTransferredPermission ? CanManagerBeTransferredStep : EmptyStepItem,
-
+        
+        BalanceTypeSelect,
+        
         toShowCreateMoreAction ? BadgeSupplySelectStep : EmptyStepItem,
         !completeControl && hasManager && toShowCanCreateMorePermission ? CanCreateMoreStep : EmptyStepItem,
 
@@ -224,7 +226,7 @@ export function UpdateCollectionTimeline() {
         !completeControl && hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
         !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
 
-        BalanceTypeSelect,
+        
         !isOffChainBalances && !isNonIndexedBalances && toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
         CodesViewStep,
 
