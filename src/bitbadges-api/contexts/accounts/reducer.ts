@@ -268,6 +268,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
         addressMappings: [...(cachedAccount?.addressMappings || []), ...(account.addressMappings || [])],
         claimAlerts: [...(cachedAccount?.claimAlerts || []), ...(account.claimAlerts || [])],
         authCodes: [...(cachedAccount?.authCodes || []), ...(account.authCodes || [])],
+        listsActivity: [...(cachedAccount?.listsActivity || []), ...(account.listsActivity || [])],
         views: newViews,
         publicKey,
         airdropped: account.airdropped ? account.airdropped : cachedAccount?.airdropped ? cachedAccount.airdropped : false,
@@ -285,6 +286,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       newAccount.addressMappings = newAccount.addressMappings.filter((x, index, self) => index === self.findIndex((t) => (t.mappingId === x.mappingId)))
       newAccount.claimAlerts = newAccount.claimAlerts.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
       newAccount.authCodes = newAccount.authCodes.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
+      newAccount.listsActivity = newAccount.listsActivity.filter((x, index, self) => index === self.findIndex((t) => (t._legacyId === x._legacyId)))
 
       //sort in descending order
       newAccount.activity = newAccount.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
@@ -292,6 +294,7 @@ const updateAccounts = (state = initialState, userInfos: BitBadgesUserInfo<Desir
       newAccount.reviews = newAccount.reviews.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
       newAccount.claimAlerts = newAccount.claimAlerts.sort((a, b) => b.createdTimestamp - a.createdTimestamp > 0 ? -1 : 1);
       newAccount.authCodes = newAccount.authCodes.sort((a, b) => b.createdAt - a.createdAt > 0 ? -1 : 1);
+      newAccount.listsActivity = newAccount.listsActivity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
 
       accountsToReturn.push({ account: newAccount, needToCompare: true, ignore: false, cachedAccountCopy });
     }

@@ -11,7 +11,11 @@ export function AddressMappingSelectStepItem() {
     title: 'Select Users',
     description: ``,
     node: <div className='flex-center full-width'>
-      <AddressMappingSelect addressMapping={addressMapping} setAddressMapping={setAddressMapping} autoGenerateMappingId={!txTimelineContext.isUpdateAddressMapping} />
+      <AddressMappingSelect 
+      addressMapping={addressMapping} 
+      setAddressMapping={setAddressMapping} 
+      autoGenerateMappingId={!txTimelineContext.isUpdateAddressMapping} 
+    />
     </div>,
     disabled: isAddressMappingEmpty(addressMapping)
   }

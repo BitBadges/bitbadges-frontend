@@ -98,6 +98,10 @@ export const BitcoinContextProvider: React.FC<Props> = ({ children }) => {
       viewId: 'latestActivity',
       bookmark: '',
     }, {
+      viewType: 'listsActivity',
+      viewId: 'listsActivity',
+      bookmark: '',
+    }, {
       viewType: 'latestAnnouncements',
       viewId: 'latestAnnouncements',
       bookmark: '',

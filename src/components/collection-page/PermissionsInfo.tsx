@@ -1050,18 +1050,18 @@ export function PermissionSelect({
         {usedFlags.usesToMapping && <InformationDisplayCard title={'To'} md={12} xs={24} sm={24} subtitle={'Which recipients does this permission apply to?'}>
 
           <div className='flex-center'>
-            <AddressMappingSelect addressMapping={newPermissionToAdd.toMapping} setAddressMapping={(x) => {
-              setNewPermissionToAdd({
-                ...newPermissionToAdd,
-                toMapping: x
-              })
-            }} /></div>
+            <AddressMappingSelect 
+              addressMapping={newPermissionToAdd.toMapping} setAddressMapping={(x) => {
+                setNewPermissionToAdd({
+                  ...newPermissionToAdd,
+                  toMapping: x
+                })
+              }} />
+            </div>
         </InformationDisplayCard>}
         {usedFlags.usesFromMapping && <InformationDisplayCard title={'From'} md={12} xs={24} sm={24} subtitle={'Which senders does this permission apply to?'}>
           <div className='flex-center'>
             <AddressMappingSelect
-
-
               addressMapping={newPermissionToAdd.fromMapping} setAddressMapping={(x) => {
                 setNewPermissionToAdd({
                   ...newPermissionToAdd,

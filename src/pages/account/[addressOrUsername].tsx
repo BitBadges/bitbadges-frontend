@@ -10,7 +10,7 @@ import { ReactElement, useCallback, useEffect, useLayoutEffect, useMemo, useStat
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { getAddressMappings } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountBalancesView, updateAccount, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountBalancesView, getAccountListsActivityView, updateAccount, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { AddressListCard } from '../../components/badges/AddressListCard';
@@ -30,6 +30,7 @@ import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { ListActivityTab } from '../../components/collection-page/ListActivityDisplay';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -1102,6 +1103,8 @@ function PortfolioPage() {
     setReactElement(reactElement);
   }, [accountInfo?.readme]);
 
+  const [activityTab, setActivityTab] = useState('badges');
+
   if (!accountInfo) {
     return <></>
   }
@@ -1554,11 +1557,30 @@ function PortfolioPage() {
 
             {tab === 'activity' && (<>
               <br />
-              <ActivityTab
+              <div className='flex-center'>
+              <Tabs 
+                type='underline'
+                tab={activityTab}
+                setTab={setActivityTab}
+                tabInfo={[{
+                  key: 'badges', content: 'Badges', disabled: false
+                },
+                {
+                  key: 'lists', content: 'Lists', disabled: false
+                }]}
+              ></Tabs>
+              </div>
+              <br/>
+              {activityTab === 'badges' && <ActivityTab
                 activity={getAccountActivityView(accountInfo, 'latestActivity') ?? []}
                 fetchMore={async () => fetchNextForAccountViews(accountInfo?.address ?? '', 'latestActivity', 'latestActivity')}
                 hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? true}
-              />
+              />}
+              {activityTab === 'lists' && <ListActivityTab
+                activity={getAccountListsActivityView(accountInfo, 'listsActivity') ?? []}
+                fetchMore={async () => fetchNextForAccountViews(accountInfo?.address ?? '', 'listsActivity', 'listsActivity')}
+                hasMore={accountInfo?.views['listsActivity']?.pagination?.hasMore ?? true}
+              />}
             </>
             )}
           </div>

@@ -193,17 +193,16 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
 
   return (
     <TxModal
-    msgSteps={items}
-    visible={visible && (isValidProof || !requiresWhitelistProof)}
-    disabled={requiresWhitelistProof && !isValidProof}
-    setVisible={setVisible}
-    txsInfo={txsInfo}
-    txName="Transfer Badge(s)"
-    width={'90%'}
-    requireRegistration
-  >
-    {children}
-  </TxModal>
-
+      msgSteps={items}
+      visible={visible && (isValidProof || !requiresWhitelistProof)}
+      disabled={requiresWhitelistProof && !isValidProof}
+      setVisible={setVisible}
+      txsInfo={txsInfo}
+      txName="Transfer Badge(s)"
+      width={'90%'}
+      requireRegistration
+    >
+      {children}
+    </TxModal>
   );
 }

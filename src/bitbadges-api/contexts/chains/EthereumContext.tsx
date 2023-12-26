@@ -84,6 +84,10 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
       viewType: 'latestActivity',
       viewId: 'latestActivity',
       bookmark: '',
+    },{
+      viewType: 'listsActivity',
+      viewId: 'listsActivity',
+      bookmark: '',
     }, {
       viewType: 'latestAnnouncements',
       viewId: 'latestAnnouncements',

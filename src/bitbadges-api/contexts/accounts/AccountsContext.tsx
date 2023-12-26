@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { NumberType, Stringify, UintRange } from 'bitbadgesjs-proto';
-import { AccountViewKey, AddressMappingDoc, AnnouncementDoc, BalanceDoc, BigIntify, BitBadgesUserInfo, BlockinAuthSignatureDoc, ClaimAlertDoc, MINT_ACCOUNT, ReviewDoc, TransferActivityDoc, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { AccountViewKey, AddressMappingDoc, AnnouncementDoc, BalanceDoc, BigIntify, BitBadgesUserInfo, BlockinAuthSignatureDoc, ClaimAlertDoc, ListActivityDoc, MINT_ACCOUNT, ReviewDoc, TransferActivityDoc, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useSelector } from 'react-redux';
 import { AccountReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, updateAccountInfo } from '../../api';
@@ -20,7 +20,7 @@ export function useAccount(_addressOrUsername?: string) {
 
   const accountToReturn = isAddressValid(addressOrUsername) || reservedNames.includes(addressOrUsername)
     ? accountForAddress : accountForUsername;
-  
+
   if (accountToReturn?.reported) {
     const filteredAccount: BitBadgesUserInfo<bigint> = {
       ...accountToReturn,
@@ -143,12 +143,12 @@ export function viewHasMore(addressOrUsername: string, viewId: string) {
   return account.views[viewId]?.pagination?.hasMore || true;
 }
 
-export async function fetchNextForAccountViews(addressOrUsername: string, viewType: AccountViewKey, viewId: string,  filteredCollections?: {
+export async function fetchNextForAccountViews(addressOrUsername: string, viewType: AccountViewKey, viewId: string, filteredCollections?: {
   collectionId: bigint,
   badgeIds: UintRange<bigint>[]
 }[],
-filteredLists?: string[]) {
-  
+  filteredLists?: string[]) {
+
   await fetchAccountsWithOptions([{
     address: isAddressValid(addressOrUsername) ? addressOrUsername : undefined,
     username: isAddressValid(addressOrUsername) ? undefined : addressOrUsername,
@@ -162,7 +162,7 @@ filteredLists?: string[]) {
         filteredCollections,
         filteredLists
       };
-      
+
       else return {
         viewId: viewId,
         filteredLists,
@@ -190,6 +190,17 @@ export function getAccountActivityView(account: BitBadgesUserInfo<bigint> | unde
     return account.activity.find(y => y._legacyId === x);
   }) ?? []) as TransferActivityDoc<bigint>[];
 }
+
+export function getAccountListsActivityView(account: BitBadgesUserInfo<bigint> | undefined, viewId: string) {
+  if (!account) return [];
+
+  console.log(account, viewId);
+
+  return (account.views[viewId]?.ids.map(x => {
+    return account.listsActivity.find(y => y._legacyId === x);
+  }) ?? []) as ListActivityDoc<bigint>[];
+}
+
 
 export function getAccountReviewsView(account: BitBadgesUserInfo<bigint> | undefined, viewId: string) {
   if (!account) return [];

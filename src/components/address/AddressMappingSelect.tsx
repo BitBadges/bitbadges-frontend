@@ -44,13 +44,17 @@ export function AddressMappingSelect({
 
   const [currId, setCurrId] = useState("");
 
+  //Will need to change this in the future, but autoGenerateMappingId is currently only used for the AddressMappingSelectStepItem and is false for updates (not creates)
+  const disableListTypeChange = !autoGenerateMappingId;
+  
+
   return <div className="primary-text full-width flex-column" style={{ width: '100%', maxWidth: 500, }}>
     <div >
 
       <br />
       <div style={{ textAlign: 'center' }}><b>
         <Switch
-          disabled={disabled}
+          disabled={disabled || disableListTypeChange}
           checked={addressMapping.includeAddresses}
           checkedChildren={"Whitelist"}
           unCheckedChildren={"Blacklist"}

@@ -84,7 +84,7 @@ export function WalletHeader() {
   //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
   let overflowCount = 10;
-  const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? [])];
+  const allActivity = [...(account?.activity ?? []), ...(account?.announcements ?? []), ...(account?.listsActivity ?? [])];
   const claimAlerts = account?.claimAlerts ?? [];
   const seenActivity = account?.seenActivity || 1n;
   const firstLoadCutoff = chain.lastSeenActivity;
@@ -98,22 +98,6 @@ export function WalletHeader() {
       if (unseenNotificationCount > overflowCount) {
         break;
       }
-    }
-
-    for (const addressMapping of account?.addressMappings ?? []) {
-      if (addressMapping.addresses.includes(chain.cosmosAddress) || addressMapping.addresses.includes(chain.address)) {
-
-        if (seenActivity &&
-          seenActivity < addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp
-          && addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp < firstLoadCutoff) {
-          unseenNotificationCount++;
-        }
-
-        if (unseenNotificationCount > overflowCount) {
-          break;
-        }
-      }
-
     }
 
     for (const claimAlert of claimAlerts) {

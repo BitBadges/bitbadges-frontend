@@ -1,13 +1,12 @@
-import { Badge, Empty, Layout, Spin } from 'antd';
+import { Badge, Layout } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
-import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { AccountViewKey } from 'bitbadgesjs-utils';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountClaimAlertsView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { AddressListCard } from '../../components/badges/AddressListCard';
+import { fetchNextForAccountViews, getAccountActivityView, getAccountClaimAlertsView, getAccountListsActivityView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 // import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';
 import { ClaimAlertsTab } from '../../components/collection-page/ClaimAlertsTab';
+import { ListActivityTab } from '../../components/collection-page/ListActivityDisplay';
 import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
 import { Tabs } from '../../components/navigation/Tabs';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
@@ -29,11 +28,10 @@ export function Notifications() {
   const transferActivity = (getAccountActivityView(signedInAccount, 'latestActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
   // const announcements = (getAccountAnnouncementsView(signedInAccount, 'latestAnnouncements') ?? []).filter((announcement) => announcement.timestamp < (chain.lastSeenActivity));
   const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'latestClaimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
-
+  
+  const listsActivity = (getAccountListsActivityView(signedInAccount, 'listsActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
   const listsTab = 'latestAddressMappings';
   const hasMoreAddressMappings = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
-  const listsView = getAccountAddressMappingsView(signedInAccount, listsTab).filter((addressMapping) => addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp < (chain.lastSeenActivity));
-
 
   const [prevSeenActivity, setPrevSeenActivity] = useState<number | undefined>(Number(signedInAccount?.seenActivity) ?? 0n);
 
@@ -58,13 +56,6 @@ export function Notifications() {
     }
   }, [chain.connected, chain.loggedIn, chain.address, chain.lastSeenActivity]);
 
-
-  useEffect(() => {
-    const createdBys = listsView.map((addressMapping) => addressMapping.createdBy);
-    
-    fetchAccounts([...new Set(createdBys)]);
-  }, [listsView]);
-
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, fetch accounts');
     if (hasMoreAddressMappings) fetchMore(chain.address, listsTab);
@@ -74,8 +65,8 @@ export function Notifications() {
   // const unseenAnnouncementsCount = announcements.filter((announcement) => announcement.timestamp > (prevSeenActivity ?? 0)).length;
   const unseenClaimAlertsCount = claimAlerts.filter((claimAlert) => claimAlert.createdTimestamp > (prevSeenActivity ?? 0)).length;
   const unseenTransferActivityCount = transferActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
-  const unseenAddressMappingsCount = listsView.filter((addressMapping) => addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp > (prevSeenActivity ?? 0)).length;
-
+  const unseenListsActivityCount = listsActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
+  
   //Make badge count disappear 5 seconds after being seen
   useEffect(() => {
     if (tab === 'announcements') {
@@ -171,7 +162,7 @@ export function Notifications() {
                     },
                     {
                       key: 'latestAddressMappings',
-                      content: <TabComponent title={'List Activity'} count={unseenAddressMappingsCount} />,
+                      content: <TabComponent title={'List Activity'} count={unseenListsActivityCount} />,
                       disabled: false
                     },
                     {
@@ -205,48 +196,11 @@ export function Notifications() {
                   </>}
 
                   {tab === 'latestAddressMappings' && <><br />
-
-                    <div className='flex-center flex-wrap'>
-                      <InfiniteScroll
-                        dataLength={listsView.length}
-                        next={async () => fetchMore(chain.address, listsTab)}
-                        hasMore={hasMoreAddressMappings}
-                        loader={<div>
-                          <br />
-                          <Spin size={'large'} />
-                          <br />
-                          <br />
-                        </div>}
-                        scrollThreshold={"300px"}
-                        endMessage={
-                          <></>
-                        }
-                        initialScrollY={0}
-                        style={{ width: '100%', overflow: 'hidden' }}
-                      >
-                        <div className='full-width flex-center flex-wrap'>
-                          {listsView.map((addressMapping, idx) => {
-                            return <AddressListCard
-                              key={idx}
-                              addressMapping={addressMapping}
-                              addressOrUsername={signedInAccount?.address ?? ''}
-                            />
-                          })}
-                        </div>
-                      </InfiniteScroll>
-
-                      {listsView.length === 0 && !hasMoreAddressMappings && (
-                        <Empty
-                          className='primary-text'
-                          description={
-                            <span>
-                              No lists found.
-                            </span>
-                          }
-                          image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        />
-                      )}
-                    </div>
+                    <ListActivityTab
+                      activity={listsActivity ?? []}
+                      fetchMore={async () => fetchMore(chain.address, 'listsActivity')}
+                      hasMore={signedInAccount?.views.listsActivity?.pagination.hasMore ?? true}
+                    />
                   </>}
                 </div>
               </div>
