@@ -75,7 +75,7 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
         if (!warned) {
           notification.info({
             message: 'Out of Sync',
-            description: `BitBadges is currently experiencing difficulties. It was last synced at ${new Date(Number(res.status.block.timestamp)).toLocaleTimeString()}.
+            description: `BitBadges is currently experiencing difficulties. It was last synced at ${new Date(Number(res.status.block.timestamp)).toLocaleString()}.
             This could be for multiple reasons like planned maintenance, heavy load, or an unexpected error. 
             You can still interact with the site, but any data after ${new Date(Number(res.status.block.timestamp)).toLocaleTimeString()} may not be shown.`,
             duration: 0,

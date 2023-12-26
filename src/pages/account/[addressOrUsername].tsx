@@ -2,14 +2,15 @@ import { CloseCircleOutlined, DownOutlined, InfoCircleOutlined, MinusOutlined, P
 import { Col, Divider, Dropdown, Empty, Input, Layout, Select, Spin, Tag, Typography, notification } from 'antd';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import { AccountViewKey, AddressMappingWithMetadata, Numberify, getMetadataForBadgeId, isFullUintRanges, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
+import { SHA256 } from 'crypto-js';
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { ReactElement, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { getAddressMappings } from '../../bitbadges-api/api';
-import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountBalancesView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { fetchAccounts, fetchNextForAccountViews, getAccountActivityView, getAccountAddressMappingsView, getAccountBalancesView, updateAccount, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 import { AddressListCard } from '../../components/badges/AddressListCard';
@@ -72,10 +73,42 @@ export const removeFromArray = (arr: BatchBadgeDetails[], badgeIdObjsToRemove: B
   return arr.filter(x => x.badgeIds.length > 0);
 }
 
-export const CollectionsFilterSearchBar = ({ searchValue, setSearchValue, onSearch }: { searchValue: string, setSearchValue: (searchValue: string) => void, onSearch: (searchValue: any, isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => Promise<void> }) => {
+export const ListFilterSearchBar = ({ searchValue, setSearchValue, onSearch }: { searchValue: string, setSearchValue: (searchValue: string) => void, onSearch: (searchValue: any, isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => Promise<void> }) => {
   const SearchBar = <Input
     defaultValue=""
-    placeholder="Filter by collection or badge"
+    placeholder="Filter by searching a list"
+    value={searchValue}
+    onChange={async (e) => {
+      setSearchValue(e.target.value);
+    }}
+    className='form-input'
+    style={{}}
+  />;
+
+  const FilterSearchDropdown = <Dropdown
+    open={searchValue !== ''}
+    placement="bottom"
+    overlay={
+      <SearchDropdown
+        onlyLists
+        onSearch={onSearch}
+        searchValue={searchValue}
+      />
+    }
+    overlayClassName='primary-text inherit-bg'
+    className='inherit-bg'
+    trigger={['hover', 'click']}
+  >
+    {SearchBar}
+  </Dropdown >
+
+  return FilterSearchDropdown;
+}
+
+export const CollectionsFilterSearchBar = ({ specificCollectionId, searchValue, setSearchValue, onSearch }: { specificCollectionId?: bigint, searchValue: string, setSearchValue: (searchValue: string) => void, onSearch: (searchValue: any, isAccount?: boolean | undefined, isCollection?: boolean | undefined, isBadge?: boolean | undefined) => Promise<void> }) => {
+  const SearchBar = <Input
+    defaultValue=""
+    placeholder={specificCollectionId ? "Filter by searching a badge" : "Filter by searching a collection or badge"}
     value={searchValue}
     onChange={async (e) => {
       setSearchValue(e.target.value);
@@ -92,6 +125,7 @@ export const CollectionsFilterSearchBar = ({ searchValue, setSearchValue, onSear
         onlyCollections
         onSearch={onSearch}
         searchValue={searchValue}
+        specificCollectionId={specificCollectionId}
       />
     }
     overlayClassName='primary-text inherit-bg'
@@ -166,6 +200,7 @@ export const NewPageInputForm = ({
     </div>}
   </>
 }
+
 
 export const BatchBadgeDetailsTag = ({ badgeIdObj, onClose, }: { badgeIdObj: BatchBadgeDetails, onClose?: () => void }) => {
   const collection = getCollection(badgeIdObj.collectionId);
@@ -411,6 +446,8 @@ export const CustomizeAddRemoveBadgeFromPage = (
     </InformationDisplayCard>
   </>
 }
+
+
 export const OptionsSelects = ({
   editMode,
   setEditMode,
@@ -424,6 +461,8 @@ export const OptionsSelects = ({
   setSearchValue,
   filteredCollections,
   setFilteredCollections,
+  filteredLists,
+  setFilteredLists,
 }: {
   editMode: boolean,
   setEditMode: (editMode: boolean) => void,
@@ -437,6 +476,8 @@ export const OptionsSelects = ({
   setSearchValue: (searchValue: string) => void,
   filteredCollections: BatchBadgeDetails[],
   setFilteredCollections: (filteredCollections: BatchBadgeDetails[]) => void,
+  filteredLists: string[],
+  setFilteredLists: (filteredLists: string[]) => void,
 }) => {
   const chain = useChainContext();
   const accountInfo = useAccount(addressOrUsername);
@@ -499,6 +540,24 @@ export const OptionsSelects = ({
       setSearchValue('');
     }
   }} searchValue={searchValue} setSearchValue={setSearchValue} />
+
+  const ListSearchDropdown = <ListFilterSearchBar
+    searchValue={searchValue}
+    setSearchValue={setSearchValue}
+    onSearch={async (searchValue: any) => {
+      if (typeof searchValue === 'string') {
+        setFilteredLists([...filteredLists, searchValue]);
+        setSearchValue('');
+        //TODO: Roundabout way without context
+        const mappingRes = await getAddressMappings({ mappingIds: [searchValue] });
+
+        updateAccount({
+          ...accountInfo,
+          addressMappings: [...accountInfo.addressMappings, ...mappingRes.addressMappings]
+        });
+      }
+    }}
+  />
 
   return <>
     <div className='flex-wrap full-width flex' style={{ flexDirection: 'row-reverse' }}>
@@ -569,7 +628,7 @@ export const OptionsSelects = ({
           <Select.Option value="image">Image</Select.Option>
         </Select>
       </div>}
-      {!isListsSelect && <>
+      {<>
         <div className='primary-text inherit-bg'
           style={{
             display: 'flex',
@@ -579,7 +638,8 @@ export const OptionsSelects = ({
             marginTop: 5,
             flexGrow: 1
           }}>
-          {FilterSearchDropdown}
+          {!isListsSelect && FilterSearchDropdown}
+          {isListsSelect && ListSearchDropdown}
         </div>
       </>}
 
@@ -784,6 +844,7 @@ function PortfolioPage() {
     collectionId: bigint,
     badgeIds: UintRange<bigint>[]
   }[]>([]);
+  const [filteredLists, setFilteredLists] = useState<string[]>([]);
   const [groupByCollection, setGroupByCollection] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [listsTab, setListsTab] = useState<string>('addressMappings');
@@ -831,8 +892,17 @@ function PortfolioPage() {
       fetchBalanceForUser(id.collectionId, accountInfo?.address);
     }
   }, [filteredCollections, accountInfo?.address]);
-  let currView = !accountInfo ? undefined : badgeTab === 'Managing' ? accountInfo.views['managing'] : badgeTab === 'Created' ? accountInfo.views['createdBy'] : accountInfo.views['badgesCollected'];
 
+  const [customViewId, setCustomViewId] = useState<string>('');
+  const [customListViewId, setCustomListViewId] = useState<string>('');
+
+  const currViewWithoutFiltered = !accountInfo ? undefined : 
+    accountInfo?.views[badgeTab === 'Managing' ? 'managing' : badgeTab === 'Created' ? 'createdBy' : 'badgesCollected'];
+  console.log(customViewId, currViewWithoutFiltered?.pagination.hasMore);
+  const currViewId = customViewId && currViewWithoutFiltered?.pagination.hasMore ? customViewId : badgeTab === 'Managing' ? 'managing' : badgeTab === 'Created' ? 'createdBy' : 'badgesCollected';
+
+  let currView = !accountInfo ? undefined : accountInfo?.views[currViewId];
+  console.log(currView);
   let badgesToShow = useMemo(() => {
 
     let badgesToShow = getAccountBalancesView(accountInfo, 'badgesCollected')
@@ -887,9 +957,6 @@ function PortfolioPage() {
         }
       }
       allBadgeIds = filtered;
-
-
-
     }
 
     for (const badgeIdObj of allBadgeIds) {
@@ -900,28 +967,59 @@ function PortfolioPage() {
       badgeIdObj.badgeIds = remaining;
     }
 
-    console.log(allBadgeIds);
     return allBadgeIds.filter(x => x.badgeIds.length > 0);
   }, [accountInfo, badgeTab, filteredCollections, currView?.ids]);
 
 
 
   const fetchMoreCollected = useCallback(async (address: string) => {
-    await fetchNextForAccountViews(address, editMode ? ['badgesCollectedWithHidden'] : ['badgesCollected']);
+    await fetchNextForAccountViews(address, editMode ? 'badgesCollectedWithHidden' : 'badgesCollected', editMode ?  'badgesCollectedWithHidden' : 'badgesCollected');
   }, [editMode]);
 
-  const fetchMoreLists = useCallback(async (address: string, viewKey: AccountViewKey) => {
-    console.log('fetch more lists', viewKey);
-    await fetchNextForAccountViews(address, [viewKey]);
+  const fetchMoreLists = useCallback(async (address: string, viewType: AccountViewKey) => {
+    await fetchNextForAccountViews(address, viewType, viewType);
   }, []);
 
-  const fetchMoreCreatedBy = useCallback(async (address: string, viewKey: AccountViewKey) => {
-    await fetchNextForAccountViews(address, [viewKey]);
+  const fetchMoreCreatedBy = useCallback(async (address: string, viewType: AccountViewKey) => {
+    await fetchNextForAccountViews(address, viewType, viewType);
   }, []);
 
-  const fetchMoreManaging = useCallback(async (address: string, viewKey: AccountViewKey) => {
-    await fetchNextForAccountViews(address, [viewKey]);
+  const fetchMoreManaging = useCallback(async (address: string, viewType: AccountViewKey) => {
+    await fetchNextForAccountViews(address, viewType, viewType);
   }, []);
+
+  const fetchMoreWithFiltered = useCallback(async (address: string, viewType: AccountViewKey, filteredCollections: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[]) => {
+    const newViewId = viewType + ':' + SHA256(JSON.stringify(filteredCollections)).toString();
+    await fetchNextForAccountViews(address, viewType, newViewId, filteredCollections);
+    setCustomViewId(newViewId);
+  }, []);
+
+  const fetchMoreListsWithFiltered = useCallback(async (address: string, viewType: AccountViewKey, filteredLists: string[]) => {
+    const newViewId = viewType + ':' + SHA256(JSON.stringify(filteredLists)).toString();
+    await fetchNextForAccountViews(address, viewType, newViewId, undefined, filteredLists);
+    setCustomListViewId(newViewId);
+  }, []);
+
+  useEffect(() => {
+    if (filteredCollections.length > 0) {
+      const currViewId = badgeTab === 'Managing' ? 'managing' : badgeTab === 'Created' ? 'createdBy' : 'badgesCollected';
+
+      const newViewId = currViewId + ':' + SHA256(JSON.stringify(filteredCollections)).toString();  
+      setCustomViewId(newViewId);
+    } else {
+      setCustomViewId('');
+    }
+  }, [filteredCollections, badgeTab]);
+  
+  useEffect(() => {
+    if (filteredLists.length > 0) {
+      const newViewId = listsTab + ':' + SHA256(JSON.stringify(filteredLists)).toString();  
+      setCustomListViewId(newViewId);
+    } else {
+      setCustomListViewId('');
+    }
+  }, [filteredLists, listsTab]);
+
 
   const isPresetList = listsTab === 'addressMappings' || listsTab === 'explicitlyIncludedAddressMappings' || listsTab === 'explicitlyExcludedAddressMappings' || listsTab === 'privateLists' || listsTab === 'createdLists';
 
@@ -945,7 +1043,12 @@ function PortfolioPage() {
     getCustomView();
   }, [listsTab, accountInfo?.customListPages, isPresetList, accountInfo?.hiddenLists]);
 
-  const listsView = isPresetList ? getAccountAddressMappingsView(accountInfo, listsTab) : customView
+
+  const listViewwithoutFiltered = !accountInfo ? undefined : accountInfo?.views[`${listsTab}`];
+  const currListViewId = customListViewId && (listViewwithoutFiltered?.pagination.hasMore ?? true) ? customListViewId : listsTab;
+  const listsView = (isPresetList ? getAccountAddressMappingsView(accountInfo, currListViewId) : customView).filter(x => !filteredLists.includes(x.mappingId));
+
+
   const collectedHasMore = editMode ? accountInfo?.views['badgesCollectedWithHidden']?.pagination?.hasMore ?? true :
     accountInfo?.views['badgesCollected']?.pagination?.hasMore ?? true;
   const hasMoreAddressMappings = accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
@@ -1003,6 +1106,7 @@ function PortfolioPage() {
     return <></>
   }
 
+
   
   return (
     <ReportedWrapper
@@ -1047,6 +1151,7 @@ function PortfolioPage() {
               <OptionsSelects
                 searchValue={searchValue} setSearchValue={setSearchValue} filteredCollections={filteredCollections} setFilteredCollections={setFilteredCollections}
                 editMode={editMode} setEditMode={setEditMode}
+                filteredLists={filteredLists} setFilteredLists={setFilteredLists}
                 cardView={cardView} setCardView={setCardView} groupByCollection={groupByCollection} setGroupByCollection={setGroupByCollection} addressOrUsername={addressOrUsername as string} />
               <br />
 
@@ -1197,13 +1302,27 @@ function PortfolioPage() {
                     editMode={editMode}
                     hasMore={badgeTab === 'All' ? (collectedHasMore) : badgeTab === 'Managing' ? (accountInfo?.views['managing']?.pagination?.hasMore ?? true) : badgeTab === 'Created' ? (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true) : false}
                     fetchMore={async () => {
-                      if (badgeTab === 'All') {
-                        await fetchMoreCollected(accountInfo?.address ?? '');
-                      } else if (badgeTab === 'Managing') {
-                        await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
-                      } else if (badgeTab === 'Created') {
-                        await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
-                      }
+                        const hasMore = badgeTab === 'All' ? (collectedHasMore) : badgeTab === 'Managing' ? (accountInfo?.views['managing']?.pagination?.hasMore ?? true) : badgeTab === 'Created' ? (accountInfo?.views['createdBy']?.pagination?.hasMore ?? true) : false;
+
+                        if (filteredCollections.length > 0 && hasMore) {
+                          //If we have a view where we havent fetched everything plus have specific filters, we need to fetch more with filters
+                          //Else, we can just filter client side
+                          if (badgeTab === 'All') {
+                            await fetchMoreWithFiltered(accountInfo?.address ?? '', 'badgesCollected', filteredCollections);
+                          } else if (badgeTab === 'Managing') {
+                            await fetchMoreWithFiltered(accountInfo?.address ?? '', 'managing', filteredCollections);
+                          } else if (badgeTab === 'Created') {
+                            await fetchMoreWithFiltered(accountInfo?.address ?? '', 'createdBy', filteredCollections);
+                          }
+                        } else {
+                          if (badgeTab === 'All') {
+                            await fetchMoreCollected(accountInfo?.address ?? '');
+                          } else if (badgeTab === 'Managing') {
+                            await fetchMoreManaging(accountInfo?.address ?? '', 'managing');
+                          } else if (badgeTab === 'Created') {
+                            await fetchMoreCreatedBy(accountInfo?.address ?? '', 'createdBy');
+                          }
+                        }
                     }}
                     groupByCollection={groupByCollection}
                   />
@@ -1215,13 +1334,59 @@ function PortfolioPage() {
               <br />
               <OptionsSelects
                 isListsSelect
+                filteredLists={filteredLists} setFilteredLists={setFilteredLists}
                 searchValue={searchValue} setSearchValue={setSearchValue} filteredCollections={filteredCollections} setFilteredCollections={setFilteredCollections}
                 editMode={editMode} setEditMode={setEditMode}
                 cardView={cardView} setCardView={setCardView}
                 groupByCollection={groupByCollection} setGroupByCollection={setGroupByCollection}
                 addressOrUsername={addressOrUsername as string}
               />
+              <br />
 
+              <div className='full-width flex-center flex-wrap'>
+                
+
+                {filteredLists.map((mappingId, idx) => {
+                
+                  const metadata = accountInfo.addressMappings?.find(x => x.mappingId === mappingId)?.metadata;
+
+                  return <Tag
+                    key={idx}
+                    className='primary-text inherit-bg flex-between'
+                    style={{ alignItems: 'center', marginBottom: 8 }}
+                    closable
+                    closeIcon={<CloseCircleOutlined
+                      className='primary-text styled-button-normal flex-center'
+                      style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
+                      size={100}
+                    />}
+                    onClose={() => {
+                      setFilteredLists(filteredLists.filter(x => x !== mappingId));
+                    }
+                  }
+                >
+                  <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
+                    <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
+                      <div>
+                        <BadgeAvatar
+                          size={30}
+                          noHover
+                          collectionId={0n}
+                          metadataOverride={accountInfo.addressMappings?.find(x => x.mappingId === mappingId)?.metadata}
+                        />
+                      </div>
+                      <Typography.Text className="primary-text" style={{ alignItems: 'center', fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
+                        <div style={{ }}>
+                        {metadata?.name}
+                        </div>
+                      </Typography.Text>
+                    </div>
+                  </div>
+                  <br />
+              
+                </Tag>
+                })}
+              </div>
 
 
               <div className='flex-center'>
@@ -1358,7 +1523,13 @@ function PortfolioPage() {
                 {listsTab === 'privateLists' && !chain.loggedIn ? <BlockinDisplay /> : <>
                   <ListInfiniteScroll
                     fetchMore={async () => {
-                      if (isPresetList) fetchMoreLists(accountInfo?.address ?? '', listsTab)
+                      if (isPresetList) {
+                        if (filteredLists.length > 0 && isPresetList && hasMoreAddressMappings) {
+                          await fetchMoreListsWithFiltered(accountInfo?.address ?? '', listsTab, filteredLists);
+                        } else {
+                          await fetchMoreLists(accountInfo?.address ?? '', listsTab)
+                        }
+                      }
                     }}
                     hasMore={isPresetList && hasMoreAddressMappings}
                     listsView={listsView}
@@ -1373,7 +1544,7 @@ function PortfolioPage() {
               <ReputationTab
                 reviews={accountInfo?.reviews ?? []}
                 fetchMore={async () => {
-                  await fetchNextForAccountViews(accountInfo?.address ?? '', ['latestReviews']);
+                  await fetchNextForAccountViews(accountInfo?.address ?? '', 'latestReviews', 'latestReviews');
                 }}
                 hasMore={accountInfo?.views['latestReviews']?.pagination?.hasMore ?? true}
                 addressOrUsername={accountInfo?.address ?? ''}
@@ -1385,7 +1556,7 @@ function PortfolioPage() {
               <br />
               <ActivityTab
                 activity={getAccountActivityView(accountInfo, 'latestActivity') ?? []}
-                fetchMore={async () => fetchNextForAccountViews(accountInfo?.address ?? '', ['latestActivity'])}
+                fetchMore={async () => fetchNextForAccountViews(accountInfo?.address ?? '', 'latestActivity', 'latestActivity')}
                 hasMore={accountInfo?.views['latestActivity']?.pagination?.hasMore ?? true}
               />
             </>

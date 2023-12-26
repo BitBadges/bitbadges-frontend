@@ -77,7 +77,7 @@ export function DistributionOverview({
     noBorder={noBorder} inheritBg={inheritBg}
     title={hideTitle ? '' : 'Distribution'} span={span} xs={xs} sm={sm} md={md} lg={lg} xl={xl} xxl={xxl} style={style}>
     <>
-      {collection && <TableRow label={"Balances Storage"} value={
+      {collection && !isSelectStep && <TableRow label={"Balances Storage"} value={
         <>
           <div className='' style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
             {collection?.balancesType === "Off-Chain - Indexed" ?

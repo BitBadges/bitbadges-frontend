@@ -1,5 +1,6 @@
-import { CodeOutlined, DeleteOutlined, DownOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
-import { Col, Divider, Input, Row, Select, Typography, notification } from 'antd';
+import { DeleteOutlined, DownOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
+import { Col, Collapse, Divider, Input, Row, Select, Typography, notification } from 'antd';
+import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { BigIntify, convertMsgCreateCollection, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertMsgUpdateCollection, convertMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -19,6 +20,12 @@ const sampleMsgUpdateUserApprovals = require('./sample-msgupdateapprovals.json')
 const sampleMsgTransferBadges = require('./sample-msgtransfer.json');
 const sampleMsgUniversalUpdateCollection = require('./sample-msguniversalupdate.json');
 const sampleMsgCreateCollection = require('./sample-msgcreate.json');
+const sampleMsgSend = require('./sample-msgsend.json');
+const sampleMsgCreateProtocol = require('./sample-msgcreateprotocol.json');
+const sampleMsgUpdateProtocol = require('./sample-msgcreateprotocol.json');
+const sampleMsgDeleteProtocol = require('./sample-msgdeleteprotocol.json');
+const sampleMsgSetCollectionForProtocol = require('./sample-msgsetcollectionforprotocol.json');
+const sampleMsgUnsetCollectionForProtocol = require('./sample-msgunsetcollectionforprotocol.json');
 
 function Broadcast() {
   const [visible, setVisible] = useState(false);
@@ -59,44 +66,14 @@ function Broadcast() {
             : txType === 'MsgTransferBadges' ? sampleMsgTransferBadges
               : txType === 'MsgCreateCollection' ? sampleMsgCreateCollection
                 : txType === 'MsgUpdateCollection' ? sampleMsgUpdateCollection
+                  : txType === 'MsgSend' ? sampleMsgSend
+                  : txType === 'MsgCreateProtocol'  ? sampleMsgCreateProtocol
+                  : txType === 'MsgUpdateProtocol'  ? sampleMsgUpdateProtocol
+                  : txType === 'MsgDeleteProtocol'  ? sampleMsgDeleteProtocol
+                  : txType === 'MsgSetCollectionForProtocol'  ? sampleMsgSetCollectionForProtocol
+                  : txType === 'MsgUnsetCollectionForProtocol'  ? sampleMsgUnsetCollectionForProtocol
                   : undefined
   }
-
-  const MsgComponent = ({
-    txsInfo,
-    currIdxToDisplay,
-    setTxsInfo,
-  }: {
-    txsInfo: TxInfo[],
-    currIdxToDisplay: number,
-    setTxsInfo: (txsInfo: TxInfo[]) => void,
-  }) => {
-    const txInfo = txsInfo[currIdxToDisplay];
-
-    const [showMoreIsVisible, setShowMoreIsVisible] = useState<boolean>(false);
-
-    return <InformationDisplayCard md={12} xs={24} title={`Tx ${currIdxToDisplay + 1}: ${txInfo.type}`}
-    
-    style={{ textAlign: 'center' }}>
-     
-      <div className='flex-center full-width'>
-        <div className='full-width flex-center'>
-          <IconButton src={showMoreIsVisible ? <MinusOutlined /> : <CodeOutlined />} onClick={() => {
-              setShowMoreIsVisible(!showMoreIsVisible);
-            }} text={showMoreIsVisible ? 'Hide' : 'Show JSON'} />
-            <IconButton src={<DeleteOutlined />} onClick={() => {
-              setTxsInfo(txsInfo.filter((_, idx) => idx !== currIdxToDisplay));
-            }} text='Delete' />
-        </div>
-     </div>
-      {showMoreIsVisible && <>
-      <br/>
-      <DevMode obj={txInfo.msg} override inheritBg noBorder />
-    </>}
-    </InformationDisplayCard>
-    
-  }
-
 
 
   return (
@@ -115,23 +92,45 @@ function Broadcast() {
         >
           <Col md={24} xs={24} style={{ textAlign: 'center' }} className='primary-text'>
             <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>
-              Tx Builder (Dev)
+              Transaction Builder
             </Typography.Text>
             <br />
             <br />
             
+            <Collapse
+              className='full-width primary-text'
+              style={{ alignItems: 'center' }}
+              expandIconPosition='start'
+            >
 
-            <div className='flex-center flex-wrap'>
               {txsInfo.map((_, idx) => {
-                return <MsgComponent
-                   key={idx}
-                  txsInfo={txsInfo}
-                  currIdxToDisplay={idx}
-                  setTxsInfo={setTxsInfo}
-                />
+                const txInfo = txsInfo[idx];
+              return<CollapsePanel 
+                key={idx}
+                className='full-width card-bg'
+                header={
+                  <div className='primary-text full-width flex-center' style={{ justifyContent: 'space-between' }}>
+                    <div style={{ textAlign: 'left', fontSize: 16, fontWeight: 500 }}>
+                      {`Tx ${idx + 1}: ${txInfo.type}`}
+
+                    </div>
+                  </div>
+                }>
+                    {<>
+                    <DevMode obj={txInfo.msg} override inheritBg noBorder />
+                    <div className='flex-center full-width'>
+                        <div className='full-width flex-center'>
+                            <IconButton src={<DeleteOutlined />} onClick={() => {
+                              setTxsInfo(txsInfo.filter((_, i) => idx !== i));
+                            }} text='Delete' />
+                        </div>
+                    </div>
+                  </>}
+                </CollapsePanel>
+
              
               })}
-            </div>
+            </Collapse>
             <Divider />
 
             <IconButton
@@ -147,6 +146,7 @@ function Broadcast() {
           {editIsVisible && <div className='flex-center flex-column'>
 
         <Select
+          
           className="selector primary-text inherit-bg"
           style={{ marginLeft: 4 }}
           value={inputTxType}
@@ -185,6 +185,24 @@ function Broadcast() {
           <Select.Option key={0} value={'MsgUniversalUpdateCollection'}>
             MsgUniversalUpdateCollection
           </Select.Option>
+          <Select.Option key={7} value={'MsgSend'}>
+            MsgSend
+          </Select.Option>
+          <Select.Option key={8} value={'MsgCreateProtocol'}>
+            MsgCreateProtocol
+          </Select.Option>
+          <Select.Option key={9} value={'MsgUpdateProtocol'}>
+            MsgUpdateProtocol
+          </Select.Option>
+          <Select.Option key={10} value={'MsgDeleteProtocol'}>
+            MsgDeleteProtocol
+          </Select.Option>
+          <Select.Option key={11} value={'MsgSetCollectionForProtocol'}>
+            MsgSetCollectionForProtocol
+          </Select.Option>
+          <Select.Option key={12} value={'MsgUnsetCollectionForProtocol'}>
+            MsgUnsetCollectionForProtocol
+          </Select.Option>
         </Select>
         <br />
         <br />
@@ -213,6 +231,11 @@ function Broadcast() {
                     else if (inputTxType === 'MsgTransferBadges') setMsg(convertMsgTransferBadges(msg, BigIntify));
                     else if (inputTxType === 'MsgCreateCollection') setMsg(convertMsgCreateCollection(msg, BigIntify));
                     else if (inputTxType === 'MsgUpdateCollection') setMsg(convertMsgUpdateCollection(msg, BigIntify));
+                    else if (inputTxType === 'MsgSend') setMsg({
+                      destinationAddress: msg.toAddress,
+                      amount: msg.amount.length > 0 ? msg.amount[0].amount : 0,
+                      denom: msg.amount.length > 0 ? msg.amount[0].denom : "badge",
+                    });
                     else setMsg(msg);
 
                   } catch (e: any) {
@@ -243,7 +266,7 @@ function Broadcast() {
           <Divider />
           <button className='landing-button'
             style={{ width: '100%' }}
-            disabled={err !== null}
+            disabled={!!err}
             onClick={() => {
               if (!inputTxType) return;
 
@@ -256,9 +279,13 @@ function Broadcast() {
               else if (inputTxType === 'MsgTransferBadges') msg = convertMsgTransferBadges(msg, BigIntify)
               else if (inputTxType === 'MsgCreateCollection') msg = convertMsgCreateCollection(msg, BigIntify)
               else if (inputTxType === 'MsgUpdateCollection') msg = convertMsgUpdateCollection(msg, BigIntify)
-            // else if (inputTxType === 'MsgSend') msg = msg
+              else if (inputTxType === 'MsgSend') msg = {
+                destinationAddress: msg.toAddress,
+                amount: msg.amount.length > 0 ? msg.amount[0].amount : 0,
+                denom: msg.amount.length > 0 ? msg.amount[0].denom : "badge",
+              } 
               else msg = msg
-
+              
               setTxsInfo([
                 ...txsInfo,
                 {
@@ -275,7 +302,7 @@ function Broadcast() {
           {!editIsVisible && <>
           <button className='landing-button'
             style={{ width: '100%' }}
-            disabled={err !== null || txsInfo.length == 0}
+            disabled={!!err || txsInfo.length == 0}
             
             onClick={() => {
               setVisible(true);

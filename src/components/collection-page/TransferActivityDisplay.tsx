@@ -41,7 +41,15 @@ function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, c
   });
 
   return <>
-    <div className='flex-between' style={{ width: '100%' }}>
+    <div className='flex' style={{ width: '100%' }}>
+      {/* <div style={{marginRight: 16 }}>
+        <BadgeAvatar
+          collectionId={collectionId}
+          metadataOverride={collection?.cachedCollectionMetadata}
+          size={25}
+          
+        />
+      </div> */}
       <div className='primary-text'>
         <div className='flex flex-wrap' style={{ display: 'flex', alignItems: 'center' }}>
           {collection?.balancesType === 'Standard' ? <>

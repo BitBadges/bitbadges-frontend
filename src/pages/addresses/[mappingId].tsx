@@ -1,5 +1,5 @@
 import { Col, Divider, Empty, Input, Layout, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { AddressMappingDoc, AddressMappingWithMetadata, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { AddressMappingDoc, AddressMappingWithMetadata, DefaultPlaceholderMetadata, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
 import HtmlToReact from 'html-to-react';
 import MarkdownIt from 'markdown-it';
@@ -94,12 +94,18 @@ function AddressMappingPage() {
         })
 
         mapping = mappings.addressMappings[0];
+        if (mapping.reported) {
+          mapping.metadata = DefaultPlaceholderMetadata;
+        }
 
         setMapping(mapping);
         const toFetch = [];
         if (mapping.createdBy) toFetch.push(mapping.createdBy);
         if (mapping.aliasAddress) toFetch.push(mapping.aliasAddress);
         if (toFetch.length > 0) await fetchAccounts(toFetch);
+
+
+
         if (mapping.metadata) {
           setMetadata(mapping.metadata);
           if (mapping.metadata?.description) {

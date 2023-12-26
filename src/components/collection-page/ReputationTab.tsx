@@ -81,7 +81,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
               } else if (addressOrUsername) {
                 await addReviewForUser(addressOrUsername, { review: newReview, stars });
                 await fetchAccounts([addressOrUsername], true);
-                await fetchNextForAccountViews(addressOrUsername, ['latestReviews']);
+                await fetchNextForAccountViews(addressOrUsername, 'latestReviews', 'latestReviews');
               }
               setNewReview('');
               setLoading(false);
@@ -151,7 +151,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                           await fetchCollections([collectionId], true);
                         } else if (addressOrUsername) {
                           await fetchAccounts([addressOrUsername], true);
-                          await fetchNextForAccountViews(addressOrUsername, ['latestReviews']);
+                          await fetchNextForAccountViews(addressOrUsername, 'latestReviews', 'latestReviews');
                         }
                         setLoading(false);
                       }}

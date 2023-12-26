@@ -42,8 +42,8 @@ export function Notifications() {
   const [seenTransferActivity, setSeenTransferActivity] = useState<boolean>(false);
   const [seenAddressMappings, setSeenAddressMappings] = useState<boolean>(false);
 
-  const fetchMore = useCallback(async (address: string, viewKey: AccountViewKey) => {
-    await fetchNextForAccountViews(address, [`${viewKey}`]);
+  const fetchMore = useCallback(async (address: string, viewType: AccountViewKey) => {
+    await fetchNextForAccountViews(address, viewType, viewType); //no custom IDs so pass in same
   }, []);
 
 

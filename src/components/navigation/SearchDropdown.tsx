@@ -16,7 +16,8 @@ export function SearchDropdown({
   onlyAddresses,
   onlyCollections,
   onlyLists,
-  allowMintSearch
+  allowMintSearch,
+  specificCollectionId
 }: {
   searchValue: string,
   onSearch: (value: string, isAccount?: boolean, isCollection?: boolean, isBadge?: boolean) => Promise<void>
@@ -24,10 +25,8 @@ export function SearchDropdown({
   onlyCollections?: boolean
   onlyLists?: boolean
   allowMintSearch?: boolean
+  specificCollectionId?: bigint
 }) {
-
-
-
   const [searchResponse, setSearchResponse] = useState<GetSearchRouteSuccessResponse<bigint>>();
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -52,8 +51,12 @@ export function SearchDropdown({
         noAccounts: onlyCollections || onlyLists,
         noAddressMappings: onlyAddresses || onlyCollections,
         noBadges: onlyAddresses || onlyLists,
+        specificCollectionId
       });
 
+      if (specificCollectionId) {
+        result.collections = [];
+      }
 
       if (searchValue === 'Mint' && allowMintSearch && mintAccount) {
         if (!result.accounts.find((a) => a.address === 'Mint')) {
@@ -153,7 +156,7 @@ export function SearchDropdown({
       </Menu.Item>}
       {/* Collection Results */}
       {
-        !onlyAddresses && !onlyLists && <>
+        !onlyAddresses && !onlyLists && !specificCollectionId && <>
 
           <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Collections</Typography.Text>
           <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
@@ -243,10 +246,15 @@ export function SearchDropdown({
 
 
       {
-        !onlyAddresses && !onlyCollections && addressMappingsResults.length > 0 && <>
+        !onlyAddresses && !onlyCollections && <>
 
           <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
           <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
+            {addressMappingsResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
+              <div className='primary-text'>
+                None
+              </div>
+            </Menu.Item>}
             {addressMappingsResults.map((result,) => {
               const mappingId = result.mappingId.indexOf("_") >= 0 ? result.mappingId.split("_")[1] : result.mappingId;
               const isOffChain = result.mappingId.indexOf("_") >= 0;

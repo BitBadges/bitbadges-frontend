@@ -1,4 +1,4 @@
-import { CloseOutlined, CodeOutlined, InfoCircleOutlined, MinusOutlined } from '@ant-design/icons';
+import { CloseOutlined, CodeOutlined, InfoCircleOutlined, MinusOutlined, ZoomInOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus, generatePostBodyBroadcast } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -18,6 +18,7 @@ import {
   MsgUpdateProtocol,
   MsgDeleteProtocol,
   MsgSetCollectionForProtocol,
+  MsgUnsetCollectionForProtocol,
   MsgSend
 } from 'bitbadgesjs-proto';
 
@@ -36,6 +37,7 @@ import {
   MsgUpdateProtocol as ProtoMsgUpdateProtocol,
   MsgDeleteProtocol as ProtoMsgDeleteProtocol,
   MsgSetCollectionForProtocol as ProtoMsgSetCollectionForProtocol,
+  MsgUnsetCollectionForProtocol as ProtoMsgUnsetCollectionForProtocol,
 } from 'bitbadgesjs-proto/dist/proto/protocols/tx_pb';
 
 import {
@@ -188,6 +190,11 @@ export function TxModal(
               ...msg,
               collectionId: msg.collectionId.toString(),
             })
+          }
+          break;
+        case 'MsgUnsetCollectionForProtocol': 
+          createFunction = (msg: MsgUnsetCollectionForProtocol) => {
+            return new ProtoMsgUnsetCollectionForProtocol(msg)
           }
           break;
         case 'MsgSend':
@@ -642,7 +649,7 @@ export function TxModal(
             {simulated && <>
               <div className='flex-center'>
                 <IconButton
-                  src={showJson ? <MinusOutlined /> : <CodeOutlined />}
+                  src={showJson ? <MinusOutlined /> : <ZoomInOutlined />}
                   text={'Show Final JSON'}
                   tooltipMessage='Show the JSON of the Cosmos SDK message sent to the blockchain.'
                   onClick={async () => {
@@ -666,7 +673,7 @@ export function TxModal(
                         setFinalMsgs(generatedMsgs);
                         setShowJson(generatedMsgs.map(x => x.message));
                       } else if (finalMsgs) {
-                        setShowJson(finalMsgs);
+                        setShowJson(finalMsgs.map(x => x.message));
                       } else {
                         setShowJson(txsInfoPopulated.map((tx) => tx.msg));
                       }

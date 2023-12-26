@@ -1,5 +1,5 @@
-import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, EditOutlined, MinusOutlined, PlusOutlined, SwapOutlined } from "@ant-design/icons";
-import { notification } from "antd";
+import { CheckCircleFilled, CloseCircleFilled, EditOutlined, MinusOutlined } from "@ant-design/icons";
+import { Switch, notification } from "antd";
 import { UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BitBadgesUserInfo, CustomPage, removeUintRangeFromUintRange, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
 import { useState } from "react";
@@ -115,18 +115,18 @@ export const CustomizeButtons =
 
         <div className="">
           {accountInfo &&
-            <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'center' }}>
+            <div className='flex-center flex-column' style={{ alignItems: 'center', justifyContent: 'center' }}>
 
               {!onlyShowCollectionOptions && !isWatchlist && <>
-                <IconButton
-
-                  src={<SwapOutlined />}
-                  text={(!isHidden) ? 'Hide' : 'Show'}
-                  onClick={async () => {
+                <Switch
+                  style={{ marginBottom: 10 }}
+                  checkedChildren="Show Badge"
+                  unCheckedChildren="Hide Badge"
+                  checked={!isHidden}
+                  onChange={async (checked) => {
                     // if (!accountInfo.views.badgesCollectedWithHidden || !accountInfo.views.badgesCollected) return;
 
-
-                    const hiddenBadge = isHidden ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]);
+                    const hiddenBadge = checked ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]);
 
                     await updateAccountInfo(deepCopy({
                       ...accountInfo,
@@ -140,22 +140,24 @@ export const CustomizeButtons =
                     }))
 
                     notification.success({
-                      message: "This badge will now be" + (!isHidden ? ' hidden' : ' shown') + " for your profile."
+                      message: "This badge will now be" + (checked ? ' shown' : ' hidden') + " for your profile."
                     })
 
-                  }
-                  } />
+                  }}
+                />
 
               </>}
 
-              {!isWatchlist && <IconButton
+              {!isWatchlist && <>
+              <Switch
+              style={{ marginBottom: 10 }}
+                checkedChildren="Show Collection"
+                unCheckedChildren="Hide Collection"
+                checked={!isCollectionHidden}
+                onChange={async (checked) => {
+                  // if (!accountInfo.views.badgesCollectedWithHidden || !accountInfo.views.badgesCollected) return;
 
-                src={<SwapOutlined />}
-                text={(!isCollectionHidden) ? 'Hide Collection' : 'Show Collection'}
-                onClick={async () => {
-
-
-                  const hiddenBadge = isCollectionHidden ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
+                  const hiddenBadge = checked ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
 
                   await updateAccountInfo(deepCopy({
                     ...accountInfo,
@@ -169,11 +171,13 @@ export const CustomizeButtons =
                   }))
 
                   notification.success({
-                    message: "All badges from this collection will now be" + (!isCollectionHidden ? ' hidden' : ' shown') + " for your profile."
+                    message: "All badges from this collection will now be" + (checked ? ' shown' : ' hidden') + " for your profile."
                   })
 
-                }
-                } />}
+                }}
+              />
+              
+                </>}
               <IconButton
                 src={addToPageIsVisible ? <MinusOutlined /> : <EditOutlined />}
                 text={'Pages'}
@@ -182,8 +186,6 @@ export const CustomizeButtons =
             </div>
           }
           {addToPageIsVisible && <>
-
-            <br />
             {(pages ?? [])?.length == 0 && <EmptyIcon description='No created pages yet.' />}
             {pages?.map((x, idx) => {
               const pageName = x.title;
@@ -191,33 +193,22 @@ export const CustomizeButtons =
 
               return <div
                 key={idx}
-                className='flex-between primary-text' style={{ alignItems: 'center', borderBottom: '1px solid #e8e8e8', padding: 10 }}>
-                <div className="flex" style={{ alignItems: 'center', }}>
+                className='flex-center flex-column primary-text' style={{ alignItems: 'center', padding: 10, marginBottom: 10 }}>
+                <div className="flex-center" style={{ alignItems: 'center', marginBottom: 5, }}>
                   {addedToPage ? <CheckCircleFilled style={{ fontSize: 20, color: 'green', marginRight: 2 }} /> : <>
                     <CloseCircleFilled style={{ fontSize: 20, color: 'red', marginRight: 2 }} />
                   </>}
 
                   {pageName}
                 </div>
-
-                <IconButton
-
-                  src={
-                    addedToPage ?
-                      <DeleteOutlined /> :
-                      <PlusOutlined />
-                  }
-                  text={''}
-                  tooltipMessage={addedToPage ? 'Remove from page' : 'Add to page'}
-                  onClick={async () => {
+                <Switch
+                  checkedChildren="Added"
+                  unCheckedChildren="Not Added"
+                  checked={addedToPage}
+                  onChange={async (checked) => {
                     let pinnedPage = deepCopy(pages?.find(x => x.title == pageName));
 
-                    if (addedToPage) {
-                      if (pinnedPage) {
-                        const newBadgeIds = removeFromArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
-                        pinnedPage.badges = newBadgeIds;
-                      }
-                    } else {
+                    if (checked) {
                       if (pinnedPage) {
                         const newBadgeIds = addToArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
                         pinnedPage.badges = newBadgeIds;
@@ -229,6 +220,11 @@ export const CustomizeButtons =
                             { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] }
                           ]
                         }
+                      }
+                    } else {
+                      if (pinnedPage) {
+                        const newBadgeIds = removeFromArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
+                        pinnedPage.badges = newBadgeIds;
                       }
                     }
 
@@ -248,8 +244,9 @@ export const CustomizeButtons =
                       watchedBadgePages: isWatchlist ? newPages : accountInfo.watchedBadgePages
                     }))
 
-                  }
-                  } />
+                  }}
+                />
+
               </div>
             }
             )}

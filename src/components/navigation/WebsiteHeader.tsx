@@ -65,21 +65,21 @@ export function WalletHeader() {
     key: '', content: (<Avatar className='flex-center'
       style={{ height: 72 }} src={<HomeOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: HomeTabMenu
   };
-  const HomeTabWithText = { key: '', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
+  // const HomeTabWithText = { key: '', content: (<Typography.Text className='primary-text flex-center' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Home</Typography.Text>), subMenuOverlay: HomeTabMenu };
 
   const BrowseTabMenu = <></>
   const BrowseTabWithIcon = {
     key: 'browse', content: (<Avatar className='flex-center'
       style={{ height: 72 }} src={<GlobalOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: BrowseTabMenu
   };
-  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
+  const BrowseTabWithText = { key: 'browse', content: (<Typography.Text className='primary-text flex-center' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Browse</Typography.Text>), subMenuOverlay: BrowseTabMenu };
 
   const MintTabMenu = <></>
   const MintTabWithIcon = {
     key: 'collections/mint', content: (<Avatar className='flex-center'
       style={{ height: 72 }} src={<PlusOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />} />), subMenuOverlay: MintTabMenu
   };
-  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text text-sm flex-center font-medium' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Create</Typography.Text>), subMenuOverlay: MintTabMenu };
+  const MintTabWithText = { key: 'collections/mint', content: (<Typography.Text className='primary-text flex-center' style={{ fontSize: 18, height: 72, fontWeight: 'bold' }}>Create</Typography.Text>), subMenuOverlay: MintTabMenu };
 
   //Calculate number of unseen notifications
   let unseenNotificationCount = 0;
@@ -375,7 +375,7 @@ export function WalletHeader() {
               }}
               noSelectedKeys
               tabInfo={[
-                HomeTabWithText,
+                // HomeTabWithText,
                 BrowseTabWithText,
                 MintTabWithText,
                 // NotificationsTabWithIcon,

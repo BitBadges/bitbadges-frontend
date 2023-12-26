@@ -135,46 +135,53 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
           setLoggedIn(signedInRes.signedIn);
           loggedIn = signedInRes.signedIn;
         }
-        const viewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
-          viewKey: 'badgesCollected',
+        const viewsToFetch: { viewType: AccountViewKey; viewId: string, bookmark: string; }[] = [{
+          viewType: 'badgesCollected',
+          viewId: 'badgesCollected',
           bookmark: '',
         }, {
-          viewKey: 'latestActivity',
+          viewType: 'latestActivity',
+          viewId: 'latestActivity',
           bookmark: '',
         }, {
-          viewKey: 'latestAnnouncements',
+          viewType: 'latestAnnouncements',
+          viewId: 'latestAnnouncements',
+          bookmark: '',
+    
+        }, {
+          viewType: 'latestReviews',
+          viewId: 'latestReviews',
           bookmark: '',
         }, {
-          viewKey: 'latestReviews',
+          viewType: 'addressMappings',
+          viewId: 'addressMappings',
           bookmark: '',
         }, {
-          viewKey: 'addressMappings',
-          bookmark: '',
-        },
-        {
-          viewKey: 'explicitlyIncludedAddressMappings',
+          viewType: 'explicitlyIncludedAddressMappings',
+          viewId: 'explicitlyIncludedAddressMappings',
           bookmark: ''
         },
         {
-          viewKey: 'explicitlyExcludedAddressMappings',
+          viewType: 'explicitlyExcludedAddressMappings',
+          viewId: 'explicitlyExcludedAddressMappings',
           bookmark: ''
         }]
 
         if (loggedIn) {
-          viewsToFetch.push(
+          viewsToFetch.push({
+            viewType: 'latestClaimAlerts',
+            viewId: 'latestClaimAlerts',
+            bookmark: '',
+          }, {
+            viewType: 'latestAddressMappings',
+            viewId: 'latestAddressMappings',
+            bookmark: ''
+          },
             {
-              viewKey: 'latestClaimAlerts',
+              viewType: 'authCodes',
+              viewId: 'authCodes',
               bookmark: '',
-            },
-            {
-              viewKey: 'latestAddressMappings',
-              bookmark: ''
-            },
-            {
-              viewKey: 'authCodes',
-              bookmark: '',
-            }
-          )
+            })
           setLastSeenActivity(Date.now());
         }
 

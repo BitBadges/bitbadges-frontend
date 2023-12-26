@@ -10,6 +10,7 @@ import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { BalanceOverview } from "./BalancesInfo";
 import { PermissionsOverview } from "./PermissionsInfo";
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getTotalNumberOfBadges } from '../../bitbadges-api/utils/badges';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -48,6 +49,7 @@ export function OverviewTab({
             collectionId={collectionId}
             badgeIds={getUintRangesForAllBadgeIdsInCollection(collection)}
             maxWidth={'100%'}
+            showPageJumper={getTotalNumberOfBadges(collection) > 100}
           // doNotAdaptToWidth
           />
         </InformationDisplayCard>

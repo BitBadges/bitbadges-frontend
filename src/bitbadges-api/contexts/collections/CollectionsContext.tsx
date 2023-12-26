@@ -1,5 +1,5 @@
 import { CollectionPermissions, NumberType, UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { AnnouncementDoc, ApprovalsTrackerDoc, BadgeMetadataDetails, BalanceDoc, BigIntify, BitBadgesCollection, CollectionViewKey, GetAdditionalCollectionDetailsRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeDoc, MetadataFetchOptions, ReviewDoc, TransferActivityDoc, convertBitBadgesCollection } from 'bitbadgesjs-utils';
+import { AnnouncementDoc, ApprovalsTrackerDoc, BadgeMetadataDetails, BalanceDoc, BigIntify, BitBadgesCollection, CollectionViewKey, DefaultPlaceholderMetadata, GetAdditionalCollectionDetailsRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeDoc, MetadataFetchOptions, ReviewDoc, TransferActivityDoc, convertBitBadgesCollection } from 'bitbadgesjs-utils';
 import { useSelector } from 'react-redux';
 import { CollectionReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, getBadgeBalanceByAddress, refreshMetadata } from '../../api';
@@ -11,6 +11,32 @@ import { fetchAndUpdateMetadataDirectlyFromCollectionRedux, fetchAndUpdateMetada
 export function useCollection(collectionIdNumber?: NumberType) {
   const str = collectionIdNumber !== undefined ? BigInt(collectionIdNumber).toString() : '';
   const _collection = useSelector((state: GlobalReduxState) => state.collections.collections[`${str}`]);
+  
+  if (_collection?.reported) {
+    const newCollection: BitBadgesCollection<DesiredNumberType> = {
+      ..._collection,
+      cachedBadgeMetadata: _collection.cachedBadgeMetadata?.map(x => {
+        return {
+          ...x,
+          metadata: DefaultPlaceholderMetadata,
+        }
+      }),
+      cachedCollectionMetadata: DefaultPlaceholderMetadata,
+      collectionApprovals: _collection.collectionApprovals?.map(x => {
+        return {
+          ...x,
+          details: x.details ? {
+            ...x.details,
+            name: '',
+            description: '',
+          } : undefined,
+        }
+      })
+    } 
+
+    return newCollection;
+  }
+
   return _collection;
 }
 
@@ -147,19 +173,20 @@ export async function fetchAndUpdateMetadata(collectionId: DesiredNumberType, me
 }
 
 
-export function viewHasMore(collectionId: DesiredNumberType, viewKey: CollectionViewKey) {
+export function viewHasMore(collectionId: DesiredNumberType, viewType: CollectionViewKey) {
   const collection = getCollection(collectionId);
   if (!collection) return true;
 
-  return collection.views[viewKey]?.pagination?.hasMore || true;
+  return collection.views[viewType]?.pagination?.hasMore || true;
 }
 
-export async function fetchNextForCollectionViews(collectionId: DesiredNumberType, viewKeys: CollectionViewKey[]) {
+export async function fetchNextForCollectionViews(collectionId: DesiredNumberType, viewType: CollectionViewKey, viewId: string) {
   await fetchCollectionsWithOptions([{
     collectionId: collectionId,
-    viewsToFetch: viewKeys.map(x => {
+    viewsToFetch: [viewId].map(x => {
       return {
-        viewKey: x,
+        viewType: viewType,
+        viewId: x,
         bookmark: getCollection(collectionId)?.views[x]?.pagination?.bookmark || ''
       }
     })
@@ -171,45 +198,45 @@ export async function fetchNextForCollectionViews(collectionId: DesiredNumberTyp
 //Note we use metadataId instead of _legacyId here. 
 //This is okay because we will only be using views when metadataId is defined 
 //(i.e. no need for a view with just editing the metadata in TxTimeline which has no metadataId)
-export function getCollectionMetadataView(collection: BitBadgesCollection<bigint>, viewKey: CollectionViewKey) {
-  return (collection.views[viewKey]?.ids.map(x => {
+export function getCollectionMetadataView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
+  return (collection.views[viewType]?.ids.map(x => {
     return collection.cachedBadgeMetadata.find(y => y.metadataId && y.metadataId?.toString() === x);
   }) ?? []) as BadgeMetadataDetails<bigint>[];
 }
 
-export function getCollectionActivityView(collection: BitBadgesCollection<bigint>, viewKey: CollectionViewKey) {
+export function getCollectionActivityView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
 
-  return (collection.views[viewKey]?.ids.map(x => {
+  return (collection.views[viewType]?.ids.map(x => {
     return collection.activity.find(y => y._legacyId === x);
   }) ?? []) as TransferActivityDoc<bigint>[]
 }
 
-export function getCollectionReviewsView(collection: BitBadgesCollection<bigint>, viewKey: CollectionViewKey) {
-  return (collection.views[viewKey]?.ids.map(x => {
+export function getCollectionReviewsView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
+  return (collection.views[viewType]?.ids.map(x => {
     return collection.reviews.find(y => y._legacyId === x);
   }) ?? []) as ReviewDoc<bigint>[];
 }
 
-export function getCollectionAnnouncementsView(collection: BitBadgesCollection<bigint>, viewKey: CollectionViewKey) {
-  return (collection.views[viewKey]?.ids.map(x => {
+export function getCollectionAnnouncementsView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
+  return (collection.views[viewType]?.ids.map(x => {
     return collection.announcements.find(y => y._legacyId === x);
   }) ?? []) as AnnouncementDoc<bigint>[]
 }
 
-export function getCollectionBalancesView(collection: BitBadgesCollection<bigint>, viewKey: CollectionViewKey) {
-  return (collection.views[viewKey]?.ids.map(x => {
+export function getCollectionBalancesView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
+  return (collection.views[viewType]?.ids.map(x => {
     return collection.owners.find(y => y._legacyId === x);
   }) ?? []) as BalanceDoc<bigint>[]
 }
 
-export function getCollectionMerkleChallengeTrackersView(collection: BitBadgesCollection<bigint>, viewKey: CollectionViewKey) {
-  return (collection.views[viewKey]?.ids.map(x => {
+export function getCollectionMerkleChallengeTrackersView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
+  return (collection.views[viewType]?.ids.map(x => {
     return collection.merkleChallenges.find(y => y._legacyId === x);
   }) ?? []) as MerkleChallengeDoc<bigint>[]
 }
 
-export function getCollectionApprovalTrackersView(collection: BitBadgesCollection<bigint>, viewKey: CollectionViewKey) {
-  return (collection.views[viewKey]?.ids.map(x => {
+export function getCollectionApprovalTrackersView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
+  return (collection.views[viewType]?.ids.map(x => {
     return collection.approvalsTrackers.find(y => y._legacyId === x);
   }) ?? []) as ApprovalsTrackerDoc<bigint>[]
 }

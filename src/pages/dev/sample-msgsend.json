@@ -1,0 +1,10 @@
+{
+  "fromAddress": "cosmos1kj9kt5y64n5a8677fhjqnmcc24ht2vy97kn7rp",
+  "toAddress": "cosmos1rgtvs7f82uprnlkdxsadye20mqtgyuj7n4npzz",
+  "amount": [
+    {
+      "denom": "badge",
+      "amount": "1"
+    }
+  ]
+}

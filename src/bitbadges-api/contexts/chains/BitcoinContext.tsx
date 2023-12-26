@@ -89,27 +89,35 @@ export const BitcoinContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const connectAndPopulate = useCallback(async (address: string, cookie: string) => {
-    const DefaultViewsToFetch: { viewKey: AccountViewKey; bookmark: string; }[] = [{
-      viewKey: 'badgesCollected',
+    const DefaultViewsToFetch: { viewType: AccountViewKey; viewId: string, bookmark: string; }[] = [{
+      viewType: 'badgesCollected',
+      viewId: 'badgesCollected',
       bookmark: '',
     }, {
-      viewKey: 'latestActivity',
+      viewType: 'latestActivity',
+      viewId: 'latestActivity',
       bookmark: '',
     }, {
-      viewKey: 'latestAnnouncements',
+      viewType: 'latestAnnouncements',
+      viewId: 'latestAnnouncements',
+      bookmark: '',
+
+    }, {
+      viewType: 'latestReviews',
+      viewId: 'latestReviews',
       bookmark: '',
     }, {
-      viewKey: 'latestReviews',
+      viewType: 'addressMappings',
+      viewId: 'addressMappings',
       bookmark: '',
     }, {
-      viewKey: 'addressMappings',
-      bookmark: '',
-    }, {
-      viewKey: 'explicitlyIncludedAddressMappings',
+      viewType: 'explicitlyIncludedAddressMappings',
+      viewId: 'explicitlyIncludedAddressMappings',
       bookmark: ''
     },
     {
-      viewKey: 'explicitlyExcludedAddressMappings',
+      viewType: 'explicitlyExcludedAddressMappings',
+      viewId: 'explicitlyExcludedAddressMappings',
       bookmark: ''
     }]
 
@@ -156,14 +164,17 @@ export const BitcoinContextProvider: React.FC<Props> = ({ children }) => {
 
         if (loggedIn) {
           viewsToFetch.push({
-            viewKey: 'latestClaimAlerts',
+            viewType: 'latestClaimAlerts',
+            viewId: 'latestClaimAlerts',
             bookmark: '',
           }, {
-            viewKey: 'latestAddressMappings',
+            viewType: 'latestAddressMappings',
+            viewId: 'latestAddressMappings',
             bookmark: ''
           },
             {
-              viewKey: 'authCodes',
+              viewType: 'authCodes',
+              viewId: 'authCodes',
               bookmark: '',
             })
           setLastSeenActivity(Date.now());

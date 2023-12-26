@@ -11,11 +11,10 @@ export function ReportedWrapper({ node, reported }: { node: JSX.Element, reporte
   return (
     <>
       {!reported ? node :
-
+      <>
         <div
           className='inherit-bg'
           style={{
-            minHeight: '100vh',
             textAlign: 'center',
             marginTop: 16,
           }}
@@ -31,6 +30,8 @@ export function ReportedWrapper({ node, reported }: { node: JSX.Element, reporte
             </Content>
           </div>
         </div>
+        {node}
+        </>
 
       }
     </>

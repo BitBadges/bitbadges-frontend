@@ -1,5 +1,5 @@
-import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
-import { Divider, Layout, notification } from 'antd';
+import { CloseCircleOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
+import { Divider, Layout, Tag, Typography, notification } from 'antd';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import { AccountViewKey, AddressMappingWithMetadata, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 import { useEffect, useMemo, useState } from 'react';
@@ -15,6 +15,7 @@ import { Tabs } from '../../components/navigation/Tabs';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { BatchBadgeDetails, BatchBadgeDetailsTag, BadgeInfiniteScroll, CustomizeAddRemoveBadgeFromPage, CustomizeAddRemoveListFromPage, ListInfiniteScroll, NewPageInputForm, OptionsSelects, addToArray, removeFromArray } from './[addressOrUsername]';
+import { BadgeAvatar } from '../../components/badges/BadgeAvatar';
 
 const { Content } = Layout;
 
@@ -132,6 +133,7 @@ function WatchlistPage() {
   }, [accountInfo, badgeTab, filteredCollections]);
 
   const [customView, setCustomView] = useState<AddressMappingWithMetadata<bigint>[]>([]);
+  const [filteredLists, setFilteredLists] = useState<string[]>([]);
 
   useEffect(() => {
     async function getCustomView() {
@@ -146,7 +148,7 @@ function WatchlistPage() {
     getCustomView();
   }, [listsTab, accountInfo?.watchedListPages]);
 
-  const listsView = customView
+  const listsView = customView.filter(x => filteredLists.length === 0 || filteredLists.includes(x.mappingId));
 
   if (!accountInfo) {
     return <></>
@@ -179,6 +181,7 @@ function WatchlistPage() {
 
           <br />
           <OptionsSelects
+            filteredLists={filteredLists} setFilteredLists={setFilteredLists}
             searchValue={searchValue} setSearchValue={setSearchValue} filteredCollections={filteredCollections} setFilteredCollections={setFilteredCollections}
             editMode={editMode} setEditMode={setEditMode}
             cardView={cardView} setCardView={setCardView}
@@ -309,10 +312,56 @@ function WatchlistPage() {
           <br />
           <OptionsSelects
             isListsSelect
+            filteredLists={filteredLists} setFilteredLists={setFilteredLists}
             searchValue={searchValue} setSearchValue={setSearchValue} filteredCollections={filteredCollections} setFilteredCollections={setFilteredCollections}
             editMode={editMode} setEditMode={setEditMode}
             cardView={cardView} setCardView={setCardView} groupByCollection={groupByCollection} setGroupByCollection={setGroupByCollection} addressOrUsername={chain.address as string} />
           <br />
+
+        <div className='full-width flex-center flex-wrap'>
+          
+
+          {filteredLists.map((mappingId, idx) => {
+          
+            const metadata = accountInfo.addressMappings?.find(x => x.mappingId === mappingId)?.metadata;
+
+            return <Tag
+              key={idx}
+              className='primary-text inherit-bg flex-between'
+              style={{ alignItems: 'center', marginBottom: 8 }}
+              closable
+              closeIcon={<CloseCircleOutlined
+                className='primary-text styled-button-normal flex-center'
+                style={{ border: "none", fontSize: 16, alignContent: 'center', marginLeft: 5 }}
+                size={100}
+              />}
+              onClose={() => {
+                setFilteredLists(filteredLists.filter(x => x !== mappingId));
+              }
+            }
+          >
+            <div className='primary-text inherit-bg' style={{ alignItems: 'center', marginRight: 4, maxWidth: 280 }}>
+              <div className='flex-center' style={{ alignItems: 'center', maxWidth: 280 }}>
+                <div>
+                  <BadgeAvatar
+                    size={30}
+                    noHover
+                    collectionId={0n}
+                    metadataOverride={accountInfo.addressMappings?.find(x => x.mappingId === mappingId)?.metadata}
+                  />
+                </div>
+                <Typography.Text className="primary-text" style={{ alignItems: 'center', fontSize: 16, fontWeight: 'bold', margin: 4, overflowWrap: 'break-word', }}>
+                  <div style={{ }}>
+                  {metadata?.name}
+                  </div>
+                </Typography.Text>
+              </div>
+            </div>
+            <br />
+
+          </Tag>
+          })}
+        </div>
 
           <div className='flex-center'>
             <Tabs

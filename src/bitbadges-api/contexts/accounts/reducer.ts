@@ -1,9 +1,9 @@
-import { deepCopy } from "bitbadgesjs-proto";
+import { NumberType, UintRange, deepCopy } from "bitbadgesjs-proto";
 import { AccountMap, AccountViewKey, BigIntify, BitBadgesUserInfo, GetAccountsRouteRequestBody, MINT_ACCOUNT, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from "bitbadgesjs-utils";
 import { ThunkAction } from 'redux-thunk';
 import { AccountReducerState, AppDispatch, GlobalReduxState } from "../../../pages/_app";
 import { compareObjects } from "../../../utils/compare";
-import { getAccounts, DesiredNumberType } from "../../api";
+import { DesiredNumberType, getAccounts } from "../../api";
 import { initialState, reservedNames } from "./AccountsContext";
 
 interface UpdateAccountsReduxAction {
@@ -21,7 +21,13 @@ export interface AccountRequestParams {
   fetchBalance?: boolean;
   fetchHidden?: boolean;
   viewsToFetch?: {
-    viewKey: AccountViewKey;
+    viewId: string;
+    viewType: AccountViewKey;
+    filteredCollections?: {
+      badgeIds: UintRange<NumberType>[];
+      collectionId: NumberType;
+    }[];
+    filteredLists?: string[];
     bookmark: string;
   }[];
   noExternalCalls?: boolean;
@@ -157,7 +163,7 @@ export const fetchAccountsRedux = (
 
           //Do not fetch views where hasMore is false
           viewsToFetch = viewsToFetch?.filter(x => {
-            const currPagination = cachedAccount.views[x.viewKey]?.pagination;
+            const currPagination = cachedAccount.views[x.viewId]?.pagination;
             if (!currPagination) return true;
             else return currPagination.hasMore
           });
@@ -187,7 +193,7 @@ export const fetchAccountsRedux = (
       if (batchRequestBody.accountsToFetch.length > 0) {
 
         const res = await getAccounts(batchRequestBody);
-        // console.log('ACCOUNTS RES', batchRequestBody, res);
+        console.log('ACCOUNTS RES', batchRequestBody, res);
 
         dispatch(updateAccountsRedux(
           res.accounts,
