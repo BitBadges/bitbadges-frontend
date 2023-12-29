@@ -2,6 +2,7 @@ import { NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
+import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 export function ChooseControlTypeStepItem() {
 
@@ -21,64 +22,68 @@ export function ChooseControlTypeStepItem() {
         {' '}here.
       </a>
     </>,
-    node: <div>
-      <SwitchForm
-        options={[
-          {
-            title: 'Custom',
-            message: <>In the following steps, you will be able to customize which admin privileges are enabled vs disabled. </>,
-            isSelected: !completeControl,
-            additionalNode: <>
-              <div className="flex-center">
-                <PermissionsOverview
-                  span={24}
-                  collectionId={NEW_COLLECTION_ID}
-                  tbd
-                />
-              </div>
-            </>
-          },
-          {
-            title: 'Complete Control',
-            message: 'To streamline the process, we will enable all admin privileges. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
-            isSelected: completeControl,
-            additionalNode: <>
+    node: () => <GenericFormStepWrapper
+      documentationLink="https://docs.bitbadges.io/overview/how-it-works/manager"
+      node={() => <div>
+        <SwitchForm
+          options={[
+            {
+              title: 'Custom',
+              message: <>In the following steps, you will be able to customize which admin privileges are enabled vs disabled. </>,
+              isSelected: !completeControl,
+              additionalNode: () => <>
+                <div className="flex-center">
+                  <PermissionsOverview
+                    span={24}
+                    collectionId={NEW_COLLECTION_ID}
+                    tbd
+                  />
+                </div>
+              </>
+            },
+            {
+              title: 'Complete Control',
+              message: 'To streamline the process, we will enable all admin privileges. The manager will have complete control to be able to customize and update the collection as desired. Privileges can be disabled at any time.',
+              isSelected: completeControl,
+              additionalNode: () => <>
 
-              <br />
-              <div className="flex-center">
-                <PermissionsOverview
-                  span={24}
-                  collectionId={NEW_COLLECTION_ID}
-                />
-              </div>
-            </>
-          },
-        ]}
-        onSwitchChange={(idx) => {
-          if (!collection) return;
+                <br />
+                <div className="flex-center">
+                  <PermissionsOverview
+                    span={24}
+                    collectionId={NEW_COLLECTION_ID}
+                  />
+                </div>
+              </>
+            },
+          ]}
+          onSwitchChange={(idx) => {
+            if (!collection) return;
 
-          setCompleteControl(idx === 1);
-          if (idx == 1) {
-            updateCollection({
-              collectionId: NEW_COLLECTION_ID,
-              collectionPermissions: {
-                canArchiveCollection: [],
-                canCreateMoreBadges: [],
-                canDeleteCollection: [],
-                canUpdateBadgeMetadata: [],
-                canUpdateCollectionApprovals: [],
-                canUpdateCollectionMetadata: [],
-                canUpdateCustomData: [],
-                canUpdateManager: [],
-                canUpdateOffChainBalancesMetadata: [],
-                canUpdateStandards: [],
-              },
-            })
+            setCompleteControl(idx === 1);
+            if (idx == 1) {
+              updateCollection({
+                collectionId: NEW_COLLECTION_ID,
+                collectionPermissions: {
+                  canArchiveCollection: [],
+                  canCreateMoreBadges: [],
+                  canDeleteCollection: [],
+                  canUpdateBadgeMetadata: [],
+                  canUpdateCollectionApprovals: [],
+                  canUpdateCollectionMetadata: [],
+                  canUpdateCustomData: [],
+                  canUpdateManager: [],
+                  canUpdateOffChainBalancesMetadata: [],
+                  canUpdateStandards: [],
+                },
+              })
+            }
           }
-        }
-        }
-      />
+          }
+        />
 
-    </div>
+      </div>
+      }
+    />
   }
 }

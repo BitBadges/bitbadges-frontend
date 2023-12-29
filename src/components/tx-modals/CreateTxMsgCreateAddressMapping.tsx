@@ -84,7 +84,7 @@ export function CreateTxMsgCreateAddressMappingModal(
         },
         afterTx: async () => {
           notification.success({ message: 'Created successfully!' });
-          router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
+          await router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
           txTimelineContext.resetState();
         }
       }

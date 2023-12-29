@@ -1,13 +1,14 @@
+import { WarningOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Typography } from 'antd';
 import { ReactNode } from 'react';
 
 
 interface SwitchFormOption {
-  title: string;
+  title: string | ReactNode;
   message: string | ReactNode;
   isSelected: boolean;
   disabled?: boolean;
-  additionalNode?: ReactNode;
+  additionalNode?: () => ReactNode;
 }
 
 export function SwitchForm({
@@ -17,17 +18,19 @@ export function SwitchForm({
   showCustomOption,
   fullWidthCards
 }: {
-  onSwitchChange: (selectedIdx: number, newSelectedOptionTitle: string) => void;
+  onSwitchChange: (selectedIdx: number) => void;
   options: (SwitchFormOption | undefined)[];
   helperMessage?: string;
   showCustomOption?: boolean;
   fullWidthCards?: boolean;
 }) {
   const filteredOptions = options.filter(x => x) as SwitchFormOption[];
+  let customValueIdx = -1;
   if (showCustomOption && filteredOptions.every(x => !x.isSelected)) {
+    customValueIdx = filteredOptions.length;
     filteredOptions.push({
-      title: 'Custom',
-      message: 'A custom value has been set that does not match any of the other options.',
+      title: <>Custom <WarningOutlined style={{color: 'orange'}}></WarningOutlined></>,
+      message: 'A custom value has been set that does not match any of the other options. This typically happens because the value was set manually, or you went back to a previous step and changed a detail that this depends on (oftentimes, the number of badges). If this was not intentional, please select one of the other options.',
       isSelected: true,
     })
   }
@@ -59,11 +62,10 @@ export function SwitchForm({
                 }}
                 bodyStyle={{ width: '100%', textAlign: 'center' }}
                 onClick={() => {
-                  if (option.disabled) {
-                    return;
-                  }
-                  // setCurrentSelected([index]);
-                  onSwitchChange(index, option.title);
+                  if (option.disabled) return;
+                  if (index === customValueIdx) return;
+
+                  onSwitchChange(index);
                 }}
               >
 
@@ -94,7 +96,7 @@ export function SwitchForm({
                   <div className='full-width' onClick={(e) => e.stopPropagation()}>
                     <br />
                     <br />
-                    {option.additionalNode}
+                    {option.additionalNode()}
                   </div>
                   : <></>}
 

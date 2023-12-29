@@ -28,7 +28,7 @@ export function CodesViewStepItem() {
       Moving forward, they will only be viewable to whoever the current collection manager is. <span style={{ color: '#FF5733' }}>{noManager
         ? "Since no manager was selected, this is the only time you will be able to see these codes." : ""}</span>
     </div>,
-    node: <div className='flex-center flex-column'>
+    node: () => <div className='flex-center flex-column'>
       <br />
       <ClaimsTab
         collectionId={NEW_COLLECTION_ID}

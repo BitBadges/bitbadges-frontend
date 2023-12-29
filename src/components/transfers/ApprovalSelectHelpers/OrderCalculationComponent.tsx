@@ -207,9 +207,9 @@ export const OrderCalculationMethod = ({ approvalToAdd,
           </div>
         </div>
         <br />
-        <hr />
         <BalanceDisplay
           message={'Approved Badges - All Partitions'}
+          hideMessage
           collectionId={collectionId}
           balances={startBalances}
           incrementBadgeIdsBy={increment}

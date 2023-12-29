@@ -1,7 +1,7 @@
 import { InfoCircleOutlined, LockOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { Col, Input, Radio, Row, Switch, Tag, Tooltip, Typography } from 'antd';
-import { AddressMapping, ApprovalAmounts, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-proto';
-import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBalancesToBeTransferred, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
+import { Col, Input, Radio, Row, Switch, Tooltip, Typography } from 'antd';
+import { AddressMapping, ApprovalAmounts, Balance, MustOwnBadges, UintRange, deepCopy } from 'bitbadgesjs-proto';
+import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useRef, useState } from 'react';
@@ -10,9 +10,9 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BadgeIDSelectWithSwitch } from '../collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
-import { BadgeIdRangesInput } from '../inputs/BadgeIdRangesInput';
 import { BalanceInput } from '../inputs/BalanceInput';
 import { DateRangeInput } from '../inputs/DateRangeInput';
 import { NumberInput } from '../inputs/NumberInput';
@@ -73,6 +73,41 @@ export const getMaxIncrementsApplied = (
 
   return maxIncrementsApplied;
 }
+export const getAllBadgeIdsToBeTransferred = (transfers: TransferWithIncrements<bigint>[]) => {
+  const allBadgeIds: UintRange<bigint>[] = [];
+  for (const transfer of transfers) {
+    for (const balance of transfer.balances) {
+
+      //toAddressesLength takes priority
+      const _numRecipients = transfer.toAddressesLength ? transfer.toAddressesLength : transfer.toAddresses ? transfer.toAddresses.length : 0;
+      const numRecipients = BigInt(_numRecipients);
+
+      const badgeIds = deepCopy(balance.badgeIds);
+      const ownershipTimes = deepCopy(balance.ownershipTimes);
+
+      //If incrementIdsBy is not set, then we are not incrementing badgeIds and we can just batch calculate the balance
+      if (!transfer.incrementBadgeIdsBy && !transfer.incrementOwnershipTimesBy) {
+        allBadgeIds.push(...deepCopy(badgeIds));
+      } else {
+        for (let i = 0; i < numRecipients; i++) {
+          allBadgeIds.push(...deepCopy(badgeIds));
+
+          for (const badgeId of badgeIds) {
+            badgeId.start += transfer.incrementBadgeIdsBy || 0n;
+            badgeId.end += transfer.incrementBadgeIdsBy || 0n;
+          }
+
+          for (const ownershipTime of ownershipTimes) {
+            ownershipTime.start += transfer.incrementOwnershipTimesBy || 0n;
+            ownershipTime.end += transfer.incrementOwnershipTimesBy || 0n;
+          }
+        }
+      }
+    }
+  }
+
+  return sortUintRangesAndMergeIfNecessary(allBadgeIds, true);
+}
 
 
 export const getAllApprovedBadges = (
@@ -85,7 +120,7 @@ export const getAllApprovedBadges = (
     return approvalToAdd.badgeIds
   } else {
     const maxIncrementsApplied = getMaxIncrementsApplied(approvalToAdd);
-    const allApprovedBadges = sortUintRangesAndMergeIfNecessary(getAllBalancesToBeTransferred([
+    const allApprovedBadges = getAllBadgeIdsToBeTransferred([
       {
         from: '',
         balances: startBalances.map(x => { return { ...x, amount: 1n } }),
@@ -94,7 +129,7 @@ export const getAllApprovedBadges = (
         incrementBadgeIdsBy: increment > 0 ? increment : 0n,
         incrementOwnershipTimesBy: 0n,
       }
-    ], true).map(x => x.badgeIds).flat(), true);
+    ]);
     return allApprovedBadges;
   }
 }
@@ -147,9 +182,9 @@ export function ApprovalSelect({
   const nonMintOnlyApproval = defaultFromMapping?.mappingId === 'AllWithoutMint';
   const [showMustOwnBadges, setShowMustOwnBadges] = useState(false);
   const [codeType, setCodeType] = useState(CodeType.None);
-  const mustEditApprovalIds = !defaultApproval;
-  const [autoGenerateIds, setAutoGenerateIds] = useState(defaultApproval ? false : true);
-  const [editApprovalIds, setEditApprovalIds] = useState(false);
+  // const mustEditApprovalIds = !defaultApproval;
+  // const [autoGenerateIds, setAutoGenerateIds] = useState(defaultApproval ? false : true);
+  // const [editApprovalIds, setEditApprovalIds] = useState(false);
   const [claimPassword, setClaimPassword] = useState('');
   const [predeterminedType, setPredeterminedType] = useState(PredeterminedType.NoLimit);
 
@@ -235,7 +270,6 @@ export function ApprovalSelect({
 
       ...defaultApproval?.approvalCriteria,
     },
-
   }
 
 
@@ -610,8 +644,6 @@ export function ApprovalSelect({
 
                 <BalanceInput
                   fullWidthCards
-
-
                   isMustOwnBadgesInput
                   message="Must Own Badges"
                   hideOwnershipTimes
@@ -651,10 +683,10 @@ export function ApprovalSelect({
 
       <div className='flex flex-wrap full-width'>
         <InformationDisplayCard title='Badge IDs' md={8} xs={24} sm={24} subtitle='Which badges are approved to be transferred?'>
+        <br />
+          <b>Select Badge IDs</b>
           <br />
-          <BadgeIdRangesInput
-
-            fullWidthCards
+          <BadgeIDSelectWithSwitch
             collectionId={collectionId}
             uintRanges={approvalToAdd?.badgeIds || []}
             setUintRanges={(uintRanges) => {
@@ -663,9 +695,6 @@ export function ApprovalSelect({
                 badgeIds: uintRanges,
               });
             }}
-            uintRangeBounds={[{ start: 1n, end: GO_MAX_UINT_64 }]}
-            hideSelect
-            hideNumberSelects
           />
 
         </InformationDisplayCard>
@@ -791,7 +820,7 @@ export function ApprovalSelect({
                 {amountType === AmountType.Tally && predeterminedType === PredeterminedType.Dynamic && <>
                   <ApprovalAmountsComponent
                     approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-                    type='overall' label='Overall (all users)' />
+                    type='overall' label='Overall (all cumulatively)' />
                   <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='from' label='Per sender' />
                   <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='to' label='Per recipient' />
                   <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='initiatedBy' label='Per approver' />
@@ -879,10 +908,7 @@ export function ApprovalSelect({
                 {predeterminedType === PredeterminedType.Dynamic &&
                   <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
                     <div className=''>
-                      <InfoCircleOutlined /> Partitions -
-
-                      We will split the badge IDs into N partitions (with the selected badge IDs as partition #1).
-                      For each approval, we will calculate which partition of badge IDs to approve dynamically.
+                      <InfoCircleOutlined /> Partitions - Different uses of this approval can correspond to different badge ID and ownership time partitions.
                     </div>
                   </div>}
                 {predeterminedType === PredeterminedType.Same &&
@@ -904,12 +930,12 @@ export function ApprovalSelect({
                     approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
                     amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
                     increment={increment} startBalances={startBalances}
-                    keyId='usePerToAddressNumTransfers' label='Increment per unique to address?' />
+                    keyId='usePerToAddressNumTransfers' label='Increment per unique recipient?' />
                   <OrderCalculationMethod
                     approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
                     amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
                     increment={increment} startBalances={startBalances}
-                    keyId='usePerFromAddressNumTransfers' label='Increment per unique from address?' />
+                    keyId='usePerFromAddressNumTransfers' label='Increment per unique sender' />
                   <OrderCalculationMethod
                     approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
                     amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
@@ -995,12 +1021,10 @@ export function ApprovalSelect({
           }} />
 
         </InformationDisplayCard>
-        <InformationDisplayCard title='Start Point' md={8} xs={24} sm={24} subtitle='Decide to start from scratch or from a prior approval.'>
+        {/* <InformationDisplayCard title='Start Point' md={8} xs={24} sm={24} subtitle='Decide to start from scratch or from a prior approval.'>
           <br />
           {isEdit && <Typography.Text className='secondary-text'>
-            You are editing an existing approval. Anything tracked (amounts, number of transfers, etc.) will continue to be tracked as defined in the existing approval.
-
-            To start from scratch, please create a new approval.
+            You are editing an approval. To start from scratch, please create a new approval.
           </Typography.Text>
 
           }
@@ -1092,7 +1116,7 @@ export function ApprovalSelect({
               </div>
             </div>}
           </>}
-        </InformationDisplayCard >
+        </InformationDisplayCard > */}
       </div>
     </Row >
     < button className='landing-button' style={{ width: '100%', marginTop: 16 }
@@ -1226,6 +1250,7 @@ export function ApprovalSelect({
           newApprovalToAdd.details = details
         }
 
+        const autoGenerateIds = true;
         if (autoGenerateIds) {
           newApprovalToAdd.amountTrackerId = amountTrackerId.current;
           newApprovalToAdd.approvalId = amountTrackerId.current;

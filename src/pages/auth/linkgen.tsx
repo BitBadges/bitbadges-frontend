@@ -40,11 +40,11 @@ function BlockinCodesScreen() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    if (!codeGenParams.challengeParams.domain || !codeGenParams.challengeParams.statement) {
-      setErrorMessage('Please provide a domain and statement');
-    } else if (!codeGenParams.name || !codeGenParams.description) {
+    if (!codeGenParams.name || !codeGenParams.description) {
       setErrorMessage('Please provide a name and description');
-    } else if (!codeGenParams.image) {
+    } else if (!codeGenParams.challengeParams.domain || !codeGenParams.challengeParams.statement) {
+      setErrorMessage('Please provide a domain and statement');
+    }  else if (!codeGenParams.image) {
       setErrorMessage('Please provide an image');
     } else {
       setErrorMessage('');
@@ -159,7 +159,7 @@ function BlockinCodesScreen() {
           }}
         >
           <br />
-          <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
+          <div className="primary-text" style={{ fontSize: 25, textAlign: 'center', fontWeight: 'bolder' }}>
             QR Code Authentication - Create a URL
           </div>
           <Divider />

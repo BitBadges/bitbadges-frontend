@@ -1,14 +1,13 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Col, Empty, Tooltip } from "antd";
 import { Balance, BigIntify, MustOwnBadges, UintRange, convertUintRange } from "bitbadgesjs-proto";
-import { getAllBalancesToBeTransferred, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { ReactNode, useEffect, useState } from "react";
-import { INFINITE_LOOP_MODE } from "../../../constants";
+import { ReactNode, useMemo, useState } from "react";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../../utils/dates";
+import { Pagination } from "../../common/Pagination";
 import { BalanceDisplayEditRow } from "../../inputs/BalanceDisplayEditRow";
+import { getAllBadgeIdsToBeTransferred } from "../../transfers/ApprovalSelect";
 import { BadgeAvatarDisplay } from "../BadgeAvatarDisplay";
-
 
 export function BalanceDisplay({
   collectionId,
@@ -38,6 +37,7 @@ export function BalanceDisplay({
   setIncrementBadgeIdsBy,
   doNotCalculate,
   timeString,
+  suggestedBalances
 }: {
   mustOwnBadges?: MustOwnBadges<bigint>[]
   collectionId: bigint;
@@ -67,19 +67,44 @@ export function BalanceDisplay({
   setIncrementBadgeIdsBy?: (incrementBadgeIdsBy: bigint) => void
   doNotCalculate?: boolean
   timeString?: string
+  suggestedBalances?: Balance<bigint>[]
 }) {
-  const [allBalances, setAllBalances] = useState<Balance<bigint>[]>([]);
-  const [allBadgeIdsArr, setAllBadgeIdsArr] = useState<UintRange<bigint>[]>([]);
-
   const [defaultBalancesToShow] = useState<Balance<bigint>[]>(balances);
 
+  const [incrementNum, setIncrementNum] = useState<number>(0);
 
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log("BalanceDisplay useEffect", { balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy })
-    // console.log("BalanceDisplay useEffect", { balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy })
+  const allBalances = useMemo(() => {
+    let balancesToReturn = balances;
+    if (numIncrements > 1n) {
+      balancesToReturn = balances.map(x => {
+        return {
+          ...x,
+          badgeIds: x.badgeIds.map(y => {
+            return {
+              start: y.start + incrementBadgeIdsBy * BigInt(incrementNum),
+              end: y.end + incrementBadgeIdsBy * BigInt(incrementNum),
+            }
+          }
+          ),
+          ownershipTimes: x.ownershipTimes.map(y => {
+            return {
+              start: y.start + incrementOwnershipTimesBy * BigInt(incrementNum),
+              end: y.end + incrementOwnershipTimesBy * BigInt(incrementNum),
+            }
+          }
+          )
+        }
+      })  
+    }
 
-    const allBalances = doNotCalculate ? balances :
-      !isMustOwnBadgesInput ? getAllBalancesToBeTransferred([
+    return doNotCalculate ? balancesToReturn :
+      !isMustOwnBadgesInput ? balancesToReturn : balancesToReturn.map(x => { return { ...x, ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] } });
+  }, [balances, doNotCalculate, isMustOwnBadgesInput, incrementNum, incrementBadgeIdsBy, incrementOwnershipTimesBy, numIncrements]);
+
+  const allBadgeIdsArr: UintRange<bigint>[] = useMemo(() => {
+
+    if (numIncrements > 1n) {
+      return getAllBadgeIdsToBeTransferred([
         {
           from: '',
           merkleProofs: [],
@@ -91,23 +116,20 @@ export function BalanceDisplay({
           memo: '',
           prioritizedApprovals: [],
           onlyCheckPrioritizedApprovals: false,
-
+    
           balances: balances,
           toAddressesLength: numIncrements > 0 ? numIncrements : 1n,
           toAddresses: [],
           incrementBadgeIdsBy: incrementBadgeIdsBy > 0 ? incrementBadgeIdsBy : 0n,
           incrementOwnershipTimesBy: incrementOwnershipTimesBy > 0 ? incrementOwnershipTimesBy : 0n,
         }
-      ], true) : balances.map(x => { return { ...x, ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] } });
+      ])
+    }
 
-
-    const allBadgeIdsArr: UintRange<bigint>[] = allBalances?.map((balanceAmount) => {
+    return allBalances?.map((balanceAmount) => {
       return balanceAmount.badgeIds.map((uintRange) => convertUintRange(uintRange, BigIntify));
-    }).flat();
-    setAllBalances(allBalances);
-    setAllBadgeIdsArr(allBadgeIdsArr);
-
-  }, [balances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy, isMustOwnBadgesInput, doNotCalculate]);
+    }).flat() ?? [];
+  }, [allBalances, numIncrements, incrementBadgeIdsBy, incrementOwnershipTimesBy, balances]);
 
   const EditRowComponent = <BalanceDisplayEditRow
     collectionId={collectionId}
@@ -126,10 +148,14 @@ export function BalanceDisplay({
     setIncrementBadgeIdsBy={setIncrementBadgeIdsBy}
     numRecipients={numIncrements}
     timeString={timeString}
+    suggestedBalances={suggestedBalances}
   />
 
+ 
 
-  const castedMustOwnBadges = mustOwnBadges ? mustOwnBadges : allBalances.map(x => { return { ...x, amountRange: { start: x.amount, end: GO_MAX_UINT_64 }, collectionId: 0n } });
+  let castedMustOwnBadges = mustOwnBadges ? mustOwnBadges : allBalances.map(x => { return { ...x, amountRange: { start: x.amount, end: GO_MAX_UINT_64 }, collectionId: 0n } });
+  
+  
   return <div className="flex-center flex-column full-width" >
     {!hideMessage && <div className="flex-evenly">
       <div className="full-width flex-center" style={{ textAlign: 'center', fontSize: 20 }}>
@@ -140,7 +166,30 @@ export function BalanceDisplay({
       <div className='flex-column full-width' style={{ textAlign: floatToRight ? 'right' : 'center', justifyContent: 'end' }}>
 
         <Col md={24} xs={24} sm={24}>
+          {numIncrements > 1n && allBalances.length > 0 && allBadgeIdsArr.length > 0 && !hideTable && <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
+            <Pagination
+              currPage={incrementNum + 1}
+              onChange={(page) => {
+                setIncrementNum(page - 1);
+              }}
+              total={Number(numIncrements)}
+              pageSize={1}
+            />
+            
+            {/* <NumberInput
+              title="Num Recipients"
+              min={1}
+              value={Number(numIncrements) + 1}
+              setValue={(value) => {
+                if (!value) return;
+
+                setIncrementNum(value - 1);
+              }}
+            /> */}
+          </div>}
           <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
+            
+
             {!hideTable && <table className="table-auto" style={{ alignItems: 'normal' }}>
               {
                 <thead>
@@ -157,7 +206,7 @@ export function BalanceDisplay({
                 </thead>
               }
               <tbody>
-                {castedMustOwnBadges.map((balance, idx) => {
+              {castedMustOwnBadges.map((balance, idx) => {
                   const amount = balance.amountRange.start;
                   const amountRange = balance.amountRange;
                   const collectionId = balance.collectionId;
@@ -204,12 +253,15 @@ export function BalanceDisplay({
                     description={'No balances found.'}
                   />
                 </div> : <div style={{ marginTop: 4 }} className=' full-width'>
+                  <br/>
                   <BadgeAvatarDisplay
                     collectionId={collectionId}
                     balance={allBalances}
-                    badgeIds={sortUintRangesAndMergeIfNecessary(allBadgeIdsArr.flat().sort((a, b) => a.start > b.start ? 1 : -1), true)}
+                    badgeIds={numIncrements > 1n ? 
+                      castedMustOwnBadges.map(x => x.badgeIds).flat()
+                      : allBadgeIdsArr}
                     showIds
-                    showSupplys={true}
+                    showSupplys={numIncrements > 1n ? false : true}
                     cardView={cardView}
                     size={size ? size : 45}
                   />

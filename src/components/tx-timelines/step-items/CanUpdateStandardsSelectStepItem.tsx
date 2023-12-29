@@ -21,7 +21,7 @@ export function CanUpdateStandardsStepItem() {
   if (!collection) return EmptyStepItem;
 
   const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateStandards ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection));
-  const AdditionalNode = <>
+  const AdditionalNode = () => <>
     <div className="flex-center">
       <PermissionsOverview
         span={24}
@@ -60,13 +60,13 @@ export function CanUpdateStandardsStepItem() {
   return {
     title: 'Can update standards?',
     description: `Can the manager update the standards for this collection?`,
-    node: <PermissionUpdateSelectWrapper
+    node: () => <PermissionUpdateSelectWrapper
       checked={checked}
       setChecked={setChecked}
       err={err}
       setErr={setErr}
       permissionName="canUpdateStandards"
-      node={<>
+      node={() => <>
         <SwitchForm
           showCustomOption
           options={[

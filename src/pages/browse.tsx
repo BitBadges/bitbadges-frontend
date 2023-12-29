@@ -73,7 +73,7 @@ function BrowsePage() {
           const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
           const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
 
-          return <InformationDisplayCard title='' key={collection.collectionId + "" + idx} style={{ minWidth: 350 }}>
+          return <InformationDisplayCard title='' key={collection.collectionId + "" + idx} md={8} xs={24} sm={24}>
             <CollectionHeader collectionId={collection.collectionId} badgeId={badgeId} />
             <br />
             <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
@@ -200,14 +200,13 @@ function BrowsePage() {
               >{idxArr.map(idx => {
                 if (idx >= browseInfo?.collections[collectionsTab]?.length) return null
                 const collection = browseInfo?.collections[collectionsTab][idx];
-                return <InformationDisplayCard title='' key={idx} style={{ minWidth: 350 }}>
-                  <MultiCollectionBadgeDisplay
+                return <MultiCollectionBadgeDisplay
                     collectionIds={[collection.collectionId]}
                     groupByCollection
                     cardView={cardView}
+                    span={24}
                     key={idx}
                   />
-                </InformationDisplayCard>
               }).filter(x => x)}</div>
             }).filter(x => x)) ?? []}
           />

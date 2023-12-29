@@ -378,16 +378,15 @@ export function TxModal(
           if (!finalMsgs || !finalMsgs.length) {
             let newMsg = await beforeTx(false);
             if (newMsg) cosmosMsg = newMsg;
+            generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
           } else {
-            cosmosMsg = finalMsgs[i];
+            generatedMsgs.push(finalMsgs[i]);
           }
         }
 
-        generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
+        
       }
       setFinalMsgs(generatedMsgs);
-      //Note this 
-      
 
       //Sign and broadcast transaction
       // txDetails.sender.sequence = "0"
@@ -469,7 +468,7 @@ export function TxModal(
               duration: 0,
             });
 
-            router.push('/');
+            await router.push('/');
             setTransactionStatus(TransactionStatus.None);
             return;
           }
@@ -485,7 +484,7 @@ export function TxModal(
             duration: 0
           });
 
-          router.push('/');
+          await router.push('/');
           setTransactionStatus(TransactionStatus.None);
           return;
         }
@@ -497,7 +496,7 @@ export function TxModal(
             duration: 0
           });
 
-          router.push('/');
+          await router.push('/');
           setTransactionStatus(TransactionStatus.None);
           return;
         }
@@ -656,7 +655,7 @@ export function TxModal(
                     if (showJson) {
                       setShowJson(null);
                     } else {
-                      if (!finalMsgs) {
+                      if (!finalMsgs || !finalMsgs.length) {
                         const generatedMsgs: MessageGenerated[] = []
                         for (const tx of txsInfoPopulated) {
                           const { generateProtoMsg, beforeTx, msg } = tx;
@@ -670,11 +669,15 @@ export function TxModal(
                           generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
                         }
 
+                        console.log("final msgs");
+                        console.log(generatedMsgs);
                         setFinalMsgs(generatedMsgs);
                         setShowJson(generatedMsgs.map(x => x.message));
-                      } else if (finalMsgs) {
+                      } else if (finalMsgs.length > 0) {
                         setShowJson(finalMsgs.map(x => x.message));
+                        console.log(finalMsgs.map(x => x.message));
                       } else {
+                        console.log("dfjhf");
                         setShowJson(txsInfoPopulated.map((tx) => tx.msg));
                       }
                     }
@@ -721,7 +724,7 @@ export function TxModal(
                         
 
                       if (confirm("Are you sure you want to enter developer mode? This may cause you to lose progress.")) {
-                        router.push(`/dev/broadcast?txsInfo=${encodeURIComponent(JSON.stringify(populatedTxInfos))}`);
+                        await router.push(`/dev/broadcast?txsInfo=${encodeURIComponent(JSON.stringify(populatedTxInfos))}`);
                         setVisible(false);
                       }
                     }} />}

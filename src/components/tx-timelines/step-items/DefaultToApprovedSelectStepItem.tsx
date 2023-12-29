@@ -1,14 +1,28 @@
-import { appendDefaultForIncoming, castIncomingTransfersToCollectionTransfers, getReservedAddressMapping, getUnhandledUserIncomingApprovals } from "bitbadgesjs-utils";
+import { appendDefaultForIncoming, castIncomingTransfersToCollectionTransfers, getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
+import { compareObjects } from "../../../utils/compare";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { EditableApprovalsDisplay } from "../../collection-page/ApprovalsTab";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+
+export  const defaultApprovedOption = [{
+  fromMappingId: "AllWithMint",
+  fromMapping: getReservedAddressMapping("AllWithMint"),
+  initiatedByMapping: getReservedAddressMapping("AllWithMint"),
+  initiatedByMappingId: "AllWithMint",
+  transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  approvalId: "default-incoming-allowed",
+  amountTrackerId: "default-incoming-allowed",
+  challengeTrackerId: "default-incoming-allowed",
+}]
+
 
 export function DefaultToApprovedSelectStepItem() {
 
@@ -21,44 +35,29 @@ export function DefaultToApprovedSelectStepItem() {
 
   if (!collection || existingCollectionId) return EmptyStepItem; //Only for new collections
 
-  const forcefulOption = [{
-    fromMappingId: "AllWithMint",
-    fromMapping: getReservedAddressMapping("AllWithMint"),
-    initiatedByMapping: getReservedAddressMapping("AllWithMint"),
-    initiatedByMappingId: "AllWithMint",
-    transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    approvalId: "default-incoming-allowed",
-    amountTrackerId: "default-incoming-allowed",
-    challengeTrackerId: "default-incoming-allowed",
-  }]
-
   return {
     title: `Default Incoming Approvals`,
-    description: `If not forcefully overriden, all badge transfers need to satisfy the recipient's incoming approvals. What should the incoming approvals be by default?`,
-    node: <UpdateSelectWrapper
+    description: `If not overriden by the collection approvals, all badge transfers need to satisfy the recipient's incoming approvals. What should the incoming approvals be by default?`,
+    node: () => <UpdateSelectWrapper
+      documentationLink={"https://docs.bitbadges.io/overview/how-it-works/transferability"}
       err={null}
       setErr={() => { }}
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
       jsonPropertyPath='defaultUserIncomingApprovals'
       permissionName='canUpdateDefaultUserIncomingApprovals'
-      node={<>
+      node={() => <>
         <SwitchForm
           showCustomOption
           options={[
             {
               title: 'Approved by Default',
               message: `For all users, all incoming transfers (including mints) will be approved by default. To block incoming transfers, users must manually set their incoming approvals.`,
-              isSelected: getUnhandledUserIncomingApprovals(collection.defaultBalances.incomingApprovals, chain.address, true).length === 0
-                && collection.defaultBalances.incomingApprovals.every(x => approvalCriteriaHasNoAmountRestrictions(x.approvalCriteria)
-                  && approvalCriteriaHasNoAdditionalRestrictions(x.approvalCriteria))
-
+              isSelected: compareObjects(collection.defaultBalances.incomingApprovals, defaultApprovedOption)
             },
             {
               title: 'Opt-In Only',
-              message: 'By default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints).',
+              message: 'By default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints). This is typically only used in specific cases, such as a KYC requirement.',
               isSelected: collection.defaultBalances.incomingApprovals.length === 0
             },
           ]}
@@ -67,7 +66,7 @@ export function DefaultToApprovedSelectStepItem() {
               collectionId: NEW_COLLECTION_ID,
               defaultBalances: {
                 ...collection.defaultBalances,
-                incomingApprovals: idx === 0 ? forcefulOption : []
+                incomingApprovals: idx === 0 ? defaultApprovedOption : []
               }
             });
           }}

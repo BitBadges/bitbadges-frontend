@@ -46,11 +46,11 @@ export function WalletHeader() {
 
     if (isAccount) {
       const account = getAccount(value);
-      router.push('/account/' + account?.address);
+      await router.push('/account/' + account?.address);
     } else if (isCollection || isBadge) {
-      router.push('/collections/' + value);
+      await router.push('/collections/' + value);
     } else {
-      router.push('/addresses/' + value);
+      await router.push('/addresses/' + value);
     }
 
     setSearchValue('');

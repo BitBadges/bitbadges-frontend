@@ -1,18 +1,17 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
+import { deepCopy } from "bitbadgesjs-proto";
 import { CollectionApprovalPermissionWithDetails, getMintApprovals, getNonMintApprovals, getReservedAddressMapping } from "bitbadgesjs-utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { INFINITE_LOOP_MODE } from "../../../constants";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
+import { compareObjects } from "../../../utils/compare";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { deepCopy } from "bitbadgesjs-proto";
-
-//TODO: Add different presets. Can create more claims. Restrict by time, badge ID, etc.
+import { ErrDisplay } from "../form-items/ErrDisplay";
 
 const EverythingElsePermanentlyPermittedPermission: CollectionApprovalPermissionWithDetails<bigint> = {
   fromMapping: getReservedAddressMapping("All"),
@@ -49,9 +48,6 @@ const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = 
 export function FreezeSelectStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
-  const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1);
-  const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
-  const [selectedIdx, setSelectedIdx] = useState<number>(3);
   const [err, setErr] = useState<Error | null>(null);
   const allMintAmountTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.amountTrackerId) : [];
   const allMintChallengeTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.challengeTrackerId) : [];
@@ -126,29 +122,13 @@ export function FreezeSelectStepItem() {
   }
 
   const handleSwitchChange = (idx: number, locked?: boolean) => {
-
-
     updateCollection({
       collectionId: NEW_COLLECTION_ID,
       collectionPermissions: {
         canUpdateCollectionApprovals: getPermissionsToSet(idx, locked)
       }
     });
-
-    setSelectedIdx(idx);
   }
-
-  //This useEffect is used for updating the selected permissions when the approvals change behind the scenes (i.e. not on this step).
-  //Since they are not on this step, we use their latest selected values
-  //Approvals cannot change while on this step, so this useEffect is only used when the user is not on this step.
-  //Anything on this step is handled via other onClicks
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log("FreezeSelectStepItem")
-    if (lastClickedIdx !== -1) {
-      handleSwitchChange(lastClickedIdx, lastClickedFrozen);
-    }
-  }, [collection?.collectionApprovals])
-
 
   if (!collection) return EmptyStepItem;
   const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true); //Get badge IDs that will have unlocked supply moving forward
@@ -162,50 +142,26 @@ export function FreezeSelectStepItem() {
           permissionName="canUpdateCollectionApprovals"
           onFreezePermitted={(frozen: boolean) => {
             handleSwitchChange(idx, frozen);
-            setLastClickedFrozen(frozen);
           }}
         />
       </div>
     </>
   }
 
-  // const completelyFrozen = isCompletelyForbidden(permissionDetails);
-  // const mintPermissionDetails = getPermissionDetails(
-  //   castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && isInAddressMapping(x.fromMapping, 'Mint')),
-  //   ApprovalPermissionUsedFlags,
-  //   neverHasManager(collection),
-  // )
-  // const nonMintPermissionDetails = getPermissionDetails(
-  //   castCollectionApprovalPermissionToUniversalPermission(collection.collectionPermissions.canUpdateCollectionApprovals).filter(x => x.fromMapping && x.fromMapping.includeAddresses && x.fromMapping.addresses.length == 1 && x.fromMapping.addresses[0] === 'Mint'),
-  //   ApprovalPermissionUsedFlags,
-  //   neverHasManager(collection),
-  // )
-
-  // const mintFrozen = !completelyFrozen && isCompletelyForbidden(mintPermissionDetails);
-  // const nonMintFrozen = !completelyFrozen && !mintFrozen && isCompletelyForbidden(nonMintPermissionDetails);
-
-  // const nonMintFrozenButMintUnfrozen = !completelyFrozen && nonMintFrozen && !mintFrozen;
-  // const mintFrozenButNonMintUnfrozen = !completelyFrozen && mintFrozen && !nonMintFrozen;
-
-  // const completelyPermitted = !permissionDetails.hasForbiddenTimes
-
   return {
     title: `Update transferability?`,
     description: `After this transaction, can the collection-level transferability be updated by the manager? This includes everything from how badges are distributed, freezing addresses, revoking badges, etc.`,
-    node:
-      <PermissionUpdateSelectWrapper
+    node: () => <PermissionUpdateSelectWrapper
         checked={checked}
         setChecked={setChecked}
         err={err}
         setErr={setErr}
         permissionName="canUpdateCollectionApprovals"
-        node={<>
+        node={() => <>
           <br />
           {badgesIdsWithUnlockedSupply.length > 0 && <>
-            <div className='' style={{ color: '#FF5733', textAlign: 'center' }}>
-              <InfoCircleOutlined style={{ marginRight: 4 }} /> You have selected to be able to increment supply / create more of the following badges: {getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
-              Please make sure you do not end up in a scenario where you can create new badges but cannot distribute them due to frozen transferability.
-            </div>
+            <ErrDisplay warning err={`You have selected to be able to increment supply / create more of the following badges: ${getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
+              Please make sure you do not end up in a scenario where you can create new badges but cannot distribute them due to frozen transferability.`} />
             <br />
           </>}
 
@@ -216,33 +172,34 @@ export function FreezeSelectStepItem() {
               {
                 title: 'Freeze All',
                 message: `Freeze the transferability entirely for the collection for all badge IDs and from all addresses.`,
-                isSelected: selectedIdx === 0,
-                additionalNode: <AdditionalNode idx={0} />,
+                isSelected: compareObjects(getPermissionsToSet(0, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
+                  compareObjects(getPermissionsToSet(0, false), collection.collectionPermissions.canUpdateCollectionApprovals),
+                additionalNode: () => <AdditionalNode idx={0} />,
               },
               {
                 title: 'Freeze Post-Mint Transferability',
                 message: `Freeze the transferability of the collection for all badge IDs AFTER the badges have been transferred from the Mint address (i.e. revoking, transferable vs non-transferable, frozen addresses, etc).`,
-                isSelected: selectedIdx === 1,
-                additionalNode: <AdditionalNode idx={1} />
+                isSelected: compareObjects(getPermissionsToSet(1, true), collection.collectionPermissions.canUpdateCollectionApprovals) || 
+                  compareObjects(getPermissionsToSet(1, false), collection.collectionPermissions.canUpdateCollectionApprovals),
+                additionalNode: () => <AdditionalNode idx={1} />
               },
               {
                 title: 'Freeze Mint Transferability',
                 message: `Freeze the transferability of the collection for all transfers from the Mint address.`,
-                isSelected: selectedIdx === 2,
-                additionalNode: <AdditionalNode idx={2} />
+                isSelected: compareObjects(getPermissionsToSet(2, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
+                  compareObjects(getPermissionsToSet(2, false), collection.collectionPermissions.canUpdateCollectionApprovals),
+                additionalNode: () => <AdditionalNode idx={2} />
               },
               {
                 title: 'Editable',
                 message: `The manager will be able to edit the collection-level transferability for everything. This permission can be disabled in the future.`,
-                isSelected: selectedIdx === 3,
-                additionalNode: <AdditionalNode idx={3} />
+                isSelected: compareObjects(getPermissionsToSet(3, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
+                  compareObjects(getPermissionsToSet(3, false), collection.collectionPermissions.canUpdateCollectionApprovals),
+                additionalNode: () => <AdditionalNode idx={3} />
               },
             ]}
             onSwitchChange={(idx) => {
-              if (lastClickedIdx !== idx) {
-                setLastClickedIdx(idx)
-                handleSwitchChange(idx, false);
-              }
+              handleSwitchChange(idx, false);
             }}
           />
         </>

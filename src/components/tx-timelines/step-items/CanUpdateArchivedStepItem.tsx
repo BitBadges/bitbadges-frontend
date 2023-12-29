@@ -21,7 +21,7 @@ export function CanArchiveCollectionStepItem() {
   if (!collection) return EmptyStepItem;
 
   const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canArchiveCollection ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection));
-  const AdditionalNode = <>
+  const AdditionalNode = () => <>
     <div className="flex-center">
       <PermissionsOverview
         span={24}
@@ -60,13 +60,13 @@ export function CanArchiveCollectionStepItem() {
   return {
     title: 'Can archive / unarchive collection?',
     description: `When a collection is archived, all transaactions are disabled until unarchived.`,
-    node: <PermissionUpdateSelectWrapper
+    node: () => <PermissionUpdateSelectWrapper
       checked={checked}
       setChecked={setChecked}
       err={err}
       setErr={setErr}
       permissionName="canArchiveCollection"
-      node={<>
+      node={() => <>
         <SwitchForm
           showCustomOption
           options={[

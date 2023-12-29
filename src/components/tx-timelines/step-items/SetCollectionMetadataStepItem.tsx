@@ -29,7 +29,8 @@ export function SetCollectionMetadataStepItem() {
     description: <>{'Provide details about the collection you are creating.'}
     </>,
 
-    node: <UpdateSelectWrapper
+    node: () => <UpdateSelectWrapper
+      documentationLink="https://docs.bitbadges.io/overview/how-it-works/metadata"
       err={err}
       updateFlag={canUpdateCollectionMetadata}
       setUpdateFlag={setCanUpdateCollectionMetadata}
@@ -37,7 +38,7 @@ export function SetCollectionMetadataStepItem() {
       jsonPropertyPath='collectionMetadataTimeline'
       permissionName='canUpdateCollectionMetadata'
       disableJson
-      node={<div>{
+      node={() => <div>{
         collection && <div>
           <MetadataForm
             isCollectionSelect

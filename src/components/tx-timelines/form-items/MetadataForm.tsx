@@ -50,12 +50,10 @@ export function MetadataForm({
 
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
-
-
   const collection = useCollection(collectionId)
 
   const [badgeId, setBadgeId] = useState<bigint>(badgeIds.length > 0 ? badgeIds[0].start : 1n);
-  const [showAvatarDisplay, setShowAvatarDisplay] = useState<boolean>(false);
+  const [showAvatarDisplay, setShowAvatarDisplay] = useState<boolean>(true);
 
   let metadata = (isCollectionSelect ? collection?.cachedCollectionMetadata : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])) ?? DefaultPlaceholderMetadata;
   const currMetadata = metadata;
@@ -642,12 +640,13 @@ export function MetadataForm({
                       />
                       <Space
                         align="center"
-                        style={{ padding: '0 8px 4px' }}
+                        style={{ padding: '0 8px 4px', color: 'black' }}
                       >
                         <Input
                           placeholder="Add Custom Category"
                           value={name}
                           onChange={onNameChange}
+                          style={{ color: 'black'}}
                         />
                         <Typography.Link
                           onClick={addItem}

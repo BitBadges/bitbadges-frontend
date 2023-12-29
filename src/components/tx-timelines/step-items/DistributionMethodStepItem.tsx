@@ -20,7 +20,7 @@ export function DistributionMethodStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  const DistributionComponent = <div>
+  const DistributionComponent = () => <div>
     {<>
       {!isOffChainBalances &&
         <div className='flex-center full-width' style={{ textAlign: 'center' }}>
@@ -36,12 +36,13 @@ export function DistributionMethodStepItem() {
   </div>
 
   return {
-    title: `Transferability - Minting`,
-    description: 'You previously created badges which have been sent to the Mint address. Here, you decide who can transfer from the Mint address.',
-    node: <>
+    title: `Collection Approvals (Transferability) - Minting`,
+    description: 'You previously created badges which have been sent to the Mint address. Here, you create the collection level approvals for who can transfer from the Mint address. All transfers must be approved on the collection level.',
+    node: () => <>
       {
         collection?.balancesType === "Off-Chain - Indexed" ? DistributionComponent :
           <UpdateSelectWrapper
+            documentationLink={"https://docs.bitbadges.io/overview/how-it-works/transferability"}
             err={err}
             setErr={(err) => { setErr(err) }}
             updateFlag={updateCollectionApprovals}

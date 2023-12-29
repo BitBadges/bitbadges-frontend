@@ -44,7 +44,8 @@ export function CollectionDisplayWithBadges({
   cardView,
   showCustomizeButtons,
   addressOrUsernameToShowBalance,
-  hideCollectionLink
+  hideCollectionLink,
+  span,
 
 }: {
   badgeObj: { collectionId: bigint, badgeIds: UintRange<bigint>[] }
@@ -53,7 +54,8 @@ export function CollectionDisplayWithBadges({
   cardView?: boolean
   showCustomizeButtons?: boolean
   addressOrUsernameToShowBalance?: string
-  hideCollectionLink?: boolean
+  hideCollectionLink?: boolean,
+  span?: number
 }) {
   const collectionId = badgeObj.collectionId;
   const collection = useCollection(collectionId);
@@ -66,8 +68,7 @@ export function CollectionDisplayWithBadges({
   badgeObj = { ...badgeObj, badgeIds: newBadgeIds };
 
 
-  return <InformationDisplayCard noBorder inheritBg title='' style={{ margin: 8, alignItems: 'normal' }
-  } >
+  return <InformationDisplayCard title='' style={{ margin: 8, alignItems: 'normal' }} md={span ?? 8} xs={span ?? 24} sm={span ?? 24} >
     <Tooltip color='black' title={"Collection ID: " + collectionId} placement="bottom">
       {/* <div className='link-button-nav flex-center' onClick={() => {
         router.push('/collections/' + collectionId)
@@ -126,7 +127,8 @@ export function MultiCollectionBadgeDisplay({
   hideCollectionLink,
   showCustomizeButtons,
   hideAddress,
-  isWatchlist
+  isWatchlist,
+  span
 }: {
   collectionIds: bigint[],
   addressOrUsernameToShowBalance?: string,
@@ -139,7 +141,8 @@ export function MultiCollectionBadgeDisplay({
   hideAddress?: boolean;
   showCustomizeButtons?: boolean
   customPageBadges?: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[]
-  isWatchlist?: boolean
+  isWatchlist?: boolean,
+  span?: number
 }) {
 
   const accountInfo = useAccount(addressOrUsernameToShowBalance);
@@ -268,6 +271,7 @@ export function MultiCollectionBadgeDisplay({
               addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
               hideCollectionLink={hideCollectionLink}
               key={idx}
+              span={span}
             />
           })
         }

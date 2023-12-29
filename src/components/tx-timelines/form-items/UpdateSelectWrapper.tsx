@@ -1,4 +1,4 @@
-import { AuditOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
+import { AuditOutlined, BookOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Switch } from 'antd';
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateBadgeMetadataUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -30,11 +30,12 @@ export function UpdateSelectWrapper({
   customRevertFunction,
   onlyShowJson = false,
   err,
-  setErr
+  setErr,
+  documentationLink
 }: {
   setUpdateFlag: (val: boolean) => void,
   updateFlag: boolean,
-  node: JSX.Element,
+  node: () => JSX.Element,
   jsonPropertyPath: string,
   permissionName: string,
   mintOnly?: boolean,
@@ -47,6 +48,7 @@ export function UpdateSelectWrapper({
   onlyShowJson?: boolean,
   err: Error | null,
   setErr: (err: Error | null) => void,
+  documentationLink?: string
 }) {
 
   const txTimelineContext = useTxTimelineContext();
@@ -172,7 +174,7 @@ export function UpdateSelectWrapper({
       question = "Can update the badge metadata?";
       break;
     case 'canUpdateCollectionApprovals':
-      question = "Can update collection approved transfers?";
+      question = "Can update collection approvals?";
       break;
     // Add custom questions for other permissions as needed
   }
@@ -218,7 +220,6 @@ export function UpdateSelectWrapper({
           {updateFlag && (!disableUndo || customRevertFunction) &&
             <IconButton
               src={<UndoOutlined style={{ fontSize: 16 }} />}
-              style={{ cursor: 'pointer' }}
               tooltipMessage={'Undo changes'}
               disabled={!customRevertFunction && compareObjects(startingValue, currValue)}
               text={'Reset'}
@@ -244,6 +245,15 @@ export function UpdateSelectWrapper({
                 }
               }}
             />}
+            <IconButton
+              src={<BookOutlined style={{ fontSize: 16 }} />}
+              style={{ cursor: 'pointer' }}
+              tooltipMessage={'Visit the BitBadges documentation to learn more about this concept.'}
+              text={'Docs'}
+              onClick={() => {
+                window.open(documentationLink ?? `https://docs.bitbadges.io`, '_blank');
+              }}
+            />
         </div>
         {!isMint &&
           <div style={{ marginTop: 10, marginBottom: 10 }}>
@@ -309,7 +319,7 @@ export function UpdateSelectWrapper({
       }
       {
         updateFlag && !customJson && <>
-          {node}
+          {node()}
         </>
       }
       {

@@ -32,17 +32,15 @@ export function StandardsSelectStepItem() {
     title: 'Standards',
     description: <>{'Select the standards for this collection. Standards let others know how to interpret this collection.'}</>,
     disabled: !!err,
-    node:
-      <UpdateSelectWrapper
+    node: () => <UpdateSelectWrapper
+        documentationLink={"https://docs.bitbadges.io/overview/how-it-works/standards"}
         err={err}
         setErr={(err) => { setErr(err) }}
         updateFlag={canUpdateStandards}
         setUpdateFlag={setCanUpdateStandards}
         jsonPropertyPath="standardsTimeline"
         permissionName='canUpdateStandards'
-        node={
-
-          <div>
+        node={() => <div>
             <div className='primary-text'
               style={{
                 padding: '0',

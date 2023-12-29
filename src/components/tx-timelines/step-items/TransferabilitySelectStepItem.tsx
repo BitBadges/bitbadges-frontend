@@ -5,8 +5,8 @@ import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
+import { compareObjects } from "../../../utils/compare";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import { SwitchForm } from "../form-items/SwitchForm";
@@ -48,9 +48,12 @@ export function TransferabilitySelectStepItem() {
   
 
   return {
-    title: `Transferability - Post-Minting`,
-    description: <>{`Excluding transfers from the Mint address, should badges be transferable or non-transferable?`}</>,
-    node: <UpdateSelectWrapper
+    title: `Collection Approvals (Transferability) - Post-Minting`,
+    description: <>{`Excluding transfers from the Mint address, set the collection level approvals for who can transfer badges.
+    All transfers must be approved on the collection level.
+    For example, should badges be transferable or non-transferable between users? Revokable? Freezable?`}</>,
+    node: () => <UpdateSelectWrapper
+      documentationLink={"https://docs.bitbadges.io/overview/how-it-works/transferability"}
       err={err}
       updateFlag={updateCollectionApprovals}
       setUpdateFlag={setUpdateCollectionApprovals}
@@ -70,8 +73,7 @@ export function TransferabilitySelectStepItem() {
         });
       }}
       nonMintOnly
-      node={
-        <div className="primary-text">
+      node={() => <div className="primary-text">
           <SwitchForm
             showCustomOption
             options={[
@@ -83,9 +85,7 @@ export function TransferabilitySelectStepItem() {
               {
                 title: 'Transferable',
                 message: `Badges can be transferred between users.`,
-                isSelected: getNonMintApprovals(collection).length === 1
-                  && approvalCriteriaHasNoAdditionalRestrictions(getNonMintApprovals(collection)[0].approvalCriteria)
-                  && approvalCriteriaHasNoAmountRestrictions(getNonMintApprovals(collection)[0].approvalCriteria)
+                isSelected: compareObjects(getNonMintApprovals(collection), [transferableApproval])
               },
 
             ]}

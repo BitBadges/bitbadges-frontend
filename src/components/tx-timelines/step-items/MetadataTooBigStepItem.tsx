@@ -17,11 +17,11 @@ export const MetadataTooBigStepItem = () => {
   const txTimelineContext = useTxTimelineContext();
   const size = txTimelineContext.metadataSize;
 
-  //10 MB is too big. It will fail bc req is too big for API.
-  return size > 1048576 * 10 ? {
+  //100 MB is too big. It will fail bc req is too big for API.
+  return size > 1048576 * 100 ? {
     title: 'Metadata Too Large',
     description: ``,
-    node: <div>
+    node: () => <div>
       <div style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
         <Typography.Text className='primary-text' style={{ fontSize: 16 }}>{`Oops! Your metadata is too large (${formatBytes(size)}). Please reduce the size of the metadata to under 1MB and try again.`}</Typography.Text>
         <Divider />

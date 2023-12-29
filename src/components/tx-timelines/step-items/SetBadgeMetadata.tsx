@@ -43,7 +43,8 @@ export function SetBadgeMetadataStepItem() {
   return {
     title: 'Set Badge Metadata',
     description: <>Customize each individual badge in the collection.</>,
-    node: <UpdateSelectWrapper
+    node: () => <UpdateSelectWrapper
+      documentationLink={"https://docs.bitbadges.io/overview/how-it-works/metadata"}
       err={err}
       setErr={(err) => { setErr(err) }}
       updateFlag={canUpdateBadgeMetadata}
@@ -51,7 +52,7 @@ export function SetBadgeMetadataStepItem() {
       jsonPropertyPath='badgeMetadataTimeline'
       permissionName='canUpdateBadgeMetadata'
       disableJson
-      node={<div>
+      node={() => <div>
         {
           collection && <>
             <MetadataForm

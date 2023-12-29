@@ -5,34 +5,35 @@ import { ReactNode } from "react";
 const { Text } = Typography;
 
 export function TableRow({
-  label, value, labelSpan, valueSpan, customClass
+  label, value, labelSpan, valueSpan, customClass, mobileFormat
 }: {
   label: string | ReactNode,
   value: string | ReactNode
   labelSpan?: number,
   valueSpan?: number,
-  customClass?: string
+  customClass?: string,
+  mobileFormat?: boolean,
 }) {
 
   return <><Row style={{ alignItems: 'normal' }} className={"full-width " + customClass}>
-    <Col xs={0} sm={0} md={labelSpan ? labelSpan : 16} lg={labelSpan ? labelSpan : 16} style={{ textAlign: 'left', paddingLeft: 10 }}>
+    <Col xs={mobileFormat ? 0 : 0} sm={mobileFormat ? 0 : 0} md={mobileFormat ? 0 : labelSpan ? labelSpan : 16} lg={mobileFormat ? 0 : labelSpan ? labelSpan : 16} style={{ textAlign: 'left', paddingLeft: 10 }}>
       <Text style={{ fontSize: 16 }} className='primary-text'>
         {label}
       </Text>
     </Col>
-    <Col xs={0} sm={0} md={valueSpan ? valueSpan : 8} lg={valueSpan ? valueSpan : 16} style={{ textAlign: 'right', paddingRight: 10 }}>
+    <Col xs={mobileFormat ? 0 : 0} sm={mobileFormat ? 0 : 0} md={mobileFormat ? 0 : valueSpan ? valueSpan : 8} lg={mobileFormat ? 0 : valueSpan ? valueSpan : 16} style={{ textAlign: 'right', paddingRight: 10 }}>
       <Text style={{ fontSize: 16 }} className='primary-text'>
         {value}
       </Text>
     </Col>
   </Row>
     <Row style={{ alignItems: 'normal' }} className="full-width">
-      <Col xs={24} sm={24} md={0} lg={0} style={{ textAlign: 'center' }}>
+      <Col xs={mobileFormat ? 24 : 24} sm={mobileFormat ? 24 : 24} md={mobileFormat ? 24 : 0} lg={mobileFormat ? 24 : 0} style={{ textAlign: 'center' }}>
         <Text strong style={{ fontSize: 16 }} className='primary-text'>
           {label}
         </Text>
       </Col>
-      <Col xs={24} sm={24} md={0} lg={0} style={{ textAlign: 'center', marginBottom: 10 }} >
+      <Col xs={mobileFormat ? 24 : 24} sm={mobileFormat ? 24 : 24} md={mobileFormat ? 24 : 0} lg={mobileFormat ? 24 : 0} style={{ textAlign: 'center', marginBottom: 10 }} >
         <div className="flex-center">
           <Text style={{ fontSize: 16 }} className='primary-text'>
             {value}

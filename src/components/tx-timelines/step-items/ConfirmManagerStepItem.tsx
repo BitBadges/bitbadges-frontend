@@ -1,6 +1,6 @@
 import { Col, Divider } from "antd";
 import { checkIfUintRangesOverlap, convertToCosmosAddress, getCurrentValueForTimeline, removeUintRangeFromUintRange } from "bitbadgesjs-utils";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
@@ -20,9 +20,9 @@ import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 import { TableRow } from "../../display/TableRow";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { compareObjects } from "../../../utils/compare";
 
 const AddManagerNode = ({ address, setAddress }: { address: string, setAddress: (address: string) => void }) => {
-
   return <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
     <AddressSelect
       defaultValue={address}
@@ -62,32 +62,23 @@ export function ConfirmManagerStepItem() {
 
   const hasManager = !!collection.managerTimeline.find(x => x.manager)
 
-
-
-
-
-
-
-
   return {
     title: 'Manager',
     disabled: !!err || checkIfUintRangesOverlap(collection.managerTimeline.map(x => x.timelineTimes).flat()),
-    description: <>{'The manager is a special role which can have custom admin privileges where applicable. See full list of privileges '}
+    description: <>{'The manager is a special role which can have custom admin privileges. See full list of privileges '}
       <a href="https://docs.bitbadges.io/overview/how-it-works/manager" target="_blank" rel="noopener noreferrer">
         {' '}here.
       </a>
     </>,
-    node:
-      <UpdateSelectWrapper
+    node: () => <UpdateSelectWrapper
+        documentationLink={"https://docs.bitbadges.io/overview/how-it-works/manager"}
         err={err}
         setErr={(err) => { setErr(err) }}
         updateFlag={canUpdateManager}
         setUpdateFlag={setCanUpdateManager}
         jsonPropertyPath="managerTimeline"
         permissionName="canUpdateManager"
-        node={
-
-          <div className='primary-text' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+        node={() => <div className='primary-text' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
             <div className='primary-text'
               style={{
                 padding: '0',
@@ -119,7 +110,7 @@ export function ConfirmManagerStepItem() {
                   title: 'No Manager',
                   message: <>Do not have a manager for this collection. No admin privileges will ever be available for this collection. <span style={{ fontWeight: 'bold', color: 'orange' }}>All collection details will be frozen and final after this transaction. No manager permissions will be executable moving forward.</span></>,
                   isSelected: !hasManager,
-                  additionalNode: <>
+                  additionalNode: () => <>
                     <div className="flex-center">
                       <PermissionsOverview
                         span={24}
@@ -131,7 +122,7 @@ export function ConfirmManagerStepItem() {
                 {
                   title: 'Manager',
                   message: <>{'Specify a manager for this collection that can execute admin privileges. You can select which permissions are enabled.'}</>,
-                  additionalNode: <>
+                  additionalNode: () => <>
                     {hasManager && <div>
 
                       <TimelineEditor
@@ -199,31 +190,35 @@ export function TimelineEditor<T extends TimelineItem<bigint>>({
   const [addIsVisible, setAddIsVisible] = useState(false);
   const [timeRanges, setTimeRanges] = useState<UintRange<bigint>[]>([{ start: 1n, end: GO_MAX_UINT_64 }]);
 
-  let firstMatchOnlyTimeline: T[] = [];
-  let diffFromSelected = false;
-  for (let i = 0; i < timeline.length; i++) {
-    const x = timeline[i];
-    let validUintRanges = x.timelineTimes;
-    for (const prevTimelineItem of timeline.slice(0, i)) {
-      const [remaining, removed] = removeUintRangeFromUintRange(prevTimelineItem.timelineTimes, validUintRanges);
-      validUintRanges = remaining;
-      diffFromSelected = diffFromSelected || removed.length > 0;
+  const firstMatchOnlyTimeline: T[] = useMemo(() => {
+    let firstMatchOnlyTimeline: T[] = [];
+    let diffFromSelected = false;
+    for (let i = 0; i < timeline.length; i++) {
+      const x = timeline[i];
+      let validUintRanges = x.timelineTimes;
+      for (const prevTimelineItem of timeline.slice(0, i)) {
+        const [remaining, removed] = removeUintRangeFromUintRange(prevTimelineItem.timelineTimes, validUintRanges);
+        validUintRanges = remaining;
+        diffFromSelected = diffFromSelected || removed.length > 0;
+      }
+
+      if (validUintRanges.length == 0) continue;
+
+      firstMatchOnlyTimeline.push({
+        ...x,
+        timelineTimes: validUintRanges,
+      })
     }
 
-    if (validUintRanges.length == 0) continue;
+    return firstMatchOnlyTimeline;
+  }, [timeline])
 
-    firstMatchOnlyTimeline.push({
-      ...x,
-      timelineTimes: validUintRanges,
-    })
-  }
-
-
+  const diffFromSelected = !compareObjects(timeline, firstMatchOnlyTimeline);
 
   return <>
     <div className='' style={{ padding: 0 }}>
       <Col xs={0} sm={0} md={24} lg={24} xl={24} xxl={24}>
-        <TableRow value={<div className="primary-text" style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10 }}>Times</div>} label={<div className="primary-text" style={{ fontSize: 18, fontWeight: 'bold' }}>{timelineName ?? "Value"}</div>} valueSpan={12} labelSpan={12} />
+        <TableRow value={<div className="primary-text" style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Times</div>} label={<div className="primary-text" style={{ fontSize: 18, fontWeight: 'bold' }}>{timelineName ?? "Value"}</div>} valueSpan={12} labelSpan={12} />
       </Col>
       {/* <TableRow value={"Times"} label={"Value"} valueSpan={12} labelSpan={12} /> */}
       {timeline.map((x, idx) => {

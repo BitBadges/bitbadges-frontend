@@ -1056,7 +1056,7 @@ function PortfolioPage() {
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch more collected');
 
-    //Fetch on tab change but only if empty and has mroe
+    //Fetch on tab change but only if empty and has more
     const collectedIsEmpty = !accountInfo?.views['badgesCollected']?.ids.length;
     const listsIsEmpty = !accountInfo?.views[`${listsTab}`]?.ids.length;
     const createdByIsEmpty = !accountInfo?.views['createdBy']?.ids.length;

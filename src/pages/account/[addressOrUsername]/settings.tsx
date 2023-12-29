@@ -423,7 +423,7 @@ export function AccountSettings() {
                               ...newAccount,
                               ...data
                             });
-                            router.push(`/account/${chain.cosmosAddress}`);
+                            await router.push(`/account/${chain.cosmosAddress}`);
                           } catch (error) {
                             console.error('Error uploading file:', error);
                           }
@@ -445,7 +445,7 @@ export function AccountSettings() {
                         });
 
                         notification.success({ message: "Account updated!", description: "It may take a couple minutes to display changes." });
-                        router.push(`/account/${chain.cosmosAddress}`);
+                        await router.push(`/account/${chain.cosmosAddress}`);
                       }
                     } catch (err) {
                       console.log(err);

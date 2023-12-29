@@ -1,7 +1,7 @@
 {
   "creator": "cosmos1kfr2xajdvs46h0ttqadu50nhu8x4v0tcfn4p0x",
   "collectionId": "0",
-  "balancesType": "Standard",
+  "balancesType": "Off-Chain - Indexed",
   "defaultBalances": {
     "balances": [],
     "incomingApprovals":  [],
@@ -17,7 +17,7 @@
   },
   "badgesToCreate": [
     {
-      "amount": "1",
+      "amount": "1000000000000000000",
       "ownershipTimes": [
         {
           "start": "1",
@@ -27,7 +27,7 @@
       "badgeIds": [
         {
           "start": "1",
-          "end": "10"
+          "end": "6"
         }
       ]
     }
@@ -51,7 +51,7 @@
   "collectionMetadataTimeline": [
     {
       "collectionMetadata": {
-        "uri": "ipfs://QmbMWdirW8mc6jGwLZE71XuXx91YYDV3Q3rcNHSdrqz2h9",
+        "uri": "ipfs://QmSiftzGpybguNtu3j2gFAQesUc48atjMSCAfDxcbEFVMQ",
         "customData": ""
       },
       "timelineTimes": [
@@ -67,101 +67,11 @@
     {
       "badgeMetadata": [
         {
-          "uri": "ipfs://QmaeUrLbDPmpEq34vJeZvGGGfcFFtGmefGRQVne4uVkz8J",
+          "uri": "ipfs://QmSiftzGpybguNtu3j2gFAQesUc48atjMSCAfDxcbEFVMQ",
           "customData": "",
           "badgeIds": [
             {
               "start": "1",
-              "end": "1"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmaYbMFY9jrmeuJDqrB6ZadjNuPFKwqHc1nC3f4gVSj7eM",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "2",
-              "end": "2"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmPViVfiZyHrm3yidbesJK8rv9kCu1yCowgYPLPfxvAKcj",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "3",
-              "end": "3"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmP6nm9TkvC1moima3mEed7khhDxuXY2CcacMG8Suctjd6",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "4",
-              "end": "4"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmU5NKtbPANeYHhpk8ytRFipCRuyfdDRVCRpvygrGGMVtk",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "5",
-              "end": "5"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmXA6iMf4abvys9Sea7Ao7LDbB7aDTTtySCEKKDEJAQqzS",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "10",
-              "end": "10"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmbSYvgrEoewv3KLvNPYtVsnWE7eyoGk5n7jwG16NUCG61",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "9",
-              "end": "9"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmeisXcBuYp4gz4WZYLJJ3qKFoKDCj1tdJasQEs4zQKMBh",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "8",
-              "end": "8"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmQVD3tcjaXKXA7hAgijciuF54NDfnpHCa1t7NTWV4ofxU",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "7",
-              "end": "7"
-            }
-          ]
-        },
-        {
-          "uri": "ipfs://QmRPuuqvvEnk4LkwUASZE469ebCc2eYMa7FpFjzHDSmbw6",
-          "customData": "",
-          "badgeIds": [
-            {
-              "start": "6",
               "end": "6"
             }
           ]
@@ -171,7 +81,7 @@
           "customData": "",
           "badgeIds": [
             {
-              "start": "11",
+              "start": "7",
               "end": "18446744073709551615"
             }
           ]

@@ -5,6 +5,6 @@ export function CreateAddressMappingStepItem(
   return {
     title: 'Submit Transaction',
     description: '',
-    node: <SubmitMsgCreateAddressMapping />
+    node: () => <SubmitMsgCreateAddressMapping />
   }
 }

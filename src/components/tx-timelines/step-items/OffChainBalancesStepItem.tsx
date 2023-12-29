@@ -116,7 +116,7 @@ export function OffChainBalancesStorageSelectStepItem() {
 
   const isBitBadgesHosted = existingCollection && existingCollection.offChainBalancesMetadataTimeline.length > 0 && existingCollection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/');
 
-  const Component = <>
+  const Component = () => <>
 
     <SwitchForm
       options={[
@@ -124,7 +124,7 @@ export function OffChainBalancesStorageSelectStepItem() {
           title: 'Self-Hosted (Advanced)',
           message: `Store and host the balances yourself. Provide a URL to where it is hosted.`,
           isSelected: addMethod === MetadataAddMethod.UploadUrl,
-          additionalNode: <>
+          additionalNode: () => <>
             <Form.Item
               label={
                 <Text
@@ -196,8 +196,9 @@ export function OffChainBalancesStorageSelectStepItem() {
   return {
     title: 'Off-Chain Balances',
     description: `For off-chain balances, you are responsible for assigning who owns what badges. This is done off-chain, so this will not add to your on-chain transaction fee.`,
-    node: <>
+    node: () => <>
       <UpdateSelectWrapper
+        documentationLink={"https://docs.bitbadges.io/overview/how-it-works/balances-types"}
         err={err}
         setErr={(err) => { setErr(err) }}
         updateFlag={canUpdateOffChainBalancesMetadata}

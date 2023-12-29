@@ -21,7 +21,8 @@ export function BadgeIdRangesInput({
   uintRangeBounds = [{ start: 1n, end: GO_MAX_UINT_64 }],
   hideDisplay,
   fullWidthCards,
-  hideNumberSelects
+  hideNumberSelects,
+  suggestedRanges
 }: {
   uintRanges: UintRange<bigint>[],
   setUintRanges: (uintRanges: UintRange<bigint>[]) => void,
@@ -33,10 +34,23 @@ export function BadgeIdRangesInput({
   hideDisplay?: boolean
   fullWidthCards?: boolean
   hideNumberSelects?: boolean
+  suggestedRanges?: UintRange<bigint>[]
 }) {
   uintRangeBounds = sortUintRangesAndMergeIfNecessary(uintRangeBounds, true);
-
   const collection = useCollection(collectionId);
+  suggestedRanges = suggestedRanges ?? [];
+  
+
+  if (collection)  suggestedRanges?.unshift({ start: 1n, end: getTotalNumberOfBadges(collection) });
+  suggestedRanges?.unshift({ start: 1n, end: 1n });
+  suggestedRanges = suggestedRanges?.filter(suggestedRange => {
+    return suggestedRange.start <= suggestedRange.end;
+  }) ?? [];
+  suggestedRanges = suggestedRanges?.filter((x, idx, self) => {
+    return self.findIndex(y => y.start === x.start && y.end === x.end) === idx;
+  });
+
+
   const totalNumberOfBadges = collection ? getTotalNumberOfBadges(collection) : 0n;
   const [numRanges, setNumRanges] = useState(uintRanges ? uintRanges.length : 1);
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
@@ -80,17 +94,21 @@ export function BadgeIdRangesInput({
 
 
   const AvatarDisplay = <>{
-    !hideDisplay &&
-
-    <div className='flex-center full-width'>
-      <div style={{}} className='primary-text full-width'>
-        <BadgeAvatarDisplay
-          collectionId={collectionId}
-          badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
-          showIds={true}
-        />
-      </div>
-    </div>
+    !hideDisplay && <>
+      {sliderValues.length == 0 && <div className="flex-center" style={{ color: 'red' }}>
+        None
+      </div>}
+      {sliderValues.length > 0 &&
+      <div className='flex-center full-width'>
+        <div style={{}} className='primary-text full-width'>
+          <BadgeAvatarDisplay
+            collectionId={collectionId}
+            badgeIds={sliderValues.map(([start, end]) => ({ start, end }))}
+            showIds={true}
+          />
+        </div>
+      </div>}
+    </>
   }
   </>
 
@@ -149,6 +167,32 @@ export function BadgeIdRangesInput({
           <InfoCircleOutlined /> Created IDs for this collection: 1-{totalNumberOfBadges.toString()}
         </div>}
       <br />
+      {!inputStr && suggestedRanges && suggestedRanges.length > 0 && <>
+        <div className="secondary-text" style={{ textAlign: 'center', fontSize: 12 }}>
+          <b>Suggested (Start ID - End ID)</b>
+          <br/>
+          <div className='flex-center flex-wrap'>
+          
+          {suggestedRanges.map(({ start, end }) => {
+            return <Button
+            key={`${start}-${end}`}
+            className='styled-icon-button'
+            style={{ margin: 4 }}
+            onClick={() => {
+              const newSliderValues: [bigint, bigint][] = [...sliderValues, [start, end]];
+              setSliderValues(newSliderValues);
+              setNumRanges(newSliderValues.length);
+              setUintRanges(newSliderValues.map(([start, end]) => ({ start, end })));
+              setInputStr(newSliderValues.map(([start, end]) => `${start}-${end}`).join(', '));
+            }}
+          >
+            {start.toString()} - {end.toString()}
+          </Button>
+          })}
+          </div>
+        </div>
+      <br />
+</>    }
       {/* <h2 style={{ textAlign: 'center',  }} className='primary-text'>Badge ID Select</h2> */}
       {
         new Array(numRanges).fill(0).map((_, i) => {
@@ -298,10 +342,9 @@ export function BadgeIdRangesInput({
       title: 'Custom',
       message: `Select specific badges.`,
       isSelected: !updateAllIsSelected,
-      additionalNode: <>
+      additionalNode: () => <>
         <br />
         {CustomInput}
-        <br />
         {AvatarDisplay}
       </>
     });
@@ -311,7 +354,7 @@ export function BadgeIdRangesInput({
     title: 'All Badges',
     message: `Select all badges in this collection (${getBadgeIdsString(uintRangeBounds ?? [{ start: minimum ?? 1n, end: maximum ?? 1n }])}). ${maximum === 1n ? 'This is auto-selected because there is only one badge.' : ''}`,
     isSelected: updateAllIsSelected,
-    additionalNode: <>
+    additionalNode: () => <>
       {AvatarDisplay}
     </>
   });
@@ -319,16 +362,14 @@ export function BadgeIdRangesInput({
   return <>
     {hideSelect ? <>
       {CustomInput}
-
-      <br />
       {AvatarDisplay}
     </> :
       <SwitchForm
         fullWidthCards={fullWidthCards}
         options={switchOptions}
-        onSwitchChange={(_idx, name) => {
-          setUpdateAllIsSelected(name === 'All Badges');
-          if (name === 'All Badges') {
+        onSwitchChange={(_idx) => {
+          setUpdateAllIsSelected(_idx === 1);
+          if (_idx === 1) {
             if (uintRangeBounds) setUintRanges(uintRangeBounds);
             else setUintRanges([{ start: minimum ?? 1n, end: maximum ?? 1n }]);
           }

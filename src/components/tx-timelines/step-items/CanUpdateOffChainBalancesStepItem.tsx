@@ -61,14 +61,13 @@ export function CanUpdateBalancesStepItem() {
   return {
     title: 'Can update balances?',
     description: ``,
-    node:
-      <PermissionUpdateSelectWrapper
+    node: () =>  <PermissionUpdateSelectWrapper
         checked={checked}
         setChecked={setChecked}
         err={err}
         setErr={setErr}
         permissionName="canUpdateOffChainBalancesMetadata"
-        node={<>
+        node={() => <>
           <SwitchForm
             showCustomOption
             options={[
@@ -84,7 +83,7 @@ export function CanUpdateBalancesStepItem() {
                 The URL for the balances will be set to non-updatable, and we will store using IPFS, a permanent and decentralized file storage solution.`,
                 isSelected: isCompletelyForbidden(permissionDetails),
                 additionalNode: addMethod === MetadataAddMethod.UploadUrl || collection.balancesType === "Off-Chain - Non-Indexed" ?
-                  <div className="flex-center">
+                  () => <div className="flex-center">
                     <PermissionsOverview
                       span={24}
                       collectionId={collection.collectionId}
@@ -112,7 +111,7 @@ export function CanUpdateBalancesStepItem() {
                 isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
                 disabled: noManager,
                 additionalNode: addMethod === MetadataAddMethod.UploadUrl || collection.balancesType === "Off-Chain - Non-Indexed" ?
-                  <div className="flex-center">
+                  () => <div className="flex-center">
                     <PermissionsOverview
                       span={24}
                       collectionId={collection.collectionId}

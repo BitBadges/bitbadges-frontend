@@ -107,10 +107,11 @@ export function TransferSelect({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: convert transfers');
     let convertedTransfers = transfers ?? [];
-    let transfersToAdd = [{
+    let transfersToAdd: TransferWithIncrements<bigint>[] = [{
       toAddresses: toAddresses,
       balances: balances,
       from: sender,
+      incrementBadgeIdsBy: incrementAmount,
     }];
 
     //Calculate from beginning
@@ -121,7 +122,7 @@ export function TransferSelect({
     //with existing ones to add
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...transfersToAdd], true);
     setPostTransferBalancesWithCurrent(postTransferBalanceObj);
-  }, [originalSenderBalances, transfers, balances, sender, toAddresses]);
+  }, [originalSenderBalances, transfers, balances, sender, toAddresses, incrementAmount]);
 
   const uintRangesOverlap = checkIfUintRangesOverlap(balances[0]?.badgeIds || []);
   const uintRangesLengthEqualsZero = balances[0]?.badgeIds.length === 0;
@@ -156,6 +157,7 @@ export function TransferSelect({
           <TransferDisplay
             transfers={transfersToAdd}
             collectionId={collectionId}
+            initiatedBy={chain.address}
           />
         </Col>
       </div>
@@ -163,6 +165,7 @@ export function TransferSelect({
       < div style={{ textAlign: 'center', margin: 10 }}>
 
         <BalanceInput
+          suggestedBalances={originalSenderBalances}
           balancesToShow={balances}
           onAddBadges={(balance) => {
             setBalances(deepCopyBalances([...balances, balance]));
@@ -202,13 +205,15 @@ export function TransferSelect({
           <TransferDisplay
             transfers={transfersToAdd}
             collectionId={collectionId}
+            initiatedBy={chain.address}
           />
         }
       </div>}
       <br />
 
-      <Button type='primary'
-        className='full-width'
+      <button className='landing-button'
+
+        style={{width: '100%' }}
         onClick={async () => {
           setTransfers([...transfersToAdd, ...transfers]);
           setBalances([]);
@@ -220,7 +225,7 @@ export function TransferSelect({
           if (setVisible) setVisible(false);
         }}>
         Add Transfer(s)
-      </Button>
+      </button>
     </div >,
     disabled: balances.length == 0 || numRecipients <= 0 || (uintRangesOverlap || uintRangesLengthEqualsZero) || (ownedTimesOverlap || ownedTimesLengthEqualsZero) ||
       (!!postTransferBalancesWithCurrent?.find((balance) => balance.amount < 0))
@@ -265,21 +270,23 @@ export function TransferSelect({
                 </div></Radio.Button>
               </Radio.Group>
               <br />
-              {balanceTab === 'remaining' && <div className='secondary-text'>
+              {balanceTab === 'remaining' && <><div className='secondary-text'>
                 <InfoCircleOutlined /> The remaining balances after the transfers are applied{addTransferIsVisible && <> (including the current transfer)</>}.
+                </div>
                 <br />
                 <br />
+
                 <BalanceDisplay
                   hideMessage
                   collectionId={collectionId ?? NEW_COLLECTION_ID}
                   balances={postTransferBalancesWithCurrent ?? []}
                 />
+              </>}
 
-              </div>}
 
-
-              {balanceTab === 'start' && <div className='secondary-text'>
+              {balanceTab === 'start' && <><div className='secondary-text'>
                 <InfoCircleOutlined /> {"The sender's balances before any transfers are applied."}
+                </div>
                 <br />
                 <br />
                 <BalanceDisplay
@@ -287,7 +294,7 @@ export function TransferSelect({
                   collectionId={collectionId ?? NEW_COLLECTION_ID}
                   balances={originalSenderBalances ?? []}
                 />
-              </div>}
+              </>}
             </InformationDisplayCard>
             <InformationDisplayCard title='Added Transfers' style={{ alignItems: 'normal' }} md={12} sm={24} xs={24}>
               <>

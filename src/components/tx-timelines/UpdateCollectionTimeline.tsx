@@ -35,6 +35,7 @@ import { TransferabilitySelectStepItem } from './step-items/TransferabilitySelec
 import { CollectionTypeSelect } from './step-items/CustomVsPresetCollection';
 import { StandardsSelectStepItem } from './step-items/StandardsSelectStepItem';
 import { CanUpdateStandardsStepItem } from './step-items/CanUpdateStandardsSelectStepItem';
+import { DirectTransfersStepItem } from './step-items/DirectTransfersStepItem';
 
 //See TxTimeline for explanations and documentation
 export function UpdateCollectionTimeline() {
@@ -82,6 +83,8 @@ export function UpdateCollectionTimeline() {
 
   const CustomCollectionStep = CollectionTypeSelect();
   const TemplateSelectStep = TemplateCollectionSelect();
+
+  const DirectTransfersStep = DirectTransfersStepItem()
 
   const items: TimelineItem[] = [
     (existingCollectionId && existingCollectionId > 0n) || isUpdateAddressMapping ? EmptyStepItem : ChooseBadgeType
@@ -197,6 +200,8 @@ export function UpdateCollectionTimeline() {
 
     const templateCollectionSelect = !txTimelineContext.customCollection;
 
+    const isDefaultUserBalances = collection.defaultBalances.balances.length > 0;
+
     items.push(
       toShowCollectionType ? CustomCollectionStep : EmptyStepItem,
     )
@@ -218,7 +223,7 @@ export function UpdateCollectionTimeline() {
         BalanceTypeSelect,
         
         toShowCreateMoreAction ? BadgeSupplySelectStep : EmptyStepItem,
-        !completeControl && hasManager && toShowCanCreateMorePermission ? CanCreateMoreStep : EmptyStepItem,
+        !completeControl && hasManager && toShowCanCreateMorePermission && !isDefaultUserBalances ? CanCreateMoreStep : EmptyStepItem,
 
 
         toShowUpdateCollectionMetadataAction ? SetCollectionMetadataStep : EmptyStepItem,
@@ -226,9 +231,10 @@ export function UpdateCollectionTimeline() {
         !completeControl && hasManager && toShowCanUpdateCollectionMetadataPermission ? UpdatableMetadataSelectStep : EmptyStepItem,
         !completeControl && hasManager && toShowCanUpdateBadgeMetadataPermission ? UpdatableBadgeMetadataSelectStep : EmptyStepItem,
 
-        
-        !isOffChainBalances && !isNonIndexedBalances && toShowUpdateMintTransfersAction ? DistributionMethodStep : EmptyStepItem,
+        !isOffChainBalances && !isNonIndexedBalances && !isDefaultUserBalances ? DefaultToApprovedStepItem : EmptyStepItem,
+        !isOffChainBalances && !isNonIndexedBalances && toShowUpdateMintTransfersAction && !isDefaultUserBalances ? DistributionMethodStep : EmptyStepItem,
         CodesViewStep,
+        !isDefaultUserBalances ? DirectTransfersStep : EmptyStepItem,
 
         //TODO: We currently make some assumptions here w/ isBitBadgesHosted and on-chain permissions. Make more robust
         isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction ? OffChainBalancesStorageStepItem : EmptyStepItem,
@@ -236,7 +242,7 @@ export function UpdateCollectionTimeline() {
 
         !isOffChainBalances && !isNonIndexedBalances && toShowUpdateNonMintTransfersAction ? TransferabilityStep : EmptyStepItem,
         !isOffChainBalances && !isNonIndexedBalances && (!completeControl && hasManager && toShowCanUpdateCollectionApprovalsPermission) ? FreezeSelectStep : EmptyStepItem,
-        !isOffChainBalances && !isNonIndexedBalances ? DefaultToApprovedStepItem : EmptyStepItem,
+        
 
 
         !completeControl && hasManager && toShowCanDeletePermission ? CanDeleteStep : EmptyStepItem,

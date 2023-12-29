@@ -35,7 +35,7 @@ export function DateRangeInput({
       <div style={{ textAlign: 'center', marginTop: 4 }} className='primary-text'>
         <div className='flex flex-column'>
 
-          {timeRanges.length === 0 && <div className='primary-text' style={{ marginTop: 4 }}>
+          {timeRanges.length === 0 && <div className='primary-text' style={{ marginTop: 4, color: 'red' }}>
             None
           </div>}
           {timeRanges.map((x, i) => {
@@ -159,6 +159,18 @@ export function DateRangeInput({
             onClick={() => {
               timeRangeToEdit.start = BigInt(currTimeNextHour.valueOf());
               timeRangeToEdit.end = BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 30);
+
+              setTimeRanges(deepCopy(timeRanges));
+            }}
+          >
+            +1 Month
+          </Button>
+          <Button
+            className='styled-icon-button'
+            style={{ margin: 4 }}
+            onClick={() => {
+              timeRangeToEdit.start = BigInt(currTimeNextHour.valueOf());
+              timeRangeToEdit.end = BigInt(currTimeNextHour.valueOf() + 1000 * 60 * 60 * 24 * 365);
 
               setTimeRanges(deepCopy(timeRanges));
             }}

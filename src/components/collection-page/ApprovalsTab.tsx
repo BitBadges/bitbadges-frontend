@@ -18,6 +18,7 @@ import { UserPermissionsOverview } from './PermissionsInfo';
 import { TransferabilityRow } from './TransferabilityRow';
 import { TransferabilityTab } from './TransferabilityTab';
 import { EmptyIcon } from '../common/Empty';
+import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 interface DisplayProps {
   approvals: CollectionApprovalWithDetails<bigint>[];
@@ -76,6 +77,7 @@ export const ApprovalSelectWrapper: FC<{
   const isPostMintDisplay = !isIncomingDisplay && !isOutgoingDisplay && !mintingOnly;
   const isMintDisplay = !isIncomingDisplay && !isOutgoingDisplay && mintingOnly;
   const defaultApproval = props.defaultApproval;
+  const chain = useChainContext();
 
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
@@ -90,8 +92,8 @@ export const ApprovalSelectWrapper: FC<{
       : isPostMintDisplay ? getReservedAddressMapping("AllWithoutMint") : getReservedAddressMapping("All")
     }
     defaultInitiatedByMapping={{
-      ...getReservedAddressMapping("All"),
-      mappingId: "",
+      ...getReservedAddressMapping(chain.cosmosAddress),
+      mappingId: chain.cosmosAddress,
       includeAddresses: true
     }}
     defaultApproval={defaultApproval}
@@ -195,6 +197,9 @@ const FullApprovalsDisplay: FC<FullProps> = ({
 }) => {
   const [showHidden, setShowHidden] = useState<boolean>(defaultShowDisallowed ?? false);
   const chain = useChainContext();
+  const txTimelineContext = useTxTimelineContext();
+  //To get rid of saying that the default 24 hour manager approval is "Exsiting"
+  startingApprovals = !txTimelineContext.existingCollectionId || txTimelineContext.existingCollectionId == 0n ? [] : startingApprovals;
 
   let disapproved = showHidden ? approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true)
     : approvalLevel === "outgoing" ? getUnhandledUserOutgoingApprovals(approvals, approverAddress, true)
@@ -343,10 +348,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
       {!hideHelperMessage && <>
         <Divider />
         <p className='secondary-text'>
-          <InfoCircleOutlined />{' '}Each approval represents a different set of criteria.
-          For a transfer to be approved, ALL of the criteria must be satisfied.
-          If transfers span multiple approvals, they must satisfy ALL criteria in ALL the spanned approvals.
-          Successful transfers also require sufficient balances from the sender.
+          <InfoCircleOutlined />{' '}{"Successful transfers require sufficient balances from the sender and must satisfy the collection approvals, in addition to the sender's outgoing approvals and recipient's incoming approvals (if applicable)."}
         </p></>}
       <Divider />
     </InformationDisplayCard >
@@ -412,8 +414,8 @@ export function UserApprovalsTab({
   if (!collection) return <></>;
 
 
-  const appendDefaultIncoming = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedIncomingTransfers ?? false;
-  const appendDefaultOutgoing = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedOutgoingTransfers ?? false;
+  const appendDefaultIncoming = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedIncomingTransfers ?? collection.defaultBalances.autoApproveSelfInitiatedIncomingTransfers;
+  const appendDefaultOutgoing = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedOutgoingTransfers ?? collection.defaultBalances.autoApproveSelfInitiatedOutgoingTransfers;
 
   // console.log(appendDefaultForOutgoing(outgoingApprovals, approverAccount?.cosmosAddress ?? ''))
 

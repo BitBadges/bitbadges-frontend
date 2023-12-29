@@ -19,7 +19,8 @@ export function BalanceInput({
   increment,
   setIncrement,
   timeString,
-  numIncrements
+  numIncrements,
+  suggestedBalances
 }: {
   balancesToShow: Balance<bigint>[],
   onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint) => void,
@@ -39,9 +40,11 @@ export function BalanceInput({
   timeString?: string
   setIncrement?: (increment: bigint) => void
   numIncrements?: bigint
+  suggestedBalances?: Balance<bigint>[]
 }) {
   return <>
     <BalanceDisplay
+      suggestedBalances={suggestedBalances}
       collectionId={collectionId ?? 0n}
       mustOwnBadges={mustOwnBadges}
       isMustOwnBadgesInput={isMustOwnBadgesInput}

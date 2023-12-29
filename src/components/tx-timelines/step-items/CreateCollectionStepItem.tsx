@@ -4,6 +4,6 @@ export function CreateCollectionStepItem() {
   return {
     title: 'Submit Transaction',
     description: '',
-    node: <SubmitMsgNewCollection />
+    node: () => <SubmitMsgNewCollection />
   }
 }

@@ -1,15 +1,16 @@
-import { Divider } from "antd";
 
 export function ErrDisplay({
-  err
+  err,
+  warning
 }: {
-  err: Error | null | undefined
+  err: Error | string | null | undefined
+  warning?: boolean
 }) {
   return <>
     {err &&
-      <div style={{ color: 'red', textAlign: 'center' }}>
-        <b>Error: </b>{err.toString()}
-        <Divider />
+      <div style={{ color: warning ? 'orange' : 'red', textAlign: 'center' }}>
+        <b>{warning ? 'Warning' : 'Error'}: </b>{err.toString()}
+        <br/>
       </div>}
   </>
 }

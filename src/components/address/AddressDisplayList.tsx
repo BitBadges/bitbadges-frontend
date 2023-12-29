@@ -136,11 +136,17 @@ export function AddressDisplayList({
       if (index < currPageStart || index > currPageEnd) return null;
 
       const allowedMessage = invalidUsers ? invalidUsers[user] : undefined;
-
+      
       return (
         <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginLeft: 8 }}>
-          {trackerIdList ? <div style={{ color: (allowedMessage || allExcept) && (user != 'All') ? 'red' : fontColor }}>
-            {user.length > 10 ? `${user.substring(0, 10)}...` : user} </div>
+          {trackerIdList ? 
+          <div style={{ color: (allowedMessage || allExcept) && (user != 'All') ? 'red' : fontColor }}>
+            <Tooltip title={user}  >
+              {user.length > 10 ? 
+              `${user.substring(0, 10)}...` : user} 
+            </Tooltip>
+            
+            </div>
             : <AddressDisplay
               icon={
                 !hideIcons && setUsers && user != 'All' &&
@@ -168,7 +174,7 @@ export function AddressDisplayList({
     })}
 
 
-    {usersToDisplay.filter(x => x != 'All').length > 1 && <div className='flex-center flex-column'>
+    {usersToDisplay.filter(x => x != 'All').length > 1 && !trackerIdList && <div className='flex-center flex-column'>
       <br />
 
       <a

@@ -875,6 +875,7 @@ export function TransferabilityRow({
     const BadgeIdsValue = <> {getBadgeIdsString(transfer.badgeIds)}</>
     const OwnershipTimesValue = <> {getTimeRangesElement(transfer.ownershipTimes, '', true)}</>
     const TransferTimesValue = <> {getTimeRangesElement(transfer.transferTimes, '', true)}</>
+
     const TagsValue = <> {!disapproved &&
       <div style={{ alignItems: 'center', marginLeft: 8, height: '100%', }} className='flex-center flex-wrap flex-column'>
         {onDelete && <>
@@ -882,7 +883,9 @@ export function TransferabilityRow({
             style={{ margin: 4, backgroundColor: '#1890ff' }}
             color='#1890ff'
             className='primary-text'
-          >Existing</Tag> :
+          >
+            Existing
+          </Tag> :
             <Tag
               style={{ margin: 4, backgroundColor: '#52c41a' }}
               color='#52c41a'
@@ -1053,10 +1056,12 @@ export function TransferabilityRow({
           />
         </div>}
     </td>
+
+    const isExisting = startingApprovals?.find(x => x.approvalId === transfer.approvalId);
     const EditableValue = editable && <td>
 
 
-      {!disapproved &&
+      {!disapproved &&  !isExisting &&
         <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
           <IconButton
             secondary
@@ -1064,7 +1069,6 @@ export function TransferabilityRow({
             onClick={() => {
               setEditIsVisible(!editIsVisible);
               setShowMoreIsVisible(false);
-
             }}
             text={editIsVisible ? 'Cancel Edit' : 'Edit'}
             size={40}

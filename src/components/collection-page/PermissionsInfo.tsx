@@ -1,11 +1,10 @@
-import { CheckCircleFilled, ClockCircleFilled, CloseCircleFilled, DeleteOutlined, DownOutlined, InfoCircleOutlined, LockOutlined, MinusOutlined, PlusOutlined, QuestionCircleFilled, UpOutlined } from "@ant-design/icons";
+import { CheckCircleFilled, ClockCircleFilled, CloseCircleFilled, DeleteOutlined, DownOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined, QuestionCircleFilled, UpOutlined } from "@ant-design/icons";
 import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
-import { AddressMapping, UintRange } from "bitbadgesjs-proto";
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, GetMappingWithOptions, GetUintRangesWithOptions, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getCurrentValuesForCollection, getReservedAddressMapping, isFullUintRanges, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { AddressMapping, UintRange, deepCopy } from "bitbadgesjs-proto";
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, GetFirstMatchOnly, GetMappingWithOptions, GetUintRangesWithOptions, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UniversalPermissionDetails, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getCurrentValuesForCollection, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 
-import { deepCopy } from "ethers/lib/utils";
 import { useState } from "react";
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
@@ -23,32 +22,24 @@ import { BadgeIdRangesInput } from "../inputs/BadgeIdRangesInput";
 import { DateRangeInput } from "../inputs/DateRangeInput";
 import { AfterPermission } from "../tx-timelines/form-items/BeforeAfterPermission";
 
-
-
 export function getPermissionDetails(permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager: boolean, badgeIds?: UintRange<bigint>[], doNotMerge?: boolean) {
-  if (doNotMerge) console.log(permissions);
+
   const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToMapping, usesFromMapping, usesInitiatedByMapping, usesOwnershipTimes, usesAmountTrackerIdMapping, usesChallengeTrackerIdMapping } = usedFlags;
   const hideIfFull = true;
   let columns = [{
     title: 'Allowed?',
     dataIndex: 'permission',
     key: 'permission',
-    render: () => { return <></> }
   },
   {
     title: 'Frozen?',
     dataIndex: 'frozen',
     key: 'frozen',
-    render: (frozen: boolean) => { return frozen ? <LockOutlined /> : <></> }
-
   },
   {
     title: 'Times',
     dataIndex: 'permissionTimes',
-    key: 'permissionTimes',
-    render: (permissionTimes: UintRange<bigint>[]) => {
-      return <>{getTimeRangesElement(permissionTimes, '', true)}</>
-    }
+    key: 'permissionTimes'
   }];
   const dataSource: {
     timelineTimes?: UintRange<bigint>[],
@@ -70,12 +61,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
       title: 'From',
       dataIndex: 'fromMapping',
       key: 'fromMapping',
-      render: (fromMapping: any) => {
-        return <AddressDisplayList
-          users={fromMapping.addresses}
-          allExcept={!fromMapping.includeAddresses}
-        />
-      }
     })
   }
 
@@ -83,14 +68,7 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
     columns.push({
       title: 'To',
       dataIndex: 'toMapping',
-      key: 'toMapping',
-      render: (toMapping: any) => {
-        return <AddressDisplayList
-          users={toMapping.addresses}
-          allExcept={!toMapping.includeAddresses}
-          filterMint
-        />
-      }
+      key: 'toMapping'
     })
   }
 
@@ -99,13 +77,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
       title: 'Initiated By',
       dataIndex: 'initiatedByMapping',
       key: 'initiatedByMapping',
-      render: (initiatedByMapping: any) => {
-        return <AddressDisplayList
-          users={initiatedByMapping.addresses}
-          allExcept={!initiatedByMapping.includeAddresses}
-          filterMint
-        />
-      }
     })
   }
 
@@ -113,10 +84,7 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
     columns.push({
       title: 'Updatable Times',
       dataIndex: 'timelineTimes',
-      key: 'timelineTimes',
-      render: (timelineTimes: UintRange<bigint>[]) => {
-        return <>{getTimeRangesElement(timelineTimes, '', true)}</>
-      }
+      key: 'timelineTimes'
     })
   }
 
@@ -125,11 +93,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
       title: 'Badge IDs',
       dataIndex: 'badgeIds',
       key: 'badgeIds',
-      render: (badgeIds: UintRange<bigint>[]) => {
-        const [, removed] = removeUintRangeFromUintRange(badgeIds ?? [{ start: 1n, end: GO_MAX_UINT_64 }], badgeIds);
-
-        return <>{getBadgeIdsString(removed)}</>
-      }
     })
   }
 
@@ -139,9 +102,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
       title: isBalancesAction ? 'Circulating Times' : 'Ownership Times',
       dataIndex: 'ownershipTimes',
       key: 'ownershipTimes',
-      render: (ownershipTimes: UintRange<bigint>[]) => {
-        return <>{getTimeRangesElement(ownershipTimes, '', true)}</>
-      }
     })
   }
 
@@ -150,9 +110,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
       title: 'Transfer Times',
       dataIndex: 'transferTimes',
       key: 'transferTimes',
-      render: (transferTimes: UintRange<bigint>[]) => {
-        return <>{getTimeRangesElement(transferTimes, '', true)}</>
-      }
     })
   }
 
@@ -163,9 +120,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
       title: 'Amount Tracker ID',
       dataIndex: 'amountTrackerId',
       key: 'amountTrackerIdMapping',
-      render: (amountTrackerId: any) => {
-        return <>{amountTrackerId}</>
-      }
     })
   }
 
@@ -174,9 +128,6 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
       title: 'Challenge Tracker ID',
       dataIndex: 'challengeTrackerId',
       key: 'challengeTrackerIdMapping',
-      render: (challengeTrackerId: any) => {
-        return <>{challengeTrackerId}</>
-      }
     })
   }
 
@@ -253,12 +204,9 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
 
       }
     }
-
-
   } else {
-    firstMatchDetails = GetFirstMatchOnly(permissions, true, usedFlags);
+    firstMatchDetails = GetFirstMatchOnly(deepCopy(permissions), true, usedFlags);
   }
-
 
   //Neutral times = not explicitly permitted and not explicitly forbidden
   for (const origMatch of firstMatchDetails) {
@@ -369,22 +317,44 @@ export function getPermissionDetails(permissions: UniversalPermission[], usedFla
   return { columns, dataSource, hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes, neverHasManager }
 }
 
-export const PermissionTableRow = ({ permission, permissions, columns, onFreezePermitted, setPermissions, idx }: {
-  permission: {
-    timelineTimes?: UintRange<bigint>[],
-    badgeIds?: UintRange<bigint>[],
-    ownershipTimes?: UintRange<bigint>[],
-    transferTimes?: UintRange<bigint>[],
-    toMapping?: AddressMapping,
-    fromMapping?: AddressMapping,
-    initiatedByMapping?: AddressMapping,
-    amountTrackerIdMapping?: AddressMapping,
-    challengeTrackerIdMapping?: AddressMapping,
-    forbidden: boolean,
-    permitted: boolean,
-    permissionTimes: UintRange<bigint>[],
-  },
-  permissions: UniversalPermission[],
+export interface PermissionDetails {
+  timelineTimes?: UintRange<bigint>[],
+  badgeIds?: UintRange<bigint>[],
+  ownershipTimes?: UintRange<bigint>[],
+  transferTimes?: UintRange<bigint>[],
+  toMapping?: AddressMapping,
+  fromMapping?: AddressMapping,
+  initiatedByMapping?: AddressMapping,
+  amountTrackerIdMapping?: AddressMapping,
+  challengeTrackerIdMapping?: AddressMapping,
+  forbidden: boolean,
+  permitted: boolean,
+  permissionTimes: UintRange<bigint>[],
+}
+
+export interface GenericCollectionPermission {
+  timelineTimes?: UintRange<bigint>[],
+  badgeIds?: UintRange<bigint>[],
+  ownershipTimes?: UintRange<bigint>[],
+  transferTimes?: UintRange<bigint>[],
+  toMapping?: AddressMapping,
+  fromMapping?: AddressMapping,
+  initiatedByMapping?: AddressMapping,
+  amountTrackerIdMapping?: AddressMapping,
+  challengeTrackerIdMapping?: AddressMapping,
+  forbiddenTimes?: UintRange<bigint>[],
+  permittedTimes?: UintRange<bigint>[],
+
+  toMappingId?: string,
+  fromMappingId?: string,
+  initiatedByMappingId?: string,
+  amountTrackerId?: string,
+  challengeTrackerId?: string,
+}
+
+
+export const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermissions, idx, permissions }: {
+  permission: PermissionDetails,
   columns: {
     title: string,
     dataIndex: string,
@@ -392,17 +362,15 @@ export const PermissionTableRow = ({ permission, permissions, columns, onFreezeP
     render?: (x: any) => JSX.Element
   }[],
   onFreezePermitted?: (frozen: boolean) => void
-  setPermissions?: (permissions: UniversalPermission[]) => void,
+  setPermissions?: (permissions: GenericCollectionPermission[]) => void,
   idx?: number
-
+  permissions?: GenericCollectionPermission[]
 }) => {
   const y = permission;
 
-  if (setPermissions) console.log(permissions.length);
-
   return <tr className="primary-border">
-    {!!setPermissions && idx !== undefined && < td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>{idx + 1}</td>}
-    {!!setPermissions && idx !== undefined && < td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+    {!!setPermissions && permissions && idx !== undefined && < td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>{idx + 1}</td>}
+    {!!setPermissions && permissions && idx !== undefined && < td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
       <div className="flex">
         {idx > 0 && idx != permissions.length && < IconButton src={<UpOutlined />} onClick={() => {
           const newPermissions = [...permissions];
@@ -422,14 +390,11 @@ export const PermissionTableRow = ({ permission, permissions, columns, onFreezeP
         <IconButton
           disabled={idx == permissions.length}
           src={<DeleteOutlined />} onClick={() => {
-            console.log(idx, permissions.length);
             let newPermissions = [...permissions];
-            console.log(newPermissions.length);
             // //pop off the last one ( the default one )
 
 
             newPermissions = newPermissions.filter((_, i) => i !== idx);
-            console.log(newPermissions.length);
             setPermissions?.(newPermissions);
           }} text="Delete" />
 
@@ -553,7 +518,7 @@ export const PermissionTableRow = ({ permission, permissions, columns, onFreezeP
 }
 
 export const PermissionDisplay = (
-  { permissions, usedFlags, neverHasManager, badgeIds, mintOnly, nonMintOnly, onFreezePermitted, editMode, setPermissions }: {
+  { permissions, usedFlags, neverHasManager, badgeIds, mintOnly, nonMintOnly, onFreezePermitted, editMode, setAllPermissions, allPermissions }: {
     permissions: UniversalPermission[],
     usedFlags: UsedFlags,
     neverHasManager: boolean,
@@ -562,7 +527,10 @@ export const PermissionDisplay = (
     nonMintOnly?: boolean,
     onFreezePermitted?: (frozen: boolean) => void
     editMode?: boolean
-    setPermissions?: (permissions: UniversalPermission[]) => void
+    
+    //all permissons are the ones to be edited
+    allPermissions?: GenericCollectionPermission[],
+    setAllPermissions?: (permissions: GenericCollectionPermission[]) => void
   }) => {
 
   const { usesBadgeIds } = usedFlags;
@@ -634,7 +602,7 @@ export const PermissionDisplay = (
 
                     </tr>
                     {dataSource.map((y, idx) => {
-
+                      
                       if (hasBothPermittedAndForbidden) {
                         if (y.forbidden && !showForbidden) {
                           return null;
@@ -669,30 +637,25 @@ export const PermissionDisplay = (
                         }
                       }
 
-                      console.log(permissions.length);
-
                       return <PermissionTableRow key={idx}
                         idx={idx}
-                        permissions={permissions}
-                        permission={y} columns={columns} onFreezePermitted={onFreezePermitted}
-                        setPermissions={setPermissions} />
-
+                        permissions={allPermissions}
+                        permission={y} 
+                        columns={columns} onFreezePermitted={onFreezePermitted}
+                        setPermissions={setAllPermissions}
+                        />
                     })}
-
                   </table>
                 </div>
               </div>
-
             </div>
-
-
         }
       </div >
       {
-        onFreezePermitted &&
+
         <>
           <br />
-          <div className="full-width">
+          <div className="full-width secondary-text">
 
             <InfoCircleOutlined style={{ marginRight: 4 }} /> If a value is frozen, it is non-updatable and can NEVER be updated in the future.
           </div>
@@ -704,7 +667,7 @@ export const PermissionDisplay = (
         columns.find(x => x.key === 'amountTrackerIdMapping' || x.key === 'challengeTrackerIdMapping') &&
         <>
           <br />
-          <div className="full-width">
+          <div className="full-width secondary-text">
 
             <InfoCircleOutlined style={{ marginRight: 4 }} /> Amount tracker IDs and the challenge tracker ID are used for locking specific approvals / transferability.
           </div>
@@ -835,6 +798,50 @@ export function PermissionsOverview({
   </InformationDisplayCard>
 }
 
+export const BadgeIDSelectWithSwitch = ({ collectionId, uintRanges, setUintRanges }: { collectionId: bigint, uintRanges: UintRange<bigint>[], setUintRanges: (uintRanges: UintRange<bigint>[]) => void }) => {
+  return <>
+  <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
+    
+      <Switch
+        checked={isFullUintRanges(uintRanges)}
+        checkedChildren="All Badges"
+        unCheckedChildren="Custom"
+        onChange={(checked) => {
+          if (checked) {
+            setUintRanges([{ start: 1n, end: GO_MAX_UINT_64 }],
+            );
+          } else {
+            setUintRanges([]);
+          }
+        }}
+      />
+      <br />
+      <div className="secondary-text">
+        <InfoCircleOutlined />{' '}
+        {isFullUintRanges(uintRanges) && "All IDs are selected, even IDs that may have not been created yet."}
+        {!isFullUintRanges(uintRanges) && "Custom IDs are selected."}
+      </div>
+      <br />
+      <>
+        {isFullUintRanges(uintRanges) ? <></> : <>
+
+          <BadgeIdRangesInput
+            uintRangeBounds={[{ start: 1n, end: GO_MAX_UINT_64 }]}
+            hideSelect
+            hideNumberSelects
+            collectionId={collectionId}
+            uintRanges={uintRanges}
+            setUintRanges={(uintRanges) => {
+              setUintRanges(uintRanges);
+            }}
+
+          />
+        </>}</>
+    </div>
+</>
+}
+
+
 export const DateSelectWithSwitch = ({ timeRanges, setTimeRanges }: { timeRanges: UintRange<bigint>[], setTimeRanges: (timeRanges: UintRange<bigint>[]) => void }) => {
   return <>
     <br />
@@ -882,8 +889,8 @@ export function PermissionSelect({
   collectionId
 }: {
   permissionName: string,
-  value: any[]
-  setValue: (value: any[]) => void
+  value: GenericCollectionPermission[]
+  setValue: (value: GenericCollectionPermission[]) => void
   collectionId: bigint
 }) {
   let usedFlags: UsedFlags = ApprovalPermissionUsedFlags;
@@ -933,7 +940,7 @@ export function PermissionSelect({
       break;
   }
 
-  const permissions = convertFunction ? convertFunction(value) : [];
+  const permissions = convertFunction ? convertFunction(value as Required<GenericCollectionPermission>[]) : [];
   const [addIsVisible, setAddIsVisible] = useState<boolean>(false);
 
   const [newPermissionToAdd, setNewPermissionToAdd] = useState<UniversalPermission>({
@@ -965,7 +972,7 @@ export function PermissionSelect({
       <InformationDisplayCard title={'Added'} md={12} xs={24} sm={24} subtitle={'All added permissions before filtering first match only. By default, everything is permitted but not frozen.'}>
 
         <br />
-        <PermissionDisplay permissions={permissions} usedFlags={usedFlags} neverHasManager={false} editMode setPermissions={setValue} />
+        <PermissionDisplay permissions={permissions} usedFlags={usedFlags} neverHasManager={false} editMode allPermissions={value} setAllPermissions={setValue} />
       </InformationDisplayCard>
 
       <InformationDisplayCard title={'Permissions (First Match Only)'} md={12} xs={24} sm={24} subtitle={'Permissions after first match is taken into account.'}>
@@ -987,6 +994,7 @@ export function PermissionSelect({
     {addIsVisible && <>
       <div className="flex flex-wrap" style={{ textAlign: 'center' }}>
         <InformationDisplayCard title={'Allowed?'} md={12} xs={24} sm={24} subtitle={'If allowed, the times below will be permitted. If not allowed, the times below will be forbidden.'}>
+          <br/>
           <TableRow label={"Allowed?"} value={<Switch
             checked={allowed}
             onChange={(checked) => {
@@ -1001,7 +1009,7 @@ export function PermissionSelect({
             disabled
           />} labelSpan={18} valueSpan={6} />
           <div className="secondary-text" style={{ marginLeft: 10 }}>
-            <InfoCircleOutlined /> Added permissions are always frozen. By default, everything is permitted but not frozen.
+            <InfoCircleOutlined /> Added permissions should always be frozen. Non-frozen disallowed permissions do not exist, and non-frozen allowed is the default.
           </div>
           <Divider />
           <DateSelectWithSwitch timeRanges={selectedTimes} setTimeRanges={(x) => {
@@ -1011,7 +1019,8 @@ export function PermissionSelect({
 
         </InformationDisplayCard>
         {usedFlags.usesBadgeIds && <InformationDisplayCard title={'Badge IDs'} md={12} xs={24} sm={24} subtitle={'Select what badge IDs this permission applies to.'}>
-          <BadgeIdRangesInput
+          <br/>
+          <BadgeIDSelectWithSwitch
             collectionId={collectionId}
             uintRanges={newPermissionToAdd.badgeIds} setUintRanges={(x) => {
               setNewPermissionToAdd({
@@ -1019,12 +1028,11 @@ export function PermissionSelect({
                 badgeIds: x
               })
             }}
-            hideSelect
-            hideNumberSelects
           />
         </InformationDisplayCard>}
         {usedFlags.usesOwnershipTimes && <InformationDisplayCard title={'Ownership Times'} md={12} xs={24} sm={24} subtitle={'Which ownership times for the selected badge IDs does this permission apply to?'}>
-          <DateRangeInput timeRanges={newPermissionToAdd.ownershipTimes} setTimeRanges={(x) => {
+          <br/>
+          <DateSelectWithSwitch timeRanges={newPermissionToAdd.ownershipTimes} setTimeRanges={(x) => {
             setNewPermissionToAdd({
               ...newPermissionToAdd,
               ownershipTimes: x
@@ -1032,7 +1040,8 @@ export function PermissionSelect({
           }} />
         </InformationDisplayCard>}
         {usedFlags.usesTimelineTimes && <InformationDisplayCard title={'Updatable Times'} md={12} xs={24} sm={24} subtitle={'This permission is for a dynamic value which can change over time. What times is the value allowed to be udpated for?'}>
-          <DateSelectWithSwitch timeRanges={newPermissionToAdd.timelineTimes} setTimeRanges={(x) => {
+        <br/>
+        <DateSelectWithSwitch timeRanges={newPermissionToAdd.timelineTimes} setTimeRanges={(x) => {
             setNewPermissionToAdd({
               ...newPermissionToAdd,
               timelineTimes: x
@@ -1040,6 +1049,7 @@ export function PermissionSelect({
           }} />
         </InformationDisplayCard>}
         {usedFlags.usesTransferTimes && <InformationDisplayCard title={'Transfer Times'} md={12} xs={24} sm={24} subtitle={'What transfer times does this permission apply to?'}>
+          <br/>
           <DateSelectWithSwitch timeRanges={newPermissionToAdd.transferTimes} setTimeRanges={(x) => {
             setNewPermissionToAdd({
               ...newPermissionToAdd,
@@ -1048,7 +1058,7 @@ export function PermissionSelect({
           }} />
         </InformationDisplayCard>}
         {usedFlags.usesToMapping && <InformationDisplayCard title={'To'} md={12} xs={24} sm={24} subtitle={'Which recipients does this permission apply to?'}>
-
+          <br/>
           <div className='flex-center'>
             <AddressMappingSelect 
               addressMapping={newPermissionToAdd.toMapping} setAddressMapping={(x) => {
@@ -1060,7 +1070,7 @@ export function PermissionSelect({
             </div>
         </InformationDisplayCard>}
         {usedFlags.usesFromMapping && <InformationDisplayCard title={'From'} md={12} xs={24} sm={24} subtitle={'Which senders does this permission apply to?'}>
-          <div className='flex-center'>
+        <br/><div className='flex-center'>
             <AddressMappingSelect
               addressMapping={newPermissionToAdd.fromMapping} setAddressMapping={(x) => {
                 setNewPermissionToAdd({
@@ -1070,7 +1080,7 @@ export function PermissionSelect({
               }} /></div>
         </InformationDisplayCard>}
         {usedFlags.usesInitiatedByMapping && <InformationDisplayCard title={'Approved'} md={12} xs={24} sm={24} subtitle={'Which approved users does this permission apply to?'}>
-          <div className='flex-center'>
+        <br/> <div className='flex-center'>
             <AddressMappingSelect addressMapping={newPermissionToAdd.initiatedByMapping} setAddressMapping={(x) => {
               setNewPermissionToAdd({
                 ...newPermissionToAdd,
@@ -1080,7 +1090,7 @@ export function PermissionSelect({
         </InformationDisplayCard>}
 
         {usedFlags.usesAmountTrackerIdMapping && <InformationDisplayCard title={'Amount Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which amount tracker IDs does this permission apply to?'}>
-          <div className='flex-center'>
+        <br/><div className='flex-center'>
             <AddressMappingSelect
               isIdSelect
               addressMapping={newPermissionToAdd.amountTrackerIdMapping} setAddressMapping={(x) => {
@@ -1091,7 +1101,7 @@ export function PermissionSelect({
               }} /></div>
         </InformationDisplayCard>}
         {usedFlags.usesChallengeTrackerIdMapping && <InformationDisplayCard title={'Challenge Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which challenge tracker IDs does this permission apply to?'}>
-          <div className='flex-center'>
+        <br/><div className='flex-center'>
             <AddressMappingSelect
               isIdSelect
               addressMapping={newPermissionToAdd.challengeTrackerIdMapping} setAddressMapping={(x) => {
@@ -1105,9 +1115,19 @@ export function PermissionSelect({
       <Divider />
       <button className="landing-button"
         style={{ width: '100%' }}
+        disabled={
+          (usedFlags.usesBadgeIds && (!newPermissionToAdd.badgeIds || newPermissionToAdd.badgeIds.length === 0)) ||
+          (usedFlags.usesTimelineTimes && (!newPermissionToAdd.timelineTimes || newPermissionToAdd.timelineTimes.length === 0)) ||
+          (usedFlags.usesOwnershipTimes && (!newPermissionToAdd.ownershipTimes || newPermissionToAdd.ownershipTimes.length === 0)) ||
+          (usedFlags.usesTransferTimes && (!newPermissionToAdd.transferTimes || newPermissionToAdd.transferTimes.length === 0)) ||
+          (usedFlags.usesToMapping && (!newPermissionToAdd.toMapping || isAddressMappingEmpty(newPermissionToAdd.toMapping))) ||
+          (usedFlags.usesFromMapping && (!newPermissionToAdd.fromMapping || isAddressMappingEmpty(newPermissionToAdd.fromMapping))) ||
+          (usedFlags.usesInitiatedByMapping && (!newPermissionToAdd.initiatedByMapping || isAddressMappingEmpty(newPermissionToAdd.initiatedByMapping))) ||
+          (usedFlags.usesAmountTrackerIdMapping && (!newPermissionToAdd.amountTrackerIdMapping || isAddressMappingEmpty(newPermissionToAdd.amountTrackerIdMapping))) ||
+          (usedFlags.usesChallengeTrackerIdMapping && (!newPermissionToAdd.challengeTrackerIdMapping || isAddressMappingEmpty(newPermissionToAdd.challengeTrackerIdMapping))) ||
+          selectedTimes.length == 0
+        }
         onClick={() => {
-
-          console.log(newPermissionToAdd.challengeTrackerIdMapping);
           setValue([{
             badgeIds: usedFlags.usesBadgeIds ? newPermissionToAdd.badgeIds : undefined,
             timelineTimes: usedFlags.usesTimelineTimes ? newPermissionToAdd.timelineTimes : undefined,
@@ -1132,7 +1152,5 @@ export function PermissionSelect({
         }}>Add</button>
     </>
     }
-
-
   </>
 }

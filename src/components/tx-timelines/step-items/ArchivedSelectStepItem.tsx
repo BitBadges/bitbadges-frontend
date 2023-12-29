@@ -24,7 +24,6 @@ const ArchivedSwitch = ({
     checkedChildren="Archived"
     unCheckedChildren="Not Archived"
   />
-
 }
 
 export function IsArchivedSelectStepItem() {
@@ -43,17 +42,15 @@ export function IsArchivedSelectStepItem() {
     title: 'Archived Status',
     description: <>{'Is this collection archived (read-only)?'}</>,
     disabled: !!err,
-    node:
-      <UpdateSelectWrapper
+    node: () => <UpdateSelectWrapper
+        documentationLink="https://docs.bitbadges.io/overview/how-it-works/manager"
         err={err}
         setErr={(err) => { setErr(err) }}
         updateFlag={canArchiveCollection}
         setUpdateFlag={setCanArchiveCollection}
         jsonPropertyPath="isArchivedTimeline"
         permissionName='canArchiveCollection'
-        node={
-
-          <div>
+        node={() => <div>
             <div className='primary-text'
               style={{
                 padding: '0',
@@ -94,7 +91,7 @@ export function IsArchivedSelectStepItem() {
                     title: 'Archived (Read-Only)',
                     message: 'Moving forward, this collection will be archived and read-only. All transactions will fail until the collection is unarchived.',
                     isSelected: collection.isArchivedTimeline.length > 0 && !collection.isArchivedTimeline.every(x => !x.isArchived),
-                    additionalNode: <TimelineEditor
+                    additionalNode: () => <TimelineEditor
                       emptyValue="Not Archived"
                       timeline={collection.isArchivedTimeline}
                       timelineName="Archived Status"

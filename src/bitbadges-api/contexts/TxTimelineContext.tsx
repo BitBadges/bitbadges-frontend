@@ -1,7 +1,8 @@
 import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
-import { AddressMappingEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { AddressMappingEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, getReservedAddressMapping, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
+import { defaultApprovedOption } from '../../components/tx-timelines/step-items/DefaultToApprovedSelectStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressMappings } from '../api';
@@ -14,7 +15,7 @@ import { fetchCollectionsWithOptions, setCollection, updateCollection, useCollec
 export const EmptyStepItem = {
   title: '',
   description: '',
-  node: <></>,
+  node: () => <></> as ReactNode,
   doNotDisplay: true,
 }
 
@@ -377,8 +378,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
             canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
           },
-          autoApproveSelfInitiatedIncomingTransfers: false,
-          autoApproveSelfInitiatedOutgoingTransfers: false,
+          autoApproveSelfInitiatedIncomingTransfers: true,
+          autoApproveSelfInitiatedOutgoingTransfers: true,
           updateHistory: [],
         }, {
           _legacyId: "0:Mint",
@@ -394,12 +395,30 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
             canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
           },
-          autoApproveSelfInitiatedIncomingTransfers: false,
-          autoApproveSelfInitiatedOutgoingTransfers: false,
+          autoApproveSelfInitiatedIncomingTransfers: true,
+          autoApproveSelfInitiatedOutgoingTransfers: true,
           updateHistory: [],
         }],
         views: {},
-        collectionApprovals: [],
+        //By default, we add a 24 hour distribution approval for the connected address. Editable during the select step
+        collectionApprovals: [{
+          fromMappingId: 'Mint',
+          fromMapping: getReservedAddressMapping("Mint"),
+          toMappingId: "AllWithMint",
+          toMapping: getReservedAddressMapping("AllWithMint"),
+          initiatedByMappingId: chain.cosmosAddress,
+          initiatedByMapping: getReservedAddressMapping(chain.cosmosAddress),
+          transferTimes: [{ start: BigInt(Date.now()), end: BigInt(Date.now() + 60 * 60 * 24 * 1000) }],
+          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          approvalCriteria: {
+            overridesFromOutgoingApprovals: true,
+            overridesToIncomingApprovals: true,
+          },
+          approvalId: 'default-distribution-approval',
+          amountTrackerId: 'default-distribution-approval',
+          challengeTrackerId: 'default-distribution-approval',
+        }],
         badgeMetadataTimeline: [],
         // standardsTimeline: [{
         //   standards: ["BitBadges"],
@@ -426,7 +445,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         offChainBalancesMetadataTimeline: [],
         defaultBalances: {
           balances: [],
-          incomingApprovals: [],
+          incomingApprovals: deepCopy(defaultApprovedOption),
           outgoingApprovals: [],
           userPermissions: {
             canUpdateIncomingApprovals: [],
@@ -434,8 +453,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
             canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
           },
-          autoApproveSelfInitiatedIncomingTransfers: false,
-          autoApproveSelfInitiatedOutgoingTransfers: false,
+          autoApproveSelfInitiatedIncomingTransfers: true,
+          autoApproveSelfInitiatedOutgoingTransfers: true,
         },
         createdBy: '',
         createdBlock: 0n,
@@ -497,7 +516,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  distribution method');
-
+    setTransfers([]);
     if (simulatedCollection?.balancesType === "Off-Chain - Indexed") {
       setUpdateCollectionApprovals(false);
       updateCollection({
@@ -513,8 +532,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
             canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
           },
-          autoApproveSelfInitiatedIncomingTransfers: false,
-          autoApproveSelfInitiatedOutgoingTransfers: false,
+          autoApproveSelfInitiatedIncomingTransfers: true,
+          autoApproveSelfInitiatedOutgoingTransfers: true,
         },
       });
     } else if (simulatedCollection?.balancesType === "Standard") {
@@ -538,8 +557,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
             canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
           },
-          autoApproveSelfInitiatedIncomingTransfers: false,
-          autoApproveSelfInitiatedOutgoingTransfers: false,
+          autoApproveSelfInitiatedIncomingTransfers: true,
+          autoApproveSelfInitiatedOutgoingTransfers: true,
         },
         offChainBalancesMetadataTimeline: [],
       });

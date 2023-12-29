@@ -42,7 +42,7 @@ export function CanManagerBeTransferredStepItem() {
   }
 
   const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateManager ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection));
-  const AdditionalNode = <>
+  const AdditionalNode = () => <>
     <div className="flex-center">
       <PermissionsOverview
         span={24}
@@ -58,13 +58,13 @@ export function CanManagerBeTransferredStepItem() {
   return {
     title: 'Transfer manager role?',
     description: `Can the manager role be updated to another address in the future?`,
-    node: <PermissionUpdateSelectWrapper
+    node: () => <PermissionUpdateSelectWrapper
       checked={checked}
       setChecked={setChecked}
       err={err}
       setErr={setErr}
       permissionName="canUpdateManager"
-      node={<>
+      node={() => <>
         <SwitchForm
           showCustomOption
           options={[

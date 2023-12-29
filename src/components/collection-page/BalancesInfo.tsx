@@ -113,16 +113,18 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         ></Empty>
       </>}
       {
-        currBalances && !isPreview && <div>
+        currBalances && !isPreview && <><div>
           <BalanceDisplay
             hideMessage
             collectionId={collectionId}
             balances={balancesToShow}
           />
 
-        </div>
+        </div><br/>
+        </>
 
       }
+      
       {!!setTab && collection.balancesType !== "Off-Chain - Non-Indexed" && <>
         <span className='secondary-text'>Head over to the <a
           onClick={() => { setTab('transferability') }}

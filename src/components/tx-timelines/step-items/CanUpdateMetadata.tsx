@@ -1,17 +1,16 @@
 import { UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BalancesActionPermissionUsedFlags, BitBadgesCollection, MetadataAddMethod, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castBalancesActionPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, invertUintRanges, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
-import { useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getTotalNumberOfBadges } from "../../../bitbadges-api/utils/badges";
-import { INFINITE_LOOP_MODE } from "../../../constants";
+import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
-import { neverHasManager } from "../../../bitbadges-api/utils/manager";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { isCompletelyForbidden, isCompletelyNeutralOrCompletelyPermitted } from "./CanUpdateOffChainBalancesStepItem";
 
 export const getBadgesWithLockedSupply = (collection: BitBadgesCollection<bigint>, startingCollection: BitBadgesCollection<bigint> | undefined, currentCollection = false) => {
   const collectionToCheck = currentCollection ? collection : startingCollection;
@@ -44,25 +43,11 @@ export function UpdatableMetadataSelectStepItem(
   const addMethod = collectionMetadataUpdate ? txTimelineContext.collectionAddMethod : txTimelineContext.badgeAddMethod;
 
   const [err, setErr] = useState<Error | null>(null);
-  const [lastClickedIdx, setLastClickedIdx] = useState<number>(-1); //Note this is the user clicked idx. The highlighted idx is the idx of the permission that is currently selected. These may be mismatched
   const maxBadgeId = collection ? getTotalNumberOfBadges(collection) : 0n;
-  const [lastClickedFrozen, setLastClickedFrozen] = useState<boolean>(false);
 
   const badgeIdsWithLockedSupply = getBadgesWithLockedSupply(deepCopy(collection) as BitBadgesCollection<bigint>, undefined, true); //Get badge IDs that will have locked supply moving forward
   const badgeIdsToLockMetadata = sortUintRangesAndMergeIfNecessary([{ start: 1n, end: maxBadgeId }, ...badgeIdsWithLockedSupply], true);
 
-  //This useEffect is used for updating the selected values when the approvals change behind the scenes (i.e. not on this step).
-  //Since we depend on maxBadgeId and lockedBadges, we need to update the lastClickedIdx when these change (even if in other steps)
-  //Since they are not on this step, we use their latest selected values
-  //This useEffect is only used when the user is not on this step.
-  //Anything on this step is handled via other onClicks
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('UpdatableMetadataSelectStepItem useEffect');
-    if (lastClickedIdx !== -1 && !collectionMetadataUpdate) {
-      handleSwitchChange(lastClickedIdx, lastClickedFrozen);
-    }
-  }, [maxBadgeId, collectionMetadataUpdate, collection?.collectionPermissions.canCreateMoreBadges]);
-  //
   if (!collection) return EmptyStepItem;
   const permissionDetails = collectionMetadataUpdate ?
     getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateCollectionMetadata ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection)) :
@@ -81,30 +66,33 @@ export function UpdatableMetadataSelectStepItem(
         permissionName={collectionMetadataUpdate ? 'canUpdateCollectionMetadata' : 'canUpdateBadgeMetadata'}
         onFreezePermitted={noOption ? undefined : (frozen: boolean) => {
           handleSwitchChange(1, frozen);
-          setLastClickedFrozen(frozen);
         }}
       />
     </div>
   }
 
-  const options = [];
+  const options: {
+    title: string,
+    message: string | ReactNode,
+    isSelected: boolean,
+    additionalNode?: () => ReactNode,
+  }[] = [];
   options.push({
     title: 'No',
     message: `${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs for the metadata (i.e. the self-hosted ones provided by you)' : 'The metadata'} will be frozen and cannot be updated after this transaction.`,
     isSelected: isCompletelyForbidden(permissionDetails),
-    additionalNode: <AdditionalNode noOption />
+    additionalNode: () => <AdditionalNode noOption />
   })
 
   options.push({
     title: 'Yes',
     message: <div>{`${addMethod === MetadataAddMethod.UploadUrl ? 'The URIs (i.e. the self-hosted URIs provided by you)' : 'The metadata'} can be updated.
     `}</div>,
-    additionalNode: <AdditionalNode />,
+    additionalNode: () => <AdditionalNode />,
     isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
   });
 
   const handleSwitchChangeIdxOnly = (idx: number) => {
-    setLastClickedIdx(idx);
     handleSwitchChange(idx);
   }
 
@@ -190,13 +178,13 @@ export function UpdatableMetadataSelectStepItem(
   return {
     title: collectionMetadataUpdate ? 'Update collection metadata?' : 'Updatable badge metadata?',
     description: description,
-    node: <PermissionUpdateSelectWrapper
+    node: () => <PermissionUpdateSelectWrapper
       checked={checked}
       setChecked={setChecked}
       err={err}
       setErr={setErr}
       permissionName={collectionMetadataUpdate ? 'canUpdateCollectionMetadata' : 'canUpdateBadgeMetadata'}
-      node={<>
+      node={() => <>
         <SwitchForm
           options={options}
           showCustomOption

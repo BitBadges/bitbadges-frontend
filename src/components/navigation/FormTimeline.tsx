@@ -6,7 +6,7 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
 export interface TimelineItem {
   disabled?: boolean;
-  node: ReactNode;
+  node: () => ReactNode;
   title: string | ReactNode;
   description: string | ReactNode;
   doNotDisplay?: boolean;
@@ -118,7 +118,7 @@ export function FormTimeline({
 
       {getTitleElem(filteredItems[formStepNum - 1].title)}
       {getTitleDescription(filteredItems[formStepNum - 1].description)}
-      {filteredItems[formStepNum - 1].node}
+      {filteredItems[formStepNum - 1].node()}
 
     </div>
   );

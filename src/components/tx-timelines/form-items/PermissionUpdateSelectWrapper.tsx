@@ -1,4 +1,4 @@
-import { AuditOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
+import { AuditOutlined, BookOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
 import { Divider, Switch } from 'antd';
 import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
 import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovalPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
@@ -23,13 +23,15 @@ export function PermissionUpdateSelectWrapper({
   setErr,
   permissionName,
   node,
+  documentationLink
 }: {
   checked: boolean,
   setChecked: (checked: boolean) => void,
   err: Error | null,
   setErr: (err: Error | null) => void,
   permissionName: string,
-  node: JSX.Element,
+  node: () => JSX.Element,
+  documentationLink?: string
 }) {
 
   const txTimelineContext = useTxTimelineContext();
@@ -124,12 +126,12 @@ export function PermissionUpdateSelectWrapper({
 
   return (
     <>
-      <div className='primary-text flex-center flex-column' >
+      <div className='primary-text flex-center flex-column'>
         <div style={{ alignItems: 'center', }} className='flex-center'>
           {checked && !!existingCollectionId &&
             <IconButton
               src={showBeforeAndAfter ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
-              text={showBeforeAndAfter ? 'Hide' : 'Before/After'}
+              text={showBeforeAndAfter ? 'Hide' : 'Changes'}
               tooltipMessage={showBeforeAndAfter ? 'Hide before and after' : 'Show before and after'}
               onClick={() => {
                 setShowBeforeAndAfter(!showBeforeAndAfter);
@@ -153,7 +155,7 @@ export function PermissionUpdateSelectWrapper({
                 setCustomJson(false);
               }}
             />}
-          {checked && false &&
+          {checked &&
             <IconButton
               src={<FormOutlined style={{ fontSize: 16 }} />}
               text={formView ? 'Advanced' : 'Normal'}
@@ -190,6 +192,15 @@ export function PermissionUpdateSelectWrapper({
                 }
               }}
             />}
+             <IconButton
+              src={<BookOutlined style={{ fontSize: 16 }} />}
+              style={{ cursor: 'pointer' }}
+              tooltipMessage={'Visit the BitBadges documentation to learn more about this concept.'}
+              text={'Docs'}
+              onClick={() => {
+                window.open(documentationLink ?? `https://docs.bitbadges.io/overview/how-it-works/manager`, '_blank');
+              }}
+            />
         </div>
 
         {!isMint &&
@@ -226,7 +237,7 @@ export function PermissionUpdateSelectWrapper({
                   ${!existingCollectionId && permissionName != 'canUpdateManager' ? ' For new collections, this means the value will be empty or unset.' : ''}
                   ${!existingCollectionId && permissionName == 'canUpdateManager' ? ' For new collections, this means the manager will be set to your address by default.' : ''}`,
                 isSelected: true,
-                additionalNode: <>
+                additionalNode: () => <>
                   <PermissionsOverview
                     collectionId={NEW_COLLECTION_ID}
                     permissionName={permissionName}
@@ -270,11 +281,12 @@ export function PermissionUpdateSelectWrapper({
             </div></>}
         <br />
 
-        {formView && node}
+        {formView && node()}
         {!formView && <PermissionSelect
           collectionId={NEW_COLLECTION_ID}
 
-          permissionName={permissionName} value={currPermissions}
+          permissionName={permissionName} 
+          value={currPermissions}
           setValue={(value) => {
             if (collection) {
               updateCollection({
@@ -285,7 +297,8 @@ export function PermissionUpdateSelectWrapper({
                 }
               });
             }
-          }} />}
+          }}
+        />}
       </>}
 
     </>

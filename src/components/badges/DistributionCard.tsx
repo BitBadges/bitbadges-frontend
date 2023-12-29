@@ -27,7 +27,7 @@ export function DistributionOverview({
   xxl,
   hideTitle,
   noBorder,
-  inheritBg
+  inheritBg,
 }: {
   collectionId: bigint
   span?: number
@@ -119,7 +119,7 @@ export function DistributionOverview({
         </div>
         <br/>
       </>}
-      {collection && !isNonIndexed && <><TableRow label={
+      {collection && !isNonIndexed && totalSupplyBalance.length > 0 && <><TableRow label={
         collection.defaultBalances.balances.length > 0 ? "Created" : "Circulating (Total Supply)"
       } value={
         <div style={{ float: 'right' }}>
@@ -133,7 +133,7 @@ export function DistributionOverview({
           />
         </div>
       } labelSpan={8} valueSpan={16} />
-      {collection.defaultBalances.balances.length > 0 && <>
+      {(collection.defaultBalances.balances.length > 0 && totalSupplyBalance.length > 0) && <>
         <div className="secondary-text">
           <InfoCircleOutlined /> In addition to the default balances, badges can be created and distributed.
           </div>

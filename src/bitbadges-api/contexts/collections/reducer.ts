@@ -211,12 +211,11 @@ export const pruneMetadataToFetch = (cachedCollection: BitBadgesCollection<bigin
 const updateCollection = (state = initialState, newCollection: BitBadgesCollection<DesiredNumberType>, isUpdate: boolean) => {
   const collections = state.collections;
   const currCollectionState = collections[`${newCollection.collectionId}`];
+  if (newCollection.collectionId === undefined) throw new Error('Collection ID not provided');
 
   let cachedCollection = currCollectionState ? deepCopy(convertBitBadgesCollection(currCollectionState, BigIntify)) : undefined;
 
-
   const cachedCollectionCopy = deepCopy(cachedCollection);
-
 
   if (cachedCollection) {
 
@@ -249,16 +248,12 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
 
     //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
     cachedCollection = {
-      ...cachedCollection,
+      
+      ...currCollectionState as BitBadgesCollection<DesiredNumberType>,
       ...newCollection,
       cachedCollectionMetadata: !isUpdate ? newCollection.cachedCollectionMetadata : newCollection.cachedCollectionMetadata || cachedCollection?.cachedCollectionMetadata,
       cachedBadgeMetadata: newBadgeMetadata,
-      reviews: [...(newCollection?.reviews || []), ...(cachedCollection.reviews || [])],
-      announcements: [...(newCollection?.announcements || []), ...(cachedCollection.announcements || [])],
-      activity: [...(newCollection?.activity || []), ...(cachedCollection.activity || [])],
-      owners: [...(newCollection?.owners || []), ...(cachedCollection.owners || [])],
-      merkleChallenges: [...(newCollection?.merkleChallenges || []), ...(cachedCollection.merkleChallenges || [])],
-      approvalsTrackers: [...(newCollection?.approvalsTrackers || []), ...(cachedCollection.approvalsTrackers || [])],
+      
       views: newViews,
     };
 
@@ -273,19 +268,39 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
       }
     }
 
-    //Filter duplicates (but prioritize the new ones)
-    cachedCollection.reviews = cachedCollection.reviews.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    cachedCollection.announcements = cachedCollection.announcements.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    cachedCollection.activity = cachedCollection.activity.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    if ((newCollection.reviews?.length ?? 0) > 0 && !compareObjects(newCollection.reviews, cachedCollection.reviews)) {
+      cachedCollection.reviews = [...(newCollection?.reviews || []), ...(cachedCollection.reviews || [])];
+      cachedCollection.reviews = cachedCollection.reviews.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
+      cachedCollection.reviews = cachedCollection.reviews.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    }
 
-    //Sort activity, history etc
-    cachedCollection.activity = cachedCollection.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
-    cachedCollection.reviews = cachedCollection.reviews.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
-    cachedCollection.announcements = cachedCollection.announcements.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
-    cachedCollection.updateHistory = cachedCollection.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? -1 : 1)
+    if ((newCollection.announcements?.length ?? 0) > 0 && !compareObjects(newCollection.announcements, cachedCollection.announcements)) {
+      cachedCollection.announcements = [...(newCollection?.announcements || []), ...(cachedCollection.announcements || [])];
+      cachedCollection.announcements = cachedCollection.announcements.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
+      cachedCollection.announcements = cachedCollection.announcements.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    }
+
+    if ((newCollection.activity?.length ?? 0) > 0 && !compareObjects(newCollection.activity, cachedCollection.activity)) {
+      cachedCollection.activity = [...(newCollection?.activity || []), ...(cachedCollection.activity || [])];
+      cachedCollection.activity = cachedCollection.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
+      cachedCollection.activity = cachedCollection.activity.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    }
+
+    if ((newCollection.owners?.length ?? 0) > 0 && !compareObjects(newCollection.owners, cachedCollection.owners)) {
+      cachedCollection.owners = [...(newCollection?.owners || []), ...(cachedCollection.owners || [])];
+      cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    }
+
+    if ((newCollection.merkleChallenges?.length ?? 0) > 0 && !compareObjects(newCollection.merkleChallenges, cachedCollection.merkleChallenges)) {
+      cachedCollection.merkleChallenges = [...(newCollection?.merkleChallenges || []), ...(cachedCollection.merkleChallenges || [])];
+      cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    }
+
+    if ((newCollection.approvalsTrackers?.length ?? 0) > 0 && !compareObjects(newCollection.approvalsTrackers, cachedCollection.approvalsTrackers)) {
+      cachedCollection.approvalsTrackers = [...(newCollection?.approvalsTrackers || []), ...(cachedCollection.approvalsTrackers || [])];
+      cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
+    }
+
 
     //Only update if anything has changed
     if (!compareObjects(cachedCollectionCopy, cachedCollection)) {
@@ -301,7 +316,7 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
     return state;
 
   } else {
-    return { ...state, collections: { ...collections, [`${newCollection.collectionId}`]: newCollection } };
+    return { ...state, collections: { ...collections, [`${newCollection.collectionId}`]: newCollection } }
   }
 }
 
@@ -634,14 +649,14 @@ export const collectionReducer = (state = initialState, action: { type: string; 
       return updateCollection(state, newCollection, false);
     case 'UPDATE_COLLECTIONS':
       const currCollection = state.collections[`${action.payload.newCollection.collectionId}`];
-      const onlyUpdateProvidedFields = !!currCollection;
+      const hasExisting = !!currCollection;
 
-      if (!onlyUpdateProvidedFields) {
+      if (!hasExisting) {
         const newCollection = action.payload.newCollection as BitBadgesCollection<DesiredNumberType>;
         return updateCollection(state, newCollection, false);
       }
 
-      if (currCollection && onlyUpdateProvidedFields) {
+      if (currCollection && hasExisting) {
         const newCollection = {
           ...currCollection,
           ...action.payload.newCollection,

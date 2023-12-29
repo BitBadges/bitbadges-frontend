@@ -47,7 +47,7 @@ export function SubmitMsgCreateAddressMapping() {
     }
   }, [])
 
-  const ListIDInput = <><div style={{}} >
+  const ListIDInput = () => <><div style={{}} >
     <Typography.Text strong style={{ fontSize: 18 }} className='primary-text'>List ID</Typography.Text>
   </div>
     <Input
@@ -78,11 +78,126 @@ export function SubmitMsgCreateAddressMapping() {
             message: <div>{`We handle the storage for you! We will store your list info on our centralized servers and IPFS. This is completely free!  `}
             </div>,
             isSelected: clicked && !onChainStorage,
-            additionalNode: ListIDInput
+            additionalNode: ()=> <>
+              <>{ListIDInput()}</>
+              {<>
+                {clicked && !onChainStorage &&
+                  <>{!isUpdateAddressMapping && <Divider />}
+                    <div className='flex-center full-width'>
+                      <InformationDisplayCard md={24} xs={24} sm={24} title='Additional Options' subtitle='These options are only applicable to off-chain lists.'>
+                        <TableRow label='Public?' value={<Switch
+                          checked={!privateMode}
+                          checkedChildren="Public"
+                          unCheckedChildren="Private"
+                          onChange={(checked) => {
+                            setPrivateMode(!checked);
+                          }}
+                        />}
+                          labelSpan={12}
+                          valueSpan={12}
+                        />
+                        <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                          <InfoCircleOutlined /> {privateMode ? 'Only you will be able to see the list.' : 'The list will be public and will show up in search results.'}
+                        </div>
+                        <TableRow label='Survey Mode?' value={<Switch
+                          checked={editKeys.length > 0}
+                          checkedChildren="Survey Mode"
+                          unCheckedChildren="Admin Mode"
+                          onChange={(checked) => {
+                            setEditKeys(checked ? [{
+                              key: crypto.randomBytes(32).toString('hex'),
+                              expirationDate: GO_MAX_UINT_64,
+                              mustSignIn: false,
+                            }] : []);
+                          }}
+                        />}
+                          labelSpan={12}
+                          valueSpan={12}
+                        />
+                        <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                          <InfoCircleOutlined /> {editKeys.length > 0 ? 'You can update and delete, but also, others can add to the list, according to the criteria specified.' : 'Only you will be able to update and delete the list.'}
+                        </div>
+          
+                        {editKeys.length > 0 && <>
+                          <TableRow label='Require sign in?' value={<Switch
+                            checked={editKeys[0].mustSignIn}
+                            checkedChildren="Require Sign In"
+                            unCheckedChildren="No Sign In Required"
+                            onChange={(checked) => {
+                              setEditKeys([{
+                                ...editKeys[0],
+                                mustSignIn: checked,
+                              }]);
+                            }}
+                          />}
+                            labelSpan={12}
+                            valueSpan={12}
+                          />
+                          <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                            <InfoCircleOutlined /> Users must sign in to add to the list, and they can only add the address they signed in with.
+                            This means users are expected to have their crypto wallets ready to sign.
+                          </div>
+                          <TableRow label='Expiration?' value={<>
+                            <Switch checked={editKeys[0].expirationDate === GO_MAX_UINT_64}
+                              checkedChildren="Never"
+                              unCheckedChildren="Set Expiration"
+                              onChange={(checked) => {
+                                if (checked) {
+                                  setEditKeys([{
+                                    ...editKeys[0],
+                                    expirationDate: GO_MAX_UINT_64,
+                                  }]);
+                                } else {
+                                  setEditKeys([{
+                                    ...editKeys[0],
+                                    expirationDate: BigInt(Date.now() + 1000 * 60 * 60 * 24 * 7) // 7 days
+                                  }]);
+                                }
+                              }}
+                            />
+                          </>}
+                            labelSpan={12}
+                            valueSpan={12}
+                          />
+                          <div className='flex-between' style={{ marginLeft: 10, marginTop: 6 }}>
+                            <div className='primary-text inherit-bg full-width'>
+          
+          
+                              {!editKeys[0].expirationDate || editKeys[0].expirationDate !== GO_MAX_UINT_64 && <>
+          
+                                <DatePicker
+                                  showMinute
+                                  showTime
+                                  allowClear={false}
+                                  placeholder='Start'
+                                  value={editKeys[0].expirationDate ? moment(new Date(Number(editKeys[0].expirationDate))) : null}
+                                  className='primary-text inherit-bg full-width'
+                                  onChange={(_date, dateString) => {
+                                    setEditKeys([{
+                                      ...editKeys[0],
+                                      expirationDate: dateString ? BigInt(new Date(dateString).getTime()) : 0n,
+                                    }]);
+                                  }}
+                                />
+                              </>
+                              }
+                            </div>
+          
+                          </div>
+                          <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                            <InfoCircleOutlined /> Users can only add to the list until the expiration date (if set).
+                          </div>
+                        </>}
+                      </InformationDisplayCard>
+                    </div></>}
+              </>}
+            </>
           },
           {
             title: 'On-Chain',
-            message: `The address list will be stored on-chain. This will cost a transaction fee to store it. The list will be permanently frozen, meaning it can never be updated or deleted.`,
+            message: <>
+              The address list will be stored on-chain. This will cost a transaction fee to store it. <span style={{color: 'orange', fontWeight: 'bolder' }}>The list will be permanently frozen, meaning it can never be updated or deleted.</span>
+            </>,
             isSelected: clicked && onChainStorage,
             additionalNode: ListIDInput
           },
@@ -100,119 +215,7 @@ export function SubmitMsgCreateAddressMapping() {
 
     </>
     }
-    {<>
-      {clicked && !onChainStorage &&
-        <>{!isUpdateAddressMapping && <Divider />}
-          <div className='flex-center'>
-            <InformationDisplayCard md={12} xs={24} sm={24} title='Additional Options' subtitle='These options are only applicable to off-chain lists.'>
-              <TableRow label='Public?' value={<Switch
-                checked={!privateMode}
-                checkedChildren="Public"
-                unCheckedChildren="Private"
-                onChange={(checked) => {
-                  setPrivateMode(!checked);
-                }}
-              />}
-                labelSpan={12}
-                valueSpan={12}
-              />
-              <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
-                <InfoCircleOutlined /> {privateMode ? 'Only you will be able to see the list.' : 'The list will be public and will show up in search results.'}
-              </div>
-              <TableRow label='Survey Mode?' value={<Switch
-                checked={editKeys.length > 0}
-                checkedChildren="Survey Mode"
-                unCheckedChildren="Admin Mode"
-                onChange={(checked) => {
-                  setEditKeys(checked ? [{
-                    key: crypto.randomBytes(32).toString('hex'),
-                    expirationDate: GO_MAX_UINT_64,
-                    mustSignIn: false,
-                  }] : []);
-                }}
-              />}
-                labelSpan={12}
-                valueSpan={12}
-              />
-              <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
-                <InfoCircleOutlined /> {editKeys.length > 0 ? 'You can update and delete, but also, others can add to the list, according to the criteria specified.' : 'Only you will be able to update and delete the list.'}
-              </div>
-
-              {editKeys.length > 0 && <>
-                <TableRow label='Require sign in?' value={<Switch
-                  checked={editKeys[0].mustSignIn}
-                  checkedChildren="Require Sign In"
-                  unCheckedChildren="No Sign In Required"
-                  onChange={(checked) => {
-                    setEditKeys([{
-                      ...editKeys[0],
-                      mustSignIn: checked,
-                    }]);
-                  }}
-                />}
-                  labelSpan={12}
-                  valueSpan={12}
-                />
-                <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
-                  <InfoCircleOutlined /> Users must sign in to add to the list, and they can only add the address they signed in with.
-                  This means users are expected to have their crypto wallets ready to sign.
-                </div>
-                <TableRow label='Expiration?' value={<>
-                  <Switch checked={editKeys[0].expirationDate === GO_MAX_UINT_64}
-                    checkedChildren="Never"
-                    unCheckedChildren="Set Expiration"
-                    onChange={(checked) => {
-                      if (checked) {
-                        setEditKeys([{
-                          ...editKeys[0],
-                          expirationDate: GO_MAX_UINT_64,
-                        }]);
-                      } else {
-                        setEditKeys([{
-                          ...editKeys[0],
-                          expirationDate: BigInt(Date.now() + 1000 * 60 * 60 * 24 * 7) // 7 days
-                        }]);
-                      }
-                    }}
-                  />
-                </>}
-                  labelSpan={12}
-                  valueSpan={12}
-                />
-                <div className='flex-between' style={{ marginLeft: 10, marginTop: 6 }}>
-                  <div className='primary-text inherit-bg full-width'>
-
-
-                    {!editKeys[0].expirationDate || editKeys[0].expirationDate !== GO_MAX_UINT_64 && <>
-
-                      <DatePicker
-                        showMinute
-                        showTime
-                        allowClear={false}
-                        placeholder='Start'
-                        value={editKeys[0].expirationDate ? moment(new Date(Number(editKeys[0].expirationDate))) : null}
-                        className='primary-text inherit-bg full-width'
-                        onChange={(_date, dateString) => {
-                          setEditKeys([{
-                            ...editKeys[0],
-                            expirationDate: dateString ? BigInt(new Date(dateString).getTime()) : 0n,
-                          }]);
-                        }}
-                      />
-                    </>
-                    }
-                  </div>
-
-                </div>
-                <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
-                  <InfoCircleOutlined /> Users can only add to the list until the expiration date (if set).
-                </div>
-              </>}
-            </InformationDisplayCard>
-          </div></>}
-
-      <Divider />
-    </>}
+    
     < br />
     <button
       className='landing-button'

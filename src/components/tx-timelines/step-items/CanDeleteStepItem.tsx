@@ -38,7 +38,7 @@ export function CanDeleteStepItem() {
       }
     });
   }
-  const AdditionalNode = <>
+  const AdditionalNode = () => <>
     <div className="flex-center">
       <PermissionsOverview
         span={24}
@@ -54,13 +54,13 @@ export function CanDeleteStepItem() {
   return {
     title: 'Can Delete?',
     description: `Can the collection be deleted?`,
-    node: <PermissionUpdateSelectWrapper
+    node: () => <PermissionUpdateSelectWrapper
       checked={checked}
       setChecked={setChecked}
       err={err}
       setErr={setErr}
       permissionName="canDeleteCollection"
-      node={<>
+      node={() => <>
 
         <SwitchForm
           showCustomOption
@@ -73,7 +73,7 @@ export function CanDeleteStepItem() {
             },
             {
               title: 'Yes',
-              message: `The collection can be deleted by the manager.`,
+              message: `The collection can be deleted by the manager. We recommend this option, in case anything goes wrong.`,
               isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
               additionalNode: AdditionalNode
             },

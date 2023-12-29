@@ -1,5 +1,5 @@
 import { BadgeMetadataTimeline, CollectionApproval, MsgUniversalUpdateCollection } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, getFirstMatchForBadgeMetadata } from 'bitbadgesjs-utils';
+import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission, convertToCosmosAddress, getFirstMatchForBadgeMetadata, getTransfersFromTransfersWithIncrements } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { useMemo } from 'react';
 import { addApprovalDetailsToOffChainStorage, addMetadataToIpfs } from '../../bitbadges-api/api';
@@ -21,7 +21,8 @@ import { createBalancesMapAndAddToStorage } from './UpdateBalancesModal';
 export function CreateTxMsgUniversalUpdateCollectionModal(
   { visible, setVisible, children,
     MsgUniversalUpdateCollection, afterTxParam,
-    isBitBadgesFollowProtocol
+    isBitBadgesFollowProtocol,
+    isExperiencesProtocol
 
   }
     : {
@@ -31,6 +32,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
       MsgUniversalUpdateCollection?: MsgUniversalUpdateCollection<bigint>,
       afterTxParam?: (collectionId: bigint) => Promise<void>
       isBitBadgesFollowProtocol?: boolean,
+      isExperiencesProtocol?: boolean,
     }) {
   const chain = useChainContext();
   const router = useRouter();
@@ -319,10 +321,6 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
     return offChainBalancesMetadataTimeline;
   }
 
-  
-
-  
-
     const beforeTx = async (simulate: boolean) => {
 
       if (!MsgUniversalUpdateCollection) {
@@ -351,7 +349,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
 
           if (collectionId && collectionId > 0n) {
             await fetchCollections([collectionId], true);
-            router.push(`/collections/${collectionId}`);
+            await router.push(`/collections/${collectionId}`);
           } else {
             //navigating to a new collection page is handled in TxModal bc we need nextCollectionId
           }
@@ -375,8 +373,39 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
     );
     }
 
+    if (isExperiencesProtocol) {
+      txsInfo.push(
+        {
+          type: 'MsgSetCollectionForProtocol',
+          msg: {
+            creator: chain.cosmosAddress,
+            name: 'Experiences Protocol',
+            collectionId: 0n, //tells it to get the previously created collection ID
+          },
+        }
+      );
+    }
+
+    if (txTimelineContext.transfers.length > 0 && collection?.balancesType === 'Standard') {
+      txsInfo.push({
+        type: 'MsgTransferBadges',
+        msg: {
+          creator: chain.cosmosAddress,
+          collectionId: collectionId,
+          transfers: getTransfersFromTransfersWithIncrements(txTimelineContext.transfers).map(x => {
+            return {
+              ...x,
+              toAddresses: x.toAddresses.map(y => convertToCosmosAddress(y))
+            }
+          })
+        },
+      });
+    }
+
+    console.log("TXS INFO", txsInfo);
+
     return txsInfo;
-  }, [MsgUniversalUpdateCollection, collectionId, txTimelineContext, collection, chain.cosmosAddress, router, afterTxParam, isBitBadgesFollowProtocol]);
+  }, [MsgUniversalUpdateCollection, isExperiencesProtocol, collectionId, txTimelineContext, collection, chain.cosmosAddress, router, afterTxParam, isBitBadgesFollowProtocol]);
 
   return (
     <TxModal
