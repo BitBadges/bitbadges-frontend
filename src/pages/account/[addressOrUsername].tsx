@@ -23,6 +23,7 @@ import {
   AccountViewKey,
   AddressMappingWithMetadata,
   Numberify,
+  getMaxBadgeIdForCollection,
   getMetadataForBadgeId,
   isFullUintRanges,
   removeUintRangeFromUintRange,
@@ -58,16 +59,15 @@ import {
   fetchBalanceForUser,
   getCollection,
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
 import { AddressListCard } from "../../components/badges/AddressListCard"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay"
 import { BlockinDisplay } from "../../components/blockin/BlockinDisplay"
 import { AccountButtonDisplay } from "../../components/button-displays/AccountButtonDisplay"
+import { ListActivityTab } from "../../components/collection-page/ListActivityDisplay"
 import { ReputationTab } from "../../components/collection-page/ReputationTab"
 import { ActivityTab } from "../../components/collection-page/TransferActivityDisplay"
 import { DevMode } from "../../components/common/DevMode"
-import { FollowProtocolDisplay } from "../../components/display/FollowProtocol"
 import IconButton from "../../components/display/IconButton"
 import { InformationDisplayCard } from "../../components/display/InformationDisplayCard"
 import { SearchDropdown } from "../../components/navigation/SearchDropdown"
@@ -76,7 +76,6 @@ import { ReportedWrapper } from "../../components/wrappers/ReportedWrapper"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
-import { ListActivityTab } from "../../components/collection-page/ListActivityDisplay"
 
 const mdParser = new MarkdownIt(/* Markdown-it options */)
 
@@ -1110,14 +1109,14 @@ function PortfolioPage() {
   if (accountInfo?.readme) {
     tabInfo.push({ key: "overview", content: "Overview", disabled: false })
   }
-  const isAliasAccount = !!accountInfo?.alias
+  // const isAliasAccount = !!accountInfo?.alias
 
   tabInfo.push(
     { key: "collected", content: "Badges", disabled: false },
     { key: "lists", content: "Lists" },
     { key: "activity", content: "Activity", disabled: false },
     { key: "reputation", content: "Reviews" },
-    !isAliasAccount ? { key: "protocols", content: "Protocols" } : undefined
+    // !isAliasAccount ? { key: "protocols", content: "Protocols" } : undefined
   )
 
   const badgePageTabInfo = [
@@ -1574,13 +1573,13 @@ function PortfolioPage() {
                 </>
               )}
 
-              {tab === "protocols" && (
+              {/* {tab === "protocols" && (
                 <>
                   <FollowProtocolDisplay
                     addressOrUsername={accountInfo.address}
                   />
                 </>
-              )}
+              )} */}
 
               {/* Tab Content */}
               {tab === "collected" && (

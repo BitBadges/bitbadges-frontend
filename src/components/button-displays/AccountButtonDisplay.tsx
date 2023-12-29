@@ -5,24 +5,18 @@ import {
   LinkOutlined,
   SettingOutlined,
   ShareAltOutlined,
-  TwitterOutlined,
-  UserAddOutlined,
-  UserDeleteOutlined
+  TwitterOutlined
 } from '@ant-design/icons';
-import { Avatar, Col, Layout, Spin, Tooltip, message, notification } from 'antd';
-import { GetFollowDetailsRouteSuccessResponse, SupportedChain, getBalanceForIdAndTime } from 'bitbadgesjs-utils';
+import { Avatar, Col, Layout, Tooltip, message, notification } from 'antd';
+import { SupportedChain } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
-import { useEffect, useState } from 'react';
-import { getFollowDetails } from '../../bitbadges-api/api';
+import { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { fetchBalanceForUser } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { ReportModal } from '../tx-modals/ReportModal';
-import { removeBalancesFromExistingBalancesMapAndAddToStorage, setTransfersForExistingBalancesMapAndAddToStorage } from '../tx-modals/UpdateBalancesModal';
 
 const { Content } = Layout;
 
@@ -58,7 +52,7 @@ export function AccountButtonDisplay({
   const chain = useChainContext();
   const router = useRouter();
   const accountInfo = useAccount(addressOrUsername);
-  const signedInAccountInfo = useAccount(chain.address);
+  // const signedInAccountInfo = useAccount(chain.address);
 
   const [reportIsVisible, setReportIsVisible] = useState(false);
 
@@ -79,84 +73,85 @@ export function AccountButtonDisplay({
   const githubLink = 'https://github.com/' + accountInfo?.github;
   const stargazeLink = `https://www.stargaze.zone/p/${address?.replace('cosmos', 'stars')}/tokens`
 
-  const [loading, setLoading] = useState(false);
-  const [followDetails, setFollowDetails] = useState<GetFollowDetailsRouteSuccessResponse<bigint>>();
-  const [following, setFollowing] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  // const [followDetails, setFollowDetails] = useState<GetFollowDetailsRouteSuccessResponse<bigint>>();
+  // const [following, setFollowing] = useState(false);
   const isAliasAccount = !!accountInfo?.alias;
 
-  useEffect(() => {
-    if (!signedInAccountInfo?.cosmosAddress) return;
-    getFollowDetails({ cosmosAddress: signedInAccountInfo.cosmosAddress }).then(setFollowDetails);
-  }, [signedInAccountInfo?.cosmosAddress]);
+  // useEffect(() => {
+  //   if (!signedInAccountInfo?.cosmosAddress) return;
+  //   getFollowDetails({ cosmosAddress: signedInAccountInfo.cosmosAddress }).then(setFollowDetails);
+  // }, [signedInAccountInfo?.cosmosAddress]);
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    async function checkFollowing() {
-      if (!accountInfo?.cosmosAddress || !followDetails || followDetails.followingCollectionId <= 0 || hideButtons) return;
-      const balanceDoc = await fetchBalanceForUser(followDetails.followingCollectionId, accountInfo.cosmosAddress);
-      if (getBalanceForIdAndTime(1n, BigInt(Date.now()), balanceDoc.balances) > 0n) {
-        setFollowing(true);
-      }
-    }
-    checkFollowing();
-  }, [followDetails, accountInfo?.cosmosAddress, hideButtons]);
+  //   async function checkFollowing() {
+  //     if (!accountInfo?.cosmosAddress || !followDetails || followDetails.followingCollectionId <= 0 || hideButtons) return;
+  //     const balanceDoc = await fetchBalanceForUser(followDetails.followingCollectionId, accountInfo.cosmosAddress);
+  //     if (getBalanceForIdAndTime(1n, BigInt(Date.now()), balanceDoc.balances) > 0n) {
+  //       setFollowing(true);
+  //     }
+  //   }
+  //   checkFollowing();
+  // }, [followDetails, accountInfo?.cosmosAddress, hideButtons]);
 
+  // const addToFollowCollection = async () => {
+  //   if (loading || !accountInfo?.cosmosAddress) return;
+  //   if (following) {
+  //     notification.success({
+  //       message: 'Success',
+  //       description: 'You are already following this user.',
+  //     });
+  //     return;
+  //   }
 
+  //   setLoading(true);
+  //   if (!followDetails || followDetails.followingCollectionId <= 0) {
+  //     message.error('You must set up a follow collection before following users. Go to Create -> Badge Collection -> Template -> Follow Collection.');
+  //     setLoading(false);
+  //     return;
+  //   }
 
+  //   try {
+  //     await setTransfersForExistingBalancesMapAndAddToStorage(followDetails.followingCollectionId, [{
+  //       from: 'Mint',
+  //       toAddresses: [accountInfo?.cosmosAddress ?? ''],
+  //       balances: [{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] }]
+  //     }], 'centralized', true);
 
-  const addToFollowCollection = async () => {
-    if (loading || !accountInfo?.cosmosAddress) return;
-    if (following) {
-      notification.success({
-        message: 'Success',
-        description: 'You are already following this user.',
-      });
-      return;
-    }
+  //     setFollowing(true);
+  //   } catch (e) {
 
-    setLoading(true);
-    if (!followDetails || followDetails.followingCollectionId <= 0) {
-      message.error('You must set up a follow collection before following users. Go to Create -> Badge Collection -> Template -> Follow Collection.');
-      setLoading(false);
-      return;
-    }
+  //   }
+  //   setLoading(false);
+  // }
 
-    try {
-      await setTransfersForExistingBalancesMapAndAddToStorage(followDetails.followingCollectionId, [{
-        from: 'Mint',
-        toAddresses: [accountInfo?.cosmosAddress ?? ''],
-        balances: [{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] }]
-      }], 'centralized', true);
+  // const removeFromFollowCollection = async () => {
+  //   if (loading || !accountInfo?.cosmosAddress) return;
 
-      setFollowing(true);
-    } catch (e) {
+  //   if (!following) {
+  //     notification.success({
+  //       message: 'Success',
+  //       description: 'You are already not following this user.',
+  //     });
+  //     return;
+  //   }
 
-    }
-    setLoading(false);
-  }
+  //   setLoading(true);
+  //   if (!followDetails || followDetails.followingCollectionId <= 0) {
+  //     message.error('You must set up a follow collection before following users. Go to Create -> Badge Collection -> Template -> Follow Collection.');
+  //     setLoading(false);
+  //     return;
+  //   }
 
-  const removeFromFollowCollection = async () => {
-    if (loading || !accountInfo?.cosmosAddress) return;
+  //   try {
+  //     await removeBalancesFromExistingBalancesMapAndAddToStorage(followDetails.followingCollectionId, [accountInfo.cosmosAddress ?? ''], 'centralized', true);
+  //     setFollowing(false);
+  //   } catch (e) {
 
-    if (!following) {
-      notification.success({
-        message: 'Success',
-        description: 'You are already not following this user.',
-      });
-      return;
-    }
-
-    setLoading(true);
-    if (!followDetails || followDetails.followingCollectionId <= 0) {
-      message.error('You must set up a follow collection before following users. Go to Create -> Badge Collection -> Template -> Follow Collection.');
-      setLoading(false);
-      return;
-    }
-
-    await removeBalancesFromExistingBalancesMapAndAddToStorage(followDetails.followingCollectionId, [accountInfo.cosmosAddress ?? ''], 'centralized', true);
-    setFollowing(false);
-    setLoading(false);
-  }
+  //   }
+  //   setLoading(false);
+  // }
 
 
   return (
@@ -310,7 +305,7 @@ export function AccountButtonDisplay({
           </a>
         )}
 
-        {!onlySocials && chain.loggedIn && !isSameAccount && !following && (
+        {/* {!onlySocials && chain.loggedIn && !isSameAccount && !following && (
           <Tooltip title="Follow with the BitBadges Follow Protocol" placement="bottom">
             <Avatar
 
@@ -338,7 +333,7 @@ export function AccountButtonDisplay({
               {loading ? <Spin /> : <UserDeleteOutlined />}
             </Avatar>
           </Tooltip>
-        )}
+        )} */}
 
         {!onlySocials &&
           <Tooltip title={<>

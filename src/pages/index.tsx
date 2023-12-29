@@ -375,8 +375,10 @@ const Home: NextPage = () => {
                 <InformationDisplayCard noBorder inheritBg title='Protocols' subtitle='' md={8} sm={24} xs={24}>
                   <br /><BadgeAvatar size={100} collectionId={1n} badgeId={15n} /> <br />
                   <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Use badges to implement protocols. For example, the
-                    <a href='https://docs.bitbadges.io/overview/ecosystem/bitbadges-follow-protocol' target='_blank' className='text-vivid-blue' rel="noreferrer"> BitBadges Follow Protocol</a>, or an attendance protocol.
+                    Use badges to implement protocols, such as a multi-chain follow protocol or an attendance protocol.
+                    {/* . For example, the
+                    <a href='https://docs.bitbadges.io/overview/ecosystem/bitbadges-follow-protocol' target='_blank' className='text-vivid-blue' rel="noreferrer"> BitBadges Follow Protocol</a>,
+                     or an attendance protocol. */}
                   </div>
                 </InformationDisplayCard>
               </div>
