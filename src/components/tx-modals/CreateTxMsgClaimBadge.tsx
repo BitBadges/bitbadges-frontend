@@ -234,6 +234,26 @@ export function CreateTxMsgClaimBadgeModal(
   const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0))
   const reservedAddress = claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0);
 
+  const reservedBalances = approvalCriteria?.predeterminedBalances?.incrementedBalances?.startBalances.map(x => {
+    return {
+      ...x,
+      badgeIds: x.badgeIds.map(y => {
+        return {
+          ...y,
+          start: y.start + (approvalCriteria.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n) * BigInt(leafIndex),
+          end: y.end + (approvalCriteria.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n) * BigInt(leafIndex),
+        }
+      }),
+      ownershipTimes: x.ownershipTimes.map(y => {
+        return {
+          ...y,
+          start: y.start + (approvalCriteria.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n) * BigInt(leafIndex),
+          end: y.end + (approvalCriteria.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n) * BigInt(leafIndex),
+        }
+      })
+    }
+  }) ?? [];
+
   const items = [
     {
       title: 'Claim Details',
@@ -352,10 +372,7 @@ export function CreateTxMsgClaimBadgeModal(
               <BalanceDisplay
                 message={`Claim #${leafIndex + 1}`}
                 collectionId={collectionId}
-                balances={approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances ?? []}
-                incrementBadgeIdsBy={approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy}
-                incrementOwnershipTimesBy={approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy}
-                numIncrements={BigInt(leafIndex)}
+                balances={reservedBalances}
 
               />
             </> : <>

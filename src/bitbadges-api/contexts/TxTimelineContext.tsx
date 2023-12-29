@@ -341,8 +341,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   //Throughout the timeline, we never update the existing collection, only the simulated collection with ID === 0n
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: inital load ');
-    async function initialize() {
 
+    async function initialize() {
       let startingCollectionDefault: BitBadgesCollection<bigint> = {
         //Default values for a new collection
         //If existing, they are overriden further below via the spread
@@ -401,8 +401,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           fromMapping: getReservedAddressMapping("Mint"),
           toMappingId: "AllWithMint",
           toMapping: getReservedAddressMapping("AllWithMint"),
-          initiatedByMappingId: chain.cosmosAddress,
-          initiatedByMapping: getReservedAddressMapping(chain.cosmosAddress),
+          initiatedByMappingId: chain.cosmosAddress ? chain.cosmosAddress : "AllWithMint",
+          initiatedByMapping: chain.cosmosAddress ? getReservedAddressMapping(chain.cosmosAddress) : getReservedAddressMapping("AllWithMint"),
           transferTimes: [{ start: BigInt(Date.now()), end: BigInt(Date.now() + 60 * 60 * 24 * 1000) }],
           ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
           badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -451,7 +451,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           autoApproveSelfInitiatedIncomingTransfers: true,
           autoApproveSelfInitiatedOutgoingTransfers: true,
         },
-        createdBy: '',
+        createdBy: chain.cosmosAddress,
         createdBlock: 0n,
         createdTimestamp: 0n,
 
@@ -460,7 +460,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         collectionId: 0n
       }
 
-      if (!startingCollection) {
+      if (!startingCollection || chain.cosmosAddress != startingCollection.createdBy) {
         //wait three seconds 
         const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await fetchCollectionsWithOptions(
           [{
@@ -493,8 +493,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     }
 
     initialize();
-    //I don't think we want to depend on chain.cosmosAddress here but it does give us warning
-  }, [existingCollectionId, startingCollection]);
+  }, [existingCollectionId, startingCollection, chain.cosmosAddress]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: update simulation');
@@ -502,6 +501,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     //If badgesToCreate change, we need to update the maxSupplys and unminted supplys field
     //All other updates are handled within CollectionContext
     //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
+
 
     const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
     const postSimulatedCollection = { owners: newOwnersArr, collectionId: NEW_COLLECTION_ID };
