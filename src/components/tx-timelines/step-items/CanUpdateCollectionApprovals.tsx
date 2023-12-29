@@ -1,4 +1,3 @@
-import { InfoCircleOutlined } from "@ant-design/icons";
 import { deepCopy } from "bitbadgesjs-proto";
 import { CollectionApprovalPermissionWithDetails, getMintApprovals, getNonMintApprovals, getReservedAddressMapping } from "bitbadgesjs-utils";
 import { useState } from "react";
@@ -8,10 +7,10 @@ import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { compareObjects } from "../../../utils/compare";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
+import { ErrDisplay } from "../form-items/ErrDisplay";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
-import { ErrDisplay } from "../form-items/ErrDisplay";
 
 const EverythingElsePermanentlyPermittedPermission: CollectionApprovalPermissionWithDetails<bigint> = {
   fromMapping: getReservedAddressMapping("All"),
