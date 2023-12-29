@@ -1,9 +1,8 @@
-import {
-  Typography
-} from 'antd';
+import {  Typography} from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
+
 export interface TimelineItem {
   disabled?: boolean;
   node: () => ReactNode;
@@ -14,14 +13,12 @@ export interface TimelineItem {
 
 export function FormTimeline({
   items,
-  onFinish,
   formStepNum,
   setFormStepNum,
 }: {
   formStepNum: number
   setFormStepNum: (newStepNum: number) => void
   items: TimelineItem[]
-  onFinish?: () => void
 }) {
 
   const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
@@ -52,11 +49,7 @@ export function FormTimeline({
 
     if (INFINITE_LOOP_MODE) console.log('useEffect: set next button ');
     setNextButtonDisabled(!!filteredItems[formStepNum - 1]?.disabled);
-
-    if (formStepNum === filteredItems.length && onFinish) {
-      onFinish();
-    }
-  }, [items, formStepNum, onFinish]);
+  }, [items, formStepNum]);
 
   const getTitleElem = (title: string | ReactNode) => {
     return (

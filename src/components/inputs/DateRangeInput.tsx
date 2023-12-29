@@ -45,11 +45,6 @@ export function DateRangeInput({
               </div>
               <div className='flex-center flex-wrap'>
                 <IconButton
-                  style={{
-                    // color: showTimeRange === i ? '#1890ff' : undefined,
-                    // backgroundColor: showTimeRange === i ? 'inherit' : undefined,
-                    // border: showTimeRange === i ? '1px solid #1890ff' : undefined,
-                  }}
                   src={showTimeRange === i ? <MinusOutlined /> : <EditOutlined />}
                   onClick={() => {
                     if (showTimeRange === i) {

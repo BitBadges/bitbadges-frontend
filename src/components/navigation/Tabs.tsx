@@ -36,13 +36,12 @@ export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedK
                   if (!confirm('Are you sure you want to delete?')) {
                     return
                   }
-
+                  
                   await onDeleteCurrTab(tab.key);
 
                   //first tab that is not this one
                   const newTab = tabInfoFiltered.find(x => x.key != tab.key)?.key ?? '';
                   setTab(newTab);
-
                 }}
                 src={<DeleteOutlined />}
               />

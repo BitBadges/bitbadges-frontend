@@ -45,8 +45,6 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId }:
       destroyOnClose={true}
     >
       <div className='flex-center'>
-
-
         {collectionId === NEW_COLLECTION_ID ?
           <Empty
             description={<span className='secondary-text'>{'Not supported for previews.'}</span>}

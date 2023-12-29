@@ -4,8 +4,7 @@ import { AccountViewKey, AddressMappingDoc, AnnouncementDoc, BalanceDoc, BigInti
 import { useSelector } from 'react-redux';
 import { AccountReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, updateAccountInfo } from '../../api';
-import { updateAccountsRedux } from './actions';
-import { deleteAccountsRedux, fetchAccountsRedux } from './reducer';
+import { deleteAccountsRedux, fetchAccountsRedux, updateAccountsRedux } from './reducer';
 export const defaultAccount = convertBitBadgesUserInfo(MINT_ACCOUNT, Stringify)
 
 export function useAccount(_addressOrUsername?: string) {
@@ -14,12 +13,10 @@ export function useAccount(_addressOrUsername?: string) {
   const cosmosAddress = reservedNames.includes(addressOrUsername) ? addressOrUsername :
     isAddressValid(addressOrUsername) ? convertToCosmosAddress(addressOrUsername) : '';
 
-  const accountForAddress = useSelector((state: GlobalReduxState) => state.accounts.accounts[cosmosAddress]);
-  const accountForUsername = useSelector((state: GlobalReduxState) => state.accounts.accounts[state.accounts.cosmosAddressesByUsernames[addressOrUsername]]);
+  const accountsKey = isAddressValid(addressOrUsername) || reservedNames.includes(addressOrUsername) 
+    ? cosmosAddress : store.getState().accounts.cosmosAddressesByUsernames[addressOrUsername];
 
-
-  const accountToReturn = isAddressValid(addressOrUsername) || reservedNames.includes(addressOrUsername)
-    ? accountForAddress : accountForUsername;
+  const accountToReturn = useSelector((state: GlobalReduxState) => state.accounts.accounts[accountsKey]);
 
   if (accountToReturn?.reported) {
     const filteredAccount: BitBadgesUserInfo<bigint> = {
@@ -30,7 +27,6 @@ export function useAccount(_addressOrUsername?: string) {
 
     return filteredAccount;
   }
-
 
   return accountToReturn;
 }
@@ -47,8 +43,6 @@ export const initialState: AccountReducerState = {
   cosmosAddressesByUsernames: {},
   loading: false,
   error: undefined,
-  queue: [],
-  fetching: [],
 };
 
 export const reservedNames = ['Mint', 'Total', 'All', 'All Other'];

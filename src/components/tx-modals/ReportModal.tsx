@@ -16,13 +16,9 @@ export function ReportModal({ visible, setVisible, collectionId, addressOrUserna
   addressOrUsername?: string,
   mappingId?: string
 }) {
-
   const [reason, setReason] = useState('');
 
-
-
   return (
-
     <Modal
       title={<div className='primary-text inherit-bg'><b>{'Report Form'}</b></div>}
       open={visible}

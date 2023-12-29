@@ -7,7 +7,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/BalanceDisplay';
 import { ActivityTab } from '../collection-page/TransferActivityDisplay';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
@@ -116,11 +116,9 @@ export function TransferSelect({
 
     //Calculate from beginning
     let postTransferBalanceObj = originalSenderBalances.map((x) => convertBalance(x, BigIntify));
-
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...convertedTransfers], true)
-
-    //with existing ones to add
     postTransferBalanceObj = getBalancesAfterTransfers(postTransferBalanceObj, [...transfersToAdd], true);
+
     setPostTransferBalancesWithCurrent(postTransferBalanceObj);
   }, [originalSenderBalances, transfers, balances, sender, toAddresses, incrementAmount]);
 
@@ -186,7 +184,7 @@ export function TransferSelect({
         postTransferBalancesWithCurrent?.find((balance) => balance.amount < 0) && <div style={{ textAlign: 'center' }}>
           <WarningOutlined style={{ color: 'red' }} />
           <span style={{ marginLeft: 8, color: 'red' }}>
-            You are distributing more badges than {'the sender owns'}.
+            You are distributing more badges than the sender owns.
           </span>
           <br />
           <br />
@@ -201,19 +199,17 @@ export function TransferSelect({
     title: 'Confirm',
     description: <div className='flex-center flex-column'>
       {<div>
-        {
-          <TransferDisplay
-            transfers={transfersToAdd}
-            collectionId={collectionId}
-            initiatedBy={chain.address}
-          />
-        }
+        <TransferDisplay
+          transfers={transfersToAdd}
+          collectionId={collectionId}
+          initiatedBy={chain.address}
+        />
       </div>}
       <br />
 
       <button className='landing-button'
 
-        style={{width: '100%' }}
+        style={{ width: '100%' }}
         onClick={async () => {
           setTransfers([...transfersToAdd, ...transfers]);
           setBalances([]);
@@ -272,7 +268,7 @@ export function TransferSelect({
               <br />
               {balanceTab === 'remaining' && <><div className='secondary-text'>
                 <InfoCircleOutlined /> The remaining balances after the transfers are applied{addTransferIsVisible && <> (including the current transfer)</>}.
-                </div>
+              </div>
                 <br />
                 <br />
 
@@ -286,7 +282,7 @@ export function TransferSelect({
 
               {balanceTab === 'start' && <><div className='secondary-text'>
                 <InfoCircleOutlined /> {"The sender's balances before any transfers are applied."}
-                </div>
+              </div>
                 <br />
                 <br />
                 <BalanceDisplay
@@ -432,11 +428,7 @@ export function TransferSelect({
                   </div>
                 </>}
           </div >
-
-
-
           <br />
-
         </InformationDisplayCard>
       </Row>}
 

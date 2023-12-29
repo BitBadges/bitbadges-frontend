@@ -35,10 +35,7 @@ const DarkModeSwitcher: React.FC = () => {
 
   return (
     <div className='flex-center flex items-center justify-center text-xs font-medium text-yellow-500'>
-
-
       <Switch
-
         checked={darkMode}
         onChange={toggleDarkMode}
         className='dark-mode-switcher'

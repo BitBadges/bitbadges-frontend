@@ -109,10 +109,8 @@ export function ActionsTab({
     collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/');
 
   const isManager = collection && getCurrentValuesForCollection(collection).manager === chain.cosmosAddress && chain.cosmosAddress;
-  const isOffChainBalances = collection && collection.balancesType == "Off-Chain - Indexed" ? true : false;
+  const isOffChainIndexedBalances = collection && collection.balancesType == "Off-Chain - Indexed" ? true : false;
   const isOnChainBalances = collection && collection.balancesType == "Standard";
-  // const isNonIndexed = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
-
   const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
 
   if (isOnChainBalances && !noBalancesStandard) {
@@ -143,7 +141,7 @@ export function ActionsTab({
 
   actions.push({
     title: "Refresh",
-    description: "Refetch the " + (isOffChainBalances ? "balances and " : "") + "metadata of this collection.",
+    description: "Refetch the " + (isOffChainIndexedBalances ? "balances and " : "") + "metadata of this collection.",
     showModal: async () => {
       setRefreshModalIsVisible(!refreshModalIsVisible);
     },
@@ -273,8 +271,6 @@ export function ActionsTab({
               collectionId={collectionId}
             />
           }
-
-
         </div >
       }
     />

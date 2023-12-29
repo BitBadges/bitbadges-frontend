@@ -18,8 +18,8 @@ export const INFINITE_LOOP_MODE = process.env.PRODUCTION ? false : true;
 
 export const ETH_LOGO = '/images/ethereum-logo.png';
 export const COSMOS_LOGO = '/images/cosmos-logo.png';
-export const BITCOIN_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png';
-export const SOLANA_LOGO = 'https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png';
+export const BITCOIN_LOGO = '/images/bitcoin-logo.png';
+export const SOLANA_LOGO = '/images/solana-logo.png';
 export const CHAIN_LOGO = '/images/encryption-icon.svg';
 
 export function getChainLogo(chain: string) {

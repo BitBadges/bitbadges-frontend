@@ -13,7 +13,6 @@ const { Text } = Typography;
 
 function RegisterScreen({ message }: { message?: string }) {
   const chain = useChainContext();
-
   const status = useStatusContext();
   const [loading, setLoading] = useState(false);
 

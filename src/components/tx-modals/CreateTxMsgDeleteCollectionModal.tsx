@@ -48,7 +48,7 @@ export function CreateTxMsgDeleteCollectionModal({ collectionId, visible, setVis
         msg: txCosmosMsg,
         afterTx: async () => {
           notification.success({ message: 'Collection deleted successfully! Redirecting to home page...' });
-         await  router.push('/');
+          await  router.push('/');
         }
       }
     ]

@@ -32,7 +32,6 @@ export function SubmitMsgCreateAddressMapping() {
   const [onChainStorage, setOnChainStorage] = useState<boolean>(false);
   const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressMapping);
 
-
   const collection = useCollection(NEW_COLLECTION_ID);
 
   const [privateMode, setPrivateMode] = useState<boolean>(false);

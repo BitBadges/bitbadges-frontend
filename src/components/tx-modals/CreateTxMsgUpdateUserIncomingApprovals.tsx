@@ -28,9 +28,6 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
     getApproveeBalance();
   }, [chain.cosmosAddress, collectionId]);
 
-
-  
-
   const items = [
     {
       title: 'Edit Approvals',
@@ -78,7 +75,6 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
     }
   ]
 }, [chain.cosmosAddress, collectionId, newIncomingApprovals]);
-  console.log(txsInfo);
 
   return (
     <TxModal

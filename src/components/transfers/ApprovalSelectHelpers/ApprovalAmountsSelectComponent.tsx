@@ -1,7 +1,7 @@
 import { WarningOutlined } from "@ant-design/icons";
 import { Switch } from "antd";
 import { ReactNode } from "react";
-import { BalanceDisplay } from "../../badges/balances/BalanceDisplay";
+import { BalanceDisplay } from "../../badges/BalanceDisplay";
 import { TableRow } from "../../display/TableRow";
 import { NumberInput } from "../../inputs/NumberInput";
 import { RequiredApprovalProps } from "../ApprovalSelect";

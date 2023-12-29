@@ -1,10 +1,7 @@
 import { FacebookOutlined, GithubOutlined, InstagramOutlined, LinkedinOutlined, RedditOutlined, SlackOutlined, TwitterOutlined } from '@ant-design/icons';
 import { Avatar, Tooltip } from 'antd';
 
-export function FooterButtonDisplay({
-}: {
-  }) {
-
+export function FooterButtonDisplay() {
   const githubLink = "https://github.com/bitbadges";
   const twitterLink = "https://twitter.com/bitbadges_io";
   const discordLink = "https://discord.com/invite/TJMaEd9bar";
@@ -23,7 +20,7 @@ export function FooterButtonDisplay({
             <Avatar
               size="large"
               onClick={() => { }}
-              className="styled-button account-socials-button border-0 bg-blue-black-100 text-vivid-blue hover:bg-transparent hover:opacity-80  hover:bg-transparent hover:opacity-80 "
+              className="styled-button account-socials-button border-0 bg-blue-black-100 text-vivid-blue hover:bg-transparent hover:opacity-80"
               src={<GithubOutlined />}
             />
           </Tooltip>

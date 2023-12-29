@@ -4,7 +4,7 @@ import {
 import { verifyADR36Amino } from '@keplr-wallet/cosmos';
 import { AccountData, Window as KeplrWindow } from "@keplr-wallet/types";
 import { createTxRaw } from 'bitbadgesjs-proto';
-import { AccountViewKey, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { PresetUri, SupportedChainMetadata } from 'blockin';
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
@@ -13,7 +13,8 @@ import { COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE, NODE_API_URL, RPC_URL } from
 import { checkIfSignedIn } from "../../api";
 
 import { ChainSpecificContextType } from '../ChainContext';
-import { fetchAccountsWithOptions, useAccount } from "../accounts/AccountsContext";
+import { useAccount } from "../accounts/AccountsContext";
+import { fetchDefaultViews } from "./helpers";
 declare global {
   interface Window extends KeplrWindow { }
 }
@@ -135,66 +136,13 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
           setLoggedIn(signedInRes.signedIn);
           loggedIn = signedInRes.signedIn;
         }
-        const viewsToFetch: { viewType: AccountViewKey; viewId: string, bookmark: string; }[] = [{
-          viewType: 'badgesCollected',
-          viewId: 'badgesCollected',
-          bookmark: '',
-        }, {
-          viewType: 'latestActivity',
-          viewId: 'latestActivity',
-          bookmark: '',
-        }, {
-          viewType: 'listsActivity',
-          viewId: 'listsActivity',
-          bookmark: '',
-        },{
-          viewType: 'latestAnnouncements',
-          viewId: 'latestAnnouncements',
-          bookmark: '',
-    
-        }, {
-          viewType: 'latestReviews',
-          viewId: 'latestReviews',
-          bookmark: '',
-        }, {
-          viewType: 'addressMappings',
-          viewId: 'addressMappings',
-          bookmark: '',
-        }, {
-          viewType: 'explicitlyIncludedAddressMappings',
-          viewId: 'explicitlyIncludedAddressMappings',
-          bookmark: ''
-        },
-        {
-          viewType: 'explicitlyExcludedAddressMappings',
-          viewId: 'explicitlyExcludedAddressMappings',
-          bookmark: ''
-        }]
+        
 
         if (loggedIn) {
-          viewsToFetch.push({
-            viewType: 'latestClaimAlerts',
-            viewId: 'latestClaimAlerts',
-            bookmark: '',
-          }, {
-            viewType: 'latestAddressMappings',
-            viewId: 'latestAddressMappings',
-            bookmark: ''
-          },
-            {
-              viewType: 'authCodes',
-              viewId: 'authCodes',
-              bookmark: '',
-            })
           setLastSeenActivity(Date.now());
         }
 
-        fetchAccountsWithOptions([{
-          address: address,
-          fetchSequence: true,
-          fetchBalance: true,
-          viewsToFetch: viewsToFetch
-        }]);
+        await fetchDefaultViews(address, loggedIn);
         setLoggedIn(cookies.blockincookie === convertToCosmosAddress(address));
         setConnected(true);
       } else {

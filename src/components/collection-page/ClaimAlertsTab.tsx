@@ -16,7 +16,6 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore, showToAddress 
   showToAddress?: boolean
 }) {
   useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: ');
     const collectionsToFetch = claimAlerts.map(a => a.collectionId);
     fetchCollections(collectionsToFetch);
 

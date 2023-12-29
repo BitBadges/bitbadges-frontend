@@ -14,7 +14,7 @@ import { useCollection } from "../../../bitbadges-api/contexts/collections/Colle
 import { CHAIN_DETAILS } from "../../../constants";
 import { TransferSelect } from "../../transfers/TransferOrClaimSelect";
 import { TxInfo } from "../../tx-modals/TxModal";
-import { ErrDisplay } from "../form-items/ErrDisplay";
+import { ErrDisplay } from "../../common/ErrDisplay";
 import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";
 
 export function DirectTransfersStepItem() {
@@ -76,7 +76,7 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
           }
         },
       }
-      const txsInfo: TxInfo[] =  [
+      const txsInfo: TxInfo[] = [
         {
           type: 'MsgUniversalUpdateCollection',
           msg: msg,
@@ -136,7 +136,7 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
           memo: '',
         }, generatedMsgs);
 
-        
+
         console.log(unsignedTxSimulated);
         const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
         const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
@@ -152,16 +152,16 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
           setErr("Unknown error")
         }
       }
-    } 
+    }
 
     simulate();
   }, [
     collection?.balancesType,
-    collection?.owners, 
-    collection?.collectionApprovals, 
-    collection?.defaultBalances,    
-    chain, signedInAccount, 
-    txTimelineContext.transfers, txTimelineContext.existingCollectionId, 
+    collection?.owners,
+    collection?.collectionApprovals,
+    collection?.defaultBalances,
+    chain, signedInAccount,
+    txTimelineContext.transfers, txTimelineContext.existingCollectionId,
     txTimelineContext.badgesToCreate,
     setErr
   ])
@@ -171,36 +171,36 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
   if (collection.balancesType !== 'Standard') return <></>;
   if (collection.owners.find(owner => owner.cosmosAddress === 'Mint')?.balances.length === 0) return <></>;
 
-  const hasManagerApproval = collection.collectionApprovals.some(x => 
-    isInAddressMapping(x.fromMapping, 'Mint') && isInAddressMapping(x.initiatedByMapping, chain.cosmosAddress) 
+  const hasManagerApproval = collection.collectionApprovals.some(x =>
+    isInAddressMapping(x.fromMapping, 'Mint') && isInAddressMapping(x.initiatedByMapping, chain.cosmosAddress)
     && x.transferTimes.some(y => y.start <= BigInt(Date.now()) && y.end >= BigInt(Date.now()))
   );
 
   const DistributionComponent = <div>
-          <TransferSelect
-            collectionId={NEW_COLLECTION_ID}
-            sender="Mint"
-            transfers={txTimelineContext.transfers}
-            setTransfers={txTimelineContext.setTransfers}
-            plusButton
-            originalSenderBalances={collection.owners.find(owner => owner.cosmosAddress === 'Mint')?.balances ?? []}
-            showApprovalsMessage
-          />
-      </div>
-        return <>
-          {err && <>
-          <ErrDisplay err={err} />
-          <br/></>}
-          {collection.defaultBalances.incomingApprovals.length == 0 && <>
-            <ErrDisplay warning err={"The default incoming approvals set (opt-in only) do not allow transfers from the Mint address. Any direct mint must satisfy a collection approval that overrides incoming approvals."} />
-            <br/>
-          </>}
-          {!hasManagerApproval && <>
-            <ErrDisplay warning err={"The collection approvals set do not specify an approval that allows a transfer from the Mint address, inititated by your address, and is valid at the current moment."} />
-            <br/>
-          </>}
-          {
-            DistributionComponent
-          }
-      </>
+    <TransferSelect
+      collectionId={NEW_COLLECTION_ID}
+      sender="Mint"
+      transfers={txTimelineContext.transfers}
+      setTransfers={txTimelineContext.setTransfers}
+      plusButton
+      originalSenderBalances={collection.owners.find(owner => owner.cosmosAddress === 'Mint')?.balances ?? []}
+      showApprovalsMessage
+    />
+  </div>
+  return <>
+    {err && <>
+      <ErrDisplay err={err} />
+      <br /></>}
+    {collection.defaultBalances.incomingApprovals.length == 0 && <>
+      <ErrDisplay warning err={"The default incoming approvals set (opt-in only) do not allow transfers from the Mint address. Any direct mint must satisfy a collection approval that overrides incoming approvals."} />
+      <br />
+    </>}
+    {!hasManagerApproval && <>
+      <ErrDisplay warning err={"The collection approvals set do not specify an approval that allows a transfer from the Mint address, inititated by your address, and is valid at the current moment."} />
+      <br />
+    </>}
+    {
+      DistributionComponent
+    }
+  </>
 }

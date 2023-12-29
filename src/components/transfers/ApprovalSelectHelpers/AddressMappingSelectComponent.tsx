@@ -7,7 +7,7 @@ import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { AddressMappingSelect } from "../../address/AddressMappingSelect";
-import { BalanceDisplay } from "../../badges/balances/BalanceDisplay";
+import { BalanceDisplay } from "../../badges/BalanceDisplay";
 import { getPermissionDetails } from "../../collection-page/PermissionsInfo";
 import { RequiredApprovalProps } from "../ApprovalSelect";
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";

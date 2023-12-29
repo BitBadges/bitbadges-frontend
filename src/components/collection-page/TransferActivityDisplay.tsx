@@ -18,7 +18,7 @@ import { Pagination } from '../common/Pagination';
 import IconButton from '../display/IconButton';
 import { TransferDisplay } from '../transfers/TransferDisplay';
 
-function PanelHeaderAddresses({ addresses }: { addresses: string[] }) {
+export function PanelHeaderAddresses({ addresses }: { addresses: string[] }) {
   return <div className='flex-center flex-column'>
     {addresses.length > 1 ?
       <div className='flex-center flex-column'>
@@ -170,7 +170,6 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                             {activity.balances.length == 0 && "This user previously owned badges in this collection, but their balance has now been updated to own none."}
                           </div>}
                         <br />
-                        {/* {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'}   */}
 
                       </Col>
                     </Row>

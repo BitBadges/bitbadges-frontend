@@ -9,7 +9,7 @@ import { approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../bi
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/BalanceDisplay';
 import { BadgeIDSelectWithSwitch } from '../collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
@@ -683,7 +683,7 @@ export function ApprovalSelect({
 
       <div className='flex flex-wrap full-width'>
         <InformationDisplayCard title='Badge IDs' md={8} xs={24} sm={24} subtitle='Which badges are approved to be transferred?'>
-        <br />
+          <br />
           <b>Select Badge IDs</b>
           <br />
           <BadgeIDSelectWithSwitch

@@ -15,8 +15,6 @@ interface IconButtonProps {
 }
 
 const IconButton: React.FC<IconButtonProps> = ({ secondary, src, text, style, onClick, tooltipMessage, size, disabled, hideText }) => {
-
-
   return (
     <Tooltip title={tooltipMessage ?? text} color='black' placement='bottom'>
 

@@ -23,8 +23,6 @@ function About({ }: {}) {
           </Col>
         </Row>
 
-
-
         <br />
 
         < div className='landing-padding mt-4'>

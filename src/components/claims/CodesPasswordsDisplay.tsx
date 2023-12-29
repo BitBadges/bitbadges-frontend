@@ -33,23 +33,20 @@ export function CodesDisplay({
   const collection = useCollection(collectionId)
 
   const [tab, setTab] = useState('individual');
-
-  const approvalCriteria = approval.approvalCriteria;
-  const merkleChallenge = approvalCriteria ? approvalCriteria.merkleChallenge : undefined;
-
-  const approvalId = approval.challengeTrackerId;
-  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approvalId);
-
   const [codePage, setCodePage] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const printStr = approval.details?.challengeDetails?.hasPassword ? 'password' : 'code';
   const urlSuffix = approval.details?.challengeDetails?.hasPassword ? `password=${claimPassword}` : codes ? `code=${codes[codePage - 1]}` : '';
   const hasPassword = approval.details?.challengeDetails?.hasPassword;
+  const approvalCriteria = approval.approvalCriteria;
+  const merkleChallenge = approvalCriteria ? approvalCriteria.merkleChallenge : undefined;
+  const approvalId = approval.challengeTrackerId;
+  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approvalId);
 
   const cantShowUrl = collectionId === NEW_COLLECTION_ID;
   const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
-
+  
   const [claimAlertAddress, setClaimAlertAddress] = useState<string>('');
   const claimAlertAccount = useAccount(claimAlertAddress);
 
@@ -75,7 +72,6 @@ export function CodesDisplay({
   }
 
   useEffect(() => {
-
     if (tab == 'claimAlerts') {
       fetchNextClaimAlerts();
     }
@@ -84,10 +80,7 @@ export function CodesDisplay({
   return <>
 
     <Row className='flex-center primary-text' style={{ textAlign: 'center', width: '100%' }}>
-
       <InformationDisplayCard inheritBg noBorder md={24} xs={24} sm={24} title={hasPassword ? 'Password' : 'Codes'} subtitle={'Codes / passwords will be auto-populated on the claim page if the user navigates to the uniquely generated URL or scans the QR code. Users can also enter them manually.'}>
-
-
         <br />
         {hasPassword && <>
           <div style={{ color: '#FF5733' }}>

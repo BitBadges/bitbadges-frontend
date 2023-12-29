@@ -59,9 +59,6 @@ export function IsArchivedSelectStepItem() {
                 alignItems: 'center',
               }}
             >
-
-
-
               <SwitchForm
                 // noSelectUntilClick
                 showCustomOption

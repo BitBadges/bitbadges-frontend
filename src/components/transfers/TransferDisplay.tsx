@@ -4,7 +4,7 @@ import { TransferWithIncrements } from "bitbadgesjs-utils";
 import { useState } from "react";
 
 import { AddressDisplayList } from "../address/AddressDisplayList";
-import { BalanceDisplay } from "../badges/balances/BalanceDisplay";
+import { BalanceDisplay } from "../badges/BalanceDisplay";
 import { Pagination } from "../common/Pagination";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";

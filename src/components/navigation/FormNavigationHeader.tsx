@@ -1,8 +1,6 @@
 import { CaretLeftFilled, CaretRightFilled } from '@ant-design/icons';
 import { Col, Typography } from 'antd';
 
-
-
 export function FormNavigationHeader({
   decrementStep,
   incrementStep,
@@ -23,9 +21,7 @@ export function FormNavigationHeader({
       <div>
         <button
           style={{
-            // backgroundColor: 'inherit',
             backgroundColor: backButtonDisabled ? 'lightgrey' : undefined,
-            // color: '#ddd',
             margin: 10,
             fontSize: 17,
             cursor: backButtonDisabled ? 'not-allowed' : undefined,

@@ -1,10 +1,9 @@
 import { Avatar, Tooltip } from "antd";
-import { BigIntify, SupportedChain, convertBitBadgesUserInfo, cosmosToBtc, getChainForAddress } from "bitbadgesjs-utils";
+import { BigIntify, SupportedChain, convertBitBadgesUserInfo, getChainForAddress } from "bitbadgesjs-utils";
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { getChainLogo } from "../../constants";
 import { Address } from "./Address";
 import { BlockiesAvatar } from "./Blockies";
-import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
-import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 
 export function AddressWithBlockies({
   addressOrUsername,
@@ -23,19 +22,16 @@ export function AddressWithBlockies({
   overrideChain?: SupportedChain,
   doNotShowName?: boolean
 }) {
-
-  const chainContext = useChainContext();
   const fetchedAccount = useAccount(addressOrUsername);
 
   const userInfo = fetchedAccount ? convertBitBadgesUserInfo({
     ...fetchedAccount,
-    address:      overrideChain ? 
-    overrideChain === SupportedChain.BTC ? cosmosToBtc(fetchedAccount.cosmosAddress) :
-    overrideChain === SupportedChain.COSMOS ? fetchedAccount.cosmosAddress :
-          overrideChain === SupportedChain.ETH ?            fetchedAccount.ethAddress
-            : fetchedAccount.solAddress
-        : chainContext.cosmosAddress == fetchedAccount.address ? chainContext.address : fetchedAccount.address,
-    chain: overrideChain ? overrideChain : chainContext.cosmosAddress == fetchedAccount.address ? chainContext.chain : fetchedAccount.chain
+    address: overrideChain ?
+      overrideChain === SupportedChain.BTC ? fetchedAccount.btcAddress :
+        overrideChain === SupportedChain.COSMOS ? fetchedAccount.cosmosAddress :
+          overrideChain === SupportedChain.ETH ? fetchedAccount.ethAddress : fetchedAccount.solAddress
+      : fetchedAccount.address,
+    chain: overrideChain ? overrideChain : fetchedAccount.chain
   }, BigIntify) : undefined; //deep copy
   const address = userInfo?.address || addressOrUsername || '';
   const chainLogo = getChainLogo(overrideChain ?? getChainForAddress(address));

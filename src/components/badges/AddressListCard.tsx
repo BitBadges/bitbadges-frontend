@@ -15,10 +15,7 @@ export function AddressListCard({
   hideInclusionDisplay?: boolean
 }) {
   const router = useRouter();
-
   const accountInfo = useAccount(addressOrUsername);
-
-  // const explicitly = accountInfo ? addressMapping.addresses.includes(accountInfo.address) || addressMapping.addresses.includes(accountInfo.cosmosAddress) : false
 
   return (
     <Card
@@ -58,12 +55,10 @@ export function AddressListCard({
       </>}
       {accountInfo && !hideInclusionDisplay ? addressMapping.includeAddresses ?
         <Typography.Text strong style={{ color: 'green' }}>
-          {/* {explicitly ? '' : 'SOFT'} */}
           INCLUDED
         </Typography.Text>
         :
         <Typography.Text strong style={{ color: 'red' }}>
-          {/* {explicitly ? 'SOFT' : ''}  */}
           EXCLUDED
         </Typography.Text>
         : <></>}

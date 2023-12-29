@@ -12,6 +12,7 @@ export function useCollection(collectionIdNumber?: NumberType) {
   const str = collectionIdNumber !== undefined ? BigInt(collectionIdNumber).toString() : '';
   const _collection = useSelector((state: GlobalReduxState) => state.collections.collections[`${str}`]);
   
+  // Replace all metadata with placeholders if reported
   if (_collection?.reported) {
     const newCollection: BitBadgesCollection<DesiredNumberType> = {
       ..._collection,

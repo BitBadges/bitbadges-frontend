@@ -19,7 +19,7 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressDisplayList } from '../address/AddressDisplayList';
 import { AddressSelect } from '../address/AddressSelect';
 import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/BalanceDisplay';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
@@ -1061,7 +1061,7 @@ export function TransferabilityRow({
     const EditableValue = editable && <td>
 
 
-      {!disapproved &&  !isExisting &&
+      {!disapproved && !isExisting &&
         <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
           <IconButton
             secondary

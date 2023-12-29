@@ -6,7 +6,6 @@ import MerkleTree from 'merkletreejs';
 import React, { useEffect, useMemo, useState } from 'react';
 import { getCodeForPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-
 import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -14,7 +13,7 @@ import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/co
 import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/BalanceDisplay';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { PredeterminedCard } from '../collection-page/TransferabilityRow';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
@@ -45,11 +44,8 @@ export function CreateTxMsgClaimBadgeModal(
   const precalculationId = hasPredetermined ? approvalId : '';
   const claimItem = approval.approvalCriteria?.merkleChallenge?.root ? approval.approvalCriteria?.merkleChallenge : undefined;
   const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approval.challengeTrackerId);
-
   const requiresProof = !!approvalCriteria?.merkleChallenge?.root;
-
   const isWhitelist = claimItem?.useCreatorAddressAsLeaf ?? false;
-
   const details = approval.details;
   const merkleChallenge = approval.approvalCriteria && approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
   const claim = merkleChallenge
@@ -64,7 +60,6 @@ export function CreateTxMsgClaimBadgeModal(
   const [code, setCode] = useState<string>("");
   const [passwordCodeToSubmit, setPasswordCodeToSubmit] = useState<string>("");
   const [recipient, setRecipient] = useState<string>(chain.address);
-
   const [address, setAddress] = useState<string>(chain.address);
 
   const recipientAccount = useAccount(recipient);
@@ -234,7 +229,7 @@ export function CreateTxMsgClaimBadgeModal(
 
   if (!collection || !visible) return <></>;
 
-  
+
 
   const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0))
   const reservedAddress = claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0);
@@ -371,23 +366,6 @@ export function CreateTxMsgClaimBadgeModal(
             </>}
           </InformationDisplayCard>
         </div>
-        {/* <Divider />
-        <div className='secondary-text' style={{ textAlign: 'center' }}>
-          <InfoCircleOutlined /> Below are the details for the parent approval of this claim.
-          All criteria for the parent approval must be met in order to claim.
-          Once this claim is processed, it will increment the counters in the parent approval.
-
-        </div>
-        <TransferabilityRow
-          collectionId={collectionId}
-          transfer={approval}
-          allTransfers={collection.collectionApprovals}
-          address={address}
-          setAddress={setAddress}
-          isIncomingDisplay //just a hack to not show transfer icon
-          defaultShowDetails
-        /> */}
-
         <br />
         <div className='secondary-text' style={{ textAlign: 'center' }}>
           <InfoCircleOutlined /> These are the details for this claim.
@@ -399,13 +377,6 @@ export function CreateTxMsgClaimBadgeModal(
     }
   ]
 
-
- 
-
-
-  
-
-  
   console.log(txsInfo);
   return (
     <TxModal

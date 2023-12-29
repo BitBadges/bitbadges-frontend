@@ -20,9 +20,7 @@ export function CreateTxMsgCreateAddressMappingModal(
     }) {
   const chain = useChainContext();
   const router = useRouter();
-
   const collection = useCollection(NEW_COLLECTION_ID);
-
   const txTimelineContext = useTxTimelineContext();
 
   
@@ -92,16 +90,15 @@ export function CreateTxMsgCreateAddressMappingModal(
   }, [inheritedTxState?.addressMapping, chain.cosmosAddress, router, txTimelineContext, updateIPFSUris]);
 
   return (
-    <TxModal
-    visible={visible}
-    setVisible={setVisible}
-    txsInfo={txsInfo}
-    txName="Address List"
-    msgSteps={msgSteps}
-    requireRegistration
-  >
-    {children}
-  </TxModal>
-  
+      <TxModal
+      visible={visible}
+      setVisible={setVisible}
+      txsInfo={txsInfo}
+      txName="Address List"
+      msgSteps={msgSteps}
+      requireRegistration
+    >
+      {children}
+    </TxModal>
   );
 }

@@ -9,7 +9,7 @@ import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsCon
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/BalanceDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { BalanceOverview } from './BalancesInfo';

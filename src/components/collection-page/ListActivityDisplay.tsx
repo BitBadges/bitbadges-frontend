@@ -1,5 +1,5 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { Col, Collapse, Row, Spin, Typography } from 'antd';
+import { Col, Collapse, Row, Spin } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { AddressMappingWithMetadata, ListActivityDoc } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -10,22 +10,13 @@ import { DesiredNumberType, getAddressMappings } from '../../bitbadges-api/api';
 
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { INFINITE_LOOP_MODE, NODE_API_URL } from '../../constants';
-import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressListCard } from '../badges/AddressListCard';
 import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';
 import { Pagination } from '../common/Pagination';
 import IconButton from '../display/IconButton';
+import { PanelHeaderAddresses } from './TransferActivityDisplay';
 
-function PanelHeaderAddresses({ addresses }: { addresses: string[] }) {
-  return <div className='flex-center flex-column'>
-    {addresses.length > 1 ?
-      <div className='flex-center flex-column'>
-        <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>{addresses.length} Addresses</Typography.Text>
-      </div>
-      : <>{addresses.map((x, i) => <AddressDisplay key={i} addressOrUsername={x} fontSize={17} />)}</>}
-  </div>
-}
 
 
 function PanelHeader({ addressMappings, mappingId, activity, onDelete, idx }: {
@@ -138,8 +129,6 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                           </a></p>
                         }
                         <br />
-                        {/* {collection?.balancesType === 'Standard' ? activity.method : 'Balance Update'}   */}
-
                       </Col>
                     </Row>
                   </div>

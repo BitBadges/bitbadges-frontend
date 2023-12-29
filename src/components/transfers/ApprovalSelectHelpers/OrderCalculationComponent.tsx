@@ -3,7 +3,7 @@ import { Switch, Typography } from "antd";
 import { Balance, Numberify } from "bitbadgesjs-proto";
 import { DistributionMethod } from "bitbadgesjs-utils";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
-import { BalanceDisplay } from "../../badges/balances/BalanceDisplay";
+import { BalanceDisplay } from "../../badges/BalanceDisplay";
 import { TableRow } from "../../display/TableRow";
 import { BalanceAmountInput } from "../../inputs/BalanceAmountInput";
 import { NumberInput } from "../../inputs/NumberInput";

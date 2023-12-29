@@ -1,19 +1,32 @@
 import { CheckCircleFilled, CloseCircleFilled, EditOutlined, MinusOutlined } from "@ant-design/icons";
 import { Switch, notification } from "antd";
 import { UintRange, deepCopy } from "bitbadgesjs-proto";
-import { BitBadgesUserInfo, CustomPage, removeUintRangeFromUintRange, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils";
+import { BitBadgesUserInfo, removeUintRangeFromUintRange } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { updateAccountInfo } from "../../bitbadges-api/api";
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext";
 import { updateAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
+import {
+  BatchBadgeDetails, addToArray as addToArrayImported,
+  removeFromArray as removeFromArrayImported
+} from "../../pages/account/[addressOrUsername]";
 import { GO_MAX_UINT_64 } from "../../utils/dates";
 import { EmptyIcon } from "../common/Empty";
 import IconButton from "../display/IconButton";
 
+const inArray = (arr: BatchBadgeDetails[], badgeIdObj: BatchBadgeDetails) => {
+  return arr.find(x => {
+    if (x.badgeIds.length == 0) return false;
+
+    const [remaining] = removeUintRangeFromUintRange(x.badgeIds, badgeIdObj.badgeIds);
+    return x.collectionId == badgeIdObj.collectionId && remaining.length == 0
+  }) !== undefined;
+}
+
 export const CustomizeButtons =
   ({ accountInfo, badgeIdObj, badgeId, onlyShowCollectionOptions, showCustomizeButtons, isWatchlist }: {
     accountInfo?: BitBadgesUserInfo<bigint>,
-    badgeIdObj: { collectionId: bigint, badgeIds: UintRange<bigint>[] },
+    badgeIdObj: BatchBadgeDetails,
     badgeId: bigint,
     onlyShowCollectionOptions?: boolean
     showCustomizeButtons?: boolean,
@@ -23,41 +36,16 @@ export const CustomizeButtons =
     const chain = useChainContext();
     const [addToPageIsVisible, setAddToPageIsVisible] = useState(false);
 
-    const isHidden = accountInfo?.hiddenBadges?.find(x => {
-      if (x.badgeIds.length == 0) return false;
+    const isHidden = inArray(accountInfo?.hiddenBadges ?? [], { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] });
+    const isCollectionHidden = inArray(accountInfo?.hiddenBadges ?? [], { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }] });
 
-      const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
-      return x.collectionId == badgeIdObj.collectionId && found
-    }) !== undefined;
-
-    const isCollectionHidden = accountInfo?.hiddenBadges?.find(x => {
-      if (x.badgeIds.length == 0) return false;
-
-      const [remaining] = removeUintRangeFromUintRange(x.badgeIds, [{ start: 1n, end: GO_MAX_UINT_64 }]);
-      return x.collectionId == badgeIdObj.collectionId && remaining.length == 0
-    }) !== undefined;
-
-    const addToArray = (arr: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[], badgeIdsToAdd: UintRange<bigint>[]) => {
-      const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
-      if (existingIdx != -1) {
-        arr[existingIdx].badgeIds = sortUintRangesAndMergeIfNecessary([...arr[existingIdx].badgeIds, ...badgeIdsToAdd], true)
-      } else {
-        arr.push({
-          collectionId: badgeIdObj.collectionId,
-          badgeIds: badgeIdsToAdd
-        })
-      }
-
-      return arr.filter(x => x.badgeIds.length > 0);
+    //Just wrappers for the imported functions auto-adding badgeIdObj.collectionId
+    const addToArray = (arr: BatchBadgeDetails[], badgeIdsToAdd: UintRange<bigint>[]) => {
+      return addToArrayImported(arr, [{ collectionId: badgeIdObj.collectionId, badgeIds: badgeIdsToAdd }]);
     }
 
-    const removeFromArray = (arr: { collectionId: bigint, badgeIds: UintRange<bigint>[] }[], badgeIdsToRemove: UintRange<bigint>[]) => {
-      const existingIdx = arr.findIndex(x => x.collectionId == badgeIdObj.collectionId);
-      if (existingIdx != -1) {
-        const [remaining,] = removeUintRangeFromUintRange(badgeIdsToRemove, arr[existingIdx].badgeIds);
-        arr[existingIdx].badgeIds = remaining;
-      }
-      return arr.filter(x => x.badgeIds.length > 0);
+    const removeFromArray = (arr: BatchBadgeDetails[], badgeIdsToRemove: UintRange<bigint>[]) => {
+      return removeFromArrayImported(arr, [{ collectionId: badgeIdObj.collectionId, badgeIds: badgeIdsToRemove }]);
     }
 
     const getNewViews = (accountInfo: BitBadgesUserInfo<bigint>) => {
@@ -69,12 +57,10 @@ export const CustomizeButtons =
         ...accountInfo.views,
         badgesCollectedWithHidden: {
           ...accountInfo.views.badgesCollectedWithHidden,
-
           ids: [...new Set([...(accountInfo.views.badgesCollectedWithHidden.ids || []), badgeIdObj.collectionId.toString() + ':' + chain.cosmosAddress])]
         },
         badgesCollected: {
           ...accountInfo.views.badgesCollected,
-
           ids: [...new Set([...(accountInfo.views.badgesCollected.ids || []), badgeIdObj.collectionId.toString() + ':' + chain.cosmosAddress])]
         }
       }
@@ -83,36 +69,12 @@ export const CustomizeButtons =
     const pages = isWatchlist ? accountInfo?.watchedBadgePages ?? [] : accountInfo?.customPages ?? [];
 
     const isOnPage = (pageTitle: string) => {
-      return pages?.find(x => x.title == pageTitle)?.badges?.find(x => {
-        if (x.badgeIds.length == 0) return false;
-
-        const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
-        return x.collectionId == badgeIdObj.collectionId && found
-      }
-      ) !== undefined;
+      return inArray(pages?.find(x => x.title == pageTitle)?.badges ?? [], badgeIdObj);
     }
 
     return <>{
       showCustomizeButtons &&
       <>
-
-
-        {/* {accountInfo && ((accountInfo.onlyShowApproved && isShown) || (!accountInfo.onlyShowApproved && !isHidden)) ?
-          <>
-            <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <CheckCircleFilled style={{ fontSize: 20, color: 'green' }} /> {' '}
-              <Typography.Text strong className="primary-text" style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>
-                Shown
-              </Typography.Text>
-            </div>
-          </> : <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'center' }}>
-            <CloseCircleFilled style={{ fontSize: 20, color: 'red' }} /> {' '}
-            <Typography.Text strong className="primary-text" style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>
-              Hidden
-            </Typography.Text>
-          </div>
-        } */}
-
         <div className="">
           {accountInfo &&
             <div className='flex-center flex-column' style={{ alignItems: 'center', justifyContent: 'center' }}>
@@ -124,8 +86,6 @@ export const CustomizeButtons =
                   unCheckedChildren="Hide Badge"
                   checked={!isHidden}
                   onChange={async (checked) => {
-                    // if (!accountInfo.views.badgesCollectedWithHidden || !accountInfo.views.badgesCollected) return;
-
                     const hiddenBadge = checked ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]);
 
                     await updateAccountInfo(deepCopy({
@@ -149,35 +109,32 @@ export const CustomizeButtons =
               </>}
 
               {!isWatchlist && <>
-              <Switch
-              style={{ marginBottom: 10 }}
-                checkedChildren="Show Collection"
-                unCheckedChildren="Hide Collection"
-                checked={!isCollectionHidden}
-                onChange={async (checked) => {
-                  // if (!accountInfo.views.badgesCollectedWithHidden || !accountInfo.views.badgesCollected) return;
+                <Switch
+                  style={{ marginBottom: 10 }}
+                  checkedChildren="Show Collection"
+                  unCheckedChildren="Hide Collection"
+                  checked={!isCollectionHidden}
+                  onChange={async (checked) => {
+                    const hiddenBadge = checked ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
 
-                  const hiddenBadge = checked ? removeFromArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : addToArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
+                    await updateAccountInfo(deepCopy({
+                      ...accountInfo,
+                      hiddenBadges: hiddenBadge
+                    }));
 
-                  await updateAccountInfo(deepCopy({
-                    ...accountInfo,
-                    hiddenBadges: hiddenBadge
-                  }));
+                    updateAccount(deepCopy({
+                      ...accountInfo,
+                      hiddenBadges: hiddenBadge,
+                      views: getNewViews(accountInfo)
+                    }))
 
-                  updateAccount(deepCopy({
-                    ...accountInfo,
-                    hiddenBadges: hiddenBadge,
-                    views: getNewViews(accountInfo)
-                  }))
+                    notification.success({
+                      message: "All badges from this collection will now be" + (checked ? ' shown' : ' hidden') + " for your profile."
+                    })
+                  }}
+                />
 
-                  notification.success({
-                    message: "All badges from this collection will now be" + (checked ? ' shown' : ' hidden') + " for your profile."
-                  })
-
-                }}
-              />
-              
-                </>}
+              </>}
               <IconButton
                 src={addToPageIsVisible ? <MinusOutlined /> : <EditOutlined />}
                 text={'Pages'}
@@ -206,44 +163,25 @@ export const CustomizeButtons =
                   unCheckedChildren="Not Added"
                   checked={addedToPage}
                   onChange={async (checked) => {
-                    let pinnedPage = deepCopy(pages?.find(x => x.title == pageName));
-
                     if (checked) {
-                      if (pinnedPage) {
-                        const newBadgeIds = addToArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
-                        pinnedPage.badges = newBadgeIds;
-                      } else {
-                        pinnedPage = {
-                          title: pageName,
-                          description: 'Badges pinned to your profile.',
-                          badges: [
-                            { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] }
-                          ]
-                        }
-                      }
+                      const newBadgeIds = addToArray(deepCopy(x.badges), [{ start: badgeId, end: badgeId }]);
+                      x.badges = newBadgeIds;
                     } else {
-                      if (pinnedPage) {
-                        const newBadgeIds = removeFromArray(deepCopy(pinnedPage.badges), [{ start: badgeId, end: badgeId }]);
-                        pinnedPage.badges = newBadgeIds;
-                      }
+                      const newBadgeIds = removeFromArray(deepCopy(x.badges), [{ start: badgeId, end: badgeId }]);
+                      x.badges = newBadgeIds;
                     }
 
-                    const newPages = pages?.find(x => x.title == pageName) ?
-                      pages?.map(x => x.title == pageName && pinnedPage ? pinnedPage : x) :
-                      [...(pages ?? []), pinnedPage] as CustomPage<bigint>[];
-
-                    if (pinnedPage === undefined || !accountInfo) return;
+                    if (!accountInfo) return;
                     await updateAccountInfo({
-                      customPages: isWatchlist ? accountInfo.customPages : newPages,
-                      watchedBadgePages: isWatchlist ? newPages : accountInfo.watchedBadgePages
+                      customPages: isWatchlist ? accountInfo.customPages : pages,
+                      watchedBadgePages: isWatchlist ? pages : accountInfo.watchedBadgePages
                     });
 
                     updateAccount(deepCopy({
                       ...accountInfo,
-                      customPages: isWatchlist ? accountInfo.customPages : newPages,
-                      watchedBadgePages: isWatchlist ? newPages : accountInfo.watchedBadgePages
+                      customPages: isWatchlist ? accountInfo.customPages : pages,
+                      watchedBadgePages: isWatchlist ? pages : accountInfo.watchedBadgePages
                     }))
-
                   }}
                 />
 

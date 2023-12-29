@@ -347,12 +347,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
           }
         </div>} labelSpan={9} valueSpan={15} />}
 
-        {!!metadata?.fetchedAt && <TableRow label={"Last Updated"} value={<>{new Date(Number(metadata.fetchedAt)).toLocaleString()}
-          {/* {metadata.fetchedAtBlock ? <Tooltip title={"Fetched according to the blockchain state at block #" + metadata.fetchedAtBlock}>
-            <BlockOutlined style={{ marginLeft: 4 }} />
-          </Tooltip> : <></>} */}
-
-        </>} labelSpan={9} valueSpan={15} />}
+        {!!metadata?.fetchedAt && <TableRow label={"Last Updated"} value={<>{new Date(Number(metadata.fetchedAt)).toLocaleString()}</>} labelSpan={9} valueSpan={15} />}
       </InformationDisplayCard>
     </>
   );

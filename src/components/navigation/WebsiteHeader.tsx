@@ -169,14 +169,8 @@ export function WalletHeader() {
     <div className='dark'>
       <div className='flex-center full-width primary-text my-3' style={{ padding: '10' }}>
         <BlockOutlined style={{ marginRight: 4 }} /> Block #{status.status.block.height.toString()} ({new Date(Number(status.status.block.timestamp)).toLocaleString()})
-        {/* <Tooltip title="Data is provided by the BitBadges API. The API has processed up to this block. ">
-        <InfoCircleOutlined style={{ marginLeft: 4 }} />
-      </Tooltip> */}
       </div>
     </div>
-
-    {/* <hr /> */}
-
 
     {connected &&
       <Menu.Item style={{ alignItems: 'center' }} className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/notifications')}>
@@ -299,15 +293,6 @@ export function WalletHeader() {
     onClick: () => {
       setSearchIsVisible(!searchIsVisible);
     },
-    // subMenuOverlay: (
-    //   <>
-
-    //     <div className='dark flex-center' style={{ minWidth: 350 }}>
-    //       {ExpandedSearchBar}
-    //     </div>
-    //   </>
-    // ),
-    // subMenuTrigger: ['click', 'hover']
   }
 
   //It's a little confusing but when "navbar-expanded" is visible, the "navbar-collapsed" ais hidden and vice versa
@@ -359,10 +344,8 @@ export function WalletHeader() {
               }}
               noSelectedKeys
               tabInfo={[
-                // HomeTabWithText,
                 BrowseTabWithText,
                 MintTabWithText,
-                // NotificationsTabWithIcon,
                 UserTab
               ]}
             />
@@ -383,7 +366,6 @@ export function WalletHeader() {
                 CollapsedSearchIconTab,
                 BrowseTabWithIcon,
                 MintTabWithIcon,
-                // NotificationsTabWithIcon,
                 UserTab,
               ]}
             />

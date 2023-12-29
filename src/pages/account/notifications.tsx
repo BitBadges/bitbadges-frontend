@@ -26,7 +26,6 @@ export function Notifications() {
   //This is to avoid the race conditions where we somehow fetch or add an activity at time T in some other manner (claiming a badge, sending an announcement, etc)
   //We don't want to mark all notifications as read if we haven't yet loaded notifications from last seen to T
   const transferActivity = (getAccountActivityView(signedInAccount, 'latestActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
-  // const announcements = (getAccountAnnouncementsView(signedInAccount, 'latestAnnouncements') ?? []).filter((announcement) => announcement.timestamp < (chain.lastSeenActivity));
   const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'latestClaimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
   
   const listsActivity = (getAccountListsActivityView(signedInAccount, 'listsActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
@@ -133,28 +132,12 @@ export function Notifications() {
                   <div className='secondary-text flex-center'>
                     Last Fetched: {new Date(Number(chain.lastSeenActivity)).toLocaleDateString()} {new Date(Number(chain.lastSeenActivity)).toLocaleTimeString()}
                   </div>}
-                {/* <div className='flex-center'>
-                  <IconButton
-                    src={<CloudSyncOutlined />}
-                    text='Refresh'
-                    onClick={() => {
-                      window.location.reload();
-                    }}
-                  />
-
-                </div> */}
                 <br />
                 <Tabs
                   fullWidth
                   tab={tab}
                   setTab={setTab}
                   tabInfo={[
-
-                    // {
-                    //   key: 'announcements',
-                    //   content: <TabComponent title={'Announcements'} count={unseenAnnouncementsCount} />,
-                    //   disabled: false
-                    // }, 
                     {
                       key: 'transferActivity',
                       content: <TabComponent title={'Transfer Activity'} count={unseenTransferActivityCount} />,
@@ -181,13 +164,6 @@ export function Notifications() {
                       hasMore={signedInAccount?.views.latestActivity?.pagination.hasMore ?? true}
                     />
                   </>}
-
-                  {/* {tab === 'announcements' && <><br /><AnnouncementsTab
-                    announcements={announcements ?? []}
-                    fetchMore={async () => fetchMore(chain.address, 'latestAnnouncements')}
-                    hasMore={signedInAccount?.views.latestAnnouncements?.pagination.hasMore ?? true}
-                  /></>} */}
-
                   {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
                     claimAlerts={claimAlerts ?? []}
                     fetchMore={async () => fetchMore(chain.address, 'latestClaimAlerts')}

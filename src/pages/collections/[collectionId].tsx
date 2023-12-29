@@ -198,18 +198,6 @@ function CollectionPage({
                 />
               )}
 
-              {/* {tab === 'announcements' && !isPreview && collection && (
-            <>
-              <AnnouncementsTab announcements={getCollectionAnnouncementsView(collection, 'latestAnnouncements') ?? []}
-                collectionId={collectionIdNumber}
-                fetchMore={async () => {
-                  await fetchNextForCollectionViews(collectionIdNumber, ['latestAnnouncements']);
-                }}
-                hasMore={getCollection(collectionIdNumber)?.views.latestAnnouncements?.pagination.hasMore ?? true}
-              />
-            </>
-          )} */}
-
               {tab === 'history' && !isPreview && <div className='primary-text'>
                 <br />
                 {collection.updateHistory.sort((a, b) => Number(a.blockTimestamp) > Number(b.blockTimestamp) ? -1 : 1).map((update, i) => {

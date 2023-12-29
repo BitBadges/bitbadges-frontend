@@ -69,8 +69,6 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
       }
 
       <DevMode obj={claimItem} />
-
-
     </div >
   );
 }

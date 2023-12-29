@@ -30,8 +30,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
   const accountInfo = useAccount(addressOrUsername as string);
 
   const chain = useChainContext();
-
-
+  
   const [followDetails, setFollowDetails] = useState<GetFollowDetailsRouteSuccessResponse<bigint>>()
 
   const [loading, setLoading] = useState(false);

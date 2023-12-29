@@ -26,8 +26,6 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
     getApproveeBalance();
   }, [chain.cosmosAddress, collectionId]);
 
-  
-
   const items = [
     {
       title: 'Select',

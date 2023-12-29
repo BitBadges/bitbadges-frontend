@@ -23,7 +23,6 @@ import { DateRangeInput } from "../inputs/DateRangeInput";
 import { AfterPermission } from "../tx-timelines/form-items/BeforeAfterPermission";
 
 export function getPermissionDetails(permissions: UniversalPermission[], usedFlags: UsedFlags, neverHasManager: boolean, badgeIds?: UintRange<bigint>[], doNotMerge?: boolean) {
-
   const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToMapping, usesFromMapping, usesInitiatedByMapping, usesOwnershipTimes, usesAmountTrackerIdMapping, usesChallengeTrackerIdMapping } = usedFlags;
   const hideIfFull = true;
   let columns = [{
@@ -827,8 +826,6 @@ export const BadgeIDSelectWithSwitch = ({ collectionId, uintRanges, setUintRange
 
           <BadgeIdRangesInput
             uintRangeBounds={[{ start: 1n, end: GO_MAX_UINT_64 }]}
-            hideSelect
-            hideNumberSelects
             collectionId={collectionId}
             uintRanges={uintRanges}
             setUintRanges={(uintRanges) => {

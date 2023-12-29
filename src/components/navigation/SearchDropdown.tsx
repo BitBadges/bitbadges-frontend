@@ -45,7 +45,6 @@ export function SearchDropdown({
       setLoading(true);
       setSearchResponse(undefined);
 
-
       const result = await getSearchResults(searchValue, {
         noCollections: onlyAddresses || onlyLists,
         noAccounts: onlyCollections || onlyLists,
@@ -92,7 +91,7 @@ export function SearchDropdown({
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
-  }, [searchValue, allowMintSearch, mintAccount, onlyLists, onlyAddresses, onlyCollections])
+  }, [searchValue, allowMintSearch, mintAccount, onlyLists, onlyAddresses, onlyCollections, specificCollectionId])
 
 
   //We have three sections of the dropdown:

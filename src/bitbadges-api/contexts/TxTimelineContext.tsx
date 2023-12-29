@@ -1,6 +1,6 @@
 import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
 import { AddressMappingEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, getReservedAddressMapping, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { defaultApprovedOption } from '../../components/tx-timelines/step-items/DefaultToApprovedSelectStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -11,11 +11,10 @@ import { useChainContext } from './ChainContext';
 import { fetchAccounts } from './accounts/AccountsContext';
 import { fetchCollectionsWithOptions, setCollection, updateCollection, useCollection } from './collections/CollectionsContext';
 
-
 export const EmptyStepItem = {
   title: '',
   description: '',
-  node: () => <></> as ReactNode,
+  node: () => <></>,
   doNotDisplay: true,
 }
 
@@ -23,7 +22,6 @@ export const NEW_COLLECTION_ID = 0n;
 
 //Each timeline makes use of the necessary, reusable components in the step-items and form-items folders.
 //The step-items are the individual steps in the timeline, and the form-items are the helper components that are displayed in each step.
-
 
 /*
   IMPORTANT FOR DEVELOPERS: Read below
@@ -217,11 +215,9 @@ type Props = {
 export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
   const chain = useChainContext();
-
   const txType = 'UpdateCollection';
 
   const [existingCollectionId, setExistingCollectionIdState] = useState<bigint>();
-
   const [existingAddressMappingId, setExistingAddressMappingId] = useState<string>('');
   const [formStepNum, setFormStepNum] = useState(1);
 
@@ -230,7 +226,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const [startingCollection, setStartingCollection] = useState<BitBadgesCollection<bigint>>();
-  // const existingCollection = useCollection(existingCollectionId)
   const simulatedCollection = useCollection(NEW_COLLECTION_ID);
 
   const [size, setSize] = useState(0);

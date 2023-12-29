@@ -76,20 +76,12 @@ export function BadgePage({ collectionPreview }
   const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
 
   let tabInfo = []
-  // if (!isOffChainBalances) {
   tabInfo.push(
     { key: 'overview', content: 'Overview' },
     { key: 'transferability', content: 'Transferability' },
     { key: 'activity', content: 'Activity' },
     { key: 'actions', content: 'Actions' },
   );
-  // } else {
-  //   tabInfo.push(
-  //     { key: 'overview', content: 'Overview' },
-  //     { key: 'activity', content: 'Activity' },
-  //     { key: 'actions', content: 'Actions' },
-  //   );
-  // }
 
   if (noBalancesStandard || isNonIndexedBalances) {
     tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity');

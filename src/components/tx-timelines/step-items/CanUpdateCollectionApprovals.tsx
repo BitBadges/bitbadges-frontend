@@ -7,7 +7,7 @@ import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { compareObjects } from "../../../utils/compare";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
-import { ErrDisplay } from "../form-items/ErrDisplay";
+import { ErrDisplay } from "../../common/ErrDisplay";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
@@ -151,59 +151,59 @@ export function FreezeSelectStepItem() {
     title: `Update transferability?`,
     description: `After this transaction, can the collection-level transferability be updated by the manager? This includes everything from how badges are distributed, freezing addresses, revoking badges, etc.`,
     node: () => <PermissionUpdateSelectWrapper
-        checked={checked}
-        setChecked={setChecked}
-        err={err}
-        setErr={setErr}
-        permissionName="canUpdateCollectionApprovals"
-        node={() => <>
-          <br />
-          {badgesIdsWithUnlockedSupply.length > 0 && <>
-            <ErrDisplay warning err={`You have selected to be able to increment supply / create more of the following badges: ${getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
+      checked={checked}
+      setChecked={setChecked}
+      err={err}
+      setErr={setErr}
+      permissionName="canUpdateCollectionApprovals"
+      node={() => <>
+        <br />
+        {badgesIdsWithUnlockedSupply.length > 0 && <>
+          <ErrDisplay warning err={`You have selected to be able to increment supply / create more of the following badges: ${getBadgeIdsString(badgesIdsWithUnlockedSupply)}.
               Please make sure you do not end up in a scenario where you can create new badges but cannot distribute them due to frozen transferability.`} />
-            <br />
-          </>}
+          <br />
+        </>}
 
-          <SwitchForm
-            showCustomOption
-            fullWidthCards
-            options={[
-              {
-                title: 'Freeze All',
-                message: `Freeze the transferability entirely for the collection for all badge IDs and from all addresses.`,
-                isSelected: compareObjects(getPermissionsToSet(0, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
-                  compareObjects(getPermissionsToSet(0, false), collection.collectionPermissions.canUpdateCollectionApprovals),
-                additionalNode: () => <AdditionalNode idx={0} />,
-              },
-              {
-                title: 'Freeze Post-Mint Transferability',
-                message: `Freeze the transferability of the collection for all badge IDs AFTER the badges have been transferred from the Mint address (i.e. revoking, transferable vs non-transferable, frozen addresses, etc).`,
-                isSelected: compareObjects(getPermissionsToSet(1, true), collection.collectionPermissions.canUpdateCollectionApprovals) || 
-                  compareObjects(getPermissionsToSet(1, false), collection.collectionPermissions.canUpdateCollectionApprovals),
-                additionalNode: () => <AdditionalNode idx={1} />
-              },
-              {
-                title: 'Freeze Mint Transferability',
-                message: `Freeze the transferability of the collection for all transfers from the Mint address.`,
-                isSelected: compareObjects(getPermissionsToSet(2, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
-                  compareObjects(getPermissionsToSet(2, false), collection.collectionPermissions.canUpdateCollectionApprovals),
-                additionalNode: () => <AdditionalNode idx={2} />
-              },
-              {
-                title: 'Editable',
-                message: `The manager will be able to edit the collection-level transferability for everything. This permission can be disabled in the future.`,
-                isSelected: compareObjects(getPermissionsToSet(3, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
-                  compareObjects(getPermissionsToSet(3, false), collection.collectionPermissions.canUpdateCollectionApprovals),
-                additionalNode: () => <AdditionalNode idx={3} />
-              },
-            ]}
-            onSwitchChange={(idx) => {
-              handleSwitchChange(idx, false);
-            }}
-          />
-        </>
-        }
-      />
+        <SwitchForm
+          showCustomOption
+          fullWidthCards
+          options={[
+            {
+              title: 'Freeze All',
+              message: `Freeze the transferability entirely for the collection for all badge IDs and from all addresses.`,
+              isSelected: compareObjects(getPermissionsToSet(0, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
+                compareObjects(getPermissionsToSet(0, false), collection.collectionPermissions.canUpdateCollectionApprovals),
+              additionalNode: () => <AdditionalNode idx={0} />,
+            },
+            {
+              title: 'Freeze Post-Mint Transferability',
+              message: `Freeze the transferability of the collection for all badge IDs AFTER the badges have been transferred from the Mint address (i.e. revoking, transferable vs non-transferable, frozen addresses, etc).`,
+              isSelected: compareObjects(getPermissionsToSet(1, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
+                compareObjects(getPermissionsToSet(1, false), collection.collectionPermissions.canUpdateCollectionApprovals),
+              additionalNode: () => <AdditionalNode idx={1} />
+            },
+            {
+              title: 'Freeze Mint Transferability',
+              message: `Freeze the transferability of the collection for all transfers from the Mint address.`,
+              isSelected: compareObjects(getPermissionsToSet(2, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
+                compareObjects(getPermissionsToSet(2, false), collection.collectionPermissions.canUpdateCollectionApprovals),
+              additionalNode: () => <AdditionalNode idx={2} />
+            },
+            {
+              title: 'Editable',
+              message: `The manager will be able to edit the collection-level transferability for everything. This permission can be disabled in the future.`,
+              isSelected: compareObjects(getPermissionsToSet(3, true), collection.collectionPermissions.canUpdateCollectionApprovals) ||
+                compareObjects(getPermissionsToSet(3, false), collection.collectionPermissions.canUpdateCollectionApprovals),
+              additionalNode: () => <AdditionalNode idx={3} />
+            },
+          ]}
+          onSwitchChange={(idx) => {
+            handleSwitchChange(idx, false);
+          }}
+        />
+      </>
+      }
+    />
     ,
     disabled: !!err,
   }

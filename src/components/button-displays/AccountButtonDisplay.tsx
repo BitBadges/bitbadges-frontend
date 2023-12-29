@@ -10,19 +10,19 @@ import {
   UserDeleteOutlined
 } from '@ant-design/icons';
 import { Avatar, Col, Layout, Spin, Tooltip, message, notification } from 'antd';
-import { BigIntify, GetFollowDetailsRouteSuccessResponse, SupportedChain, TransferWithIncrements, convertOffChainBalancesMap, getBalanceForIdAndTime } from 'bitbadgesjs-utils';
+import { GetFollowDetailsRouteSuccessResponse, SupportedChain, getBalanceForIdAndTime } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
 import { useEffect, useState } from 'react';
-import { fetchMetadataDirectly, getCollectionById, getFollowDetails } from '../../bitbadges-api/api';
+import { getFollowDetails } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { fetchBalanceForUser, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { fetchBalanceForUser } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { ReportModal } from '../tx-modals/ReportModal';
-import { createBalancesMapAndAddToStorage } from '../tx-modals/UpdateBalancesModal';
+import { removeBalancesFromExistingBalancesMapAndAddToStorage, setTransfersForExistingBalancesMapAndAddToStorage } from '../tx-modals/UpdateBalancesModal';
 
 const { Content } = Layout;
 
@@ -56,7 +56,6 @@ export function AccountButtonDisplay({
   onlySocials?: boolean
 }) {
   const chain = useChainContext();
-
   const router = useRouter();
   const accountInfo = useAccount(addressOrUsername);
   const signedInAccountInfo = useAccount(chain.address);
@@ -73,14 +72,12 @@ export function AccountButtonDisplay({
 
   const isSameAccount = chain.cosmosAddress === accountInfo?.cosmosAddress
 
-  // const blockScanLink = 'https://chat.blockscan.com/index?a=' + address;
   const openSeaLink = 'https://opensea.io/' + address;
   const etherscanLink = 'https://etherscan.io/address/' + address;
   const twitterLink = 'https://twitter.com/' + accountInfo?.twitter;
   const telegramLink = 'https://t.me/' + accountInfo?.telegram;
   const githubLink = 'https://github.com/' + accountInfo?.github;
   const stargazeLink = `https://www.stargaze.zone/p/${address?.replace('cosmos', 'stars')}/tokens`
-  // const blurLink = 'https://blur.network/0x' + address;
 
   const [loading, setLoading] = useState(false);
   const [followDetails, setFollowDetails] = useState<GetFollowDetailsRouteSuccessResponse<bigint>>();
@@ -105,11 +102,10 @@ export function AccountButtonDisplay({
   }, [followDetails, accountInfo?.cosmosAddress, hideButtons]);
 
 
-  
+
 
   const addToFollowCollection = async () => {
     if (loading || !accountInfo?.cosmosAddress) return;
-
     if (following) {
       notification.success({
         message: 'Success',
@@ -125,46 +121,17 @@ export function AccountButtonDisplay({
       return;
     }
 
-    let followCollection = getCollection(followDetails.followingCollectionId);
-    if (!followCollection) {
-      const res = await getCollectionById(followDetails.followingCollectionId, {}, true);
-      followCollection = res.collection;
-    }
-
-    if (followCollection.balancesType !== 'Off-Chain - Indexed' || followCollection.offChainBalancesMetadataTimeline.length === 0 || !followCollection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/')) {
-      message.error('Your follow collection is custom created. To follow users, you must send them the respective follow badge manually.');
-      setLoading(false);
-      return;
-    }
-
-    const offChainBalancesMapRes = await fetchMetadataDirectly({
-      uris: [followCollection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri]
-    });
-
-    //filter undefined entries
-    const filteredMap = Object.entries(offChainBalancesMapRes.metadata[0] as any).filter(([, balances]) => {
-      return !!balances;
-    }).reduce((obj, [cosmosAddress, balances]) => {
-      obj[cosmosAddress] = balances;
-      return obj;
-    }, {} as any);
-
-    const balancesMap = convertOffChainBalancesMap(filteredMap as any, BigIntify)
-    const transfers: TransferWithIncrements<bigint>[] = Object.entries(balancesMap).map(([cosmosAddress, balances]) => {
-      return {
+    try {
+      await setTransfersForExistingBalancesMapAndAddToStorage(followDetails.followingCollectionId, [{
         from: 'Mint',
-        toAddresses: [cosmosAddress],
-        balances,
-      }
-    });
-    transfers.push({
-      from: 'Mint',
-      toAddresses: [accountInfo?.cosmosAddress ?? ''],
-      balances: [{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] }]
-    });
-    await createBalancesMapAndAddToStorage(followDetails.followingCollectionId, transfers, 'centralized', true);
+        toAddresses: [accountInfo?.cosmosAddress ?? ''],
+        balances: [{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] }]
+      }], 'centralized', true);
 
-    setFollowing(true);
+      setFollowing(true);
+    } catch (e) {
+
+    }
     setLoading(false);
   }
 
@@ -186,48 +153,12 @@ export function AccountButtonDisplay({
       return;
     }
 
-    let followCollection = getCollection(followDetails.followingCollectionId);
-    if (!followCollection) {
-      const res = await getCollectionById(followDetails.followingCollectionId, {}, true);
-      followCollection = res.collection;
-    }
-
-    if (followCollection.balancesType !== 'Off-Chain - Indexed' || followCollection.offChainBalancesMetadataTimeline.length === 0 || !followCollection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/')) {
-      message.error('Your follow collection is custom created. To follow or unfollow users, you must assign them the follow badge manually.');
-      setLoading(false);
-      return;
-    }
-
-    const offChainBalancesMapRes = await fetchMetadataDirectly({
-      uris: [followCollection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri]
-    });
-
-    //filter undefined entries
-    const filteredMap = Object.entries(offChainBalancesMapRes.metadata[0] as any).filter(([, balances]) => {
-      return !!balances;
-    }).reduce((obj, [cosmosAddress, balances]) => {
-      obj[cosmosAddress] = balances;
-      return obj;
-    }, {} as any);
-
-    const balancesMap = convertOffChainBalancesMap(filteredMap as any, BigIntify)
-    let transfers: TransferWithIncrements<bigint>[] = Object.entries(balancesMap).map(([cosmosAddress, balances]) => {
-      return {
-        from: 'Mint',
-        toAddresses: [cosmosAddress],
-        balances,
-      }
-    });
-
-    transfers = transfers.filter(transfer => transfer.toAddresses[0] !== accountInfo?.cosmosAddress);
-
-    await createBalancesMapAndAddToStorage(followDetails.followingCollectionId, transfers, 'centralized', true);
+    await removeBalancesFromExistingBalancesMapAndAddToStorage(followDetails.followingCollectionId, [accountInfo.cosmosAddress ?? ''], 'centralized', true);
     setFollowing(false);
-
     setLoading(false);
   }
 
-  
+
   return (
     <div>
       {!hideButtons && <div style={!hideDisplay ? { position: 'absolute', right: 10, display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
@@ -244,20 +175,6 @@ export function AccountButtonDisplay({
             </Tooltip>
           </a>
         )}
-
-        {/* {accountInfo?.chain === SupportedChain.ETH && (
-          <a href={blurLink} target="_blank" rel="noreferrer">
-            <Tooltip title="Blur" placement="bottom">
-              <Avatar
-                size="large"
-                onClick={() => { }}
-                className="styled-button-normal account-socials-button"
-                src={"https://pbs.twimg.com/profile_images/1518705644450291713/X2FLVDdn_400x400.jpg"}
-              >
-              </Avatar>
-            </Tooltip>
-          </a>
-        )} */}
 
         {accountInfo?.chain === SupportedChain.COSMOS && !isAliasAccount && (
           <a href={stargazeLink} target="_blank" rel="noreferrer">

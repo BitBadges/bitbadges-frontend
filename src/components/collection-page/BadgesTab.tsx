@@ -22,8 +22,7 @@ export function BadgesTab({ collectionId }: {
 
   const FilterSearchDropdown = <CollectionsFilterSearchBar
     specificCollectionId={collectionId}
-  
-  onSearch={async (searchValue: any, _isAccount?: boolean | undefined, _isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
+    onSearch={async (searchValue: any, _isAccount?: boolean | undefined, _isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
     if (typeof searchValue === 'string') {
       if (isBadge) {
         const collectionId = BigInt(searchValue.split('/')[0]);
@@ -77,7 +76,6 @@ export function BadgesTab({ collectionId }: {
         </div>
       </div>
       <br />
-
       <div className='full-width flex-center flex-wrap'>
         {filteredCollections.map((filteredCollection, idx) => {
           return <BatchBadgeDetailsTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
@@ -92,23 +90,13 @@ export function BadgesTab({ collectionId }: {
           badgesToShow={filteredCollections.length > 0 ? filteredCollections : collection ? [{
             collectionId,
             badgeIds: getUintRangesForAllBadgeIdsInCollection(collection)
-          }] : []}  
+          }] : []}
           hasMore={false}
           fetchMore={async () => {}}
           groupByCollection={false}
           editMode={false}
           addressOrUsername=''
         />
-      {/*       
-        <BadgeAvatarDisplay
-          collectionId={collectionId}
-          cardView={cardView}
-          badgeIds={collection ? getUintRangesForAllBadgeIdsInCollection(collection) : []}
-          defaultPageSize={cardView ? 25 : 1000}
-          hideCollectionLink={true}
-          // doNotAdaptToWidth
-          showPageJumper
-        /> */}
       </div>
     </div>
   );

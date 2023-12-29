@@ -12,9 +12,7 @@ export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, on
   editable?: boolean,
   showDeletedGrayedOut?: boolean
 }) {
-
   const collection = useCollection(collectionId);
-
   const txTimelineContext = useTxTimelineContext();
 
   if (!collection) return <></>;

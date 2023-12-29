@@ -21,7 +21,7 @@ import { BrowseContextProvider } from '../bitbadges-api/contexts/BrowseContext';
 import { ChainContextProvider } from '../bitbadges-api/contexts/ChainContext';
 import { StatusContextProvider } from '../bitbadges-api/contexts/StatusContext';
 import { TxTimelineContextProvider } from '../bitbadges-api/contexts/TxTimelineContext';
-import { AccountRequestParams, accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
+import { accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
 import { CosmosContextProvider } from '../bitbadges-api/contexts/chains/CosmosContext';
 import { EthereumContextProvider } from '../bitbadges-api/contexts/chains/EthereumContext';
 import { SolanaContextProvider } from '../bitbadges-api/contexts/chains/SolanaContext';
@@ -70,8 +70,6 @@ export interface AccountReducerState {
   cosmosAddressesByUsernames: { [username: string]: string };
   loading: boolean;
   error: string | undefined;
-  queue: AccountRequestParams[];
-  fetching: AccountRequestParams[];
 }
 
 export interface CollectionReducerState {

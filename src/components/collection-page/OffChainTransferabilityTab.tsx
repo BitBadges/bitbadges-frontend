@@ -26,7 +26,6 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
   }
 
   const currMetadata = badgeId ? getMetadataForBadgeId(badgeId, collection.cachedBadgeMetadata) : collection.cachedCollectionMetadata;
-
   if (currMetadata?.offChainTransferabilityInfo) {
     if (currMetadata.offChainTransferabilityInfo.host) {
       info.host = currMetadata.offChainTransferabilityInfo.host;
@@ -50,8 +49,6 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
       "assignMethod": 'Each user is assigned a balance of x1 if they have claimed their BitBadges betanet airdrop.',
     }
   }
-
-
 
   return (
     <>

@@ -32,7 +32,6 @@ export const BlockinDisplay = ({
     disconnect,
     signChallenge,
     selectedChainInfo,
-
     chain,
     setChain,
     connected,
@@ -202,26 +201,6 @@ export const BlockinDisplay = ({
                   }]}
                 /></div>
             },
-            // {
-            //   collectionId: 1,
-            //   chain: 'BitBadges',
-            //   assetIds: [{ start: 1, end: 1 }, { start: 3, end: 3 }],
-            //   mustOwnAmounts: { start: 1, end: 10000 },
-            //   name: 'Premium Features',
-            //   description: 'Premium features are restricted to people who own the gold membership badge and verified badge. Note this is just an example to show off BitBadges features. There are no gated premium features on this website.',
-            //   frozen: false,
-            //   defaultSelected: false,
-            //   // additionalCriteria: "HELLO!",
-            //   additionalDisplay: <div>
-            //     <BadgeAvatarDisplay
-            //       collectionId={1n}
-            //       size={100}
-            //       badgeIds={[{ start: 1n, end: 1n }, { start: 3n, end: 3n }]}
-
-            //     // showIds
-            //     />
-            //   </div>
-            // },
           ]}
           signAndVerifyChallenge={signAndVerifyChallenge}
           hideConnectVsSignInHelper={hideLogin}

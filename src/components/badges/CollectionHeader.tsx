@@ -15,7 +15,6 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
   multiDisplay?: boolean
 }) {
   const router = useRouter();
-
   const collection = useCollection(collectionId)
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])?.metadata : collection?.cachedCollectionMetadata;
   const collectionMetadata = collection?.cachedCollectionMetadata;

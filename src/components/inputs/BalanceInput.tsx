@@ -1,5 +1,5 @@
 import { Balance, MustOwnBadges, UintRange } from 'bitbadgesjs-proto';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
+import { BalanceDisplay } from '../badges/BalanceDisplay';
 
 export function BalanceInput({
   balancesToShow,

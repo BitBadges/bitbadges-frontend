@@ -185,7 +185,6 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         msg: txCosmosMsg,
         afterTx: async () => {
           await fetchCollections([collectionId], true);
-          // await fetchBalanceForUser(collectionId, chain.cosmosAddress, true);
         }
       }
     ]

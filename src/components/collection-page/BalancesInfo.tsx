@@ -1,18 +1,14 @@
 import { Empty } from 'antd';
 import { Balance } from 'bitbadgesjs-proto';
-import { searchUintRangesForId } from 'bitbadgesjs-utils';
+import { getBalancesForId } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-
-
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
-import { BalanceDisplay } from '../badges/balances/BalanceDisplay';
-
-
+import { BalanceDisplay } from '../badges/BalanceDisplay';
 
 export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddress, setTab }: {
   collectionId: bigint;
@@ -22,14 +18,10 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
   setTab?: (tab: string) => void;
 }) {
   const chain = useChainContext();
-
-
   const collection = useCollection(collectionId);
-
-  const isPreview = collectionId === NEW_COLLECTION_ID;
-
   const signedInAccount = useAccount(chain.address);
-
+  const isPreview = collectionId === NEW_COLLECTION_ID;
+  
   const [currBalances, setCurrBalances] = useState<Balance<bigint>[]>();
   const [addressOrUsername, setAddressOrUsername] = useState<string>(defaultAddress || signedInAccount?.username || signedInAccount?.address || '');
   const account = useAccount(addressOrUsername);
@@ -37,7 +29,6 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
   const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
 
   const DELAY_MS = 500;
-
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set curr balance');
 
@@ -47,7 +38,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         if (collectionId === NEW_COLLECTION_ID) return;
 
         if (!isNonIndexedBalances) {
-          //Check both collections and users for the balances
+          //Check both collections and users to see if we have anything cached
           const accountHasBalance = account?.collected.find(x => x.collectionId === collectionId);
           const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
 
@@ -74,33 +65,18 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
     }, DELAY_MS)
 
     return () => clearTimeout(delayDebounceFn)
-  }, [collectionId, account, collection]);
+  }, [collectionId, account, collection, isNonIndexedBalances]);
 
   if (!collection) return <></>;
 
-  const balancesToShow = currBalances?.map(x => {
-    if (!badgeId) return x;
-
-    const filteredBadgeIds = [];
-    const [, found] = searchUintRangesForId(badgeId, x.badgeIds);
-    if (found) {
-      filteredBadgeIds.push({ start: badgeId, end: badgeId });
-    }
-
-    return {
-      ...x,
-      badgeIds: filteredBadgeIds
-    }
-  }) ?? []
-
+  const balancesToShow = badgeId && currBalances ? getBalancesForId(badgeId, currBalances) ?? [] : currBalances ?? [];
+  
   return (<div className='full-width flex-column'>
     <div className='full-width flex-center flex-column'>
       {<>
         <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} disabled={hideSelect} />
       </>}
     </div>
-
-
     <div
       className='primary-text full-width'
       style={{ marginTop: 16 }}
@@ -120,9 +96,8 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
             balances={balancesToShow}
           />
 
-        </div><br/>
+        </div><br />
         </>
-
       }
       
       {!!setTab && collection.balancesType !== "Off-Chain - Non-Indexed" && <>

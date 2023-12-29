@@ -1,14 +1,15 @@
 
 import { notification } from 'antd';
 import { SupportedChain, createTxRawEIP712, signatureToWeb3ExtensionSolana } from 'bitbadgesjs-proto';
-import { AccountViewKey, Numberify, convertToCosmosAddress, solanaToCosmos } from 'bitbadgesjs-utils';
+import { Numberify, convertToCosmosAddress, solanaToCosmos } from 'bitbadgesjs-utils';
 import { PresetUri } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useCallback, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { CHAIN_DETAILS, SOLANA_LOGO } from '../../../constants';
 import { checkIfSignedIn } from '../../api';
 import { ChainSpecificContextType } from '../ChainContext';
-import { fetchAccountsWithOptions, useAccount } from '../accounts/AccountsContext';
+import { useAccount } from '../accounts/AccountsContext';
+import { fetchDefaultViews } from './helpers';
 
 const bs58 = require('bs58');
 
@@ -63,7 +64,6 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
   const account = useAccount(cosmosAddress)
 
   const getProvider = () => {
-
     if ('phantom' in window) {
       const phantomWindow = window as any;
       const provider = phantomWindow.phantom?.solana;
@@ -92,42 +92,6 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   const connectAndPopulate = useCallback(async (address: string, cookie: string) => {
-    const DefaultViewsToFetch: { viewType: AccountViewKey; viewId: string, bookmark: string; }[] = [{
-      viewType: 'badgesCollected',
-      viewId: 'badgesCollected',
-      bookmark: '',
-    }, {
-      viewType: 'latestActivity',
-      viewId: 'latestActivity',
-      bookmark: '',
-    },{
-      viewType: 'listsActivity',
-      viewId: 'listsActivity',
-      bookmark: '',
-    }, {
-      viewType: 'latestAnnouncements',
-      viewId: 'latestAnnouncements',
-      bookmark: '',
-
-    }, {
-      viewType: 'latestReviews',
-      viewId: 'latestReviews',
-      bookmark: '',
-    }, {
-      viewType: 'addressMappings',
-      viewId: 'addressMappings',
-      bookmark: '',
-    }, {
-      viewType: 'explicitlyIncludedAddressMappings',
-      viewId: 'explicitlyIncludedAddressMappings',
-      bookmark: ''
-    },
-    {
-      viewType: 'explicitlyExcludedAddressMappings',
-      viewId: 'explicitlyExcludedAddressMappings',
-      bookmark: ''
-    }]
-
     if (!address) {
       try {
         const provider = getProvider(); // see "Detecting the Provider"
@@ -135,8 +99,6 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
         const resp = await provider.request({ method: "connect" });
         const address = resp.publicKey.toBase58();
         const pubKey = resp.publicKey.toBase58();
-        // console.log(resp.publicKey.toString());
-        // console.log(resp.publicKey.toBase58());
         const cosmosAddress = solanaToCosmos(address);
 
         setSolanaProvider(provider);
@@ -146,7 +108,6 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
         const solanaPublicKeyBuffer = bs58.decode(solanaPublicKeyBase58);
         const publicKeyToSet = Buffer.from(solanaPublicKeyBuffer).toString('base64')
         setPubKey(publicKeyToSet);
-
         setCookies('pub_key', `${cosmosAddress}-${publicKeyToSet}`, { path: '/' });
 
         let loggedIn = false;
@@ -158,32 +119,11 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
           setLoggedIn(false);
         }
 
-        const viewsToFetch = DefaultViewsToFetch.slice();
-
         if (loggedIn) {
-          viewsToFetch.push({
-            viewType: 'latestClaimAlerts',
-            viewId: 'latestClaimAlerts',
-            bookmark: '',
-          }, {
-            viewType: 'latestAddressMappings',
-            viewId: 'latestAddressMappings',
-            bookmark: ''
-          },
-            {
-              viewType: 'authCodes',
-              viewId: 'authCodes',
-              bookmark: '',
-            })
           setLastSeenActivity(Date.now());
         }
 
-        await fetchAccountsWithOptions([{
-          address: address,
-          fetchSequence: true,
-          fetchBalance: true,
-          viewsToFetch
-        }]);
+        await fetchDefaultViews(address, loggedIn);
       } catch (e) {
         console.error(e);
         notification.error({

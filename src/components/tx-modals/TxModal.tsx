@@ -50,8 +50,6 @@ import { convertMsgUniversalUpdateCollection,
   convertMsgDeleteCollection,
   convertMsgTransferBadges,
   convertMsgUpdateUserApprovals,
-
-  
   createTransactionPayload } from 'bitbadgesjs-proto';
 import { fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
@@ -119,7 +117,6 @@ export function TxModal(
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [useRecommendedFee, setUseRecommendedFee] = useState(true);
-
   const [amount, setAmount] = useState(0n);
   const [simulatedGas, setSimulatedGas] = useState(200000n);
   const [simulated, setSimulated] = useState(false);
@@ -210,7 +207,6 @@ export function TxModal(
           }
           break;
       }
-  
   
       return {
         ...tx,

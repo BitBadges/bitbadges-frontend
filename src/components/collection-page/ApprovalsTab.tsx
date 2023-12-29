@@ -198,7 +198,8 @@ const FullApprovalsDisplay: FC<FullProps> = ({
   const [showHidden, setShowHidden] = useState<boolean>(defaultShowDisallowed ?? false);
   const chain = useChainContext();
   const txTimelineContext = useTxTimelineContext();
-  //To get rid of saying that the default 24 hour manager approval is "Exsiting"
+
+  //To get rid of saying that the default 24 hour manager approval is "Existing"
   startingApprovals = !txTimelineContext.existingCollectionId || txTimelineContext.existingCollectionId == 0n ? [] : startingApprovals;
 
   let disapproved = showHidden ? approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true)
@@ -297,15 +298,10 @@ const FullApprovalsDisplay: FC<FullProps> = ({
     <br />
 
     <InformationDisplayCard
-
-
-      title={title ?? ''
-
-      }
+      title={title ?? ''}
       span={24} subtitle={subtitle}
       noBorder inheritBg
     >
-
       <div style={{ float: 'right' }}>
         {onlyShowFromMint && <Switch
           style={{ margin: 10 }}
@@ -392,7 +388,6 @@ export function UserApprovalsTab({
   const chain = useChainContext();
   const collection = useCollection(collectionId);
 
-
   const [address, setAddress] = useState<string>(defaultApprover ?? chain.address);
   const [tab, setTab] = useState<string>(isIncomingApprovalEdit ? 'incoming' : 'outgoing');
 
@@ -417,8 +412,6 @@ export function UserApprovalsTab({
   const appendDefaultIncoming = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedIncomingTransfers ?? collection.defaultBalances.autoApproveSelfInitiatedIncomingTransfers;
   const appendDefaultOutgoing = collection.owners?.find(x => x.cosmosAddress === approverAccount?.cosmosAddress)?.autoApproveSelfInitiatedOutgoingTransfers ?? collection.defaultBalances.autoApproveSelfInitiatedOutgoingTransfers;
 
-  // console.log(appendDefaultForOutgoing(outgoingApprovals, approverAccount?.cosmosAddress ?? ''))
-
   const outgoingApprovalsWithDefaults = !approverAccount?.cosmosAddress ? [] : appendDefaultForOutgoing(outgoingApprovals, approverAccount?.cosmosAddress ?? '')
   const incomingApprovalsWithDefaults = !approverAccount?.cosmosAddress ? [] : appendDefaultForIncoming(incomingApprovals, approverAccount?.cosmosAddress ?? '')
 
@@ -441,10 +434,6 @@ export function UserApprovalsTab({
       content: <>Incoming Approvals</>
     },
   ];
-
-
-
-
 
   if (!isIncomingApprovalEdit && !isOutgoingApprovalEdit) {
     tabInfo.push({
@@ -501,8 +490,7 @@ export function UserApprovalsTab({
             message: 'Only approve incoming transfers that were initiated by you.',
             isSelected: (userIncomingApprovals ?? []).filter(x => x.approvalId !== "default-incoming").length === 0,
           }
-        ]
-        }
+        ]}
         onSwitchChange={(value) => {
           if (value === 0) {
             setUserIncomingApprovals?.([{

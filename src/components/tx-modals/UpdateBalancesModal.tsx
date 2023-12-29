@@ -1,12 +1,87 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Divider, Modal, Spin, notification } from 'antd';
-import { OffChainBalancesMap, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { Divider, Modal, Spin, message, notification } from 'antd';
+import { BigIntify, BitBadgesCollection, OffChainBalancesMap, TransferWithIncrements, convertOffChainBalancesMap, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils/dist/distribution';
-import React, { useEffect } from 'react';
-import { addBalancesToOffChainStorage } from '../../bitbadges-api/api';
+import React, { useEffect, useState } from 'react';
+import { addBalancesToOffChainStorage, fetchMetadataDirectly, getCollectionById } from '../../bitbadges-api/api';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DistributionComponent } from '../tx-timelines/step-items/OffChainBalancesStepItem';
 import { DisconnectedWrapper } from '../wrappers/DisconnectedWrapper';
+
+const getCollectionFromId = async (collectionId: bigint) => {
+  let followCollection = getCollection(collectionId);
+  if (!followCollection) {
+    const res = await getCollectionById(collectionId, {}, true);
+    followCollection = res.collection;
+  }
+
+  return followCollection
+}
+
+const getExistingBalanceMap = async (collection: BitBadgesCollection<bigint>) => {
+  if (collection.balancesType !== 'Off-Chain - Indexed' || collection.offChainBalancesMetadataTimeline.length === 0 || !collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/')) {
+    message.error('The collection you are trying to set balances for is custom created. You will have to assign balances manually.');
+    throw new Error('The collection you are trying to set balances for is custom created. You will have to assign balances manually.');
+  }
+
+  const offChainBalancesMapRes = await fetchMetadataDirectly({
+    uris: [collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri]
+  });
+
+  //filter undefined entries
+  const filteredMap = Object.entries(offChainBalancesMapRes.metadata[0] as any).filter(([, balances]) => {
+    return !!balances;
+  }).reduce((obj, [cosmosAddress, balances]) => {
+    obj[cosmosAddress] = balances;
+    return obj;
+  }, {} as any);
+
+  return convertOffChainBalancesMap(filteredMap as any, BigIntify)
+}
+
+export const removeBalancesFromExistingBalancesMapAndAddToStorage = async (collectionId: bigint, addresses: string[], method: 'ipfs' | 'centralized', notify: boolean) => {
+  const followCollection = await getCollectionFromId(collectionId);
+  const balancesMap = await getExistingBalanceMap(followCollection);
+  const newTransfers: TransferWithIncrements<bigint>[] = Object.entries(balancesMap).map(([cosmosAddress, balances]) => {
+    return {
+      from: 'Mint',
+      toAddresses: [cosmosAddress],
+      balances,
+    }
+  }).filter(x => !addresses.includes(x.toAddresses[0]));
+
+  return await createBalancesMapAndAddToStorage(collectionId, newTransfers, method, notify);
+}
+
+export const setTransfersForExistingBalancesMapAndAddToStorage = async (collectionId: bigint, transfers: TransferWithIncrements<bigint>[], method: 'ipfs' | 'centralized', notify: boolean) => {
+  const followCollection = await getCollectionFromId(collectionId);
+  const balancesMap = await getExistingBalanceMap(followCollection);
+  const newTransfers: TransferWithIncrements<bigint>[] = Object.entries(balancesMap).map(([cosmosAddress, balances]) => {
+    return {
+      from: 'Mint',
+      toAddresses: [cosmosAddress],
+      balances,
+    }
+  }).filter(x => !transfers.find(y => y.toAddresses[0] === x.toAddresses[0]));
+  newTransfers.push(...transfers);
+
+  return await createBalancesMapAndAddToStorage(collectionId, newTransfers, method, notify);
+}
+
+export const addTransfersToExistingBalancesMapAndAddToStorage = async (collectionId: bigint, transfers: TransferWithIncrements<bigint>[], method: 'ipfs' | 'centralized', notify: boolean) => {
+  let followCollection = await getCollectionFromId(collectionId);
+  const balancesMap = await getExistingBalanceMap(followCollection);
+  const newTransfers: TransferWithIncrements<bigint>[] = Object.entries(balancesMap).map(([cosmosAddress, balances]) => {
+    return {
+      from: 'Mint',
+      toAddresses: [cosmosAddress],
+      balances,
+    }
+  });
+  newTransfers.push(...transfers);
+  return await createBalancesMapAndAddToStorage(collectionId, transfers, method, notify);
+}
 
 export const createBalancesMapAndAddToStorage = async (collectionId: bigint, transfers: TransferWithIncrements<bigint>[], method: 'ipfs' | 'centralized', notify: boolean) => {
   const _balanceMap = await createBalanceMapForOffChainBalances(transfers);
@@ -37,14 +112,13 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
 }) {
   const txTimelineContext = useTxTimelineContext();
 
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     txTimelineContext.resetState(collectionId);
   }, [collectionId]);
 
   return (
-
     <Modal
       title={<div className='primary-text inherit-bg'><b>{'Distribute'}</b></div>}
       open={visible}

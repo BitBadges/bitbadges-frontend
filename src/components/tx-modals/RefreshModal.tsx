@@ -1,4 +1,4 @@
-import { CloseOutlined } from '@ant-design/icons';
+import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Modal, Typography, notification } from 'antd';
 import { NumberType, RefreshStatusRouteSuccessResponse } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -18,7 +18,6 @@ export function RefreshModal({ visible, setVisible, collectionId, }: {
   const refreshDoc = refreshStatus?.refreshDoc;
   const inQueue = refreshStatus?.inQueue;
   const errorDocs = refreshStatus?.errorDocs
-
 
   useEffect(() => {
     async function fetchRefreshDetails() {
@@ -110,6 +109,10 @@ export function RefreshModal({ visible, setVisible, collectionId, }: {
             }} style={{ width: '100%' }}>
             {'Refresh?'}
           </button>
+        </div>
+        <br />
+        <div className='secondary-text'>
+          <InfoCircleOutlined /> {'Please only refresh if you believe there have been changes.'}
         </div>
       </>
     </Modal>

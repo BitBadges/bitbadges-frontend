@@ -1,19 +1,19 @@
 import { AuditOutlined, BookOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
 import { Divider, Switch } from 'antd';
 import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, CollectionApprovalPermissionWithDetails, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
+import { CollectionApprovalPermissionWithDetails, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
+import { compareObjects } from '../../../utils/compare';
 import { PermissionSelect, PermissionsOverview } from '../../collection-page/PermissionsInfo';
 import IconButton from '../../display/IconButton';
-import { BeforeAfterPermission } from './BeforeAfterPermission';
+import { BeforeAfterPermission, getCastFunctionsAndUsedFlags } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
-import { ErrDisplay } from './ErrDisplay';
+import { ErrDisplay } from '../../common/ErrDisplay';
 import { SwitchForm } from './SwitchForm';
-import { compareObjects } from '../../../utils/compare';
 
 
 export function PermissionUpdateSelectWrapper({
@@ -57,7 +57,6 @@ export function PermissionUpdateSelectWrapper({
       switch (permissionName) {
         case 'canDeleteCollection':
           err = validateActionPermissionUpdate(oldPermissions as ActionPermission<bigint>[], newPermissions as ActionPermission<bigint>[]);
-
           break;
         case 'canArchiveCollection':
         case 'canUpdateOffChainBalancesMetadata':
@@ -86,39 +85,7 @@ export function PermissionUpdateSelectWrapper({
     }
   }, [collection, startingCollection, permissionName, setErr]);
 
-  let castFunction: any = () => { }
-  let flags;
-  if (collection) {
-
-    switch (permissionName) {
-      case 'canDeleteCollection':
-        castFunction = castActionPermissionToUniversalPermission;
-        flags = ActionPermissionUsedFlags;
-        break;
-      case 'canArchiveCollection':
-      case 'canUpdateOffChainBalancesMetadata':
-      case 'canUpdateStandards':
-      case 'canUpdateCustomData':
-      case 'canUpdateManager':
-      case 'canUpdateCollectionMetadata':
-        castFunction = castTimedUpdatePermissionToUniversalPermission;
-        flags = TimedUpdatePermissionUsedFlags
-        break;
-      case 'canCreateMoreBadges':
-        castFunction = castBalancesActionPermissionToUniversalPermission;
-        flags = BalancesActionPermissionUsedFlags;
-        break;
-      case 'canUpdateBadgeMetadata':
-        // case 'canUpdateInheritedBalances':
-        castFunction = castTimedUpdateWithBadgeIdsPermissionToUniversalPermission;
-        flags = TimedUpdateWithBadgeIdsPermissionUsedFlags;
-        break;
-      case 'canUpdateCollectionApprovals':
-        castFunction = castCollectionApprovalPermissionToUniversalPermission;
-        flags = ApprovalPermissionUsedFlags;
-        break;
-    }
-  }
+  const { flags } = getCastFunctionsAndUsedFlags(permissionName);
 
   const startingPermissions = startingCollection?.collectionPermissions[`${permissionName as keyof typeof startingCollection.collectionPermissions}`] ?? [] as any;
   const currPermissions = collection?.collectionPermissions[`${permissionName as keyof typeof collection.collectionPermissions}`] ?? [] as any;
@@ -192,15 +159,15 @@ export function PermissionUpdateSelectWrapper({
                 }
               }}
             />}
-             <IconButton
-              src={<BookOutlined style={{ fontSize: 16 }} />}
-              style={{ cursor: 'pointer' }}
-              tooltipMessage={'Visit the BitBadges documentation to learn more about this concept.'}
-              text={'Docs'}
-              onClick={() => {
-                window.open(documentationLink ?? `https://docs.bitbadges.io/overview/how-it-works/manager`, '_blank');
-              }}
-            />
+          <IconButton
+            src={<BookOutlined style={{ fontSize: 16 }} />}
+            style={{ cursor: 'pointer' }}
+            tooltipMessage={'Visit the BitBadges documentation to learn more about this concept.'}
+            text={'Docs'}
+            onClick={() => {
+              window.open(documentationLink ?? `https://docs.bitbadges.io/overview/how-it-works/manager`, '_blank');
+            }}
+          />
         </div>
 
         {!isMint &&
@@ -226,7 +193,7 @@ export function PermissionUpdateSelectWrapper({
             className='primary-text'
           />}
       </div>
-      {!checked && castFunction && flags &&
+      {!checked && flags &&
         <>
           <br />
           <div className="full-width">
@@ -261,7 +228,7 @@ export function PermissionUpdateSelectWrapper({
         <br />
         <Divider />
       </>}
-      {checked && castFunction && flags && showBeforeAndAfter && <>
+      {checked && flags && showBeforeAndAfter && <>
         <BeforeAfterPermission
           permissionName={permissionName}
         />
@@ -285,7 +252,7 @@ export function PermissionUpdateSelectWrapper({
         {!formView && <PermissionSelect
           collectionId={NEW_COLLECTION_ID}
 
-          permissionName={permissionName} 
+          permissionName={permissionName}
           value={currPermissions}
           setValue={(value) => {
             if (collection) {

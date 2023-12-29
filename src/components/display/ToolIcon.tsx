@@ -9,16 +9,6 @@ export const tools = [{
   createdBy: 'sketch.io',
   communityBuilt: true
 },
-// {
-//   name: 'Email',
-//   url: 'https://bitbadges-email-distribution-tool-trevormil.vercel.app/',
-//   icon: <MailOutlined />,
-//   description: 'Distribute claim codes via email.',
-//   distributionMethod: DistributionMethod.Codes,
-//   createdBy: 'BitBadges',
-//   toolType: 'Distribution',
-//   communityBuilt: true
-// }, 
 {
   name: 'Excalidraw',
   url: 'https://excalidraw.com/',

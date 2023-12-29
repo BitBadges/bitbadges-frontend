@@ -1,19 +1,20 @@
 import { AuditOutlined, BookOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Switch } from 'antd';
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateBadgeMetadataUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate } from 'bitbadgesjs-utils';
+import { UsedFlags } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { neverHasManager } from '../../../bitbadges-api/utils/manager';
 import { INFINITE_LOOP_MODE } from '../../../constants';
+import { compareObjects } from '../../../utils/compare';
 import { PermissionDisplay, getPermissionDetails } from '../../collection-page/PermissionsInfo';
+import { ErrDisplay } from '../../common/ErrDisplay';
 import IconButton from '../../display/IconButton';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
+import { getCastFunctionsAndUsedFlags } from './BeforeAfterPermission';
 import { JSONSetter } from './CustomJSONSetter';
-import { ErrDisplay } from './ErrDisplay';
 import { SwitchForm } from './SwitchForm';
-import { compareObjects } from '../../../utils/compare';
 
 export function UpdateSelectWrapper({
   updateFlag,
@@ -61,67 +62,12 @@ export function UpdateSelectWrapper({
   const [showPermission, setShowPermission] = useState<boolean>(false);
   const [jsonErr, setJsonErr] = useState<Error | null>(null);
 
-  let castFunction: any = () => { }
-  let validateFunction: any = undefined;
-  let flags;
-  if (collection) {
-    switch (permissionName) {
-      case 'canDeleteCollection':
-        castFunction = castActionPermissionToUniversalPermission;
-        flags = ActionPermissionUsedFlags;
-        break;
-      case 'canArchiveCollection':
-      case 'canUpdateOffChainBalancesMetadata':
-      case 'canUpdateStandards':
-      case 'canUpdateCustomData':
-      case 'canUpdateManager':
-      case 'canUpdateCollectionMetadata':
-        castFunction = castTimedUpdatePermissionToUniversalPermission;
-        flags = TimedUpdatePermissionUsedFlags
-        break;
-      case 'canCreateMoreBadges':
-        castFunction = castBalancesActionPermissionToUniversalPermission;
-        flags = BalancesActionPermissionUsedFlags;
-        break;
-      case 'canUpdateBadgeMetadata':
-        // case 'canUpdateInheritedBalances':
-        castFunction = castTimedUpdateWithBadgeIdsPermissionToUniversalPermission;
-        flags = TimedUpdateWithBadgeIdsPermissionUsedFlags;
-        break;
-      case 'canUpdateCollectionApprovals':
-        castFunction = castCollectionApprovalPermissionToUniversalPermission;
-        flags = ApprovalPermissionUsedFlags;
-        break;
-    }
+  const { castFunction, flags, question, validateFunction } = getCastFunctionsAndUsedFlags(permissionName);
 
-    switch (permissionName) {
-      case 'canArchiveCollection':
-        validateFunction = validateIsArchivedUpdate;
-        break;
-      case 'canUpdateOffChainBalancesMetadata':
-        validateFunction = validateOffChainBalancesMetadataUpdate;
-        break;
-      // case 'canUpdateStandards':
-      // case 'canUpdateCustomData':
-      case 'canUpdateManager':
-        validateFunction = validateManagerUpdate
-        break;
-      case 'canUpdateCollectionMetadata':
-        validateFunction = validateCollectionMetadataUpdate;
-        break;
-      case 'canUpdateBadgeMetadata':
-        validateFunction = validateBadgeMetadataUpdate;
-        break;
-      case 'canUpdateCollectionApprovals':
-        validateFunction = validateCollectionApprovalsUpdate
-        break;
-    }
-  }
-
-  const prevPermissions = startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
+  const prevPermissions = startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions]
   const noManager = collection ? neverHasManager(collection) : true;
   const permissionDataSource = jsonPropertyPath === "defaultUserIncomingApprovals" ? undefined : getPermissionDetails(
-    castFunction(prevPermissions),
+    castFunction(prevPermissions ?? []),
     flags as any,
     noManager
   );
@@ -144,40 +90,6 @@ export function UpdateSelectWrapper({
     setCustomJson(onlyShowJson);
   }, [onlyShowJson])
 
-  let question = "";
-  switch (permissionName) {
-    case 'canDeleteCollection':
-      question = "Can delete the collection?";
-      break;
-    case 'canArchiveCollection':
-      question = "Can archive the collection?";
-      break;
-    case 'canUpdateOffChainBalancesMetadata':
-      question = "Can update the off-chain balances metadata?";
-      break;
-    case 'canUpdateStandards':
-      question = "Can update the standards?";
-      break;
-    case 'canUpdateCustomData':
-      question = "Can update the custom data?";
-      break;
-    case 'canUpdateManager':
-      question = "Can update the manager?";
-      break;
-    case 'canUpdateCollectionMetadata':
-      question = "Can update the collection metadata?";
-      break;
-    case 'canCreateMoreBadges':
-      question = "Can create more badges?";
-      break;
-    case 'canUpdateBadgeMetadata':
-      question = "Can update the badge metadata?";
-      break;
-    case 'canUpdateCollectionApprovals':
-      question = "Can update collection approvals?";
-      break;
-    // Add custom questions for other permissions as needed
-  }
 
 
 
@@ -245,15 +157,15 @@ export function UpdateSelectWrapper({
                 }
               }}
             />}
-            <IconButton
-              src={<BookOutlined style={{ fontSize: 16 }} />}
-              style={{ cursor: 'pointer' }}
-              tooltipMessage={'Visit the BitBadges documentation to learn more about this concept.'}
-              text={'Docs'}
-              onClick={() => {
-                window.open(documentationLink ?? `https://docs.bitbadges.io`, '_blank');
-              }}
-            />
+          <IconButton
+            src={<BookOutlined style={{ fontSize: 16 }} />}
+            style={{ cursor: 'pointer' }}
+            tooltipMessage={'Visit the BitBadges documentation to learn more about this concept.'}
+            text={'Docs'}
+            onClick={() => {
+              window.open(documentationLink ?? `https://docs.bitbadges.io`, '_blank');
+            }}
+          />
         </div>
         {!isMint &&
           <div style={{ marginTop: 10, marginBottom: 10 }}>
@@ -307,7 +219,7 @@ export function UpdateSelectWrapper({
         showPermission && jsonPropertyPath !== "defaultUserIncomingApprovals" ? <>
           <InformationDisplayCard title={question}>
             <PermissionDisplay
-              permissions={castFunction(prevPermissions)}
+              permissions={castFunction(prevPermissions ?? [])}
               usedFlags={flags as UsedFlags}
               neverHasManager={noManager}
               mintOnly={mintOnly}
