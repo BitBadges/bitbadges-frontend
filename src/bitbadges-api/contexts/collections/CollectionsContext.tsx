@@ -11,7 +11,7 @@ import { fetchAndUpdateMetadataDirectlyFromCollectionRedux, fetchAndUpdateMetada
 export function useCollection(collectionIdNumber?: NumberType) {
   const str = collectionIdNumber !== undefined ? BigInt(collectionIdNumber).toString() : '';
   const _collection = useSelector((state: GlobalReduxState) => state.collections.collections[`${str}`]);
-  
+
   // Replace all metadata with placeholders if reported
   if (_collection?.reported) {
     const newCollection: BitBadgesCollection<DesiredNumberType> = {
@@ -33,7 +33,7 @@ export function useCollection(collectionIdNumber?: NumberType) {
           } : undefined,
         }
       })
-    } 
+    }
 
     return newCollection;
   }
@@ -206,6 +206,7 @@ export function getCollectionMetadataView(collection: BitBadgesCollection<bigint
 }
 
 export function getCollectionActivityView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
+  console.log(collection);
 
   return (collection.views[viewType]?.ids.map(x => {
     return collection.activity.find(y => y._legacyId === x);

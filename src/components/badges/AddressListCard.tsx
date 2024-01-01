@@ -22,7 +22,7 @@ export function AddressListCard({
       className='primary-text card-bg'
       style={{
         width: 225,
-        margin: 8,
+        margin: 6,
         textAlign: 'center',
         borderRadius: '4%',
       }}

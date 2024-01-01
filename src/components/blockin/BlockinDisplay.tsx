@@ -216,16 +216,16 @@ export const BlockinDisplay = ({
             <Avatar
               size={200}
               shape="square"
+
               src={
                 connected ? <BlockiesAvatar
                   avatar={avatar}
                   address={address.toLowerCase()}
                   fontSize={200}
-                  shape={'circle'}
                 /> :
                   <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={180} width={180} quality={100} />
               }
-              style={{ marginTop: 40 }}
+              style={{ marginTop: 40, borderRadius: 10 }}
             />
           }
         </div>

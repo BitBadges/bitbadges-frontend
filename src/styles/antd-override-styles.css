@@ -211,66 +211,6 @@
     color: white;
 }
 
-.dark .rc-md-editor .rc-md-navigation {
-    background: inherit !important;
-}
-
-.dark .rc-md-editor {
-  background: inherit !important;
-}
-
-.dark .rc-md-editor.full {
-  background: #001529 !important;
-}
-
-.dark .rc-md-editor .rc-md-navigation .button-wrap .button {
-    background: inherit !important;
-    color: white !important;
-}
-
-.dark .rc-md-editor .drop-wrap {
-    background: inherit !important;
-}
-
-.dark .rc-md-editor .editor-container .sec-md .input {
-    background: inherit !important;
-    color: white !important;
-}
-
-.dark .rc-md-editor .editor-container .sec-html {
-  background: inherit !important;
-  color: white !important;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    color: inherit;
-}
-
-.dark .custom-html-style h1, 
-.dark .custom-html-style h2,
-.dark .custom-html-style h3,
-.dark .custom-html-style h4,
-.dark .custom-html-style h5,
-.dark .custom-html-style h6,
-.dark .custom-html-style p,
-.dark .custom-html-style blockquote
-.dark .custom-html-style code {
-    color: white !important;
-}
-
-.dark .custom-html-style code, 
-.dark .custom-html-style pre,
-.dark .custom-html-style table th,
-.dark .custom-html-style blockquote {
-  background: #192c3e  !important;
-}
-
-.dark .custom-html-style {  
-  color: white !important;
-}
-.custom-html-style {  
-}
-
 .ant-collapse-expand-icon {
     align-self: center;
 }

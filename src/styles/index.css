@@ -61,6 +61,14 @@ code {
   color: transparent;
 }
 
+.w-md-editor {
+  background-color: inherit !important;
+}
+
+.wmde-markdown {
+  background-color: inherit !important;
+}
+
 .primary-pink {
     color: #Ea1795;
 }
@@ -95,7 +103,7 @@ code {
 
 
 .gradient-bg {
-    background: whitesmoke;
+    background: linear-gradient(0deg, rgb(241, 240, 240) 10%, white 100%);
 }
 
 .dark .gradient-bg {
@@ -113,6 +121,10 @@ code {
 
 
 .reverse-gradient-bg {
+    background: linear-gradient(0deg, white 10%, rgb(241, 240, 240) 100%);
+}
+
+.dark .reverse-gradient-bg {
     background: linear-gradient(0deg, #001529 10%, black 100%);
 }
 

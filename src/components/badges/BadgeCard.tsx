@@ -16,7 +16,7 @@ import { getTimeRangesString } from "../../utils/dates"
 import { BadgeAvatar } from "./BadgeAvatar"
 
 export function BadgeCard({
-  size = 75,
+  size = 100,
   collectionId,
   hoverable,
   badgeId,
@@ -46,10 +46,7 @@ export function BadgeCard({
 
   const collectionMetadata = collection?.cachedCollectionMetadata
 
-  const currBalanceAmount =
-    badgeId && balances
-      ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances)
-      : 0n
+  const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n
   const showOwnershipTimesIcon =
     badgeId && balances && showSupplys
       ? balances.some((x) => !isFullUintRanges(x.ownershipTimes))

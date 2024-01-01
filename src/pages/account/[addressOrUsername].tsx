@@ -30,16 +30,12 @@ import {
   sortUintRangesAndMergeIfNecessary,
 } from "bitbadgesjs-utils"
 import { SHA256 } from "crypto-js"
-import HtmlToReact from "html-to-react"
-import MarkdownIt from "markdown-it"
 import { useRouter } from "next/router"
 import {
-  ReactElement,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
-  useState,
+  useState
 } from "react"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { getAddressMappings } from "../../bitbadges-api/api"
@@ -59,11 +55,11 @@ import {
   fetchBalanceForUser,
   getCollection,
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
+import { AccountHeader } from "../../components/badges/AccountHeader"
 import { AddressListCard } from "../../components/badges/AddressListCard"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay"
 import { BlockinDisplay } from "../../components/blockin/BlockinDisplay"
-import { AccountButtonDisplay } from "../../components/button-displays/AccountButtonDisplay"
 import { ListActivityTab } from "../../components/collection-page/ListActivityDisplay"
 import { ReputationTab } from "../../components/collection-page/ReputationTab"
 import { ActivityTab } from "../../components/collection-page/TransferActivityDisplay"
@@ -77,7 +73,6 @@ import { INFINITE_LOOP_MODE } from "../../constants"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 
-const mdParser = new MarkdownIt(/* Markdown-it options */)
 
 const { Content } = Layout
 
@@ -1060,7 +1055,7 @@ function PortfolioPage() {
 
   const { addressOrUsername } = router.query
   const accountInfo = useAccount(addressOrUsername as string)
-  const [tab, setTab] = useState(accountInfo?.readme ? "overview" : "collected")
+  const [tab, setTab] = useState("collected")
   const [addPageIsVisible, setAddPageIsVisible] = useState(false)
   const [warned, setWarned] = useState(false)
 
@@ -1106,9 +1101,6 @@ function PortfolioPage() {
   }, [listsTab])
 
   const tabInfo = []
-  if (accountInfo?.readme) {
-    tabInfo.push({ key: "overview", content: "Overview", disabled: false })
-  }
   // const isAliasAccount = !!accountInfo?.alias
 
   tabInfo.push(
@@ -1153,18 +1145,13 @@ function PortfolioPage() {
         ? "createdBy"
         : "badgesCollected"
     ]
-  console.log(customViewId, currViewWithoutFiltered?.pagination.hasMore)
-  const currViewId =
-    customViewId && currViewWithoutFiltered?.pagination.hasMore
-      ? customViewId
-      : badgeTab === "Managing"
-        ? "managing"
-        : badgeTab === "Created"
-          ? "createdBy"
-          : "badgesCollected"
+
+
+  const currViewId = customViewId && currViewWithoutFiltered?.pagination.hasMore
+    ? customViewId : badgeTab === "Managing" ? "managing" : badgeTab === "Created" ? "createdBy"
+      : "badgesCollected"
 
   let currView = !accountInfo ? undefined : accountInfo?.views[currViewId]
-  console.log(currView)
   let badgesToShow = useMemo(() => {
     let badgesToShow = getAccountBalancesView(accountInfo, "badgesCollected")
 
@@ -1336,9 +1323,7 @@ function PortfolioPage() {
             ? "createdBy"
             : "badgesCollected"
 
-      const newViewId =
-        currViewId +
-        ":" +
+      const newViewId = currViewId + ":" +
         SHA256(JSON.stringify(filteredCollections)).toString()
       setCustomViewId(newViewId)
     } else {
@@ -1348,8 +1333,7 @@ function PortfolioPage() {
 
   useEffect(() => {
     if (filteredLists.length > 0) {
-      const newViewId =
-        listsTab + ":" + SHA256(JSON.stringify(filteredLists)).toString()
+      const newViewId = listsTab + ":" + SHA256(JSON.stringify(filteredLists)).toString()
       setCustomListViewId(newViewId)
     } else {
       setCustomListViewId("")
@@ -1396,10 +1380,9 @@ function PortfolioPage() {
   const listViewwithoutFiltered = !accountInfo
     ? undefined
     : accountInfo?.views[`${listsTab}`]
-  const currListViewId =
-    customListViewId && (listViewwithoutFiltered?.pagination.hasMore ?? true)
-      ? customListViewId
-      : listsTab
+  const currListViewId = customListViewId && (listViewwithoutFiltered?.pagination.hasMore ?? true)
+    ? customListViewId
+    : listsTab
   const listsView = (
     isPresetList
       ? getAccountAddressMappingsView(accountInfo, currListViewId)
@@ -1474,17 +1457,6 @@ function PortfolioPage() {
     getPortfolioInfo()
   }, [addressOrUsername])
 
-  const [reactElement, setReactElement] = useState<ReactElement | null>(null)
-
-  useLayoutEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log("useEffect: get readme")
-    const HtmlToReactParser = HtmlToReact.Parser()
-    const reactElement = HtmlToReactParser.parse(
-      mdParser.render(accountInfo?.readme ? accountInfo?.readme : "")
-    )
-    setReactElement(reactElement)
-  }, [accountInfo?.readme])
-
   const [activityTab, setActivityTab] = useState("badges")
 
   if (!accountInfo) {
@@ -1513,26 +1485,14 @@ function PortfolioPage() {
             >
               {/* Overview and Tabs */}
               {accountInfo && (
-                <AccountButtonDisplay addressOrUsername={accountInfo.address} />
+                <AccountHeader addressOrUsername={accountInfo.address} />
               )}
 
+
+
+
               <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} fullWidth />
-              {tab === "overview" && (
-                <>
-                  <br />
-                  <InformationDisplayCard span={24} title="About">
-                    <div
-                      className="custom-html-style primary-text"
-                      id="description"
-                      style={{ overflow: "auto" }}
-                    >
-                      {/* <Markdown> */}
-                      {reactElement}
-                      {/* </Markdown> */}
-                    </div>
-                  </InformationDisplayCard>
-                </>
-              )}
+          
               {(tab === "collected" || tab == "hidden") && (
                 <>
                   <br />

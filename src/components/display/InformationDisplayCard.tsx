@@ -6,6 +6,7 @@ export function InformationDisplayCard({
   title,
   subtitle,
   children,
+  noPadding,
   span,
   inheritBg,
   noBorder,
@@ -21,6 +22,7 @@ export function InformationDisplayCard({
   title: string | React.ReactNode
   subtitle?: string | React.ReactNode
   children?: React.ReactNode
+  noPadding?: boolean,
   span?: number,
   noBorder?: boolean
   inheritBg?: boolean,
@@ -39,7 +41,7 @@ export function InformationDisplayCard({
       className="overflow-x-auto"
       span={span ? span : undefined} style={{
         ...style, minHeight: 100,
-        padding: 6
+        padding: noPadding ? 0 : 6,
 
       }}>
       <div className="primary-text card-bg " style={{

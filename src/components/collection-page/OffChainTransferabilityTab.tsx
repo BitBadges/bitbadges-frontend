@@ -20,7 +20,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
 
   let info = {
     'host': collection.offChainBalancesMetadataTimeline.length > 0 ?
-      collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.split('/')[2] :
+      collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri :
       'Unknown',
     'assignMethod': 'Custom. Balances can be updated by whoever has permission to update what is returned from the server.',
   }
@@ -52,6 +52,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
 
   return (
     <>
+      <br/>
       <div className='flex flex-wrap'>
         <InformationDisplayCard
           title='Transferability'

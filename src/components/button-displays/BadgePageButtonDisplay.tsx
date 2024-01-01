@@ -39,9 +39,9 @@ export function BadgeButtonDisplay({
   const discordLink = 'https://discord.com/invite/' + socials?.discord;
 
   return (
-    <div>
+    <div style={{}}>
 
-      <div style={{ position: 'absolute', right: 10, display: 'flex' }}>
+      <div style={{ display: 'flex' }}>
         {socials?.twitter && (
           <a href={twitterLink} target="_blank" rel="noreferrer">
             <Tooltip title="Twitter" placement="bottom">
@@ -311,7 +311,7 @@ export function BadgeButtonDisplay({
           />
         </Tooltip>
       </div>
-      <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />
+      <Col md={0} sm={1} xs={1} style={{ height: '5px' }} />
     </div>
   );
 }

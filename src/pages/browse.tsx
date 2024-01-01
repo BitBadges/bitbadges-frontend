@@ -3,25 +3,22 @@ import { useRouter } from 'next/router';
 import { ReactElement, useLayoutEffect, useMemo, useState } from 'react';
 
 import { BigIntify, convertBitBadgesCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
-import HtmlToReact from 'html-to-react';
-import MarkdownIt from 'markdown-it';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
+import { AccountHeader } from '../components/badges/AccountHeader';
 import { AddressListCard } from '../components/badges/AddressListCard';
 import { CollectionHeader } from '../components/badges/CollectionHeader';
 import { MultiCollectionBadgeDisplay } from "../components/badges/MultiCollectionBadgeDisplay";
-import { AccountButtonDisplay } from '../components/button-displays/AccountButtonDisplay';
 import { ActivityTab } from '../components/collection-page/TransferActivityDisplay';
 import CustomCarousel from '../components/display/Carousel';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
 import { Tabs } from '../components/navigation/Tabs';
+import { MarkdownDisplay } from './account/[addressOrUsername]/settings';
 
 
 const { Content } = Layout;
-const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 function BrowsePage() {
   const browseContext = useBrowseContext();
-  const HtmlToReactParser = HtmlToReact.Parser();
   const browseInfo = browseContext.browse;
   const router = useRouter();
   const [tab, setTab] = useState('featured');
@@ -71,16 +68,11 @@ function BrowsePage() {
         return arr.map((_, idx) => {
           const badgeId = start + BigInt(idx);
           const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
-          const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
 
           return <InformationDisplayCard title='' key={collection.collectionId + "" + idx} md={8} xs={24} sm={24}>
-            <CollectionHeader collectionId={collection.collectionId} badgeId={badgeId} />
+            <CollectionHeader collectionId={collection.collectionId} badgeId={badgeId} multiDisplay />
             <br />
-            <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
-              {reactElement}
-            </div>
-            {/* <br />
-            <BalanceOverview collectionId={collection.collectionId} badgeId={badgeId} /> */}
+            <MarkdownDisplay markdown={metadata?.description ?? ''} />
           </InformationDisplayCard>
         }).flat();
 
@@ -88,7 +80,7 @@ function BrowsePage() {
     }
 
     return allItems;
-  }, [browseInfo, badgesTab, HtmlToReactParser]);
+  }, [browseInfo, badgesTab]);
 
   console.log(allItems.length)
 
@@ -116,12 +108,13 @@ function BrowsePage() {
         {!browseInfo && <Spin size='large' />}
         <div className='full-width'>
           <br />
-          <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 30, margin: 6, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Badges
           </Typography.Text>
           <CustomCarousel
             title={
               <Tabs
+                style={{ margin: 6 }}
                 fullWidth
                 theme='dark'
                 tabInfo={browseInfo ? Object.keys(browseInfo.badges).map(category => {
@@ -161,12 +154,13 @@ function BrowsePage() {
           />
           < Divider />
 
-          <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 30, margin: 6, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Collections
           </Typography.Text>
           <CustomCarousel
             title={
               <Tabs
+                style={{ margin: 6 }}
                 fullWidth
                 theme='dark'
                 tabInfo={browseInfo ? Object.keys(browseInfo.collections).map(category => {
@@ -201,22 +195,23 @@ function BrowsePage() {
                 if (idx >= browseInfo?.collections[collectionsTab]?.length) return null
                 const collection = browseInfo?.collections[collectionsTab][idx];
                 return <MultiCollectionBadgeDisplay
-                    collectionIds={[collection.collectionId]}
-                    groupByCollection
-                    cardView={cardView}
-                    span={24}
-                    key={idx}
-                  />
+                  collectionIds={[collection.collectionId]}
+                  groupByCollection
+                  cardView={cardView}
+                  span={24}
+                  key={idx}
+                />
               }).filter(x => x)}</div>
             }).filter(x => x)) ?? []}
           />
           <Divider />
-          <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 30, margin: 6, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Address Lists
           </Typography.Text>
           <CustomCarousel
             title={
               <Tabs
+                style={{ margin: 6 }}
                 theme='dark'
                 tabInfo={browseInfo ? Object.keys(browseInfo.addressMappings).map(category => {
 
@@ -257,7 +252,8 @@ function BrowsePage() {
             }).filter(x => x) ?? []}
           />
 
-          <Divider /><Typography.Text strong className='primary-text text-4xl' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Divider />
+          <Typography.Text strong className='primary-text' style={{ fontSize: 30, margin: 6, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Profiles
           </Typography.Text>
           <div className="profile-carousel">
@@ -265,6 +261,7 @@ function BrowsePage() {
 
               title={
                 <Tabs
+                  style={{ margin: 6 }}
 
                   theme='dark'
                   tabInfo={browseInfo ? Object.keys(browseInfo.profiles).map(category => {
@@ -301,9 +298,9 @@ function BrowsePage() {
                   return <InformationDisplayCard title='' key={idx} style={{}}>
                     <>
                       <div style={{ alignItems: 'normal' }}>
-                        <AccountButtonDisplay
+                        <AccountHeader
                           addressOrUsername={profile.address}
-                          hideButtons
+                          multiDisplay
                         />
                       </div>
 
@@ -323,7 +320,7 @@ function BrowsePage() {
             />
           </div>
           < Divider />
-          <Typography.Text strong className='primary-text' style={{ fontSize: 36, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 30, margin: 6, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Activity
           </Typography.Text>
           <div className='full-width' style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>

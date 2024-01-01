@@ -1,22 +1,18 @@
 import { Col, Divider, Layout, Row } from 'antd';
 import { BitBadgesCollection, TransferActivityDoc, getCurrentValuesForCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
-import HtmlToReact from 'html-to-react';
-import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
 
-import { ActivityTab } from '../../../components/collection-page/TransferActivityDisplay';
 import { CollectionHeader } from '../../../components/badges/CollectionHeader';
 import { DistributionOverview } from '../../../components/badges/DistributionCard';
 import { MetadataDisplay } from '../../../components/badges/MetadataInfoDisplay';
-import { BadgeButtonDisplay } from '../../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../../components/collection-page/ActionsTab';
 import { ClaimsTab } from '../../../components/collection-page/ClaimsTab';
 import { OwnersTab } from '../../../components/collection-page/OwnersTab';
 import { PermissionsOverview } from '../../../components/collection-page/PermissionsInfo';
+import { ActivityTab } from '../../../components/collection-page/TransferActivityDisplay';
 import { TransferabilityTab } from '../../../components/collection-page/TransferabilityTab';
-import { InformationDisplayCard } from '../../../components/display/InformationDisplayCard';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 
@@ -25,8 +21,6 @@ import { fetchAccounts } from '../../../bitbadges-api/contexts/accounts/Accounts
 import { fetchAndUpdateMetadata, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { OffChainTransferabilityTab } from '../../../components/collection-page/OffChainTransferabilityTab';
 import { ReportedWrapper } from '../../../components/wrappers/ReportedWrapper';
-
-const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 const { Content } = Layout;
 
@@ -87,10 +81,6 @@ export function BadgePage({ collectionPreview }
     tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity');
   }
 
-
-  const HtmlToReactParser = HtmlToReact.Parser();
-  const reactElement = HtmlToReactParser.parse(mdParser.render(metadata?.description ? metadata?.description : ''));
-
   return (
     <ReportedWrapper
       reported={!!collection?.reported ?? false}
@@ -110,7 +100,7 @@ export function BadgePage({ collectionPreview }
               paddingTop: '20px',
             }}
           >
-            <BadgeButtonDisplay website={metadata?.externalUrl} badgeId={badgeIdNumber} collectionId={collectionIdNumber} socials={metadata?.socials} />
+           
 
             {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
 
@@ -137,16 +127,7 @@ export function BadgePage({ collectionPreview }
                 <div className='flex-center'>
                   <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
                     <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
-                      {metadata?.description && <>
-                        <InformationDisplayCard
-                          title="About"
-                        >
-                          <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
-                            {reactElement}
-                          </div>
-                        </InformationDisplayCard>
-                        <br />
-                      </>}
+
                       {!noBalancesStandard && <>
                         <MetadataDisplay
                           collectionId={collectionIdNumber}

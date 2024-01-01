@@ -7,23 +7,17 @@ import {
   ShareAltOutlined,
   TwitterOutlined
 } from '@ant-design/icons';
-import { Avatar, Col, Layout, Tooltip, message, notification } from 'antd';
+import { Avatar, Tooltip, message, notification } from 'antd';
 import { SupportedChain } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
 import { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { AddressDisplay } from '../address/AddressDisplay';
-import { BlockiesAvatar } from '../address/Blockies';
 import { ReportModal } from '../tx-modals/ReportModal';
-
-const { Content } = Layout;
 
 export function AccountButtonDisplay({
   addressOrUsername,
-  bio,
-  profilePic,
   website,
   hideButtons,
   hideDisplay,
@@ -32,8 +26,6 @@ export function AccountButtonDisplay({
   onlySocials
 }: {
   addressOrUsername: string,
-  bio?: string,
-  profilePic?: string,
   website?: string,
   hideButtons?: boolean
   hideDisplay?: boolean
@@ -57,12 +49,6 @@ export function AccountButtonDisplay({
   const [reportIsVisible, setReportIsVisible] = useState(false);
 
   const address = accountInfo?.address
-  const avatar = accountInfo?.profilePicUrl ?? accountInfo?.avatar;
-  const profilePicSrc = profilePic ? (
-    profilePic
-  ) : (
-    <BlockiesAvatar avatar={avatar} address={address?.toLowerCase() ?? ''} fontSize={200} shape='circle' />
-  );
 
   const isSameAccount = chain.cosmosAddress === accountInfo?.cosmosAddress
 
@@ -155,8 +141,8 @@ export function AccountButtonDisplay({
 
 
   return (
-    <div>
-      {!hideButtons && <div style={!hideDisplay ? { position: 'absolute', right: 10, display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
+    <>
+      {!hideButtons && <div style={!hideDisplay ? {  display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
         {accountInfo?.chain === SupportedChain.ETH && (
           <a href={openSeaLink} target="_blank" rel="noreferrer">
             <Tooltip title="OpenSea" placement="bottom">
@@ -423,50 +409,7 @@ export function AccountButtonDisplay({
       </div>}
 
       {!hideDisplay && <>
-        {!hideButtons &&
-          <Col md={0} sm={1} xs={1} style={{ height: '50px' }} />}
-        <Content
-          className='flex-center'
-          style={{
-            padding: '0',
-            textAlign: 'center',
-            color: 'white',
-            paddingBottom: 10,
-          }}
-        >
-          <div className='full-width'>
-            <div
-              style={{
-                padding: '0',
-                textAlign: 'center',
-                color: 'white',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginTop: 20,
-              }}
-            >
-              <Avatar size={200} src={profilePicSrc} />
-              <div style={{ marginTop: 4 }} className='flex-center'>
-                <AddressDisplay
-                  addressOrUsername={addressOrUsername}
-                  fontSize={20}
-                  hidePortfolioLink
-                />
-              </div>
-
-              {bio && (
-                <div
-                  className='secondary-text'
-                  style={{
-                    fontSize: 18,
-                  }}
-                >
-                  {bio}
-                </div>
-              )}
-            </div>
-          </div>
-        </Content></>}
-    </div>
+        </>}
+    </>
   );
 }

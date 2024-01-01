@@ -230,30 +230,101 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
 
 
     const newViews = cachedCollection?.views || {};
+
     if (newCollection.views) {
       for (const [key, val] of Object.entries(newCollection.views)) {
         if (!val) continue;
-
         newViews[key] = {
-          ids: [...(val?.ids || []), ...(newViews[key]?.ids || []),].filter((val, index, self) => self.findIndex(x => x === val) === index),
+          ids: [...(newViews[key]?.ids || []), ...(val?.ids || [])].filter((val, index, self) => self.findIndex(x => x === val) === index),
           pagination: {
             ...val.pagination,
             total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
           },
           type: val.type
         }
-
       }
     }
 
+
+    const reviews = cachedCollection.reviews || [];
+    for (const newReview of newCollection.reviews || []) {
+      //If we already have the review, replace it (we want newer data)
+      const existingReview = reviews.findIndex(x => x._legacyId === newReview._legacyId);
+      if (existingReview !== -1) {
+        reviews[existingReview] = newReview;
+      } else {
+        reviews.push(newReview);
+      }
+    }
+
+    const announcements = cachedCollection.announcements || [];
+    for (const newAnnouncement of newCollection.announcements || []) {
+      //If we already have the announcement, replace it (we want newer data)
+      const existingAnnouncement = announcements.findIndex(x => x._legacyId === newAnnouncement._legacyId);
+      if (existingAnnouncement !== -1) {
+        announcements[existingAnnouncement] = newAnnouncement;
+      } else {
+        announcements.push(newAnnouncement);
+      }
+    }
+
+    const activity = cachedCollection.activity || [];
+    for (const newActivity of newCollection.activity || []) {
+      //If we already have the activity, replace it (we want newer data)
+      const existingActivity = activity.findIndex(x => x._legacyId === newActivity._legacyId);
+      if (existingActivity !== -1) {
+        activity[existingActivity] = newActivity;
+      } else {
+        activity.push(newActivity);
+      }
+    }
+
+    const owners = cachedCollection.owners || [];
+    for (const newOwner of newCollection.owners || []) {
+      //If we already have the owner, replace it (we want newer data)
+      const existingOwner = owners.findIndex(x => x._legacyId === newOwner._legacyId);
+      if (existingOwner !== -1) {
+        owners[existingOwner] = newOwner;
+      } else {
+        owners.push(newOwner);
+      }
+    }
+
+    const merkleChallenges = cachedCollection.merkleChallenges || [];
+    for (const newMerkleChallenge of newCollection.merkleChallenges || []) {
+      //If we already have the merkleChallenge, replace it (we want newer data)
+      const existingMerkleChallenge = merkleChallenges.findIndex(x => x._legacyId === newMerkleChallenge._legacyId);
+      if (existingMerkleChallenge !== -1) {
+        merkleChallenges[existingMerkleChallenge] = newMerkleChallenge;
+      } else {
+        merkleChallenges.push(newMerkleChallenge);
+      }
+    }
+
+    const approvalsTrackers = cachedCollection.approvalsTrackers || [];
+    for (const newApprovalsTracker of newCollection.approvalsTrackers || []) {
+      //If we already have the approvalsTracker, replace it (we want newer data)
+      const existingApprovalsTracker = approvalsTrackers.findIndex(x => x._legacyId === newApprovalsTracker._legacyId);
+      if (existingApprovalsTracker !== -1) {
+        approvalsTrackers[existingApprovalsTracker] = newApprovalsTracker;
+      } else {
+        approvalsTrackers.push(newApprovalsTracker);
+      }
+    }
+
+
     //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
     cachedCollection = {
-      
-      ...currCollectionState as BitBadgesCollection<DesiredNumberType>,
+      ...cachedCollection,
       ...newCollection,
       cachedCollectionMetadata: !isUpdate ? newCollection.cachedCollectionMetadata : newCollection.cachedCollectionMetadata || cachedCollection?.cachedCollectionMetadata,
       cachedBadgeMetadata: newBadgeMetadata,
-      
+      reviews,
+      announcements,
+      activity,
+      owners,
+      merkleChallenges,
+      approvalsTrackers,
       views: newViews,
     };
 
@@ -261,44 +332,10 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
       //Filter out fetchedAt and fetchedAtBlock 
       delete cachedCollection.cachedCollectionMetadata?.fetchedAt;
       delete cachedCollection.cachedCollectionMetadata?.fetchedAtBlock;
-
       for (const metadataDetails of cachedCollection.cachedBadgeMetadata) {
         delete metadataDetails.metadata?.fetchedAt;
         delete metadataDetails.metadata?.fetchedAtBlock;
       }
-    }
-
-    if ((newCollection.reviews?.length ?? 0) > 0 && !compareObjects(newCollection.reviews, cachedCollection.reviews)) {
-      cachedCollection.reviews = [...(newCollection?.reviews || []), ...(cachedCollection.reviews || [])];
-      cachedCollection.reviews = cachedCollection.reviews.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
-      cachedCollection.reviews = cachedCollection.reviews.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    }
-
-    if ((newCollection.announcements?.length ?? 0) > 0 && !compareObjects(newCollection.announcements, cachedCollection.announcements)) {
-      cachedCollection.announcements = [...(newCollection?.announcements || []), ...(cachedCollection.announcements || [])];
-      cachedCollection.announcements = cachedCollection.announcements.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
-      cachedCollection.announcements = cachedCollection.announcements.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    }
-
-    if ((newCollection.activity?.length ?? 0) > 0 && !compareObjects(newCollection.activity, cachedCollection.activity)) {
-      cachedCollection.activity = [...(newCollection?.activity || []), ...(cachedCollection.activity || [])];
-      cachedCollection.activity = cachedCollection.activity.sort((a, b) => b.timestamp - a.timestamp > 0 ? -1 : 1);
-      cachedCollection.activity = cachedCollection.activity.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    }
-
-    if ((newCollection.owners?.length ?? 0) > 0 && !compareObjects(newCollection.owners, cachedCollection.owners)) {
-      cachedCollection.owners = [...(newCollection?.owners || []), ...(cachedCollection.owners || [])];
-      cachedCollection.owners = cachedCollection.owners.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    }
-
-    if ((newCollection.merkleChallenges?.length ?? 0) > 0 && !compareObjects(newCollection.merkleChallenges, cachedCollection.merkleChallenges)) {
-      cachedCollection.merkleChallenges = [...(newCollection?.merkleChallenges || []), ...(cachedCollection.merkleChallenges || [])];
-      cachedCollection.merkleChallenges = cachedCollection.merkleChallenges.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
-    }
-
-    if ((newCollection.approvalsTrackers?.length ?? 0) > 0 && !compareObjects(newCollection.approvalsTrackers, cachedCollection.approvalsTrackers)) {
-      cachedCollection.approvalsTrackers = [...(newCollection?.approvalsTrackers || []), ...(cachedCollection.approvalsTrackers || [])];
-      cachedCollection.approvalsTrackers = cachedCollection.approvalsTrackers.filter((val, index, self) => self.findIndex(x => x._legacyId === val._legacyId) === index);
     }
 
 

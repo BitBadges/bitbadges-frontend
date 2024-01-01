@@ -236,7 +236,6 @@ export function WalletHeader() {
 
                 <BlockiesAvatar
                   fontSize={40}
-                  shape='circle'
                   avatar={avatar}
                   address={address.toLowerCase()}
                 />

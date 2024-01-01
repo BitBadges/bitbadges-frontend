@@ -3,8 +3,6 @@ import {
   getCurrentValuesForCollection,
   getUintRangesForAllBadgeIdsInCollection,
 } from "bitbadgesjs-utils"
-import HtmlToReact from "html-to-react"
-import MarkdownIt from "markdown-it"
 
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay"
 import { DistributionOverview } from "../badges/DistributionCard"
@@ -14,8 +12,6 @@ import { BalanceOverview } from "./BalancesInfo"
 import { PermissionsOverview } from "./PermissionsInfo"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
-
-const mdParser = new MarkdownIt(/* Markdown-it options */)
 
 export function OverviewTab({
   collectionId,
@@ -28,11 +24,6 @@ export function OverviewTab({
 
   if (!collection) return <></>
 
-  const collectionMetadata = collection?.cachedCollectionMetadata
-  const HtmlToReactParser = HtmlToReact.Parser()
-  const reactElement = HtmlToReactParser.parse(
-    mdParser.render(collectionMetadata?.description ?? "")
-  )
   const noBalancesStandard =
     collection &&
     getCurrentValuesForCollection(collection).standards.includes("No Balances")
@@ -75,21 +66,6 @@ export function OverviewTab({
           xs={24}
           style={{ paddingRight: 4, paddingLeft: 4 }}
         >
-          {collectionMetadata?.description && (
-            <>
-              <InformationDisplayCard title={<>About</>} span={24}>
-                <div
-                  className="custom-html-style primary-text"
-                  id="description"
-                  style={{ overflow: "auto", maxHeight: 400 }}
-                >
-                  {reactElement}
-                </div>
-              </InformationDisplayCard>
-
-              <br />
-            </>
-          )}
           {!noBalancesStandard && MetadataDisplayElem}
 
           <PermissionsOverview collectionId={collectionId} span={24} />

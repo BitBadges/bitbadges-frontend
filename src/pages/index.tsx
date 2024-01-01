@@ -46,7 +46,7 @@ export const PrevLandingCard = ({ content, additionalContent, onClick }: {
       <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text'
         style={{
           height: showMore ? undefined : additionalContent ? 360 : 260, borderRadius: 15,
-          background: `linear-gradient(0deg, black 10%, #001529 100%)`,
+          background: `linear-gradient(0deg, black 10%, #121212 100%)`,
         }} onClick={() => {
           if (onClick) onClick();
           else setShowMore(!showMore)
@@ -69,91 +69,16 @@ export const PrevLandingCard = ({ content, additionalContent, onClick }: {
 
 const Home: NextPage = () => {
   const router = useRouter();
+  // const browseContext = useBrowseContext();
 
-
-  const featuredBadges = [
-    {
-      collectionId: 1n,
-      badgeId: 1n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 2n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 3n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 4n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 5n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 6n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 7n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 8n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 9n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 10n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 11n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 12n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 13n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 14n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 15n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 16n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 17n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 18n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 19n,
-    },
-    {
-      collectionId: 1n,
-      badgeId: 20n,
-    },
-
-  ];
+  // const featuredBadges = (browseContext.browse?.badges?.featured ?? []).filter(x => x.collection.collectionId != 2n);
+  const featuredBadges = [{
+    collectionId: 1n,
+    badgeIds: [{ start: 1n, end: 20n }],
+  }, {
+    collectionId: 16n,
+    badgeIds: [{ start: 1n, end: 10n }],
+  }]
 
   useEffect(() => {
     batchFetchAndUpdateMetadata([{
@@ -167,7 +92,7 @@ const Home: NextPage = () => {
         badgeIds: [{ start: 1n, end: 20n }],
       }
     }, {
-      collectionId: 3n,
+      collectionId: 16n,
       metadataToFetch: {
         badgeIds: [{ start: 1n, end: 20n }],
       }
@@ -177,9 +102,9 @@ const Home: NextPage = () => {
   return (
     <>
       {/* gradient-bg  */}
-      <div className='landing-padding'>
+      <div className='landing-padding gradient-bg'>
         <Row className='flex-around ' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'normal', minHeight: '60vh' }}>
-          <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh' }}>
+          <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh', marginBottom: '10vh' }}>
             <div className='collect-title capitalize primary-text flex flex-wrap' style={{
               alignItems: 'center'
             }}><span className='mr-2'>Collect {' '}</span><img src='/images/bitbadgeslogotext.png' alt='BitBadges Logo' className='inline-logo primary-pink' />
@@ -238,7 +163,8 @@ const Home: NextPage = () => {
 
 
           </Col>
-          <Col md={10} sm={24} xs={24} style={{ alignItems: "normal", height: '100%', marginTop: '10vh' }} >
+          {/* Custom scrollbar */}
+          <Col md={10} sm={24} xs={24} style={{ alignItems: "normal", height: '100%', marginTop: '10vh', marginBottom: 32, }}>
             {/* <div style={{ maxWidth: 400, justifyContent: 'center' }}>
                   <img src="/images/bitbadgeslogo.png" alt="BitBadges Logo" className='landing-logo' />
                 </div> */}
@@ -246,20 +172,31 @@ const Home: NextPage = () => {
 
               <div className='flex-center flex-wrap full-width primary-text '>
                 {
-                  [...featuredBadges].map((badge, idx) => {
-                    const { collectionId, badgeId } = badge;
-                    return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
+                  [...featuredBadges].map((badge) => {
+                    const { collectionId, badgeIds } = badge;
+                    // const collectionId = collection.collectionId;
 
-                      <BadgeAvatar
-                        size={75}
-                        // size={size && selectedId === badgeId ? size * 1.5 : size}
-                        collectionId={collectionId}
-                        badgeId={badgeId}
-                        showId={false}
-                        showSupplys={false}
-                      />
+                    const ids = [];
+                    for (const badgeIdRange of badgeIds) {
+                      for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
+                        ids.push((i));
+                      }
+                    }
+                    return ids.map((badgeId, idx) => {
 
-                    </div>
+                      return <div key={idx} className='flex-between flex-wrap' style={{ margin: 2, flexWrap: 'wrap' }}>
+
+                        <BadgeAvatar
+                          size={85}
+                          // size={size && selectedId === badgeId ? size * 1.5 : size}
+                          collectionId={collectionId}
+                          badgeId={badgeId}
+                          showId={false}
+                          showSupplys={false}
+                        />
+
+                      </div>
+                    })
                   })
                 }
               </div>
@@ -267,51 +204,52 @@ const Home: NextPage = () => {
           </Col>
         </Row>
 
-
+      </div>
+      <div className='landing-padding'>
         <Row className='grid grid-cols-1 gap-3 mt-12'>
-          <LandingCard
-            content={<>
-              <div>
+
+
+          <div className='grid lg:grid-cols-2 gap-10'>
+
+            <div >
+              <div style={{ marginBottom: 12 }}>
                 <img src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" className='h-[4rem]' />
               </div>
-              <div className='grid lg:grid-cols-2 gap-10'>
-
-                <div style={{ marginTop: 12 }}>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
-                    What is BitBadges?
-                  </Typography.Text>
-                  <br />
-                  <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                    BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, managing, and displaying digital NFT badges.
-                  </Typography.Text>
+              <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
+                What is BitBadges?
+              </Typography.Text>
+              <br />
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
+                BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, managing, and displaying digital NFT badges.
+              </Typography.Text>
 
 
-                  <br />
-                  <br />
-                  <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
-                    How to collect badges?
-                  </Typography.Text>
-                  <br />
-                  <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                    Badges can be collected in a variety of ways, such as scanning a QR code, entering a password, or being airdropped one.
-                    The collection creator decides how badges are distributed.
-                    To see how a specific collection distributes badges, check out the page for that collection.
-                  </Typography.Text>
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
+                How to collect badges?
+              </Typography.Text>
+              <br />
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
+                Badges can be collected in a variety of ways, such as scanning a QR code, entering a password, or being airdropped one.
+                The collection creator decides how badges are distributed.
+                To see how a specific collection distributes badges, check out the page for that collection.
+              </Typography.Text>
 
-                  <br />
-                  <br />
-                  <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
-                    How is ownership verified?
-                  </Typography.Text>
-                  <br />
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
+                How is ownership verified?
+              </Typography.Text>
+              <br />
 
-                  <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                    {"All badges are public, meaning you can verify the authenticity and ownership of anyone's badges at any time, both digitally and in-person. "}
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
+                {"All badges are public, meaning you can verify the authenticity and ownership of anyone's badges at any time, both digitally and in-person. "}
 
-                    This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
-                  </Typography.Text>
+                This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
+              </Typography.Text>
 
-                  {/* <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
+              {/* <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                     Think of badges as digital tokens that you can collect and own.
                     Chances are, you already own several digital badges, like a social media verification checkmark or concert tickets.
                   </Typography.Text>
@@ -322,71 +260,68 @@ const Home: NextPage = () => {
 
                   </Typography.Text> */}
 
-                </div>
-                <div className="container" style={{ marginTop: 12 }}>
-                  <iframe
-                    className='responsive-iframe rounded-2xl'
-                    // width={'60%'}
-                    // height={209 * 1.2}
-                    src="https://www.youtube.com/embed/7IbHA6LQZt4?si=v9eN4w70p3XwkmD7"
-                    title="Create a Badge in 45 Seconds w/ BitBadges"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                </div>
+            </div>
+            <div className="container" style={{ marginTop: 12 }}>
+              <iframe
+                className='responsive-iframe rounded-2xl'
+                // width={'60%'}
+                // height={209 * 1.2}
+                src="https://www.youtube.com/embed/7IbHA6LQZt4?si=v9eN4w70p3XwkmD7"
+                title="Create a Badge in 45 Seconds w/ BitBadges"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
 
+          </div>
+          <Divider />
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', textAlign: 'center' }} className=''>
+            <InformationDisplayCard noBorder inheritBg title='Utility' subtitle='' md={8} sm={24} xs={24}>
+
+              <br /><BadgeAvatar size={150} collectionId={1n} badgeId={3n} /> <br />
+              <div className='secondary-text' style={{ fontSize: 14 }}>
+                Certain badges might offer utility, like access to an event or authenticating you for a website. For example, a ticket badge might get you into a concert.
               </div>
-              <Divider />
+            </InformationDisplayCard>
+            <InformationDisplayCard noBorder inheritBg title='Achievements' subtitle='' md={8} sm={24} xs={24}>
+              <br /><BadgeAvatar size={150} collectionId={1n} badgeId={5n} /> <br />
+              <div className='secondary-text' style={{ fontSize: 14 }}>
+                Show off your achievement badges in your portfolio, like a degree or certification. Badges can be used to prove your skills and experience.
+              </div>
+            </InformationDisplayCard>
+            <InformationDisplayCard noBorder inheritBg title='Reputation' subtitle='' md={8} sm={24} xs={24}>
+              <br /><BadgeAvatar size={150} collectionId={1n} badgeId={9n} /> <br />
+              <div className='secondary-text' style={{ fontSize: 14 }}>
+                Your badges become your digital identity. Some might positively impact your reputation while others might negatively impact your reputation. Or, some may just be informational.
+              </div>
+            </InformationDisplayCard>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', textAlign: 'center' }} className=''>
-                <InformationDisplayCard noBorder inheritBg title='Utility' subtitle='' md={8} sm={24} xs={24}>
-
-                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={3n} /> <br />
-                  <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Certain badges might offer utility, like access to an event or authenticating you for a website. For example, a ticket badge might get you into a concert.
-                  </div>
-                </InformationDisplayCard>
-                <InformationDisplayCard noBorder inheritBg title='Achievements' subtitle='' md={8} sm={24} xs={24}>
-                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={5n} /> <br />
-                  <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Show off your achievement badges in your portfolio, like a degree or certification. Badges can be used to prove your skills and experience.
-                  </div>
-                </InformationDisplayCard>
-                <InformationDisplayCard noBorder inheritBg title='Reputation' subtitle='' md={8} sm={24} xs={24}>
-                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={9n} /> <br />
-                  <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Your badges become your digital identity. Some might positively impact your reputation while others might negatively impact your reputation. Or, some may just be informational.
-                  </div>
-                </InformationDisplayCard>
-
-                <InformationDisplayCard noBorder inheritBg title='Contributions' subtitle='' md={8} sm={24} xs={24}>
-                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={6n} /> <br />
-                  <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Contributions to a project can be rewarded with a badge, like a badge for contributing to an open-source project.
-                  </div>
-                </InformationDisplayCard>
-                <InformationDisplayCard noBorder inheritBg title='For Fun' subtitle='' md={8} sm={24} xs={24}>
-                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={19n} /> <br />
-                  <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Some badges might be just collected for fun, like a souvenir badge.
-                  </div>
-                </InformationDisplayCard>
-                <InformationDisplayCard noBorder inheritBg title='Protocols' subtitle='' md={8} sm={24} xs={24}>
-                  <br /><BadgeAvatar size={100} collectionId={1n} badgeId={15n} /> <br />
-                  <div className='secondary-text' style={{ fontSize: 14 }}>
-                    Use badges to implement protocols, such as a multi-chain follow protocol or an attendance protocol.
-                    {/* . For example, the
+            <InformationDisplayCard noBorder inheritBg title='Contributions' subtitle='' md={8} sm={24} xs={24}>
+              <br /><BadgeAvatar size={150} collectionId={1n} badgeId={6n} /> <br />
+              <div className='secondary-text' style={{ fontSize: 14 }}>
+                Contributions to a project can be rewarded with a badge, like a badge for contributing to an open-source project.
+              </div>
+            </InformationDisplayCard>
+            <InformationDisplayCard noBorder inheritBg title='For Fun' subtitle='' md={8} sm={24} xs={24}>
+              <br /><BadgeAvatar size={150} collectionId={1n} badgeId={19n} /> <br />
+              <div className='secondary-text' style={{ fontSize: 14 }}>
+                Some badges might be just collected for fun, like a souvenir badge.
+              </div>
+            </InformationDisplayCard>
+            <InformationDisplayCard noBorder inheritBg title='Protocols' subtitle='' md={8} sm={24} xs={24}>
+              <br /><BadgeAvatar size={150} collectionId={1n} badgeId={15n} /> <br />
+              <div className='secondary-text' style={{ fontSize: 14 }}>
+                Use badges to implement protocols, such as a multi-chain follow protocol or an attendance protocol.
+                {/* . For example, the
                     <a href='https://docs.bitbadges.io/overview/ecosystem/bitbadges-follow-protocol' target='_blank' className='text-vivid-blue' rel="noreferrer"> BitBadges Follow Protocol</a>,
                      or an attendance protocol. */}
-                  </div>
-                </InformationDisplayCard>
               </div>
+            </InformationDisplayCard>
+          </div>
 
-            </>
-            }
-            customClass="secondary-text"
-          />
+
 
 
         </Row>

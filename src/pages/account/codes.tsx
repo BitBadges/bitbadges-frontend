@@ -1,5 +1,4 @@
 import { Layout, Tooltip } from 'antd';
-import 'react-markdown-editor-lite/lib/index.css';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';

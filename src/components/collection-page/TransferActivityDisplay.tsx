@@ -100,7 +100,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
   currPage: number,
   numShown: number
 }) {
-  return <>{/** No activity */}
+    return <>{/** No activity */}
     {activity.length === 0 && !hasMore && <EmptyIcon description='No Activity' />}
 
     {/** Activity Collapse Panel */}
@@ -242,10 +242,10 @@ export function ActivityTab({ activity, fetchMore, hasMore, onDelete, paginated 
             hasMore={hasMore || numShown < activity.length}
             loader={
               <div>
-                <br/>
+                <br />
                 <Spin size={'large'} />
                 <br />
-                    <br />
+                <br />
               </div>
             }
             scrollThreshold={"300px"}

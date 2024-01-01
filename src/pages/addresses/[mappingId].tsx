@@ -1,8 +1,6 @@
 import { Col, Divider, Empty, Input, Layout, Modal, Row, Spin, Tooltip, Typography } from 'antd';
 import { AddressMappingDoc, AddressMappingWithMetadata, DefaultPlaceholderMetadata, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
-import HtmlToReact from 'html-to-react';
-import MarkdownIt from 'markdown-it';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { deleteAddressMappings, getAddressMappings } from '../../bitbadges-api/api';
@@ -24,11 +22,10 @@ import QrCodeDisplay from '../../components/display/QrCodeDisplay';
 import { TableRow } from '../../components/display/TableRow';
 import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
-import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 
 const { Content } = Layout;
-const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 
 function AddressMappingPage() {
@@ -41,8 +38,6 @@ function AddressMappingPage() {
   const [mapping, setMapping] = useState<AddressMappingDoc<bigint>>();
   const [metadata, setMetadata] = useState<Metadata<bigint>>();
   const [fetchError, setFetchError] = useState<string>();
-
-  const [reactElement, setReactElement] = useState(HtmlToReact.Parser().parse(mdParser.render(metadata?.description ? metadata?.description : '')));
 
   const [addressToCheck, setAddressToCheck] = useState<string>('');
 
@@ -108,9 +103,6 @@ function AddressMappingPage() {
 
         if (mapping.metadata) {
           setMetadata(mapping.metadata);
-          if (mapping.metadata?.description) {
-            setReactElement(HtmlToReact.Parser().parse(mdParser.render(mapping.metadata?.description)));
-          }
         }
       } catch (e: any) {
         console.error(e);
@@ -202,17 +194,6 @@ function AddressMappingPage() {
               </>}
               {tab === 'overview' && <>
                 <br />
-                {metadata?.description && <>
-                  <InformationDisplayCard
-                    title="About"
-                  >
-                    <div className='custom-html-style primary-text' id="description" style={{ overflow: 'auto', maxHeight: 200 }} >
-                      {reactElement}
-                    </div>
-                  </InformationDisplayCard>
-                  <br />
-                </>}
-
                 {
                   <div className='flex-center'>
                     <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>

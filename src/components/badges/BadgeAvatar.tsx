@@ -9,9 +9,8 @@ import {
   isFullUintRanges,
 } from "bitbadgesjs-utils"
 import { useRouter } from "next/router"
-
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getTimeRangesString } from "../../utils/dates"
 
 export function BadgeAvatar({
@@ -24,6 +23,8 @@ export function BadgeAvatar({
   noHover,
   metadataOverride,
   onClick,
+  showMultimedia,
+  autoPlay
 }: {
   collectionId: bigint
   badgeId?: bigint
@@ -33,7 +34,9 @@ export function BadgeAvatar({
   showSupplys?: boolean
   noHover?: boolean
   metadataOverride?: Metadata<bigint>
-  onClick?: () => void
+  onClick?: () => void,
+  showMultimedia?: boolean
+  autoPlay?: boolean
 }) {
   const router = useRouter()
 
@@ -49,45 +52,124 @@ export function BadgeAvatar({
   }
 
   const currBalanceAmount = badgeId && balances
-      ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances)
-      : 0n
+    ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances)
+    : 0n
   const showOwnershipTimesIcon = badgeId && balances && showSupplys
-      ? balances.some((x) => !isFullUintRanges(x.ownershipTimes))
-      : false
+    ? balances.some((x) => !isFullUintRanges(x.ownershipTimes))
+    : false
+
+  const metadataImageUrl = metadata?.image
+    ? metadata.image.replace(
+      "ipfs://",
+      "https://bitbadges-ipfs.infura-ipfs.io/ipfs/"
+    ) : undefined
+
+  const metadataImage = metadataImageUrl ?? <Spin />
+
+  let videoUri = metadata?.video ? (
+    metadata.video.replace(
+      "ipfs://",
+      "https://bitbadges-ipfs.infura-ipfs.io/ipfs/"
+    )
+  ) : '';
+
+  const isYoutubeUri = videoUri && (videoUri.includes('youtube.com') || videoUri.includes('youtu.be'))
+  if (isYoutubeUri) {
+    const videoId = videoUri.split('/').pop()
+    videoUri = `https://www.youtube.com/embed/${videoId}`
+  }
+
+  function getVideoType(videoUrl: string) {
+    const fileExtension = videoUrl.split('.').pop()?.toLowerCase();
+    switch (fileExtension) {
+      case 'mp4':
+        return 'video/mp4';
+      case 'webm':
+        return 'video/webm';
+      case 'ogg':
+        return 'video/ogg';
+      case 'm4v':
+        return 'video/mp4';
+      case 'gltf':
+        return 'model/gltf+json';
+      case 'glb':
+        return 'model/gltf-binary';
+      default:
+        // If the file extension is not recognized, you can return a default type
+        return 'video/mp4';
+    }
+  }
+
+
 
   const avatar = (
-    <Avatar
-      style={{
-        verticalAlign: "middle",
-        margin: 4,
-        cursor: collection && badgeId ? "pointer" : undefined,
-      }}
-      className={badgeId && !noHover ? "badge-avatar" : undefined}
-      src={
-        metadata?.image ? (
-          metadata.image.replace(
-            "ipfs://",
-            "https://bitbadges-ipfs.infura-ipfs.io/ipfs/"
-          )
-        ) : metadata && !metadata.image ? (
-          DefaultPlaceholderMetadata.image
-        ) : (
-          <Spin />
-        )
+    <div>
+      {(!showMultimedia || (!videoUri)) &&
+
+        <Avatar
+          shape="square"
+          style={{
+            verticalAlign: "middle",
+            margin: 4,
+            cursor: collection && badgeId ? "pointer" : undefined,
+            borderRadius: 10,
+          }}
+          className={badgeId && !noHover ? "badge-avatar" : undefined}
+          src={metadataImage}
+
+          size={size ? size : 65}
+          onClick={() => {
+            if (onClick) {
+              onClick()
+              return
+            }
+            if (!badgeId) return
+            router.push(`/collections/${collectionId}/${badgeId}`)
+          }}
+          onError={() => {
+            return false
+          }}
+        />}
+
+
+      {showMultimedia && videoUri && metadataImageUrl && !isYoutubeUri &&
+
+        <video
+          style={{
+            verticalAlign: "middle",
+            margin: 4,
+            cursor: collection && badgeId ? "pointer" : undefined,
+            borderRadius: 10,
+          }}
+          autoPlay={autoPlay}
+          className={collectionId + "-" + badgeId + '-multimedia'}
+          height={size ? size : 65}
+          width={size ? size : 65}
+          controls
+          controlsList="nodownload"
+          playsInline
+          loop
+          poster={metadataImageUrl}
+        >
+          <source
+            src={videoUri}
+            type={getVideoType(videoUri)}
+          />
+        </video>
       }
-      size={size ? size : 65}
-      onClick={() => {
-        if (onClick) {
-          onClick()
-          return
-        }
-        if (!badgeId) return
-        router.push(`/collections/${collectionId}/${badgeId}`)
-      }}
-      onError={() => {
-        return false
-      }}
-    />
+
+      {isYoutubeUri && showMultimedia && videoUri && metadataImageUrl &&
+        <iframe
+          className='rounded-2xl'
+          width={300}
+          height={300}
+          src={videoUri}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      }
+    </div>
   )
 
   return (

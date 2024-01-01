@@ -1,10 +1,10 @@
 import { Divider, Empty, Layout } from 'antd';
+import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { fetchCollections, fetchNextForCollectionViews, getCollection, getCollectionActivityView, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
-import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
 import { UserApprovalsTab } from '../../components/collection-page/ApprovalsTab';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
@@ -15,9 +15,8 @@ import { ActivityTab } from '../../components/collection-page/TransferActivityDi
 import { TransferabilityTab } from '../../components/collection-page/TransferabilityTab';
 import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
-import { INFINITE_LOOP_MODE } from '../../constants';
-import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
 import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
+import { INFINITE_LOOP_MODE } from '../../constants';
 
 const { Content } = Layout;
 
@@ -137,8 +136,7 @@ function CollectionPage({
             }}
           >
             {collection && <>
-              {!collectionPreview && <BadgeButtonDisplay website={collectionMetadata?.externalUrl} collectionId={collectionIdNumber} socials={collectionMetadata?.socials} />}
-
+              
               {/* Overview and Tabs */}
               {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} hideCollectionLink />}
               <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />

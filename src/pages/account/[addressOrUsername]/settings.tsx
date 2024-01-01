@@ -2,11 +2,9 @@ import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { BLANK_USER_INFO, BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
-import MarkdownIt from 'markdown-it';
+
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import MdEditor from 'react-markdown-editor-lite';
-import 'react-markdown-editor-lite/lib/index.css';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
@@ -15,10 +13,71 @@ import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWr
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { useAccount, updateAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
+import { AccountHeader } from '../../../components/badges/AccountHeader';
+import "@uiw/react-md-editor/markdown-editor.css";
+import "@uiw/react-markdown-preview/markdown.css";
+import dynamic from "next/dynamic";
+import rehypeSanitize from "rehype-sanitize";
 
-const mdParser = new MarkdownIt(/* Markdown-it options */);
+
+const MDEditor = dynamic(
+  () => import("@uiw/react-md-editor").then((mod) => mod.default),
+  { ssr: false }
+);
+const EditerMarkdown = dynamic(
+  () =>
+    import("@uiw/react-md-editor").then((mod) => {
+      return mod.default.Markdown;
+    }),
+  { ssr: false }
+);
 
 const { Content } = Layout;
+
+export const MarkdownEditor = ({ markdown, setMarkdown }: { markdown: string, setMarkdown: (markdown: string) => void }) => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Check if dark mode is enabled in local storage
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(isDarkMode);
+  }, []);
+
+  const mode = darkMode ? 'dark' : 'light';
+
+  return <div className='full-width' >
+    <div data-color-mode={mode}>
+      <MDEditor
+        height={600}
+        value={markdown}
+        onChange={(value) => {
+          setMarkdown(value ?? '');
+        }}
+        previewOptions={{
+          rehypePlugins: [[rehypeSanitize]],
+        }}
+      />
+    </div>
+  </div>
+}
+
+export const MarkdownDisplay = ({ markdown }: { markdown: string }) => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Check if dark mode is enabled in local storage
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(isDarkMode);
+  }, []);
+
+  const mode = darkMode ? 'dark' : 'light';
+
+  return <div className='full-width' >
+    <div data-color-mode={mode}>
+      <EditerMarkdown source={markdown} style={{ whiteSpace: 'pre-wrap' }} />
+    </div>
+  </div>
+}
 
 export function AccountSettings() {
   const router = useRouter();
@@ -62,10 +121,6 @@ export function AccountSettings() {
 
   const [newCustomLinkImage, setNewCustomLinkImage] = useState('');
 
-  function handleEditorChange({ text }: any) {
-    setReadme(text);
-    // console.log('handleEditorChange', html, text);
-  }
 
   const [fileList, setFileList] = useState<any[]>(signedInAccount?.profilePicUrl ? [{
     uid: '-1',
@@ -87,7 +142,8 @@ export function AccountSettings() {
     setFileList(info.fileList);
   };
 
-
+  console.log(fileList);
+  console.log(fileList[0]?.thumbUrl);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: account settings page, update seen activity');
@@ -111,15 +167,18 @@ export function AccountSettings() {
 
           node={
             <Content
-              className="full-area"
-              style={{ minHeight: '100vh', padding: 8 }}
+              className=""
+              style={{
+                marginLeft: '10vw',
+                marginRight: '10vw',
+              }}
             >
-
-              <AccountButtonDisplay
-                hideButtons
+              <AccountHeader
                 addressOrUsername={chain.address}
-                profilePic={newAccount?.profilePicUrl}
+                accountInfoOverride={newAccount}
+                profilePic={fileList.length > 0 ? fileList[0].thumbUrl : newAccount?.profilePicUrl}
               />
+              <Divider></Divider>
               <Divider></Divider>
               <Form
                 colon={false}
@@ -186,11 +245,12 @@ export function AccountSettings() {
                     }
                   >
                     <div className='flex-between'>
-                      <MdEditor
+                      {/* <MdEditor
                         className='primary-text inherit-bg full-width'
                         style={{ minHeight: '250px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange}
                         value={readme}
-                      />
+                      /> */}
+                      <MarkdownEditor markdown={readme} setMarkdown={setReadme} />
                     </div>
                     <Typography.Text strong className='secondary-text'>
                       This will be the first thing users see when they visit your profile. Describe yourself, your interests, your badges, your projects, etc.
@@ -378,7 +438,7 @@ export function AccountSettings() {
                     </div>
                   </Form.Item>
                 </div>
-              </Form>
+              </ Form>
               <Divider />
 
               <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', width: '100%' }}>

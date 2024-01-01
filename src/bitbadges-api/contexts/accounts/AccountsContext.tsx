@@ -188,8 +188,6 @@ export function getAccountActivityView(account: BitBadgesUserInfo<bigint> | unde
 export function getAccountListsActivityView(account: BitBadgesUserInfo<bigint> | undefined, viewId: string) {
   if (!account) return [];
 
-  console.log(account, viewId);
-
   return (account.views[viewId]?.ids.map(x => {
     return account.listsActivity.find(y => y._legacyId === x);
   }) ?? []) as ListActivityDoc<bigint>[];

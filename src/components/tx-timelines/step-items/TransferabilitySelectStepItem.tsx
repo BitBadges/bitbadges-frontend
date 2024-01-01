@@ -1,12 +1,12 @@
 import { Divider } from "antd";
 import { deepCopy } from "bitbadgesjs-proto";
-import { CollectionApprovalWithDetails, getReservedAddressMapping } from "bitbadgesjs-utils";
+import { CollectionApprovalWithDetails, getReservedAddressMapping, isFullUintRanges } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
-import { compareObjects } from "../../../utils/compare";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import { SwitchForm } from "../form-items/SwitchForm";
@@ -45,8 +45,6 @@ export function TransferabilitySelectStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  
-
   return {
     title: `Collection Approvals (Transferability) - Post-Minting`,
     description: <>{`Excluding transfers from the Mint address, set the collection level approvals for who can transfer badges.
@@ -74,40 +72,49 @@ export function TransferabilitySelectStepItem() {
       }}
       nonMintOnly
       node={() => <div className="primary-text">
-          <SwitchForm
-            showCustomOption
-            options={[
-              {
-                title: 'Non-Transferable',
-                message: 'Badges cannot be transferred between users.',
-                isSelected: getNonMintApprovals(collection).length === 0
-              },
-              {
-                title: 'Transferable',
-                message: `Badges can be transferred between users.`,
-                isSelected: compareObjects(getNonMintApprovals(collection), [transferableApproval])
-              },
-
-            ]}
-            onSwitchChange={(idx) => {
-              if (idx === 0) {
-                setApprovalsToAdd(getMintApprovals(collection));
-              } else if (idx == 1) {
-                setApprovalsToAdd([...getMintApprovals(collection), deepCopy(transferableApproval)]);
-              }
-            }}
+        <SwitchForm
+          showCustomOption
+          options={[
+            {
+              title: 'Non-Transferable',
+              message: 'Badges cannot be transferred between users.',
+              isSelected: getNonMintApprovals(collection).length === 0
+            },
+            {
+              title: 'Transferable',
+              message: `Badges can be transferred between users.`,
+              isSelected: getNonMintApprovals(collection).length === 1
+                && getNonMintApprovals(collection).every(x =>
+                  approvalCriteriaHasNoAdditionalRestrictions(x.approvalCriteria) &&
+                  approvalCriteriaHasNoAmountRestrictions(x.approvalCriteria) &&
+                  isFullUintRanges(x.badgeIds) &&
+                  isFullUintRanges(x.transferTimes) &&
+                  isFullUintRanges(x.ownershipTimes) &&
+                  x.fromMappingId === 'AllWithoutMint' &&
+                  x.toMappingId === 'AllWithMint' &&
+                  x.initiatedByMappingId === 'AllWithMint'
+                )
+            },
+          ]}
+          onSwitchChange={(idx) => {
+            if (idx === 0) {
+              setApprovalsToAdd(getMintApprovals(collection));
+            } else if (idx == 1) {
+              setApprovalsToAdd([...getMintApprovals(collection), deepCopy(transferableApproval)]);
+            }
+          }}
+        />
+        <Divider />
+        <div className='flex-center' style={{ textAlign: 'center' }}>
+          <TransferabilityTab
+            collectionId={NEW_COLLECTION_ID}
+            onlyShowNotFromMint
+            hideHelperMessage
+            showDeletedGrayedOut
+            editable
           />
-          <Divider />
-          <div className='flex-center' style={{ textAlign: 'center' }}>
-            <TransferabilityTab
-              collectionId={NEW_COLLECTION_ID}
-              onlyShowNotFromMint
-              hideHelperMessage
-              showDeletedGrayedOut
-              editable
-            />
-          </div>
-        </div >
+        </div>
+      </div >
       }
     />,
     disabled: !!err,

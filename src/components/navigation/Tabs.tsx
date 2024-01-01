@@ -2,7 +2,7 @@ import { DeleteOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
 import IconButton from '../display/IconButton';
 
-export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass, onDeleteCurrTab }: {
+export function Tabs({ type, style, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass, onDeleteCurrTab }: {
   tab: string;
   setTab: (tab: string) => void;
   tabInfo: ({ key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element } | undefined)[];
@@ -12,6 +12,7 @@ export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedK
   type?: 'underline' | 'default';
   customClass?: string;
   onDeleteCurrTab?: (tab: string) => Promise<void>;
+  style?: React.CSSProperties;
 }) {
   let tabInfoFiltered = tabInfo.filter((tab) => tab != undefined) as { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
 
@@ -36,7 +37,7 @@ export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedK
                   if (!confirm('Are you sure you want to delete?')) {
                     return
                   }
-                  
+
                   await onDeleteCurrTab(tab.key);
 
                   //first tab that is not this one
@@ -121,7 +122,7 @@ export function Tabs({ type, tab, setTab, tabInfo, fullWidth, theme, noSelectedK
 
   return (
     <Menu
-      style={{ display: 'flex', overflow: 'auto' }}
+      style={{ display: 'flex', overflow: 'auto', ...style }}
       theme={theme ? theme : 'dark'}
       mode="horizontal"
       selectedKeys={noSelectedKeys ? [] : [tab]}

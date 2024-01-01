@@ -45,14 +45,12 @@ import {
   setMetadataPropertyForSpecificBadgeIds,
   sortUintRangesAndMergeIfNecessary,
 } from "bitbadgesjs-utils"
-import MarkdownIt from "markdown-it"
-import MdEditor from "react-markdown-editor-lite"
-import "react-markdown-editor-lite/lib/index.css"
 import {
   NEW_COLLECTION_ID,
   useTxTimelineContext,
 } from "../../../bitbadges-api/contexts/TxTimelineContext"
 
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
 import {
   fetchAndUpdateMetadata,
   fetchMetadataForPreview,
@@ -60,7 +58,7 @@ import {
   updateCollection,
   useCollection,
 } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { MarkdownEditor } from "../../../pages/account/[addressOrUsername]/settings"
 import { GO_MAX_UINT_64 } from "../../../utils/dates"
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay"
 import { CollectionHeader } from "../../badges/CollectionHeader"
@@ -74,8 +72,6 @@ import { MetadataUriSelect } from "./MetadataUriSelect"
 
 const { Text } = Typography
 const { Option } = Select
-
-const mdParser = new MarkdownIt(/* Markdown-it options */)
 
 //Do not pass an badgeId if this is for the collection metadata
 export function MetadataForm({
@@ -243,14 +239,6 @@ export function MetadataForm({
       reader.onload = () => resolve(reader.result?.toString() || "")
       reader.onerror = (error) => reject(error)
     })
-  }
-
-  function handleEditorChange({ text }: any) {
-    setMetadata({
-      ...currMetadata,
-      description: text,
-    })
-    // console.log('handleEditorChange', html, text);
   }
 
   const FieldCheckbox = ({
@@ -845,16 +833,14 @@ export function MetadataForm({
               }
             >
               <div className="flex-between" style={{}}>
-                <MdEditor
-                  className="primary-text"
-                  style={{
-                    width: "100%",
-                    minHeight: "250px",
-                    background: "inherit",
+                <MarkdownEditor
+                  markdown={currMetadata.description}
+                  setMarkdown={(markdown: string) => {
+                    setMetadata({
+                      ...currMetadata,
+                      description: markdown,
+                    })
                   }}
-                  renderHTML={(text) => mdParser.render(text)}
-                  onChange={handleEditorChange}
-                  value={currMetadata.description}
                 />
               </div>
             </Form.Item>
