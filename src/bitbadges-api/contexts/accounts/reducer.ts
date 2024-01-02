@@ -271,8 +271,6 @@ const updateAccounts = (
       });
       continue;
     } else {
-
-      console.log("CACHED ACC", cachedAccount.customPages, account.customPages);
       const cachedAccountCopy = deepCopy(cachedAccount);
 
       let publicKey = cachedAccount?.publicKey

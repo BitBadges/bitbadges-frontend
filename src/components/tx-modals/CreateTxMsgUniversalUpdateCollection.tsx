@@ -295,7 +295,6 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
               }];
             } else throw new Error('Off-chain balances not added');
           } else {
-            console.log(res.uri);
             //if bitbadges
             if (res.uri) {
               offChainBalancesMetadataTimeline = [{

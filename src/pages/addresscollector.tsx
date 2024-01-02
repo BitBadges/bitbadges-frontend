@@ -79,7 +79,6 @@ function AddressCollectionScreen() {
             <div className='flex-center'>
               <button className='landing-button' style={{ width: '90%' }} onClick={async () => {
                 if (mappingId && editKey) {
-                  console.log(mappingId, editKey);
                   await addAddressToSurvey(mappingId as string, { address: selectedUser, editKey: editKey as string });
                 }
                 if (window.opener && callbackRequired) {

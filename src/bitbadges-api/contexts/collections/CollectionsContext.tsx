@@ -206,8 +206,6 @@ export function getCollectionMetadataView(collection: BitBadgesCollection<bigint
 }
 
 export function getCollectionActivityView(collection: BitBadgesCollection<bigint>, viewType: CollectionViewKey) {
-  console.log(collection);
-
   return (collection.views[viewType]?.ids.map(x => {
     return collection.activity.find(y => y._legacyId === x);
   }) ?? []) as TransferActivityDoc<bigint>[]

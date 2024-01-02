@@ -560,7 +560,6 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
 
   const numUsed = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type
     && y.approvedAddress === (type === "overall" ? "" : account?.cosmosAddress ?? ''))?.numTransfers ?? 0n;
-  console.log(collection?.approvalsTrackers);
 
   return <>
     {componentType === 'list' && <>

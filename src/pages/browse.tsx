@@ -82,8 +82,6 @@ function BrowsePage() {
     return allItems;
   }, [browseInfo, badgesTab]);
 
-  console.log(allItems.length)
-
 
   return (
     <Content
@@ -141,7 +139,6 @@ function BrowsePage() {
               }
               if (idx % numItems !== 0) return null
 
-              console.log(idxArr.length);
               return <div key={idx} className='flex flex-center-if-mobile'>
                 {idxArr.map(idx => {
                   if (idx >= allItems?.length) return null

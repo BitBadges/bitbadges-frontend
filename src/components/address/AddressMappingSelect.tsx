@@ -171,7 +171,6 @@ export function AddressMappingSelect({
             className="landing-button"
             style={{ width: "100%" }}
             onClick={() => {
-              console.log(currId)
               setAddressMapping(
                 addMappingId(
                   {
@@ -181,7 +180,6 @@ export function AddressMappingSelect({
                   autoGenerateMappingId
                 )
               )
-              console.log(addressMapping)
               setCurrId("")
               setVisible(false)
             }}

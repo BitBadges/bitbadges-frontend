@@ -666,15 +666,11 @@ export function TxModal(
                           generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
                         }
 
-                        console.log("final msgs");
-                        console.log(generatedMsgs);
                         setFinalMsgs(generatedMsgs);
                         setShowJson(generatedMsgs.map(x => x.message));
                       } else if (finalMsgs.length > 0) {
                         setShowJson(finalMsgs.map(x => x.message));
-                        console.log(finalMsgs.map(x => x.message));
                       } else {
-                        console.log("dfjhf");
                         setShowJson(txsInfoPopulated.map((tx) => tx.msg));
                       }
                     }

@@ -142,10 +142,7 @@ export function AccountSettings() {
   const handleFileChange = (info: any) => {
     setFileList(info.fileList);
   };
-
-  console.log(fileList);
-  console.log(fileList[0]?.thumbUrl);
-
+  
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: account settings page, update seen activity');
     if (!signedInAccount) return;

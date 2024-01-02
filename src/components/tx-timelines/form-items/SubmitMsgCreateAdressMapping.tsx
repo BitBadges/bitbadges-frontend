@@ -234,7 +234,6 @@ export function SubmitMsgCreateAddressMapping() {
           const metadataUrl = metadataRes.collectionMetadataResult?.cid ? 'ipfs://' + metadataRes.collectionMetadataResult?.cid : '';
           const mappingId = onChainStorage ? addressMapping.mappingId : chain.cosmosAddress + "_" + addressMapping.mappingId;
 
-          console.log(!isUpdateAddressMapping, mappingId, addressMapping.mappingId);
           await updateAddressMappings({
             addressMappings: [{
               ...addressMapping,

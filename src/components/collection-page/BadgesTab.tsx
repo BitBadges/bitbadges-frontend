@@ -191,7 +191,6 @@ export function BadgesTab({ collectionId }: {
 
     //If we are just using filteredCollections or nothing at all, we can do that all client-side
     if (categories.length == 0 && tags.length == 0) {
-      console.log('no categories or tags');
       setCustomView(undefined);
       return;
     }
