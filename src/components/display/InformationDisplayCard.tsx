@@ -44,10 +44,10 @@ export function InformationDisplayCard({
         padding: noPadding ? 0 : 6,
 
       }}>
-      <div className="primary-text card-bg " style={{
+      <div className="primary-text card-bg rounded-lg" style={{
         border: noBorder ? undefined : '1px solid darkgrey',
         background: inheritBg ? 'inherit' : undefined,
-        borderRadius: 10, height: '100%',
+        height: '100%',
         padding: 14
       }}>
         {title &&

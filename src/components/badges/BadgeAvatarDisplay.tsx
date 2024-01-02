@@ -66,7 +66,9 @@ export function BadgeAvatarDisplay({
   const maxId = collection ? getMaxBadgeIdForCollection(collection) : 0n
   const [remaining, removed] = removeUintRangeFromUintRange([{ start: maxId + 1n, end: GO_MAX_UINT_64 }], badgeIds)
 
-  const inRangeBadgeIds = filterGreaterThanMax ? remaining : badgeIds
+  const toFilter = filterGreaterThanMax ?? true;
+  const passedInToFilterProp = filterGreaterThanMax !== undefined;
+  const inRangeBadgeIds = toFilter ? remaining : badgeIds
   const userBalance = balance
   const [currPage, setCurrPage] = useState<number>(1)
   const pageSize = defaultPageSize ?? (cardView ? 2 : 10)
@@ -205,7 +207,7 @@ export function BadgeAvatarDisplay({
         })}
       </div>
 
-      {removed.length > 0 && filterGreaterThanMax && (
+      {removed.length > 0 && passedInToFilterProp && (
         <div className="secondary-text">
           <br />
           Badge IDs {getBadgeIdsString(removed)} have placeholder metadata or

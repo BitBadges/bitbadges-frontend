@@ -37,6 +37,10 @@ body {
     color: var(--primary-color) !important;
 } */
 
+h1, h2, h3, h4, h5, h6 {
+  color: inherit !important;
+}
+
 
 /* 
 .ant-menu.ant-menu-dark, .ant-menu-dark .ant-menu-sub, .ant-menu.ant-menu-dark .ant-menu-sub{

@@ -60,7 +60,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
             <div style={{}}>
               <div className='flex-center flex-column'>
                 <div style={{ flex: '0 0 300px' }}>
-                  <Avatar src={profilePicSrc} size={300} shape='square' style={{ borderRadius: '8%' }} />
+                  <Avatar src={profilePicSrc} size={300} shape='square' className='rounded-lg' />
                 </div>
               </div>
             </div>
@@ -98,7 +98,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
               <Col md={24} xs={0} sm={0} style={{ minHeight: 200, marginTop: 10 }}>
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
                   <div style={{ flex: '0 0 300px', marginRight: '32px' }}>
-                    <Avatar src={profilePicSrc} size={300} shape='square' style={{ borderRadius: '8%' }} />
+                    <Avatar src={profilePicSrc} size={300} shape='square' className='rounded-lg' />
                   </div>
                   <div style={{ flex: '1', overflow: 'hidden' }}>
                     {!multiDisplay &&
@@ -121,7 +121,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
               <Col md={0} xs={24} sm={24} style={{ minHeight: 200, marginTop: 10 }}>
                 <div className='flex-center flex-column'>
                   <div style={{ flex: '0 0 300px' }}>
-                    <Avatar src={profilePicSrc} size={300} shape='square' style={{ borderRadius: '8%' }} />
+                    <Avatar src={profilePicSrc} size={300} shape='square' className='rounded-lg' />
                   </div>
                 </div>
                 <div style={{ flex: '1', overflow: 'hidden', marginTop: 10 }}>

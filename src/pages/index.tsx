@@ -16,10 +16,9 @@ export const LandingCard = ({ content, customClass, }: {
 }) => {
 
   return <div className='flex'>
-    <Card className={customClass + " card-bg"}
+    <Card className={customClass + " card-bg rounded-lg"}
       style={{
         border: '1px solid gray',
-        borderRadius: 15,
       }}>
       <div className='landing-card secondary-text' >
         {content}
@@ -43,9 +42,9 @@ export const PrevLandingCard = ({ content, additionalContent, onClick }: {
 
     <div style={{ display: 'flex' }}>
 
-      <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text'
+      <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text rounded-lg'
         style={{
-          height: showMore ? undefined : additionalContent ? 360 : 260, borderRadius: 15,
+          height: showMore ? undefined : additionalContent ? 360 : 260,
           background: `linear-gradient(0deg, black 10%, #121212 100%)`,
         }} onClick={() => {
           if (onClick) onClick();

@@ -19,12 +19,11 @@ export function AddressListCard({
 
   return (
     <Card
-      className='primary-text card-bg'
+      className='primary-text card-bg rounded-lg'
       style={{
-        width: 225,
         margin: 6,
         textAlign: 'center',
-        borderRadius: '4%',
+        
       }}
       hoverable={true}
       onClick={() => {

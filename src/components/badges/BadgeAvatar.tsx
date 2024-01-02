@@ -112,9 +112,9 @@ export function BadgeAvatar({
             verticalAlign: "middle",
             margin: 4,
             cursor: collection && badgeId ? "pointer" : undefined,
-            borderRadius: '8%' 
+
           }}
-          className={badgeId && !noHover ? "badge-avatar" : undefined}
+          className={'rounded-lg ' + (badgeId && !noHover ? "badge-avatar" : undefined)}
           src={metadataImage}
 
           size={size ? size : 65}
@@ -139,7 +139,7 @@ export function BadgeAvatar({
             verticalAlign: "middle",
             margin: 4,
             cursor: collection && badgeId ? "pointer" : undefined,
-            borderRadius: '8%' 
+            borderRadius: '8%'
           }}
           autoPlay={autoPlay}
           className={collectionId + "-" + badgeId + '-multimedia'}

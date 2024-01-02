@@ -99,11 +99,11 @@ export function SearchDropdown({
   //2. Search results for accounts
   //3. Search results for collections
 
-  return <Menu className='dropdown card-bg' onKeyDown={async (e) => {
+  return <Menu className='dropdown card-bg rounded-lg' onKeyDown={async (e) => {
     if (e.key === '') {
       await onSearch(searchValue);
     }
-  }} theme='dark' style={{ border: '1px solid gray', borderRadius: 8, marginTop: 8, overflow: 'hidden' }}>
+  }} theme='dark' style={{ border: '1px solid gray', marginTop: 8, overflow: 'hidden' }}>
     {<>
       {!onlyCollections && !onlyLists && <>
 
