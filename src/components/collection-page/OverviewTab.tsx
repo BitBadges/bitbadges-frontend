@@ -35,25 +35,20 @@ export function OverviewTab({
   )
   return (
     <>
-      {
-        <>
-          <div style={{ paddingRight: 4, paddingLeft: 4 }}>
-            <InformationDisplayCard title="Badges">
-              <BadgeAvatarDisplay
-                showIds
-                size={75}
-                collectionId={collectionId}
-                badgeIds={getUintRangesForAllBadgeIdsInCollection(collection)}
-                maxWidth={"100%"}
-                showPageJumper={getMaxBadgeIdForCollection(collection) > 100}
-              // doNotAdaptToWidth
-              />
-            </InformationDisplayCard>
-          </div>
-          <br />
-        </>
-      }
-
+      <div>
+        <InformationDisplayCard title="Badges">
+          <BadgeAvatarDisplay
+            showIds
+            size={75}
+            collectionId={collectionId}
+            badgeIds={getUintRangesForAllBadgeIdsInCollection(collection)}
+            maxWidth={"100%"}
+            showPageJumper={getMaxBadgeIdForCollection(collection) > 100}
+          // doNotAdaptToWidth
+          />
+        </InformationDisplayCard>
+      </div>
+      <br />
       <Row
         style={{
           display: "flex",
@@ -64,7 +59,6 @@ export function OverviewTab({
           md={12}
           sm={24}
           xs={24}
-          style={{ paddingRight: 4, paddingLeft: 4 }}
         >
           {!noBalancesStandard && MetadataDisplayElem}
 
@@ -75,7 +69,6 @@ export function OverviewTab({
           md={12}
           sm={24}
           xs={24}
-          style={{ paddingRight: 4, paddingLeft: 4 }}
         >
           <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
           {noBalancesStandard && MetadataDisplayElem}

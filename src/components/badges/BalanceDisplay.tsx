@@ -410,7 +410,7 @@ export function BalanceDisplay({
                           showIds
                           showSupplys={numIncrements > 1n ? false : true}
                           cardView={cardView}
-                          size={size ? size : 45}
+                          size={size ? size : 75}
                         />
                       </div>
                     )}

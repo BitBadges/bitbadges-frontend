@@ -1012,7 +1012,7 @@ export function ApprovalSelect({
             }</>
 
         </InformationDisplayCard>
-        <InformationDisplayCard title='Approval Info' md={8} xs={24} sm={24} subtitle='Provide optional metadata for the approval. Explain what it is for, how to get approved, etc.'>
+        <InformationDisplayCard title='Approval Info' md={16} xs={24} sm={24} subtitle='Provide optional metadata for the approval. Explain what it is for, how to get approved, etc.'>
           <ClaimMetadataSelect approvalDetails={approvalToAdd.details} setApprovalDetails={(details) => {
             setApprovalToAdd({
               ...approvalToAdd,

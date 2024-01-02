@@ -146,20 +146,20 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
             </div>} labelSpan={7} valueSpan={17} />}
 
           {collection?.aliasAddress && <TableRow label={
-          <>{"Alias Account"}<Tooltip color='black' title={"This is a fake address that is reserved to represent this collection. It is not a real account and cannot initiate transactions. However, it has a portfolio and can receive badges."}>
-                  <InfoCircleOutlined style={{ marginLeft: 8 }} />
-                </Tooltip>
+            <>{"Alias"}<Tooltip color='black' title={"This is a fake address that is reserved to represent this collection. It is not a real account and cannot initiate transactions. However, it has a portfolio and can receive badges."}>
+              <InfoCircleOutlined style={{ marginLeft: 8 }} />
+            </Tooltip>
             </>} value={
-            <div className='flex-between' style={{ textAlign: 'right' }}>
-              <div></div>
-              <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
-                <AddressDisplay
-                  fontSize={16}
-                  addressOrUsername={collection.aliasAddress}
-                />
-              </div>
-              
-            </div>} labelSpan={7} valueSpan={17} />}
+              <div className='flex-between' style={{ textAlign: 'right' }}>
+                <div></div>
+                <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
+                  <AddressDisplay
+                    fontSize={16}
+                    addressOrUsername={collection.aliasAddress}
+                  />
+                </div>
+
+              </div>} labelSpan={7} valueSpan={17} />}
 
 
           {(collection?.customDataTimeline ?? []).length > 0 &&

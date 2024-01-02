@@ -225,7 +225,7 @@ export const BlockinDisplay = ({
                 /> :
                   <Image src="/images/bitbadgeslogo.png" alt="BitBadges Logo" height={180} width={180} quality={100} />
               }
-              style={{ marginTop: 40, borderRadius: 10 }}
+              style={{ marginTop: 40, borderRadius: '8%' }}
             />
           }
         </div>

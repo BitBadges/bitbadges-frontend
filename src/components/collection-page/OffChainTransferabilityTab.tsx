@@ -4,6 +4,7 @@ import { DistributionOverview } from '../badges/DistributionCard';
 import { Divider } from '../display/Divider';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 
 export function OffChainTransferabilityTab({ collectionId, badgeId }: {
   collectionId: bigint,
@@ -52,7 +53,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
 
   return (
     <>
-      <br/>
+      <br />
       <div className='flex flex-wrap'>
         <InformationDisplayCard
           title='Transferability'
@@ -88,13 +89,13 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
             <b>Where are the balances hosted?</b>
             <br />
             <div className='flex secondary-text'>
-              {info.host}
+              <MarkdownDisplay markdown={info.host} />
             </div>
             <br />
             <b>How are balances assigned?</b>
             <br />
             <div className='flex secondary-text'>
-              {info.assignMethod}
+              <MarkdownDisplay markdown={info.assignMethod} />
             </div>
             <br />
             <Divider />

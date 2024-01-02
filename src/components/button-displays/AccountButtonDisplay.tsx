@@ -8,7 +8,7 @@ import {
   TwitterOutlined
 } from '@ant-design/icons';
 import { Avatar, Tooltip, message, notification } from 'antd';
-import { SupportedChain } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
 import { useState } from 'react';
@@ -18,7 +18,9 @@ import { ReportModal } from '../tx-modals/ReportModal';
 
 export function AccountButtonDisplay({
   addressOrUsername,
+  accountOverride,
   website,
+  mobile,
   hideButtons,
   hideDisplay,
   customLinks,
@@ -26,9 +28,11 @@ export function AccountButtonDisplay({
   onlySocials
 }: {
   addressOrUsername: string,
+  accountOverride?: BitBadgesUserInfo<bigint>,
   website?: string,
   hideButtons?: boolean
   hideDisplay?: boolean
+  mobile?: boolean
   customLinks?: {
     title: string,
     url: string,
@@ -43,7 +47,8 @@ export function AccountButtonDisplay({
 }) {
   const chain = useChainContext();
   const router = useRouter();
-  const accountInfo = useAccount(addressOrUsername);
+  const _accountInfo = useAccount(addressOrUsername);
+  const accountInfo = accountOverride ?? _accountInfo
   // const signedInAccountInfo = useAccount(chain.address);
 
   const [reportIsVisible, setReportIsVisible] = useState(false);
@@ -142,12 +147,12 @@ export function AccountButtonDisplay({
 
   return (
     <>
-      {!hideButtons && <div style={!hideDisplay ? {  display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
+      {!hideButtons && <div style={!hideDisplay ? { display: 'flex', flexWrap: 'wrap', justifyContent: 'end', maxWidth: 400 } : { display: 'flex', flexWrap: 'wrap', justifyContent: 'start', maxWidth: 400 }}>
         {accountInfo?.chain === SupportedChain.ETH && (
           <a href={openSeaLink} target="_blank" rel="noreferrer">
             <Tooltip title="OpenSea" placement="bottom">
               <Avatar
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={() => { }}
                 className="styled-button-normal account-socials-button"
                 src={"https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png"}
@@ -161,7 +166,7 @@ export function AccountButtonDisplay({
           <a href={stargazeLink} target="_blank" rel="noreferrer">
             <Tooltip title="Stargaze" placement="bottom">
               <Avatar
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={() => { }}
                 className="styled-button-normal account-socials-button"
                 src={"https://pbs.twimg.com/profile_images/1507391623914737669/U3fR7nxh_400x400.jpg"}
@@ -175,7 +180,7 @@ export function AccountButtonDisplay({
           <a href={etherscanLink} target="_blank" rel="noreferrer">
             <Tooltip title="Etherscan" placement="bottom">
               <Avatar
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={() => { }}
                 style={{ backgroundColor: 'white' }}
                 className="styled-button-normal account-socials-button"
@@ -191,7 +196,7 @@ export function AccountButtonDisplay({
           <a href={twitterLink} target="_blank" rel="noreferrer">
             <Tooltip title="Twitter" placement="bottom">
               <Avatar
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={() => { }}
                 className="styled-button-normal account-socials-button"
                 src={"https://about.twitter.com/content/dam/about-twitter/en/brand-toolkit/brand-download-img-1.jpg.twimg.1920.jpg"}
@@ -205,7 +210,7 @@ export function AccountButtonDisplay({
           <a href={telegramLink} target="_blank" rel="noreferrer">
             <Tooltip title="Telegram" placement="bottom">
               <Avatar
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={() => { }}
                 className="styled-button-normal account-socials-button"
                 src={"https://1000logos.net/wp-content/uploads/2021/04/Telegram-logo.png"}
@@ -218,7 +223,7 @@ export function AccountButtonDisplay({
           <a href={githubLink} target="_blank" rel="noreferrer">
             <Tooltip title="GitHub" placement="bottom">
               <Avatar
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={() => { }}
                 className="styled-button-normal account-socials-button"
                 // src={ }
@@ -232,7 +237,7 @@ export function AccountButtonDisplay({
         {accountInfo?.discord && (
           <Tooltip title={accountInfo?.discord} placement="bottom">
             <Avatar
-              size="large"
+              size={mobile ? undefined : 'large'}
               onClick={() => {
                 if (!accountInfo?.discord) return;
 
@@ -252,7 +257,7 @@ export function AccountButtonDisplay({
           <a key={i} href={link.url} target="_blank" rel="noreferrer">
             <Tooltip title={link.title} placement="bottom">
               <Avatar
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={() => { }}
                 className="styled-button-normal account-socials-button"
                 src={link.image}
@@ -264,7 +269,7 @@ export function AccountButtonDisplay({
           {setCustomLinks && customLinks && <>
 
             <Avatar
-              size="large"
+              size={mobile ? undefined : 'large'}
               onClick={() => {
                 setCustomLinks((customLinks).filter((_, j) => j !== i))
               }}
@@ -281,7 +286,7 @@ export function AccountButtonDisplay({
           <a href={website} target="_blank" rel="noreferrer">
             <Tooltip title="Website" placement="bottom">
               <Avatar
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={() => { }}
                 className="styled-button-normal account-socials-button"
               >
@@ -295,7 +300,7 @@ export function AccountButtonDisplay({
           <Tooltip title="Follow with the BitBadges Follow Protocol" placement="bottom">
             <Avatar
 
-              size="large"
+              size={mobile ? undefined : 'large'}
               onClick={async () => {
                 await addToFollowCollection();
               }}
@@ -310,7 +315,7 @@ export function AccountButtonDisplay({
           <Tooltip title="Unfollow with the BitBadges Follow Protocol" placement="bottom">
             <Avatar
 
-              size="large"
+              size={mobile ? undefined : 'large'}
               onClick={async () => {
                 await removeFromFollowCollection();
               }}
@@ -327,7 +332,7 @@ export function AccountButtonDisplay({
               <b>Share</b>
               <Tooltip title="Copy Link" placement="left">
                 <Avatar
-                  size="large"
+                  size={mobile ? undefined : 'large'}
                   onClick={() => {
                     navigator.clipboard.writeText(
                       window.location.href
@@ -341,7 +346,7 @@ export function AccountButtonDisplay({
               </Tooltip>
               <Tooltip title="Share on Twitter" placement="left">
                 <Avatar
-                  size="large"
+                  size={mobile ? undefined : 'large'}
                   onClick={() => {
                     const tweetMessage = `Check out ${isSameAccount ? 'my' : addressOrUsername + "\'s"} profile on BitBadges!\n\n`;
 
@@ -359,7 +364,7 @@ export function AccountButtonDisplay({
             </div>
           </>} placement="bottom">
             <Avatar
-              size="large"
+              size={mobile ? undefined : 'large'}
               className="styled-button-normal account-socials-button"
             >
               <ShareAltOutlined />
@@ -371,7 +376,7 @@ export function AccountButtonDisplay({
             Report
           </>} placement="bottom">
             <Avatar
-              size="large"
+              size={mobile ? undefined : 'large'}
               className="styled-button-normal account-socials-button"
               onClick={() => {
                 setReportIsVisible(true);
@@ -391,7 +396,7 @@ export function AccountButtonDisplay({
         {!onlySocials && isSameAccount && (
           <Tooltip title="Settings" placement="bottom">
             <Avatar
-              size="large"
+              size={mobile ? undefined : 'large'}
               onClick={() => {
                 router.push(
                   `/account/${address}/settings`
@@ -409,7 +414,7 @@ export function AccountButtonDisplay({
       </div>}
 
       {!hideDisplay && <>
-        </>}
+      </>}
     </>
   );
 }

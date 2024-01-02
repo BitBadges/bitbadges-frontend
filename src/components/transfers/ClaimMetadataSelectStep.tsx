@@ -1,5 +1,6 @@
 import { Form, Input, Typography } from "antd";
 import { ApprovalInfoDetails } from "bitbadgesjs-utils";
+import { MarkdownEditor } from "../../pages/account/[addressOrUsername]/settings";
 
 export function ClaimMetadataSelect({
   approvalDetails,
@@ -69,15 +70,12 @@ export function ClaimMetadataSelectSelectStep(
                 </Typography.Text>
               </>}
             >
-              <Input.TextArea
-                defaultValue={description}
-                placeholder="Describe this approval. How do users get approved? What is it for?"
-                value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value);
+              <MarkdownEditor
+                markdown={description}
+                setMarkdown={(e) => {
+                  setDescription(e);
                 }}
-                className="form-input inherit-bg primary-text"
-                rows={7}
+                placeholder={`Describe this approval. How will it be used? Who can use it?`}
               />
             </Form.Item>
           </div>

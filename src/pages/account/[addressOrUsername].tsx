@@ -1,9 +1,8 @@
 import {
   CloseCircleOutlined,
-  DownOutlined,
   InfoCircleOutlined,
   MinusOutlined,
-  PlusOutlined,
+  PlusOutlined
 } from "@ant-design/icons"
 import {
   Col,
@@ -12,11 +11,11 @@ import {
   Empty,
   Input,
   Layout,
-  Select,
   Spin,
   Tag,
+  Tooltip,
   Typography,
-  notification,
+  notification
 } from "antd"
 import { UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
@@ -60,6 +59,7 @@ import { AddressListCard } from "../../components/badges/AddressListCard"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay"
 import { BlockinDisplay } from "../../components/blockin/BlockinDisplay"
+import { SelectWithOptions } from "../../components/collection-page/BadgesTab"
 import { ListActivityTab } from "../../components/collection-page/ListActivityDisplay"
 import { ReputationTab } from "../../components/collection-page/ReputationTab"
 import { ActivityTab } from "../../components/collection-page/TransferActivityDisplay"
@@ -150,8 +150,9 @@ export const ListFilterSearchBar = ({
       onChange={async (e) => {
         setSearchValue(e.target.value)
       }}
-      className="form-input"
-      style={{}}
+      className="form-input rounded p-1 px-2"
+      //styled-button-normal rounded p-1 focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer
+      style={{ height: 30 }}
     />
   )
 
@@ -198,15 +199,15 @@ export const CollectionsFilterSearchBar = ({
       defaultValue=""
       placeholder={
         specificCollectionId
-          ? "Filter by searching a badge"
-          : "Filter by searching a collection or badge"
+          ? "Filter by name or ID"
+          : "Filter by name or ID"
       }
       value={searchValue}
       onChange={async (e) => {
         setSearchValue(e.target.value)
       }}
-      className="form-input"
-      style={{}}
+      className="form-input rounded p-1 px-2"
+      style={{ height: 30 }}
     />
   )
 
@@ -369,9 +370,11 @@ export const BatchBadgeDetailsTag = ({
               overflowWrap: "break-word",
             }}
           >
-            <div style={{ marginBottom: 4 }}>{metadata?.name}</div>
+            <Tooltip title={`Collection ID: ${badgeIdObj.collectionId}\n\n${isFullUintRanges(badgeIdObj.badgeIds) ? "All" : `Badge IDs: ${badgeIdObj.badgeIds.map((x) => x.start === x.end ? `${x.start}` : `${x.start}-${x.end}`).join(", ")}`}`}>
+              <div style={{}}>{metadata?.name}</div>
+            </Tooltip>
             <div style={{ fontSize: 12 }}>
-              Collection ID: {badgeIdObj.collectionId.toString()}
+              {/* Collection ID: {badgeIdObj.collectionId.toString()}
               <br />
               {isFullUintRanges(badgeIdObj.badgeIds)
                 ? "All"
@@ -379,7 +382,7 @@ export const BatchBadgeDetailsTag = ({
                   .map((x) =>
                     x.start === x.end ? `${x.start}` : `${x.start}-${x.end}`
                   )
-                  .join(", ")}`}
+                  .join(", ")}`} */}
             </div>
           </Typography.Text>
         </div>
@@ -694,35 +697,10 @@ export const OptionsSelects = ({
   const CustomizeSelect = (
     <>
       {chain.address === accountInfo.address && chain.loggedIn && (
-        <div
-          className="primary-text inherit-bg"
-          style={{
-            float: "right",
-            display: "flex",
-            alignItems: "center",
-            marginRight: 16,
-            marginTop: 5,
-          }}
-        >
-          Mode:
-          <Select
-            className="selector primary-text inherit-bg"
-            value={editMode ? "edit" : "none"}
-            placeholder="Default: None"
-            onChange={(e: any) => {
-              setEditMode(e === "edit")
-              setCardView(true)
-            }}
-            style={{
-              float: "right",
-              marginLeft: 8,
-            }}
-            suffixIcon={<DownOutlined className="primary-text" />}
-          >
-            <Select.Option value="none">Normal User</Select.Option>
-            <Select.Option value="edit">Customize</Select.Option>
-          </Select>
-        </div>
+        <SelectWithOptions title='Mode' value={editMode ? 'edit' : 'none'} setValue={(e) => {
+          setEditMode(e === 'edit')
+          setCardView(true)
+        }} options={[{ label: 'Normal', value: 'none' }, { label: 'Customize', value: 'edit' },]} />
       )}
     </>
   )
@@ -789,97 +767,46 @@ export const OptionsSelects = ({
       }}
     />
   )
-
   return (
     <>
       <div
         className="flex-wrap full-width flex"
-        style={{ flexDirection: "row-reverse" }}
+        style={{ flexDirection: "row-reverse", alignItems: "flex-end", marginTop: 12 }}
       >
         {CustomizeSelect}
 
         {!isListsSelect && (
-          <div
-            className="primary-text inherit-bg"
-            style={{
-              float: "right",
-              display: "flex",
-              alignItems: "center",
-              marginRight: 16,
-              marginTop: 5,
+          <SelectWithOptions
+            title='Group By'
+            value={groupByCollection ? 'collection' : 'none'}
+            setValue={(e) => {
+              setGroupByCollection(e === 'collection');
             }}
-          >
-            Group By:
-            <Select
-              className="selector primary-text inherit-bg"
-              value={groupByCollection ? "collection" : "none"}
-              placeholder="Default: None"
-              onChange={(e: any) => {
-                setGroupByCollection(e === "collection")
-              }}
-              style={{
-                float: "right",
-                marginLeft: 8,
-                minWidth: 90,
-              }}
-              suffixIcon={<DownOutlined className="primary-text" />}
-            >
-              <Select.Option value="none">None</Select.Option>
-              <Select.Option value="collection">Collection</Select.Option>
-            </Select>
-          </div>
+            options={[{ label: 'None', value: 'none' }, { label: 'Collection', value: 'collection' }]}
+          // style={{ flexGrow: 1 }} // Add this style to make it grow
+          />
         )}
 
         {!editMode && !isListsSelect && (
-          <div
-            className="primary-text inherit-bg"
-            style={{
-              float: "right",
-              display: "flex",
-              alignItems: "center",
-              marginLeft: 16,
-              marginRight: 16,
-              marginTop: 5,
+          <SelectWithOptions
+            title='View'
+            value={cardView ? 'card' : 'image'}
+            setValue={(e) => {
+              setCardView(e === 'card');
             }}
-          >
-            View:
-            <Select
-              className="selector primary-text inherit-bg"
-              value={cardView ? "card" : "image"}
-              placeholder="Default: None"
-              onChange={(e: any) => {
-                setCardView(e === "card")
-              }}
-              style={{
-                float: "right",
-                marginLeft: 8,
-              }}
-              suffixIcon={<DownOutlined className="primary-text" />}
-            >
-              <Select.Option value="card">Card</Select.Option>
-              <Select.Option value="image">Image</Select.Option>
-            </Select>
+            options={[{ label: 'Card', value: 'card' }, { label: 'Image', value: 'image' }]}
+          // style={{ flexGrow: 1 }} // Add this style to make it grow
+          />
+        )}
+
+        {(
+          <div style={{ marginBottom: 4, flexGrow: 1 }}> {/* Add this style to make it grow */}
+            {!isListsSelect && FilterSearchDropdown}
+            {isListsSelect && ListSearchDropdown}
           </div>
         )}
-        {
-          <>
-            <div
-              className="primary-text inherit-bg"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                // marginLeft: 16,
-                marginRight: 16,
-                marginTop: 5,
-                flexGrow: 1,
-              }}
-            >
-              {!isListsSelect && FilterSearchDropdown}
-              {isListsSelect && ListSearchDropdown}
-            </div>
-          </>
-        }
       </div>
+
     </>
   )
 }
@@ -950,6 +877,7 @@ export const BadgeInfiniteScroll = ({
   fetchMore,
   groupByCollection,
   isWatchlist,
+  sortBy,
 }: {
   addressOrUsername: string
   badgesToShow: BatchBadgeDetails[]
@@ -959,6 +887,7 @@ export const BadgeInfiniteScroll = ({
   fetchMore: () => Promise<void>
   groupByCollection: boolean
   isWatchlist?: boolean
+  sortBy?: "oldest" | "newest" | undefined
 }) => {
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25)
   const accountInfo = useAccount(addressOrUsername)
@@ -1033,6 +962,7 @@ export const BadgeInfiniteScroll = ({
           hidePagination={true}
           showCustomizeButtons={editMode}
           isWatchlist={isWatchlist}
+          sortBy={sortBy}
         />
       </InfiniteScroll>
 
@@ -1254,8 +1184,7 @@ function PortfolioPage() {
   const fetchMoreLists = useCallback(
     async (address: string, viewType: AccountViewKey) => {
       await fetchNextForAccountViews(address, viewType, viewType)
-    },
-    []
+    }, []
   )
 
   const fetchMoreCreatedBy = useCallback(
@@ -1267,6 +1196,7 @@ function PortfolioPage() {
 
   const fetchMoreManaging = useCallback(
     async (address: string, viewType: AccountViewKey) => {
+      console.log("fetchMoreManaging", address, viewType)
       await fetchNextForAccountViews(address, viewType, viewType)
     },
     []
@@ -1383,7 +1313,7 @@ function PortfolioPage() {
   const currListViewId = customListViewId && (listViewwithoutFiltered?.pagination.hasMore ?? true)
     ? customListViewId
     : listsTab
-  const listsView = (
+  const listsView = !accountInfo ? [] : (
     isPresetList
       ? getAccountAddressMappingsView(accountInfo, currListViewId)
       : customView
@@ -1492,10 +1422,9 @@ function PortfolioPage() {
 
 
               <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} fullWidth />
-          
-              {(tab === "collected" || tab == "hidden") && (
+
+              {(tab === "collected") && (
                 <>
-                  <br />
                   <OptionsSelects
                     searchValue={searchValue}
                     setSearchValue={setSearchValue}
@@ -1530,6 +1459,7 @@ function PortfolioPage() {
                       )
                     })}
                   </div>
+                  {filteredCollections.length > 0 && <br />}
                 </>
               )}
 
@@ -1629,6 +1559,7 @@ function PortfolioPage() {
                           }}
                         />
                       )}
+
                     </div>
 
                     {badgeTab === "Hidden" && (
@@ -1786,8 +1717,7 @@ function PortfolioPage() {
                             badgeTab === "All"
                               ? collectedHasMore
                               : badgeTab === "Managing"
-                                ? accountInfo?.views["managing"]?.pagination
-                                  ?.hasMore ?? true
+                                ? accountInfo?.views["managing"]?.pagination?.hasMore ?? true
                                 : badgeTab === "Created"
                                   ? accountInfo?.views["createdBy"]?.pagination
                                     ?.hasMore ?? true
@@ -1855,7 +1785,6 @@ function PortfolioPage() {
 
               {tab === "lists" && (
                 <>
-                  <br />
                   <OptionsSelects
                     isListsSelect
                     filteredLists={filteredLists}

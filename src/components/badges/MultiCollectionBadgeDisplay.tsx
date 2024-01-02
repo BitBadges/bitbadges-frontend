@@ -5,8 +5,7 @@ import {
   BitBadgesUserInfo,
   getBadgesToDisplay,
   getBalancesForId,
-  removeUintRangeFromUintRange,
-  sortUintRangesAndMergeIfNecessary,
+  removeUintRangeFromUintRange
 } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 
@@ -21,6 +20,7 @@ import {
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { BatchBadgeDetails } from "../../pages/account/[addressOrUsername]"
+import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { AddressDisplay } from "../address/AddressDisplay"
 import { InformationDisplayCard } from "../display/InformationDisplayCard"
 import { BadgeAvatar } from "./BadgeAvatar"
@@ -70,21 +70,20 @@ export function CollectionDisplayWithBadges({
   accountInfo,
   hideAddress = true,
   cardView,
-  showCustomizeButtons,
   addressOrUsernameToShowBalance,
   hideCollectionLink,
   span,
+  sortBy
 }: {
   badgeObj: { collectionId: bigint; badgeIds: UintRange<bigint>[] }
   accountInfo?: BitBadgesUserInfo<bigint>
   hideAddress?: boolean
   cardView?: boolean
-  showCustomizeButtons?: boolean
   addressOrUsernameToShowBalance?: string
   hideCollectionLink?: boolean
   span?: number
+  sortBy?: "oldest" | "newest" | undefined
 }) {
-  console.log(showCustomizeButtons); //TODO: 
   const collectionId = badgeObj.collectionId
   const collection = useCollection(collectionId)
   const account = useAccount(addressOrUsernameToShowBalance)
@@ -93,11 +92,14 @@ export function CollectionDisplayWithBadges({
     ? account?.collected.find((collected) => collected.collectionId == collectionId)?.balances ?? []
     : collection?.owners.find((x) => x.cosmosAddress == "Total")?.balances ?? []
 
-  const newBadgeIds = !collection
-    ? badgeObj.badgeIds
-    : [{ start: 1n, end: BigInt(getMaxBadgeIdForCollection(collection)) }]
+  //In the parent display, if we haven't fetched the collection yet
+  //and wnat to display all badges in the collection, we do 1-MAXUINT64 and
+  //here, we filter out once we get the collection to only include in range badge IDs
+  if (collection) {
+    const [remaining] = removeUintRangeFromUintRange([{ start: getMaxBadgeIdForCollection(collection) + 1n, end: GO_MAX_UINT_64 }], badgeObj.badgeIds);
 
-  badgeObj = { ...badgeObj, badgeIds: newBadgeIds }
+    badgeObj = { ...badgeObj, badgeIds: remaining }
+  }
 
   return (
     <InformationDisplayCard
@@ -140,16 +142,8 @@ export function CollectionDisplayWithBadges({
         showSupplys
         showOnSinglePage
         fromMultiCollectionDisplay
+        sortBy={sortBy}
       />
-      {/* <CustomizeButtons
-        badgeIdObj={{
-          collectionId,
-          badgeIds: balances.map((x) => x.badgeIds).flat(),
-        }}
-        onlyShowCollectionOptions
-        showCustomizeButtons={showCustomizeButtons}
-        accountInfo={accountInfo}
-      /> */}
     </InformationDisplayCard>
   )
 }
@@ -166,6 +160,7 @@ export function MultiCollectionBadgeDisplay({
   hideAddress,
   isWatchlist,
   span,
+  sortBy
 }: {
   collectionIds: bigint[]
   addressOrUsernameToShowBalance?: string
@@ -180,6 +175,7 @@ export function MultiCollectionBadgeDisplay({
   customPageBadges?: { collectionId: bigint; badgeIds: UintRange<bigint>[] }[]
   isWatchlist?: boolean
   span?: number
+  sortBy?: "oldest" | "newest" | undefined
 }) {
   const accountInfo = useAccount(addressOrUsernameToShowBalance)
 
@@ -202,10 +198,7 @@ export function MultiCollectionBadgeDisplay({
     if (customPageBadges) {
       for (const obj of customPageBadges) {
         allBadgeIds.push({
-          badgeIds: sortUintRangesAndMergeIfNecessary(
-            deepCopy(obj.badgeIds),
-            true
-          ),
+          badgeIds: deepCopy(obj.badgeIds),
           collectionId: obj.collectionId,
         })
       }
@@ -237,8 +230,9 @@ export function MultiCollectionBadgeDisplay({
       for (const collectionId of collectionIds) {
         if (groupByCollection) {
           //We have not fetched supply yet. We just push this so it triggers the metadata update
+          //We filter out in the groupByCollection display (CollectionDisplayWithBadges)
           allBadgeIds.push({
-            badgeIds: [{ start: 1n, end: BigInt(defaultPageSize) }],
+            badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
             collectionId,
           })
         }
@@ -252,18 +246,17 @@ export function MultiCollectionBadgeDisplay({
     collectionIds,
     customPageBadges,
     groupByCollection,
-    defaultPageSize,
   ])
 
   const badgeIdsToDisplay = useMemo(() => {
     if (!groupByCollection) {
-      return getBadgesToDisplay(allBadgeIds, currPage, defaultPageSize).filter(
+      return getBadgesToDisplay(deepCopy(allBadgeIds), currPage, defaultPageSize, sortBy).filter(
         (x) => x.badgeIds.length > 0
       )
     } else {
       return allBadgeIds
     }
-  }, [allBadgeIds, groupByCollection, defaultPageSize, currPage])
+  }, [allBadgeIds, groupByCollection, defaultPageSize, currPage, sortBy])
 
   useEffect(() => {
     async function fetchAndUpdate() {
@@ -338,11 +331,11 @@ export function MultiCollectionBadgeDisplay({
                 accountInfo={accountInfo}
                 hideAddress={hideAddress}
                 cardView={cardView}
-                showCustomizeButtons={showCustomizeButtons}
                 addressOrUsernameToShowBalance={addressOrUsernameToShowBalance}
                 hideCollectionLink={hideCollectionLink}
                 key={idx}
                 span={span}
+                sortBy={sortBy}
               />
             )
           })}
@@ -364,6 +357,11 @@ export function MultiCollectionBadgeDisplay({
                   for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
                     badgeIds.push(i)
                   }
+
+                  if (sortBy === 'newest') {
+                    badgeIds.reverse();
+                  }
+
                   return (
                     <>
                       {badgeIds.map((badgeId) => {
@@ -403,7 +401,7 @@ export function MultiCollectionBadgeDisplay({
                               </>
                             ) : (
                               <BadgeAvatar
-                                size={70}
+                                size={100}
                                 key={idx}
                                 collectionId={badgeIdObj.collectionId}
                                 badgeId={badgeId}

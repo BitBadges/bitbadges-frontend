@@ -7,18 +7,18 @@ import { BadgeAvatar } from './BadgeAvatar';
 
 import { FullscreenExitOutlined, FullscreenOutlined } from '@ant-design/icons';
 import { useLayoutEffect, useState } from 'react';
-import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { BadgeButtonDisplay } from '../button-displays/BadgePageButtonDisplay';
 import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
+import { BadgeButtonDisplay } from '../button-displays/BadgePageButtonDisplay';
 
 const { Text } = Typography;
 
-export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, metadataOverride, multiDisplay }: {
+export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, badgeId, metadataOverride, multiDisplay }: {
   collectionId: bigint;
   badgeId?: bigint;
   hideCollectionLink?: boolean;
   metadataOverride?: Metadata<bigint>
-  multiDisplay?: boolean
+  multiDisplay?: boolean,
+  mappingId?: string
 }) {
   const [showMore, setShowMore] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
@@ -30,8 +30,8 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
 
   useLayoutEffect(() => {
     // Calculate the height of the content inside the description div
-    const descriptionElement = document.getElementById('description' + badgeId + collectionId);
-    const descriptionElement2 = document.getElementById('description2' + badgeId + collectionId);
+    const descriptionElement = document.getElementById('description' + badgeId + collectionId + mappingId);
+    const descriptionElement2 = document.getElementById('description2' + badgeId + collectionId + mappingId);
 
     const height = descriptionElement?.clientHeight ?? 0;
     const height2 = descriptionElement2?.clientHeight ?? 0;
@@ -45,7 +45,7 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
         collectionId={collectionId}
         showMultimedia
         badgeId={badgeId}
-        size={300}
+        size={multiDisplay ? 150 : 300}
         noHover
         metadataOverride={metadataOverride}
         autoPlay={!multiDisplay}
@@ -53,35 +53,56 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
     </div>
   </>
 
-  const Title = <>
-    <div>
-      <Text strong className='primary-text' style={{ fontSize: 30 }}>
-        {metadata?.name}
+
+  const CollectionLink = <>
+    <div className='flex-center-if-mobile'>
+      <Text strong className='primary-text' style={{ fontSize: 20 }}>
+        <a onClick={() => {
+          router.push(`/collections/${collectionId}`)
+        }}>{collectionMetadata?.name}</a>
       </Text>
     </div>
   </>
-
-  const CollectionLink = <>
-    <Text strong className='primary-text' style={{ fontSize: 20 }}>
-      <a onClick={() => {
-        router.push(`/collections/${collectionId}`)
-      }}>{collectionMetadata?.name}</a>
-    </Text>
-  </>
-
-  const TitlePlusButtons = <>
-    <div className='flex-between flex-wrap'>
-      {Title}
-      <div>
-        {collectionId !== NEW_COLLECTION_ID &&
-          <BadgeButtonDisplay website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
-        }
-      </div>
+  const Title = <>
+    <div className='flex-center-if-mobile flex-column'>
+      <Text strong className='primary-text' style={{ fontSize: 30 }}>
+        {metadata?.name}
+        {/* {"kljdgfsjhdsjhfhj jdfshg fgjhklsdgjh dfsjhlkgfgjk ds jghdfskdgfjh gfdjkh fdsjhkldfsgkhgk hsfdg df hg"} */}
+      </Text>
+      {!hideCollectionLink && <>
+        {CollectionLink}
+      </>}
     </div>
   </>
 
+  const TitlePlusButtons = <>
+    <div className='flex-between' style={{ alignItems: 'normal' }}>
+      {Title}
+
+      <div className='flex-center-if-mobile' style={{ maxWidth: 350 }}>
+        {
+          <BadgeButtonDisplay mappingId={mappingId} website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
+        }
+      </div>
+    </div>
+
+  </>
+
+  const TitlePlusButtonsMobile = <>
+    <div className='flex-between flex-wrap full-width' style={{ alignItems: 'normal' }}>
+      <div className='flex-center-if-mobile flex-column' style={{ alignItems: 'normal' }}>
+        {Title}
+      </div>
+
+      <div className='flex-center-if-mobile' style={{ alignItems: 'normal' }}>
+        <BadgeButtonDisplay mappingId={mappingId} website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
+      </div>
+    </div>
+
+  </>
+
   const About = metadata?.description && <>
-    <div className='primary-text' id={'description2' + badgeId + collectionId} style={{ whiteSpace: 'normal', maxHeight: showMore ? undefined : '300px' }}>
+    <div className='primary-text' id={'description2' + badgeId + collectionId + mappingId} style={{ whiteSpace: 'normal', maxHeight: showMore ? undefined : '300px' }}>
       <MarkdownDisplay markdown={metadata?.description ?? ''} />
     </div>
 
@@ -99,11 +120,6 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
           {Avatar}
           <div style={{ overflow: 'hidden', textAlign: 'center' }}>
             {Title}
-            {!hideCollectionLink && <>
-              {CollectionLink}
-              <br /><br />
-            </>
-            }
           </div>
         </div>
       </Col>
@@ -116,17 +132,13 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
         <Col style={{ textAlign: 'start', width: '100%' }}        >
           {
             <Col md={24} xs={0} sm={0} style={{ minHeight: 200, marginTop: 10 }}>
-              <div style={{ width: '100%', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+              <div style={{ width: '100%', display: 'flex' }}>
                 <div style={{ flex: '0 0 300px', marginRight: '32px' }}>
                   {Avatar}
                 </div>
                 <div style={{ flex: '1', overflow: 'hidden' }}>
                   {!multiDisplay && TitlePlusButtons}
-                  {!hideCollectionLink && <>
-                    {CollectionLink}
-                    <br /><br />
-                  </>
-                  }
+
                   {About}
                 </div>
 
@@ -139,14 +151,13 @@ export function CollectionHeader({ collectionId, hideCollectionLink, badgeId, me
                   {Avatar}
                 </div>
               </div>
-              <div style={{ flex: '1', overflow: 'hidden' }}>
-                {!multiDisplay && TitlePlusButtons}
-                {!hideCollectionLink && <>
-                  {CollectionLink}
-                  <br /><br />
-                </>}
-                {About}
+              <div style={{ flex: '1', overflow: 'hidden' }} className=''>
+                {!multiDisplay && TitlePlusButtonsMobile}
+
               </div>
+              <br />
+
+              {About}
             </Col>}
 
           {contentHeight >= 300 && (

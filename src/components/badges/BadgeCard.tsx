@@ -59,12 +59,12 @@ export function BadgeCard({
   return (
     <div>
       <Card
-        className="primary-text card-bg"
+        className="primary-text card-bg card-border"
         style={{
           width: cardWidth,
           margin: 8,
           textAlign: "center",
-          borderRadius: 15,
+          borderRadius: '8%',
         }}
         hoverable={hoverable ? hoverable : true}
         onClick={() => {

@@ -65,8 +65,12 @@ export function Tabs({ type, style, tab, setTab, tabInfo, fullWidth, theme, noSe
           minWidth: 'fit-content',
           textAlign: 'center',
           float: 'left',
-          backgroundColor: type == 'underline' ? 'inherit' : undefined,
+          backgroundColor: type == 'underline' ? 
+          
+          'inherit' : undefined,
           // borderBottom: type == 'underline' ? '2px solid blue' : undefined,
+          color: tab.key == selectedTab && type != 'underline' ? 'white' : undefined,
+          borderBottom: type == 'underline' && selectedTab == tab.key ? '2px solid blue' : undefined,
         }}
         key={`${tab.key}`}
         onClick={
@@ -78,12 +82,13 @@ export function Tabs({ type, style, tab, setTab, tabInfo, fullWidth, theme, noSe
         }
         id={tab.key}
         className={
-          'primary-text inherit-bg ' + (customClass ? ' ' + customClass : '')}
+          'primary-text inherit-bg border-vivid-blue ' + (customClass ? ' ' + customClass : '')}
       >
-        <div className={'primary-text border-vivid-blue' + (type == 'underline' ? ' hover:text-gray-400' : '')}
+        <div className={'primary-text ' + (type == 'underline' ? ' hover:text-gray-400' : '')}
           style={{
             color: tab.key == selectedTab && type != 'underline' ? 'white' : undefined,
-            borderBottom: type == 'underline' && selectedTab == tab.key ? '2px solid blue' : undefined,
+            
+
             fontSize: 18, fontWeight: 'bolder'
           }}>
           {tab.content}

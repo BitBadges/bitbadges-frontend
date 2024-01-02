@@ -7,7 +7,8 @@ import {
   GetMetadataForCollectionRouteRequestBody, GetMetadataForCollectionRouteSuccessResponse, GetOwnersForBadgeRouteRequestBody, GetOwnersForBadgeRouteSuccessResponse, GetProtocolsRouteRequestBody, GetProtocolsRouteSuccessResponse, GetSearchRouteRequestBody, GetSearchRouteSuccessResponse, GetSignInChallengeRouteRequestBody, GetSignInChallengeRouteSuccessResponse, GetStatusRouteRequestBody, GetStatusRouteSuccessResponse, GetTokensFromFaucetRouteRequestBody, GetTokensFromFaucetRouteSuccessResponse, NumberType, RefreshMetadataRouteRequestBody, RefreshMetadataRouteSuccessResponse,
   RefreshStatusRouteSuccessResponse,
   SendClaimAlertsRouteRequestBody, SendClaimAlertsRouteSuccessResponse, SignOutRequestBody, SignOutSuccessResponse, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, UpdateAddressMappingsRouteRequestBody, UpdateAddressMappingsRouteSuccessResponse,
-  VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse
+  VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse,
+  FilterBadgesInCollectionRequestBody, FilterBadgesInCollectionSuccessResponse
 } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { BACKEND_URL } from '../constants';
@@ -28,17 +29,17 @@ async function handleApiError(error: any): Promise<void> {
 
     //if localhost, show errors but not on actual site
     // if (window.location.hostname === "localhost") {
-      notification.error({
-        message: "Oops! We ran into an error!",
-        description: data.message ? data.message : "Unknown error",
-      });
+    notification.error({
+      message: "Oops! We ran into an error!",
+      description: data.message ? data.message : "Unknown error",
+    });
     // }
   } else {
     // if (window.location.hostname === "localhost") {
-      notification.error({
-        message: "Oops! We ran into an error!",
-        description: error.message ? error.message : "Unknown error: " + error,
-      });
+    notification.error({
+      message: "Oops! We ran into an error!",
+      description: error.message ? error.message : "Unknown error: " + error,
+    });
     // }
   }
 
@@ -501,6 +502,15 @@ export async function getProtocol(requestBody: GetProtocolsRouteRequestBody): Pr
 export async function getCollectionForProtocol(requestBody: GetCollectionForProtocolRouteRequestBody): Promise<GetCollectionForProtocolRouteSuccessResponse<bigint>> {
   try {
     return await BitBadgesApi.getCollectionForProtocol(requestBody);
+  } catch (error) {
+    await handleApiError(error);
+    return Promise.reject(error);
+  }
+}
+
+export async function filterBadgesInCollection(requestBody: FilterBadgesInCollectionRequestBody): Promise<FilterBadgesInCollectionSuccessResponse<bigint>> {
+  try {
+    return await BitBadgesApi.filterBadgesInCollection(requestBody);
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);

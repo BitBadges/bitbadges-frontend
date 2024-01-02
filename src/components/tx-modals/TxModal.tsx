@@ -22,8 +22,8 @@ import {
   MsgSend
 } from 'bitbadgesjs-proto';
 
-import { 
-  MsgCreateAddressMappings as ProtoMsgCreateAddressMappings, 
+import {
+  MsgCreateAddressMappings as ProtoMsgCreateAddressMappings,
   MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection,
   MsgCreateCollection as ProtoMsgCreateCollection,
   MsgDeleteCollection as ProtoMsgDeleteCollection,
@@ -44,13 +44,15 @@ import {
   MsgSend as ProtoMsgSend,
 } from 'bitbadgesjs-proto/dist/proto/cosmos/bank/v1beta1/tx_pb';
 
-import { convertMsgUniversalUpdateCollection, 
+import {
+  convertMsgUniversalUpdateCollection,
   convertMsgCreateCollection,
   convertMsgUpdateCollection,
   convertMsgDeleteCollection,
   convertMsgTransferBadges,
   convertMsgUpdateUserApprovals,
-  createTransactionPayload } from 'bitbadgesjs-proto';
+  createTransactionPayload
+} from 'bitbadgesjs-proto';
 import { fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
 import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
@@ -81,7 +83,7 @@ export function TxModal(
     closeIcon,
     bodyStyle,
     msgSteps,
-    displayMsg, 
+    displayMsg,
     disabled,
     requireRegistration,
     coinsToTransfer,
@@ -95,7 +97,7 @@ export function TxModal(
     style?: React.CSSProperties,
     closeIcon?: React.ReactNode,
     bodyStyle?: React.CSSProperties,
-    
+
     msgSteps?: StepProps[],
     displayMsg?: string | ReactNode
     // width?: number | string
@@ -189,7 +191,7 @@ export function TxModal(
             })
           }
           break;
-        case 'MsgUnsetCollectionForProtocol': 
+        case 'MsgUnsetCollectionForProtocol':
           createFunction = (msg: MsgUnsetCollectionForProtocol) => {
             return new ProtoMsgUnsetCollectionForProtocol(msg)
           }
@@ -207,7 +209,7 @@ export function TxModal(
           }
           break;
       }
-  
+
       return {
         ...tx,
         generateProtoMsg: (tx.generateProtoMsg ?? createFunction) as (msg: object) => any,
@@ -321,9 +323,9 @@ export function TxModal(
           memo: '',
         }, generatedMsgs);
 
-        
         console.log(unsignedTxSimulated);
         const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
+
         const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
         console.log(simulatedTx);
         const gasUsed = simulatedTx.gas_info.gas_used;
@@ -353,7 +355,7 @@ export function TxModal(
     setCurrentStep(value);
   };
 
-  const submitTx = async (txsInfo: TxInfo[], isRegister: boolean) => {
+  const submitTx = async (txsInfo: TxInfo[]) => {
     setError('');
     setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
 
@@ -369,18 +371,17 @@ export function TxModal(
 
         if (!generateProtoMsg) throw new Error('generateProtoMsg is undefined');
 
-        let cosmosMsg = msg;  
-        if (!isRegister && beforeTx) {
-          if (!finalMsgs || !finalMsgs.length) {
+        let cosmosMsg = msg;
+        if ((!finalMsgs || !finalMsgs.length)) {
+          if (beforeTx) {
             let newMsg = await beforeTx(false);
             if (newMsg) cosmosMsg = newMsg;
-            generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
-          } else {
-            generatedMsgs.push(finalMsgs[i]);
           }
+          generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
+        } else {
+          generatedMsgs.push(finalMsgs[i]);
         }
 
-        
       }
       setFinalMsgs(generatedMsgs);
 
@@ -540,7 +541,7 @@ export function TxModal(
 
   const handleSubmitTx = async () => {
     try {
-      const collectionId = await submitTx(txsInfoPopulated, false);
+      const collectionId = await submitTx(txsInfoPopulated);
 
       for (const tx of txsInfoPopulated) {
         const { afterTx } = tx;
@@ -714,10 +715,10 @@ export function TxModal(
                         return {
                           type: tx.type,
                           msg: msgsToRedirect[idx],
-                        } 
+                        }
                       });
 
-                        
+
 
                       if (confirm("Are you sure you want to enter developer mode? This may cause you to lose progress.")) {
                         await router.push(`/dev/broadcast?txsInfo=${encodeURIComponent(JSON.stringify(populatedTxInfos))}`);

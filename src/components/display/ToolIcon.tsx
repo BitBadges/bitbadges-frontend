@@ -139,8 +139,10 @@ export function ToolIcon({
   }
 
   return (
-    <Card hoverable style={{ margin: 8, maxWidth: 300, display: 'inline' }}
-      className='primary-text card-bg tool-icon'
+    <Card hoverable style={{
+      margin: 8, maxWidth: 300, display: 'inline',
+    }}
+      className='primary-text card-bg tool-icon card-border'
       onClick={() => {
         window.open(tool.url)
       }}

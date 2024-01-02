@@ -15,12 +15,12 @@ import { EmptyIcon } from "../common/Empty";
 import IconButton from "../display/IconButton";
 
 const inArray = (arr: BatchBadgeDetails[], badgeIdObj: BatchBadgeDetails) => {
-  return arr.find(x => {
+  return !!arr.find(x => {
     if (x.badgeIds.length == 0) return false;
 
     const [remaining] = removeUintRangeFromUintRange(x.badgeIds, badgeIdObj.badgeIds);
     return x.collectionId == badgeIdObj.collectionId && remaining.length == 0
-  }) !== undefined;
+  });
 }
 
 export const CustomizeButtons =
@@ -68,9 +68,14 @@ export const CustomizeButtons =
 
     const pages = isWatchlist ? accountInfo?.watchedBadgePages ?? [] : accountInfo?.customPages ?? [];
 
-    const isOnPage = (pageTitle: string) => {
-      return inArray(pages?.find(x => x.title == pageTitle)?.badges ?? [], badgeIdObj);
+    const isOnPage = (pageTitle: string, pages?: { title: string, badges: BatchBadgeDetails[] }[]) => {
+      return inArray(pages?.find(x => x.title == pageTitle)?.badges ?? [], badgeId ? { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] } : badgeIdObj);
     }
+
+    const addedToPages: boolean[] = [];
+    pages?.forEach(x => {
+      addedToPages.push(isOnPage(x.title, pages));
+    })
 
     return <>{
       showCustomizeButtons &&
@@ -146,7 +151,7 @@ export const CustomizeButtons =
             {(pages ?? [])?.length == 0 && <EmptyIcon description='No created pages yet.' />}
             {pages?.map((x, idx) => {
               const pageName = x.title;
-              const addedToPage = isOnPage(pageName);
+              const addedToPage = addedToPages[idx];
 
               return <div
                 key={idx}
@@ -163,24 +168,27 @@ export const CustomizeButtons =
                   unCheckedChildren="Not Added"
                   checked={addedToPage}
                   onChange={async (checked) => {
+                    const deepCopiedPages = deepCopy(pages);
                     if (checked) {
                       const newBadgeIds = addToArray(deepCopy(x.badges), [{ start: badgeId, end: badgeId }]);
-                      x.badges = newBadgeIds;
+                      deepCopiedPages[idx].badges = newBadgeIds;
                     } else {
                       const newBadgeIds = removeFromArray(deepCopy(x.badges), [{ start: badgeId, end: badgeId }]);
-                      x.badges = newBadgeIds;
+                      deepCopiedPages[idx].badges = newBadgeIds;
                     }
 
                     if (!accountInfo) return;
+
+
                     await updateAccountInfo({
-                      customPages: isWatchlist ? accountInfo.customPages : pages,
-                      watchedBadgePages: isWatchlist ? pages : accountInfo.watchedBadgePages
+                      customPages: isWatchlist ? accountInfo.customPages : deepCopiedPages,
+                      watchedBadgePages: isWatchlist ? deepCopiedPages : accountInfo.watchedBadgePages
                     });
 
                     updateAccount(deepCopy({
                       ...accountInfo,
-                      customPages: isWatchlist ? accountInfo.customPages : pages,
-                      watchedBadgePages: isWatchlist ? pages : accountInfo.watchedBadgePages
+                      customPages: isWatchlist ? accountInfo.customPages : deepCopiedPages,
+                      watchedBadgePages: isWatchlist ? deepCopiedPages : accountInfo.watchedBadgePages
                     }))
                   }}
                 />

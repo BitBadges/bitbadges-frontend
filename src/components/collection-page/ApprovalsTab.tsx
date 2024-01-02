@@ -524,7 +524,7 @@ export function UserApprovalsTab({
           onUserSelect={(value) => {
             setAddress(value);
           }}
-
+          fontSize={20}
         />
         <br />
       </>}

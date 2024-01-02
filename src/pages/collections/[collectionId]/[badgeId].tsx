@@ -9,7 +9,7 @@ import { DistributionOverview } from '../../../components/badges/DistributionCar
 import { MetadataDisplay } from '../../../components/badges/MetadataInfoDisplay';
 import { ActionsTab } from '../../../components/collection-page/ActionsTab';
 import { ClaimsTab } from '../../../components/collection-page/ClaimsTab';
-import { OwnersTab } from '../../../components/collection-page/OwnersTab';
+import { BalanceChecker, SpecificBadgeOwnersTab } from '../../../components/collection-page/OwnersTab';
 import { PermissionsOverview } from '../../../components/collection-page/PermissionsInfo';
 import { ActivityTab } from '../../../components/collection-page/TransferActivityDisplay';
 import { TransferabilityTab } from '../../../components/collection-page/TransferabilityTab';
@@ -29,9 +29,6 @@ export function BadgePage({ collectionPreview }
     collectionPreview?: BitBadgesCollection<bigint>
   }) {
   const router = useRouter()
-
-
-
 
   const [tab, setTab] = useState('overview');
   const [activity, setActivity] = useState<TransferActivityDoc<bigint>[]>([]);
@@ -72,13 +69,14 @@ export function BadgePage({ collectionPreview }
   let tabInfo = []
   tabInfo.push(
     { key: 'overview', content: 'Overview' },
+    { key: 'owners', content: 'Owners', disabled: false },
     { key: 'transferability', content: 'Transferability' },
     { key: 'activity', content: 'Activity' },
     { key: 'actions', content: 'Actions' },
   );
 
   if (noBalancesStandard || isNonIndexedBalances) {
-    tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity');
+    tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity' && tab.key !== "owners")
   }
 
   return (
@@ -100,7 +98,7 @@ export function BadgePage({ collectionPreview }
               paddingTop: '20px',
             }}
           >
-           
+
 
             {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
 
@@ -118,6 +116,9 @@ export function BadgePage({ collectionPreview }
               <>{collection?.balancesType == 'Off-Chain - Indexed' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
               </>)}
 
+            {tab === 'owners' && collection && (<>
+              <SpecificBadgeOwnersTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />
+            </>)}
 
             {tab === 'overview' && (<>
               <br />
@@ -155,7 +156,7 @@ export function BadgePage({ collectionPreview }
                         />
                         <br />
 
-                        {collection && <OwnersTab
+                        {collection && <BalanceChecker
                           collectionId={collectionIdNumber}
                           badgeId={badgeIdNumber}
                           setTab={setTab}

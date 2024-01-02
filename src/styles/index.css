@@ -67,6 +67,7 @@ code {
 
 .wmde-markdown {
   background-color: inherit !important;
+  font-family: unset !important;
 }
 
 .primary-pink {
@@ -113,7 +114,17 @@ code {
 
 .card-bg {
   background: linear-gradient(0deg, rgb(241, 240, 240) 10%, white 100%);
+  
 }
+
+.card-border {
+  border: 1px solid grey;
+}
+
+.dark .card-border {
+  
+}
+
 
 .dark .card-bg {
   background: linear-gradient(0deg, black 10%, #001529 100%);
@@ -551,9 +562,10 @@ transform: scale(1.01);
   font-style: normal;
   font-weight: 600;
 }
-@media (max-width: 568px) { 
+@media (max-width: 768px) { 
   .flex-center-if-mobile {
- 
+    width: 100%;
+    text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;

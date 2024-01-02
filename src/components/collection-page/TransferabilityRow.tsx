@@ -29,6 +29,7 @@ import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { transferableApproval } from '../tx-timelines/step-items/TransferabilitySelectStepItem';
 import { ApprovalSelectWrapper } from './ApprovalsTab';
 import { BalanceOverview } from './BalancesInfo';
+import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 
 export const getTableHeader = () => {
   return <tr >
@@ -1112,7 +1113,7 @@ export function TransferabilityRow({
       <br />
       <div className='flex-center flex-wrap'>
 
-        <InformationDisplayCard title={transfer.details?.name ?? ''} md={24} xs={24} sm={24} subtitle={transfer.details?.description ?? ''}>
+        <InformationDisplayCard title={transfer.details?.name ?? ''} md={24} xs={24} sm={24} >
 
           {<><br />
             {
@@ -1129,7 +1130,10 @@ export function TransferabilityRow({
 
           </>
           }
+
           {showMoreIsVisible && !disapproved && <>
+            {transfer.details?.description && <> <MarkdownDisplay markdown={transfer.details?.description ?? ''} /><br /></>}
+
             <div className='flex-center flex-wrap full-width' style={{ alignItems: 'normal' }}>
               <DetailsCard
                 isEdit={!!onDelete || editable}

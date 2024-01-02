@@ -112,7 +112,7 @@ export function BadgeAvatar({
             verticalAlign: "middle",
             margin: 4,
             cursor: collection && badgeId ? "pointer" : undefined,
-            borderRadius: 10,
+            borderRadius: '8%' 
           }}
           className={badgeId && !noHover ? "badge-avatar" : undefined}
           src={metadataImage}
@@ -139,7 +139,7 @@ export function BadgeAvatar({
             verticalAlign: "middle",
             margin: 4,
             cursor: collection && badgeId ? "pointer" : undefined,
-            borderRadius: 10,
+            borderRadius: '8%' 
           }}
           autoPlay={autoPlay}
           className={collectionId + "-" + badgeId + '-multimedia'}

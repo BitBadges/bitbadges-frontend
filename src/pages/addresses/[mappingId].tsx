@@ -15,7 +15,6 @@ import { AddressSelect } from '../../components/address/AddressSelect';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { MetadataDisplay } from '../../components/badges/MetadataInfoDisplay';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
-import { BadgeButtonDisplay } from '../../components/button-displays/BadgePageButtonDisplay';
 import { Action, ActionCard } from '../../components/collection-page/ActionsTab';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import QrCodeDisplay from '../../components/display/QrCodeDisplay';
@@ -152,8 +151,7 @@ function AddressMappingPage() {
               paddingTop: '20px',
             }}
           >
-            {!fetchError && <BadgeButtonDisplay socials={metadata?.socials} website={metadata?.externalUrl} mappingId={mappingId as string} />}
-            {!fetchError && <CollectionHeader collectionId={NEW_COLLECTION_ID} metadataOverride={metadata} hideCollectionLink />}
+            {!fetchError && <CollectionHeader mappingId={mappingId as string} collectionId={NEW_COLLECTION_ID} metadataOverride={metadata} hideCollectionLink />}
             {!mapping && !fetchError && <Spin size='large' />}
             {fetchError && <>
               <div style={{ color: 'red' }}>
@@ -222,21 +220,21 @@ function AddressMappingPage() {
                               </div>
                             </div>
                           } labelSpan={9} valueSpan={15} />}
-                            {mapping?.aliasAddress && <TableRow label={
-          <>{"Alias Account"}<Tooltip color='black' title={"This is a fake address that is reserved to represent this mapping. It is not a real account and cannot initiate transactions. However, it has a portfolio and can receive badges."}>
-                  <InfoCircleOutlined style={{ marginLeft: 8 }} />
-                </Tooltip>
-            </>} value={
-            <div className='flex-between' style={{ textAlign: 'right' }}>
-              <div></div>
-              <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
-                <AddressDisplay 
-                  fontSize={16}
-                  addressOrUsername={mapping.aliasAddress}
-                />
-              </div>
-              
-            </div>} labelSpan={7} valueSpan={17} />}
+                          {mapping?.aliasAddress && <TableRow label={
+                            <>{"Alias"}<Tooltip color='black' title={"This is a fake address that is reserved to represent this mapping. It is not a real account and cannot initiate transactions. However, it has a portfolio and can receive badges."}>
+                              <InfoCircleOutlined style={{ marginLeft: 8 }} />
+                            </Tooltip>
+                            </>} value={
+                              <div className='flex-between' style={{ textAlign: 'right' }}>
+                                <div></div>
+                                <div className='flex-between flex-column' style={{ textAlign: 'right', padding: 0 }}>
+                                  <AddressDisplay
+                                    fontSize={16}
+                                    addressOrUsername={mapping.aliasAddress}
+                                  />
+                                </div>
+
+                              </div>} labelSpan={7} valueSpan={17} />}
                           <TableRow label={"Storage"} value={isOnChain ?
                             "On-Chain" : "Off-Chain"} labelSpan={9} valueSpan={15} />
                         </InformationDisplayCard>

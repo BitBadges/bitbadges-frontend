@@ -1,10 +1,9 @@
-import { Balance, UintRange } from "bitbadgesjs-proto"
+import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
   getBadgesToDisplay,
   getBalancesForId,
   getTotalNumberOfBadgeIds,
-  removeUintRangeFromUintRange,
-  sortUintRangesAndMergeIfNecessary
+  removeUintRangeFromUintRange
 } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext"
@@ -41,6 +40,7 @@ export function BadgeAvatarDisplay({
   showPageJumper,
   onClick,
   filterGreaterThanMax,
+  sortBy
 }: {
   collectionId: bigint
   balance?: Balance<bigint>[]
@@ -59,6 +59,7 @@ export function BadgeAvatarDisplay({
   showPageJumper?: boolean
   onClick?: (id: bigint) => void
   filterGreaterThanMax?: boolean
+  sortBy?: 'oldest' | 'newest' | undefined
 }) {
   const txTimelineContext = useTxTimelineContext()
   const collection = useCollection(collectionId)
@@ -78,12 +79,13 @@ export function BadgeAvatarDisplay({
     const badgeIdsToDisplayResponse = getBadgesToDisplay(
       [
         {
-          badgeIds: sortUintRangesAndMergeIfNecessary(inRangeBadgeIds, true),
+          badgeIds: deepCopy(inRangeBadgeIds),
           collectionId: collectionId,
         },
       ],
       currPage,
-      pageSize
+      pageSize,
+      sortBy
     )
 
     const badgeIdsToDisplay: UintRange<bigint>[] = []
@@ -92,7 +94,7 @@ export function BadgeAvatarDisplay({
     }
 
     return badgeIdsToDisplay
-  }, [inRangeBadgeIds, currPage, pageSize, collectionId])
+  }, [inRangeBadgeIds, currPage, pageSize, collectionId, sortBy])
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE)
@@ -150,6 +152,10 @@ export function BadgeAvatarDisplay({
           const badgeIds: bigint[] = []
           for (let i = badgeUintRange.start; i <= badgeUintRange.end; i++) {
             badgeIds.push(i)
+          }
+
+          if (sortBy === 'newest') {
+            badgeIds.reverse();
           }
 
           return badgeIds.map((badgeId, idx) => {

@@ -17,6 +17,7 @@ import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
 import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { CollectionOwnersTab } from '../../components/collection-page/OwnersTab';
 
 const { Content } = Layout;
 
@@ -44,6 +45,7 @@ function CollectionPage({
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
+      { key: 'owners', content: 'Owners', disabled: false },
       { key: 'transferability', content: 'Transferability', disabled: false },
       { key: 'approvals', content: 'Approvals', disabled: false },
       // { key: 'announcements', content: 'Announcements', disabled: false },
@@ -56,6 +58,8 @@ function CollectionPage({
     tabInfo.push(
       { key: 'overview', content: 'Overview', disabled: false },
       { key: 'badges', content: 'Badges', disabled: false },
+
+      { key: 'owners', content: 'Owners', disabled: false },
       { key: 'transferability', content: 'Transferability', disabled: false },
       // { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
@@ -66,11 +70,11 @@ function CollectionPage({
   }
 
   if (noBalancesStandard) {
-    tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity');
+    tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity' && tab.key !== 'owners');
   }
 
   if (isNonIndexedBalances) {
-    tabInfo = tabInfo.filter(tab => tab.key !== 'approvals' && tab.key !== 'activity');
+    tabInfo = tabInfo.filter(tab => tab.key !== 'approvals' && tab.key !== 'activity' && tab.key !== 'owners');
   }
 
   //Get collection information
@@ -136,7 +140,7 @@ function CollectionPage({
             }}
           >
             {collection && <>
-              
+
               {/* Overview and Tabs */}
               {collectionMetadata && <CollectionHeader collectionId={collectionIdNumber} hideCollectionLink />}
               <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} theme="dark" fullWidth />
@@ -145,6 +149,9 @@ function CollectionPage({
               {/* Tab Content */}
               {tab === 'overview' && (
                 <OverviewTab collectionId={collectionIdNumber} setTab={setTab} />
+              )}
+              {tab === 'owners' && (
+                <CollectionOwnersTab collectionId={collectionIdNumber} />
               )}
               {tab === 'badges' && (
                 <BadgesTab collectionId={collectionIdNumber} />

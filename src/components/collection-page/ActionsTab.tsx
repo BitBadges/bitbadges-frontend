@@ -46,7 +46,7 @@ export function ActionCard({ action }: { action: Action }) {
   const description = getDescriptionElem(action.description);
 
   return <Card
-    className='primary-text card-bg flex-center'
+    className='primary-text card-bg flex-center card-border'
     style={{
       width: '300px',
       minHeight: '150px',

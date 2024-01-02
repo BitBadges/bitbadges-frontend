@@ -104,13 +104,13 @@ const Home: NextPage = () => {
       {/* gradient-bg  */}
       <div className='landing-padding gradient-bg'>
         <Row className='flex-around ' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'normal', minHeight: '60vh' }}>
-          <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh', marginBottom: '10vh' }}>
+          <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh', }}>
             <div className='collect-title capitalize primary-text flex flex-wrap' style={{
               alignItems: 'center'
             }}><span className='mr-2'>Collect {' '}</span><img src='/images/bitbadgeslogotext.png' alt='BitBadges Logo' className='inline-logo primary-pink' />
               {' '} to build your digital identity!</div>
             <br />
-            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely subsidized for users. Badges and profiles can optionally be migrated to mainnet once launched. $BADGE will be redistributed via an airdrop based on betanet contributions.</p>
+            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely free for users. Badges and profiles can optionally be migrated to mainnet once launched. $BADGE will be redistributed via an airdrop based on betanet contributions.</p>
             <div className='flex flex-wrap full-width mt-3'>
               <Button
                 size='large'
@@ -212,7 +212,7 @@ const Home: NextPage = () => {
           <div className='grid lg:grid-cols-2 gap-10'>
 
             <div >
-              <div style={{ marginBottom: 12 }}>
+              <div style={{ marginBottom: 12, marginLeft: -4 }} className=''>
                 <img src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" className='h-[4rem]' />
               </div>
               <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>

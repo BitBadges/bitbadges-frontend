@@ -1,11 +1,13 @@
 import { UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
+  ApprovalPermissionUsedFlags,
   BalancesActionPermissionUsedFlags,
   BitBadgesCollection,
   MetadataAddMethod,
   TimedUpdatePermissionUsedFlags,
   TimedUpdateWithBadgeIdsPermissionUsedFlags,
   castBalancesActionPermissionToUniversalPermission,
+  castCollectionApprovalPermissionToUniversalPermission,
   castTimedUpdatePermissionToUniversalPermission,
   castTimedUpdateWithBadgeIdsPermissionToUniversalPermission,
   invertUintRanges,
@@ -35,6 +37,58 @@ import {
   isCompletelyForbidden,
   isCompletelyNeutralOrCompletelyPermitted,
 } from "./CanUpdateOffChainBalancesStepItem"
+
+export const getBadgesWithFrozenMetadata = (
+  collection: BitBadgesCollection<bigint>,
+) => {
+
+  const canUpdateRes = getPermissionDetails(
+    collection
+      ? castTimedUpdatePermissionToUniversalPermission(
+        collection.collectionPermissions.canUpdateBadgeMetadata ?? []
+      )
+      : [],
+    TimedUpdateWithBadgeIdsPermissionUsedFlags,
+    neverHasManager(collection)
+  )
+
+  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary(
+    [
+      ...(canUpdateRes.dataSource
+        .map((x) => (x.forbidden ? x.badgeIds : undefined))
+        .filter((x) => x !== undefined)
+        .flat() as UintRange<bigint>[]),
+    ],
+    true
+  )
+  return lockedBadgeIds
+}
+
+export const getBadgesWithFrozenTransferability = (
+  collection: BitBadgesCollection<bigint>,
+) => {
+
+  const canTransferRes = getPermissionDetails(
+    collection
+      ? castCollectionApprovalPermissionToUniversalPermission(
+        collection.collectionPermissions.canUpdateCollectionApprovals ?? []
+      )
+      : [],
+    ApprovalPermissionUsedFlags,
+    neverHasManager(collection)
+  )
+
+  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary(
+    [
+      ...(canTransferRes.dataSource
+        .map((x) => (x.forbidden ? x.badgeIds : undefined))
+        .filter((x) => x !== undefined)
+        .flat() as UintRange<bigint>[]),
+    ],
+    true
+  )
+  return lockedBadgeIds
+}
 
 export const getBadgesWithLockedSupply = (
   collection: BitBadgesCollection<bigint>,

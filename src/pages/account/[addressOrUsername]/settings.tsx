@@ -34,7 +34,7 @@ const EditerMarkdown = dynamic(
 
 const { Content } = Layout;
 
-export const MarkdownEditor = ({ markdown, setMarkdown }: { markdown: string, setMarkdown: (markdown: string) => void }) => {
+export const MarkdownEditor = ({ markdown, setMarkdown, placeholder }: { markdown: string, setMarkdown: (markdown: string) => void, placeholder?: string }) => {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -49,6 +49,7 @@ export const MarkdownEditor = ({ markdown, setMarkdown }: { markdown: string, se
     <div data-color-mode={mode}>
       <MDEditor
         height={600}
+        placeholder={placeholder}
         value={markdown}
         onChange={(value) => {
           setMarkdown(value ?? '');
@@ -72,7 +73,7 @@ export const MarkdownDisplay = ({ markdown }: { markdown: string }) => {
 
   const mode = darkMode ? 'dark' : 'light';
 
-  return <div className='full-width' >
+  return <div className='full-width' style={{ textAlign: 'start' }}>
     <div data-color-mode={mode}>
       <EditerMarkdown source={markdown} style={{ whiteSpace: 'pre-wrap' }} />
     </div>
@@ -358,9 +359,7 @@ export function AccountSettings() {
                   >
                     <AccountButtonDisplay
                       addressOrUsername={chain.cosmosAddress}
-                      // profilePic={profilePicUrl}
-                      customLinks={customLinks}
-                      setCustomLinks={setCustomLinks}
+                      accountOverride={newAccount}
                       hideDisplay
                     />
                   </Form.Item>

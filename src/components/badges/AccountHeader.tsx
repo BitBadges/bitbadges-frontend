@@ -60,7 +60,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
             <div style={{}}>
               <div className='flex-center flex-column'>
                 <div style={{ flex: '0 0 300px' }}>
-                  <Avatar src={profilePicSrc} size={300} shape='square' />
+                  <Avatar src={profilePicSrc} size={300} shape='square' style={{ borderRadius: '8%' }} />
                 </div>
               </div>
             </div>
@@ -81,9 +81,6 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
     <div className='primary-text' id={'description2' + addressOrUsername} style={{ whiteSpace: 'normal', maxHeight: showMore ? undefined : '300px' }}>
       <MarkdownDisplay markdown={accountInfo?.readme ?? ''} />
     </div>
-    {!accountInfo?.readme && <div className='secondary-text'>
-      No bio provided.
-    </div>}
   </>
 
 
@@ -101,16 +98,16 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
               <Col md={24} xs={0} sm={0} style={{ minHeight: 200, marginTop: 10 }}>
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
                   <div style={{ flex: '0 0 300px', marginRight: '32px' }}>
-                    <Avatar src={profilePicSrc} size={300} shape='square' />
+                    <Avatar src={profilePicSrc} size={300} shape='square' style={{ borderRadius: '8%' }} />
                   </div>
                   <div style={{ flex: '1', overflow: 'hidden' }}>
                     {!multiDisplay &&
-                      <div className='flex-between flex-wrap'>
+                      <div className='flex-between flex-wrap '>
                         <div>
-                          <AddressDisplay addressOrUsername={addressOrUsername} fontSize={30} />
+                          <AddressDisplay addressOrUsername={addressOrUsername} fontSize={24} />
                         </div>
-                        <div>
-                          <AccountButtonDisplay addressOrUsername={addressOrUsername} />
+                        <div className=''>
+                          <AccountButtonDisplay addressOrUsername={addressOrUsername} accountOverride={accountInfoOverride} />
                         </div>
                       </div>
 
@@ -124,21 +121,23 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
               <Col md={0} xs={24} sm={24} style={{ minHeight: 200, marginTop: 10 }}>
                 <div className='flex-center flex-column'>
                   <div style={{ flex: '0 0 300px' }}>
-                    <Avatar src={profilePicSrc} size={300} shape='square' />
+                    <Avatar src={profilePicSrc} size={300} shape='square' style={{ borderRadius: '8%' }} />
                   </div>
                 </div>
-                <div style={{ flex: '1', overflow: 'hidden' }}>
+                <div style={{ flex: '1', overflow: 'hidden', marginTop: 10 }}>
                   {!multiDisplay &&
                     <div className='flex-between flex-wrap'>
-                      <div>
-                        <AddressDisplay addressOrUsername={addressOrUsername} fontSize={30} />
+                      <div className='full-width flex-center-if-mobile'>
+                        <AddressDisplay addressOrUsername={addressOrUsername} fontSize={20} />
                       </div>
-                      <div>
-                        <AccountButtonDisplay addressOrUsername={addressOrUsername} />
+                      <br />
+                      <div className='full-width flex-center-if-mobile'>
+                        <AccountButtonDisplay addressOrUsername={addressOrUsername} mobile />
                       </div>
                     </div>
 
                   }
+                  <br />
                   {Bio}
                 </div>
               </Col>}

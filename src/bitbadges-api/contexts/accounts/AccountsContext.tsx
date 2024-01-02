@@ -13,7 +13,7 @@ export function useAccount(_addressOrUsername?: string) {
   const cosmosAddress = reservedNames.includes(addressOrUsername) ? addressOrUsername :
     isAddressValid(addressOrUsername) ? convertToCosmosAddress(addressOrUsername) : '';
 
-  const accountsKey = isAddressValid(addressOrUsername) || reservedNames.includes(addressOrUsername) 
+  const accountsKey = isAddressValid(addressOrUsername) || reservedNames.includes(addressOrUsername)
     ? cosmosAddress : store.getState().accounts.cosmosAddressesByUsernames[addressOrUsername];
 
   const accountToReturn = useSelector((state: GlobalReduxState) => state.accounts.accounts[accountsKey]);

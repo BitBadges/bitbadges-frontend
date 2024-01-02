@@ -14,6 +14,7 @@ import {
   Input,
   InputNumber,
   Progress,
+  Radio,
   Select,
   Space,
   Spin,
@@ -28,7 +29,7 @@ import {
 } from "antd"
 import { useState } from "react"
 
-import { faMinus, faPlus, faReplyAll } from "@fortawesome/free-solid-svg-icons"
+import { faMinus, faReplyAll } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
@@ -59,6 +60,7 @@ import {
   useCollection,
 } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
 import { MarkdownEditor } from "../../../pages/account/[addressOrUsername]/settings"
+import { getBadgeIdsString } from "../../../utils/badgeIds"
 import { GO_MAX_UINT_64 } from "../../../utils/dates"
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay"
 import { CollectionHeader } from "../../badges/CollectionHeader"
@@ -99,8 +101,7 @@ export function MetadataForm({
   const [badgeId, setBadgeId] = useState<bigint>(
     badgeIds.length > 0 ? badgeIds[0].start : 1n
   )
-  const [showAvatarDisplay, setShowAvatarDisplay] = useState<boolean>(true)
-
+  const [uiDisplayMode, setUiDisplayMode] = useState<string>("card")
   let metadata =
     (isCollectionSelect
       ? collection?.cachedCollectionMetadata
@@ -291,7 +292,8 @@ export function MetadataForm({
   const hasOutOfBoundsids = removed.length > 0
 
   const PopulateComponent = () => {
-    let message = "metadata"
+    let message = badgeId ? `ID ${badgeId}'s metadata`
+      : " the collection metadata"
 
     return (
       <div>
@@ -301,11 +303,11 @@ export function MetadataForm({
             className="primary-text"
           >
             <InformationDisplayCard
-              title={`Set other badges to have properties from this ${message}?`}
+              title={`Set other badges to have properties from ${message}?`}
             >
               <div className="" style={{ textAlign: "center" }}>
                 <WarningOutlined style={{ marginRight: 4, color: "#FF5733" }} />{" "}
-                This will overwrite the {message} of the selected badges for the
+                This will overwrite the metadata of the selected badges for the
                 selected properties.
                 <br />
                 <br />
@@ -314,6 +316,7 @@ export function MetadataForm({
               <div className="flex-center flex-wrap primary-text">
                 <FieldCheckbox fieldName="name" label="Title" />
                 <FieldCheckbox fieldName="image" label="Image" />
+                <FieldCheckbox fieldName="video" label="Video" />
                 <FieldCheckbox fieldName="description" label="Description" />
                 <FieldCheckbox fieldName="validFrom" label="Validity" />
                 <FieldCheckbox fieldName="category" label="Category" />
@@ -441,6 +444,9 @@ export function MetadataForm({
       </div>
     )
   }
+
+  const updatedIds = collection?.cachedBadgeMetadata.filter(x => x.toUpdate).map(x => x.badgeIds).flat() ?? []
+  const nonUpdatedIds = !collection ? [] : invertUintRanges(updatedIds, 1n, getMaxBadgeIdForCollection(collection))
 
   return (
     <>
@@ -608,47 +614,92 @@ export function MetadataForm({
                   }}
                 />
               )}
+            </div>
+            {!isCollectionSelect && !isAddressMappingSelect && (<>
+              <div className="secondary-text" style={{ textAlign: "center" }}>
+
+                {updatedIds.length > 0 && `You have updated the metadata for the IDs ${getBadgeIdsString(updatedIds)}. `}
+                {nonUpdatedIds.length > 0 &&
+                  <span style={{ color: 'orange' }}>
+                    <WarningOutlined />
+                    You have not updated the metadata for IDs {getBadgeIdsString(nonUpdatedIds)}.
+                    If these are newly created IDs, they will have default placeholder metadata. Or else, they will remain as previously set.
+                  </span>}
+              </div>
+              <br />
+            </>
+            )}
+
+
+            {/* TODO: If I make this react component, it glitches and rerenders every time (prob just need to pass in props correctly). Works as function though */}
+            {PopulateComponent()}
+
+            <div className="flex-center flex-column full-width">
               {!isCollectionSelect && !isAddressMappingSelect && (
-                <IconButton
-                  text={showAvatarDisplay ? "Hide" : "Show All"}
-                  tooltipMessage="Show a display of updatable badges in this collection."
-                  src={
-                    showAvatarDisplay ? (
-                      <FontAwesomeIcon icon={faMinus} />
-                    ) : (
-                      <FontAwesomeIcon icon={faPlus} />
-                    )
-                  }
-                  onClick={() => {
-                    setShowAvatarDisplay(!showAvatarDisplay)
+                <Radio.Group
+                  className="primary-text flex-center flex-wrap"
+                  value={uiDisplayMode}
+                  onChange={(e) => {
+                    setUiDisplayMode(e.target.value)
                   }}
-                  style={{ cursor: "pointer", marginLeft: 8 }}
-                />
+                  buttonStyle="solid"
+                  style={{ marginTop: 10 }}
+                >
+                  <Radio.Button value={'header'}>
+                    <div className='primary-text hover:text-gray-400'>
+                      Header
+                    </div>
+                  </Radio.Button>
+                  <Radio.Button value={'card'}> <div className='primary-text hover:text-gray-400'>
+                    Card
+                  </div></Radio.Button>
+                  <Radio.Button value={'image'}> <div className='primary-text hover:text-gray-400'>
+                    Image
+                  </div></Radio.Button>
+
+                  <Radio.Button value={'collection'}> <div className='primary-text hover:text-gray-400'>
+                    Collection
+                  </div></Radio.Button>
+                </Radio.Group>
               )}
             </div>
+            <br />
+
+            {!isCollectionSelect &&
+              !isAddressMappingSelect &&
+              uiDisplayMode === 'header' && (
+                <div className="primary-text mx-10">
+                  <CollectionHeader
+                    collectionId={NEW_COLLECTION_ID}
+                    badgeId={badgeId}
+                  />
+                </div>
+              )}
             <div className="flex-center flex-column full-width">
+
               <div className="flex-center flex-wrap full-width">
                 {!isCollectionSelect &&
-                  badgeId > 0 &&
+                  badgeId > 0 && (uiDisplayMode === 'card' || uiDisplayMode == 'image') &&
                   !isCollectionSelect &&
                   !isAddressMappingSelect && (
                     <>
-                      <div className="primary-text flex-center mx-10">
+                      <div className="primary-text flex-center">
                         {/* Slight hack here. Instead of putting BadgeCard directly, we use BadgeAvatarDisplay which has support for fetching the metadata from source */}
                         <BadgeAvatarDisplay
                           collectionId={NEW_COLLECTION_ID}
                           badgeIds={[{ start: badgeId, end: badgeId }]}
                           showIds={true}
                           selectedId={badgeId}
-                          cardView
+                          cardView={uiDisplayMode !== 'image'}
                         />
                       </div>
                     </>
                   )}
+
                 {!isCollectionSelect &&
-                  !isAddressMappingSelect &&
-                  showAvatarDisplay && (
-                    <div className="primary-text mx-10">
+                  !isAddressMappingSelect && uiDisplayMode === 'collection' &&
+                  (
+                    <div className="primary-text">
                       <BadgeAvatarDisplay
                         onClick={(id: bigint) => {
                           setBadgeId(id)
@@ -663,8 +714,6 @@ export function MetadataForm({
               </div>
             </div>
 
-            {/* TODO: If I make this react component, it glitches and rerenders every time (prob just need to pass in props correctly). Works as function though */}
-            {PopulateComponent()}
 
             <br />
             <Form.Item
@@ -767,6 +816,34 @@ export function MetadataForm({
                     </Option>
                   ))}
                 </Select>
+              </div>
+            </Form.Item>
+
+            <Form.Item
+              label={
+                <Text className="primary-text" strong>
+                  Video
+                </Text>
+              }
+            >
+              <div className="flex-between" style={{}}>
+                <Input
+                  value={currMetadata.video}
+                  onChange={(e) => {
+                    setMetadata({
+                      ...currMetadata,
+                      video: e.target.value,
+                    })
+                  }}
+                  placeholder="Enter Video URL (Optional)"
+                />
+              </div>
+              <div style={{ fontSize: 12 }}>
+                <Text className="secondary-text">
+                  Videos can either be a URL to a video file (e.g. .mp4) or a YouTube embed link.
+                  We will use the image above as a thumbnail for the video.
+
+                </Text>
               </div>
             </Form.Item>
 
@@ -950,7 +1027,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text className="primary-text" strong>
-                  Tags / Keywords{" "}
+                  Tags / Keywords / Attributes{" "}
                   <Tooltip
                     color="black"
                     title={
@@ -966,6 +1043,13 @@ export function MetadataForm({
                 <Input
                   value={currMetadata.tags}
                   onChange={(e) => {
+                    if (!e.target.value) {
+                      setMetadata({
+                        ...currMetadata,
+                        tags: undefined,
+                      })
+                      return;
+                    }
                     setMetadata({
                       ...currMetadata,
                       tags: e.target.value.split(","),
