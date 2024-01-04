@@ -1,5 +1,5 @@
 import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, Empty, Radio, Row, StepProps, Steps, Tooltip } from 'antd';
+import { Button, Col, Empty, Row, StepProps, Steps, Tooltip } from 'antd';
 import { Balance, BigIntify, convertBalance } from 'bitbadgesjs-proto';
 import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -12,6 +12,7 @@ import { ActivityTab } from '../collection-page/TransferActivityDisplay';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { BalanceInput } from '../inputs/BalanceInput';
+import { RadioGroup } from '../tx-timelines/form-items/MetadataForm';
 import { RecipientsSelectStep } from './RecipientsSelectStep';
 import { TransferDisplay } from './TransferDisplay';
 
@@ -242,29 +243,27 @@ export function TransferSelect({
             </div>}
           <br />
           <div className='flex'>
-            <InformationDisplayCard title='Balances' style={{ alignItems: 'normal' }} md={12} sm={24} xs={24} subtitle={
+            <InformationDisplayCard title='Sender Balances' style={{ alignItems: 'normal' }} md={12} sm={24} xs={24} subtitle={
               <div className='flex-center'>
                 <AddressDisplay
                   addressOrUsername={sender}
                 />
               </div>}>
               <br />
-              <Radio.Group
-                buttonStyle='solid'
-                onChange={(e) => {
-                  setBalanceTab(e.target.value);
-                }}
-                value={balanceTab}
-              >
-                {<Radio.Button value='start'>
-                  <div className='primary-text hover:text-gray-400'>
-                    Start Balances
-                  </div>
-                </Radio.Button>}
-                <Radio.Button value='remaining'><div className='primary-text hover:text-gray-400'>
-                  Remaining Balances
-                </div></Radio.Button>
-              </Radio.Group>
+              <RadioGroup value={balanceTab} onChange={(e) => {
+                setBalanceTab(e);
+              }} options={[
+
+                {
+                  label: 'Start',
+                  value: 'start'
+                },
+                {
+                  label: 'Remaining',
+                  value: 'remaining'
+                }
+              ]} />
+
               <br />
               {balanceTab === 'remaining' && <><div className='secondary-text'>
                 <InfoCircleOutlined /> The remaining balances after the transfers are applied{addTransferIsVisible && <> (including the current transfer)</>}.

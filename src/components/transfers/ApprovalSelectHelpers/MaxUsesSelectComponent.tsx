@@ -10,11 +10,13 @@ export const MaxUses = ({ label, disabled, type,
   approvalToAdd, setApprovalToAdd, amountType, codeType, distributionMethod,
   isCodeDisplay,
   isPasswordDisplay,
+  setExpectedPartitions
 }: {
   type: 'overall' | 'to' | 'initiatedBy' | 'from', label: ReactNode, disabled?: boolean
   approvalToAdd: RequiredApprovalProps, setApprovalToAdd: (approvalToAdd: RequiredApprovalProps) => void,
   amountType: AmountType, codeType: CodeType, distributionMethod: DistributionMethod,
-  isCodeDisplay?: boolean, isPasswordDisplay?: boolean
+  isCodeDisplay?: boolean, isPasswordDisplay?: boolean,
+  setExpectedPartitions?: (expectedPartitions: bigint) => void
 }) => {
   const key = type === 'overall' ? 'overallMaxNumTransfers' : type === 'to' ? 'perToAddressMaxNumTransfers' : type === 'initiatedBy' ? 'perInitiatedByAddressMaxNumTransfers' : 'perFromAddressMaxNumTransfers';
   const numUses = approvalToAdd?.approvalCriteria?.maxNumTransfers?.[key] || 0n;
@@ -47,6 +49,41 @@ export const MaxUses = ({ label, disabled, type,
     (key === 'perFromAddressMaxNumTransfers' && amountType === AmountType.Predetermined && approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerFromAddressNumTransfers && approvalToAdd.approvalCriteria.maxNumTransfers.perFromAddressMaxNumTransfers === 0n) ||
     (key === 'perInitiatedByAddressMaxNumTransfers' && amountType === AmountType.Predetermined && approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerInitiatedByAddressNumTransfers && approvalToAdd.approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers === 0n) ||
     (key === 'perToAddressMaxNumTransfers' && amountType === AmountType.Predetermined && approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerToAddressNumTransfers && approvalToAdd.approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers === 0n)
+
+  const InputNode = <>
+    {numUses > 0n && <div style={{ justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
+      <NumberInput
+        title={isPasswordDisplay ? 'Max Password Uses' : isCodeDisplay ? 'Number of Codes' : 'Max Uses'}
+        value={Number(numUses)}
+        disabled={disabled}
+        setValue={(val) => {
+          setNumUses(BigInt(val));
+          if (setExpectedPartitions) {
+            setExpectedPartitions(BigInt(val));
+          }
+        }}
+        min={1}
+        max={100000}
+      />
+      <br />
+      {disabled && <div style={{ marginLeft: 10 }}>
+
+        <LockOutlined /> {type === 'overall' ? 'To edit this, edit the number of ' + (codeType === CodeType.Unique ? 'codes.' : 'password uses.') : ''}
+        {type !== 'overall' && <>
+          Locked due to distribution method: {distributionMethod === DistributionMethod.Codes ?
+            codeType === CodeType.Unique ? 'Codes' : 'Password' : distributionMethod}
+        </>}
+      </div>}
+    </div>}
+    {greaterThanOverall && <div style={{ color: '#FF5733' }}>
+      <WarningOutlined /> The per user max uses is greater than the cumulative max uses.
+    </div>}
+  </>
+
+  if (isPasswordDisplay || isCodeDisplay) {
+    return InputNode;
+  }
+
   return <> <TableRow labelSpan={16} valueSpan={8} label={<>
     {label} <Tooltip color='black' title="Max uses = the maximum number of times this approval can be used.">
       <InfoCircleOutlined />
@@ -68,37 +105,6 @@ export const MaxUses = ({ label, disabled, type,
       </Typography.Text>
       <br /><br />
     </div>}
-    {numUses > 0n && <div style={{ justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
-      <NumberInput
-        title='Max Uses'
-        value={Number(numUses)}
-        disabled={disabled}
-        setValue={(val) => {
-          setNumUses(BigInt(val));
-        }}
-        min={1}
-        max={100000}
-      />
-      <br />
-      {disabled && <div style={{ marginLeft: 10 }}>
-
-        <LockOutlined /> {type === 'overall' ? 'To edit this, edit the number of ' + (codeType === CodeType.Unique ? 'codes.' : 'password uses.') : ''}
-        {type !== 'overall' && <>
-          Locked due to distribution method: {distributionMethod === DistributionMethod.Codes ?
-            codeType === CodeType.Unique ? 'Codes' : 'Password' : distributionMethod}
-        </>}
-      </div>}
-      {isCodeDisplay && <div style={{ marginLeft: 10 }}>
-
-        {"This is the number of codes that will be generated."}
-      </div>}
-      {isPasswordDisplay && <div style={{ marginLeft: 10 }}>
-
-        {"This is the number of uses for the password."}
-      </div>}
-    </div>}
-    {greaterThanOverall && <div style={{ color: '#FF5733' }}>
-      <WarningOutlined /> The selected max uses is greater than the cumulative max uses.
-    </div>}
+    {InputNode}
   </>
 }

@@ -6,6 +6,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
 import { TxModal } from './TxModal';
+import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 
 export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
@@ -41,49 +42,50 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
   ];
 
   const txsInfo = useMemo(() => {
-  const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
-    creator: chain.cosmosAddress,
-    collectionId: collectionId,
-    updateUserPermissions: false,
-    userPermissions: {
-      canUpdateIncomingApprovals: [],
-      canUpdateOutgoingApprovals: [],
-      canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-      canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
-    },
-    updateIncomingApprovals: false,
-    updateOutgoingApprovals: true,
-    incomingApprovals: [],
-    outgoingApprovals: newOutgoingApprovals.filter(x => x.approvalId !== 'default-incoming' && x.approvalId !== 'default-outgoing'),
-    autoApproveSelfInitiatedIncomingTransfers: false,
-    autoApproveSelfInitiatedOutgoingTransfers: false,
-    updateAutoApproveSelfInitiatedIncomingTransfers: false,
-    updateAutoApproveSelfInitiatedOutgoingTransfers: false,
-  };
+    const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
+      creator: chain.cosmosAddress,
+      collectionId: collectionId,
+      updateUserPermissions: false,
+      userPermissions: {
+        canUpdateIncomingApprovals: [],
+        canUpdateOutgoingApprovals: [],
+        canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+        canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+      },
+      updateIncomingApprovals: false,
+      updateOutgoingApprovals: true,
+      incomingApprovals: [],
+      outgoingApprovals: newOutgoingApprovals.filter(x => x.approvalId !== 'default-incoming' && x.approvalId !== 'default-outgoing'),
+      autoApproveSelfInitiatedIncomingTransfers: false,
+      autoApproveSelfInitiatedOutgoingTransfers: false,
+      updateAutoApproveSelfInitiatedIncomingTransfers: false,
+      updateAutoApproveSelfInitiatedOutgoingTransfers: false,
+    };
 
-  return [
-    {
-      type: 'MsgUpdateUserApprovals',
-      msg: txCosmosMsg,
-      afterTx: async () => {
-        await fetchCollections([collectionId], true);
+    return [
+      {
+        type: 'MsgUpdateUserApprovals',
+        msg: txCosmosMsg,
+        afterTx: async () => {
+          await fetchCollections([collectionId], true);
+          await fetchAccounts([chain.cosmosAddress], true);
+        }
       }
-    }
-  ]
-}, [chain.cosmosAddress, collectionId, newOutgoingApprovals]);
+    ]
+  }, [chain.cosmosAddress, collectionId, newOutgoingApprovals]);
 
   return (
     <TxModal
-    msgSteps={items}
-    visible={visible}
-    setVisible={setVisible}
-    txsInfo={txsInfo}
-    txName="Update Approvals"
-    requireRegistration
-    style={{ minWidth: '95%' }}
-  >
-    {children}
-  </TxModal>
-  
+      msgSteps={items}
+      visible={visible}
+      setVisible={setVisible}
+      txsInfo={txsInfo}
+      txName="Update Approvals"
+      requireRegistration
+      style={{ minWidth: '95%' }}
+    >
+      {children}
+    </TxModal>
+
   );
 }

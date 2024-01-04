@@ -30,7 +30,6 @@ export function OverviewTab({
   const MetadataDisplayElem = (
     <>
       <MetadataDisplay collectionId={collectionId} span={24} />
-      <br />
     </>
   )
   return (
@@ -48,7 +47,6 @@ export function OverviewTab({
           />
         </InformationDisplayCard>
       </div>
-      <br />
       <Row
         style={{
           display: "flex",
@@ -75,7 +73,7 @@ export function OverviewTab({
           {!noBalancesStandard && (
             <>
               <DistributionOverview collectionId={collectionId} span={24} />
-              <br />
+              
               <InformationDisplayCard title={<>Balance Checker</>} span={24}>
                 <div className="flex">
                   <BalanceOverview

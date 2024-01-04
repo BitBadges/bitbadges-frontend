@@ -2,6 +2,8 @@ import { UintRange } from "bitbadgesjs-proto";
 import { GO_MAX_UINT_64 } from "./dates";
 
 export function getBadgeIdsString(badgeIds: UintRange<bigint>[]) {
+  if (badgeIds.length === 0) return "None";
+
   const str = badgeIds.map(badgeId => {
     if (badgeId.start === badgeId.end) return badgeId.start.toString();
 

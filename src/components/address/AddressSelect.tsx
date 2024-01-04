@@ -1,7 +1,7 @@
 import { Dropdown, Input } from 'antd';
 import { useState } from 'react';
 
-import { InfoCircleOutlined, MinusOutlined, SwapOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, MinusOutlined, EditOutlined } from '@ant-design/icons';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { getAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { Divider } from '../display/Divider';
@@ -80,7 +80,7 @@ export function AddressSelect({
     <div className='full-width'>
       {switchable &&
         <div className='flex-center flex-wrap primary-text'>
-          <AddressDisplay addressOrUsername={latestAddress ?? ''} fontSize={fontSize} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <SwapOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => {
+          <AddressDisplay addressOrUsername={latestAddress ?? ''} fontSize={fontSize} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <EditOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => {
 
             setShowSelect(!showSelect)
           }} />

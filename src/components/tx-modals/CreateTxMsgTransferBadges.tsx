@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { Divider, Typography } from 'antd';
+import { Divider, StepProps, Typography } from 'antd';
 import { MsgTransferBadges } from 'bitbadgesjs-proto';
 import { CollectionApprovalWithDetails, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
@@ -82,45 +82,46 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
     fetchAccounts(transfers.map(x => x.toAddresses).flat());
   }, [transfers]);
 
-  
 
-  
+
+
 
   const items = [
-    {
-      title: 'Sender',
-      description: <div>
-        <InformationDisplayCard
-          title='Sender'
-          span={24}
-          style={{
-            padding: '0',
-            textAlign: 'center',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: 20,
-          }}
-          noBorder
-          inheritBg
-        >
-          <AddressSelect
-            defaultValue={(senderAccount?.username || senderAccount?.address) ?? ''}
-            onUserSelect={setSender}
-            allowMintSearch
-          />
-          {!fromTransferabilityRow && sender === 'Mint' && <>
+    approval?.fromMapping.addresses.length === 1 && approval.fromMapping.includeAddresses ? undefined :
+      {
+        title: 'Sender',
+        description: <div>
+          <InformationDisplayCard
+            title='Sender'
+            span={24}
+            style={{
+              padding: '0',
+              textAlign: 'center',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginTop: 20,
+            }}
+            noBorder
+            inheritBg
+          >
+            <AddressSelect
+              defaultValue={(senderAccount?.username || senderAccount?.address) ?? ''}
+              onUserSelect={setSender}
+              allowMintSearch
+            />
+            {!fromTransferabilityRow && sender === 'Mint' && <>
+              <Divider />
+              <Typography.Text style={{ color: '#FF5733' }} >
+                <WarningOutlined /> {"Certain features for minting may not be supported using this modal. This could cause your transaction to fail. Please use the Transferability tab to transfer badges from the Mint address."}
+              </Typography.Text>
+            </>}
             <Divider />
-            <Typography.Text style={{ color: '#FF5733' }} >
-              <WarningOutlined /> {"Certain features for minting may not be supported using this modal. This could cause your transaction to fail. Please use the Transferability tab to transfer badges from the Mint address."}
+            <Typography.Text className='secondary-text'>
+              <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, the sender's outgoing approvals, and the recipient's incoming approvals (if applicable)."}
             </Typography.Text>
-          </>}
-          <Divider />
-          <Typography.Text className='secondary-text'>
-            <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, the sender's outgoing approvals, and the recipient's incoming approvals (if applicable)."}
-          </Typography.Text>
-        </InformationDisplayCard>
-      </div >
-    },
+          </InformationDisplayCard>
+        </div >
+      },
     {
       title: 'Add Transfers',
       description: <div>
@@ -185,14 +186,25 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         msg: txCosmosMsg,
         afterTx: async () => {
           await fetchCollections([collectionId], true);
+
+          const addressesToFetch = [txCosmosMsg.creator, chain.cosmosAddress];
+          for (const transfer of txCosmosMsg.transfers) {
+            addressesToFetch.push(...transfer.from);
+            addressesToFetch.push(...transfer.toAddresses);
+          }
+
+          //Anything after the first 10 addresses will not be fetched and they can just refresh the page, if necessary
+          const prunedAddresses = [...new Set(addressesToFetch.map(x => convertToCosmosAddress(x)))].slice(0, 10);
+          await fetchAccounts(prunedAddresses, true);
         }
       }
     ]
   }, [chain.cosmosAddress, collectionId, transfers, proofObj, requiresWhitelistProof, senderAccount]);
 
+  const filteredSteps = items.filter(x => x) as StepProps[];
   return (
     <TxModal
-      msgSteps={items}
+      msgSteps={filteredSteps}
       visible={visible && (isValidProof || !requiresWhitelistProof)}
       disabled={requiresWhitelistProof && !isValidProof}
       setVisible={setVisible}

@@ -57,7 +57,7 @@ export function AddressWithBlockies({
           size={fontSize}
         />
       </Tooltip>}
-    <BlockiesAvatar address={address} avatar={userInfo?.profilePicUrl ?? userInfo?.avatar} fontSize={fontSize} />
+    <BlockiesAvatar shape='square' address={address} avatar={userInfo?.profilePicUrl ?? userInfo?.avatar} fontSize={fontSize} />
     <Address
       fontSize={fontSize}
       addressOrUsername={addressOrUsername}

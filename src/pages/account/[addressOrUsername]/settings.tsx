@@ -39,7 +39,7 @@ export const MarkdownEditor = ({ markdown, setMarkdown, placeholder }: { markdow
 
   useEffect(() => {
     // Check if dark mode is enabled in local storage
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    const isDarkMode = !localStorage.getItem('darkMode') || localStorage.getItem('darkMode') === 'true';
     setDarkMode(isDarkMode);
   }, []);
 
@@ -67,13 +67,13 @@ export const MarkdownDisplay = ({ markdown }: { markdown: string }) => {
 
   useEffect(() => {
     // Check if dark mode is enabled in local storage
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    const isDarkMode = !localStorage.getItem('darkMode') || localStorage.getItem('darkMode') === 'true';
     setDarkMode(isDarkMode);
   }, []);
 
   const mode = darkMode ? 'dark' : 'light';
 
-  return <div className='full-width' style={{ textAlign: 'start' }}>
+  return <div className='' style={{ textAlign: 'start' }}>
     <div data-color-mode={mode}>
       <EditerMarkdown source={markdown} style={{ whiteSpace: 'pre-wrap' }} />
     </div>
@@ -117,9 +117,7 @@ export function AccountSettings() {
 
 
   const [newCustomLinkTitle, setNewCustomLinkTitle] = useState('');
-
   const [newCustomLinkUrl, setNewCustomLinkUrl] = useState('');
-
   const [newCustomLinkImage, setNewCustomLinkImage] = useState('');
 
 
@@ -140,9 +138,14 @@ export function AccountSettings() {
   }, [signedInAccount?.profilePicUrl]);
 
   const handleFileChange = (info: any) => {
-    setFileList(info.fileList);
+    setFileList([...info.fileList]);
+
+    //HACK
+    setTimeout(() => {
+      setFileList([...info.fileList]);
+    }, 500);
   };
-  
+
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: account settings page, update seen activity');
     if (!signedInAccount) return;

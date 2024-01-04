@@ -32,7 +32,8 @@ export function UpdateSelectWrapper({
   onlyShowJson = false,
   err,
   setErr,
-  documentationLink
+  documentationLink,
+  advancedNode
 }: {
   setUpdateFlag: (val: boolean) => void,
   updateFlag: boolean,
@@ -49,7 +50,8 @@ export function UpdateSelectWrapper({
   onlyShowJson?: boolean,
   err: Error | null,
   setErr: (err: Error | null) => void,
-  documentationLink?: string
+  documentationLink?: string,
+  advancedNode?: () => JSX.Element,
 }) {
 
   const txTimelineContext = useTxTimelineContext();
@@ -61,6 +63,8 @@ export function UpdateSelectWrapper({
   const [customJson, setCustomJson] = useState<boolean>(onlyShowJson);
   const [showPermission, setShowPermission] = useState<boolean>(false);
   const [jsonErr, setJsonErr] = useState<Error | null>(null);
+
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
   const { castFunction, flags, question, validateFunction } = getCastFunctionsAndUsedFlags(permissionName);
 
@@ -118,6 +122,15 @@ export function UpdateSelectWrapper({
                 setCustomJson(true);
               }}
             />} */}
+          {updateFlag && !!advancedNode &&
+            <IconButton
+              src={<FormOutlined style={{ fontSize: 16 }} />}
+              text={!showAdvanced ? 'Advanced' : 'Normal'}
+              tooltipMessage={!showAdvanced ? 'Go to advanced view' : 'Go to normal view'}
+              onClick={() => {
+                setShowAdvanced(!showAdvanced);
+              }}
+            />}
           {updateFlag && customJson && !disableJson && !onlyShowJson &&
             <IconButton
               src={<FormOutlined style={{ fontSize: 16 }} />}
@@ -230,8 +243,13 @@ export function UpdateSelectWrapper({
         </> : <></>
       }
       {
-        updateFlag && !customJson && <>
+        updateFlag && !customJson && !showAdvanced && <>
           {node()}
+        </>
+      }
+      {
+        updateFlag && !customJson && showAdvanced && <>
+          {advancedNode?.()}
         </>
       }
       {

@@ -1,9 +1,9 @@
-import { CheckCircleFilled, CloseCircleFilled, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, InputNumber, Radio, Statistic, Tag, Tooltip, Typography, notification } from 'antd';
-import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
+import { BookOutlined, CheckCircleFilled, CloseCircleFilled, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, InfoCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
+import { Button, Col, InputNumber, Spin, Statistic, Tag, Tooltip, Typography, notification } from 'antd';
+import { AmountTrackerIdDetails, deepCopy } from 'bitbadgesjs-proto';
 import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, filterZeroBalances, getBalancesForIds, getCurrentValueForTimeline, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
@@ -12,6 +12,7 @@ import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts
 import { fetchCollectionsWithOptions, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { approvalCriteriaHasNoAmountRestrictions, approvalCriteriaUsesPredeterminedBalances, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 import { getBadgeIdsString } from '../../utils/badgeIds';
 import { compareObjects } from '../../utils/compare';
 import { getTimeRangesElement } from '../../utils/dates';
@@ -20,18 +21,19 @@ import { AddressDisplayList } from '../address/AddressDisplayList';
 import { AddressSelect } from '../address/AddressSelect';
 import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
 import { BalanceDisplay } from '../badges/BalanceDisplay';
+import { Divider } from '../display/Divider';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { CreateTxMsgClaimBadgeModal } from '../tx-modals/CreateTxMsgClaimBadge';
 import { CreateTxMsgTransferBadgesModal } from '../tx-modals/CreateTxMsgTransferBadges';
 import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
+import { RadioGroup } from '../tx-timelines/form-items/MetadataForm';
 import { transferableApproval } from '../tx-timelines/step-items/TransferabilitySelectStepItem';
 import { ApprovalSelectWrapper } from './ApprovalsTab';
 import { BalanceOverview } from './BalancesInfo';
-import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 
-export const getTableHeader = () => {
+export const TableHeader = () => {
   return <tr >
     {<>
       <th style={{ verticalAlign: 'top' }}></th>
@@ -79,7 +81,6 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
 }) => {
 
   const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const hasApprovalAmounts = approvalHasApprovalAmounts(transfer.approvalCriteria?.approvalAmounts);
 
@@ -98,8 +99,8 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
     ))
   );
 
-  return <InformationDisplayCard title='Restrictions' inheritBg noBorder md={12} xs={24} sm={24}>
-    <ul className='list-disc px-8' style={{ textAlign: 'left' }}>
+  return <InformationDisplayCard title='Restrictions' inheritBg noBorder md={12} xs={24} sm={24} >
+    <ul className='list-disc px-8 ' style={{ textAlign: 'left', }}>
       {transfer.approvalCriteria?.requireFromDoesNotEqualInitiatedBy && !isOutgoingDisplay && (
         <li>{"From address must NOT equal approver's address"}</li>
       )}
@@ -162,14 +163,26 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
             }
           </>) : <>
 
-            <li>{`Must provide valid ${transfer.details ? transfer.details?.challengeDetails.hasPassword
-              ? 'password' : 'code' : 'password / code'}`}</li>
-            {(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0 && (
-              <li>{transfer.details?.challengeDetails.leavesDetails.leaves.length.toString()}
-                {`${transfer.details?.challengeDetails.hasPassword
-                  ? ' password use' : ' valid code'}
-                  ${(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 1 ? 's' : ''} total`}</li>
-            )}
+            <li>
+              {`Must provide valid ${transfer.details
+                ? transfer.details?.challengeDetails.hasPassword
+                  ? 'password'
+                  : 'code'
+                : 'password / code'
+                }`}
+              {(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0) > 0 && (
+                <>
+                  {' '}({transfer.details?.challengeDetails.leavesDetails.leaves.length.toString()}{' '}
+                  {`${transfer.details?.challengeDetails.hasPassword
+                    ? 'password use'
+                    : 'valid code'
+                    }${(transfer.details?.challengeDetails.leavesDetails.leaves.length ?? 0) > 1
+                      ? 's'
+                      : ''
+                    } total`})
+                </>
+              )}
+            </li>
             {/* <li>{transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf ? `Max ${transfer.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per code / password` : "No limit on claims per code / password"}</li> */}
           </>}
         </>
@@ -210,14 +223,12 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
           </li>
         )
       }
+      {/* <li>
+        <Switch checkedChildren="Show IDs" unCheckedChildren="Hide IDs" checked={showAdvanced} onChange={() => setShowAdvanced(!showAdvanced)} />
+      </li> */}
     </ul >
-    <br />
-    <div className='flex-center'>
-      <button className='styled-button-normal' style={{ width: 200, cursor: 'pointer', background: 'inherit !important' }} onClick={() => setShowAdvanced(!showAdvanced)}>{showAdvanced ? 'Hide' : 'Show'} Advanced</button>
-    </div>
-    {
+    {/* {
       showAdvanced && <>
-        <br />
         <ul className='list-disc px-8' style={{ textAlign: 'start' }}>
           <li><Typography.Text className='primary-text'>
             Approval ID: {transfer.approvalId.toString()}
@@ -235,7 +246,7 @@ export const DetailsCard = ({ allTransfers, transfer, isOutgoingDisplay, isIncom
           </li>
         </ul>
       </>
-    }
+    } */}
 
     <div style={{ textAlign: 'start' }}>
       {hasSameTrackerId && (
@@ -299,12 +310,12 @@ export const MustOwnBadgesCard = ({ transfer }: {
   </>
 }
 
-export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, collectionId, address, setAddress }: {
+export const PredeterminedCard = ({ transfer, collectionId, address, setAddress }: {
   address?: string,
   setAddress: (address: string) => void,
-  collectionId: bigint, transfer: CollectionApprovalWithDetails<bigint>, orderNumber: number, setOrderNumber: (orderNumber: number) => void,
+  collectionId: bigint, transfer: CollectionApprovalWithDetails<bigint>,
 }) => {
-
+  const [orderNumber, setOrderNumber] = useState(0);
   const claim = transfer.approvalCriteria?.merkleChallenge
   const approval = transfer;
 
@@ -338,7 +349,7 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
     if (numIncrements > 0n) setOrderNumber(Number(numIncrements));
   }, [numIncrements, setOrderNumber]);
 
-  const incrementedBalances = transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances.map(x => {
+  const incrementedBalances = deepCopy(transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.startBalances ?? []).map(x => {
     return {
       ...x,
       badgeIds: x.badgeIds.map(y => {
@@ -369,7 +380,6 @@ export const PredeterminedCard = ({ transfer, orderNumber, setOrderNumber, colle
 
   const hasIncrements = !!(transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy || transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy);
   const [showSelect, setShowSelect] = useState(false);
-
   return <>{transfer.approvalCriteria?.predeterminedBalances && (transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 ||
     transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.manualBalances.length > 0) &&
     (
@@ -561,6 +571,7 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
   const numUsed = collection?.approvalsTrackers.find(y => y.amountTrackerId === transfer.amountTrackerId && y.trackerType === type
     && y.approvedAddress === (type === "overall" ? "" : account?.cosmosAddress ?? ''))?.numTransfers ?? 0n;
 
+
   return <>
     {componentType === 'list' && <>
       {transfer.approvalCriteria?.maxNumTransfers && transfer.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] > 0 ? (
@@ -580,7 +591,7 @@ const MaxNumTransfersComponent = ({ transfer, type, componentType, showUntracked
           value={`${numUsed.toString()} / ${!limit ? '?' : transfer.approvalCriteria.maxNumTransfers[maxNumTransfersKey].toString()}`}
           title={<>{type === "overall" ? <b className='primary-text'>Cumulative Uses - All Addresses</b> : <>
             <b className='primary-text'>Uses as {type === "to" ? 'To' : type === "from" ? 'From' : 'Approved'} Address</b>
-            <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable fontSize={12} />
+            <AddressSelect defaultValue={address} onUserSelect={(address) => setAddress(address)} switchable fontSize={18} />
           </>
           }
           </>}
@@ -721,13 +732,11 @@ export function TransferabilityRow({
   approvalPermissions?: CollectionApprovalPermissionWithDetails<bigint>[]
   defaultShowDetails?: boolean,
 }) {
-
   const collection = useCollection(collectionId);
   const chain = useChainContext();
 
   const [showMoreIsVisible, setShowMoreIsVisible] = useState(defaultShowDetails ?? false);
   const [editIsVisible, setEditIsVisible] = useState(false);
-  const [orderNumber, setOrderNumber] = useState(0);
   const [transferIsVisible, setTransferIsVisible] = useState(false);
   const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
 
@@ -735,10 +744,17 @@ export function TransferabilityRow({
   const hasPredetermined = approvalCriteriaUsesPredeterminedBalances(transfer.approvalCriteria);
 
   //Doesn't make sense to transfer to mint or have mint intiate so we remove these
-  const toAddresses = transfer.toMapping.addresses.filter(x => x !== 'Mint');
-  const initiatedByAddresses = transfer.initiatedByMapping.addresses.filter(x => x !== 'Mint');
-  const fromAddresses = filterFromMint ? transfer.fromMapping.addresses.filter(x => x !== 'Mint') : transfer.fromMapping.addresses;
+  const toAddresses = useMemo(() => {
+    return transfer.toMapping.addresses.filter(x => x !== 'Mint');
+  }, [transfer.toMapping.addresses]);
 
+  const initiatedByAddresses = useMemo(() => {
+    return transfer.initiatedByMapping.addresses.filter(x => x !== 'Mint');
+  }, [transfer.initiatedByMapping.addresses]);
+
+  const fromAddresses = useMemo(() => {
+    return filterFromMint ? transfer.fromMapping.addresses.filter(x => x !== 'Mint') : transfer.fromMapping.addresses;
+  }, [transfer.fromMapping.addresses, filterFromMint]);
 
   const [balanceTab, setBalanceTab] = useState(hasPredetermined ? 'current' : 'remaining');
 
@@ -748,57 +764,73 @@ export function TransferabilityRow({
 
   const approvalLevel = isIncomingDisplay ? 'incoming' : isOutgoingDisplay ? 'outgoing' : 'collection';
 
+  const refreshable = !(approvalCriteriaHasNoAmountRestrictions(approvalCriteria) && !approvalCriteria?.merkleChallenge?.root);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const [alreadyRefreshed, setAlreadyRefreshed] = useState(false);
+
   const refreshTrackers = useCallback(async (manualClick?: boolean) => {
-    const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] = [{
-      collectionId,
-      amountTrackerId: approval.amountTrackerId,
-      approvalLevel: approvalLevel,
-      approvedAddress: "",
-      approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
-      trackerType: "overall",
-    }];
-    if (approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n > 0n) {
-      approvalsIdsToFetch.push({
+    try {
+      if (alreadyRefreshed && !manualClick) return;
+      setRefreshing(true);
+      if (!refreshable) {
+        if (manualClick) notification.success({
+          message: 'Refreshed!',
+          description: 'The claim has been refreshed!',
+        });
+        setRefreshing(false);
+        setAlreadyRefreshed(true);
+        return;
+      }
+
+      const approvalsIdsToFetch: AmountTrackerIdDetails<bigint>[] = [{
         collectionId,
         amountTrackerId: approval.amountTrackerId,
         approvalLevel: approvalLevel,
-        approvedAddress: chain.cosmosAddress,
+        approvedAddress: "",
         approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
-        trackerType: "initiatedBy",
-      });
-    }
+        trackerType: "overall",
+      }];
+      if (approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers ?? 0n > 0n) {
+        approvalsIdsToFetch.push({
+          collectionId,
+          amountTrackerId: approval.amountTrackerId,
+          approvalLevel: approvalLevel,
+          approvedAddress: chain.cosmosAddress,
+          approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
+          trackerType: "initiatedBy",
+        });
+      }
 
-    await fetchCollectionsWithOptions([{
-      collectionId,
-      viewsToFetch: [],
-      merkleChallengeIdsToFetch: [{
+      await fetchCollectionsWithOptions([{
         collectionId,
-        challengeId: challengeTrackerId ?? '',
-        challengeLevel: approvalLevel,
-        approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
-      }],
-      approvalsTrackerIdsToFetch: approvalsIdsToFetch,
-      handleAllAndAppendDefaults: true,
-      forcefulFetchTrackers: true,
-    }]);
+        viewsToFetch: [],
+        merkleChallengeIdsToFetch: [{
+          collectionId,
+          challengeId: challengeTrackerId ?? '',
+          challengeLevel: approvalLevel,
+          approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
+        }],
+        approvalsTrackerIdsToFetch: approvalsIdsToFetch,
+        handleAllAndAppendDefaults: true,
+        forcefulFetchTrackers: true,
+      }]);
 
-    if (manualClick) {
-      notification.success({
-        message: 'Refreshed!',
-        description: 'The claim has been refreshed!',
-        duration: 5,
-      });
+      if (manualClick) {
+        notification.success({
+          message: 'Refreshed!',
+          description: 'The claim has been refreshed!',
+          duration: 5,
+        });
+      }
+
+      setRefreshing(false);
+      setAlreadyRefreshed(true);
+    } catch (e) {
+      console.log(e);
+      setRefreshing(false);
     }
-  }, [collectionId, approval, approvalLevel, approverAddress, approvalCriteria, chain.cosmosAddress, challengeTrackerId]);
-
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: claim display');
-    if (collectionId != NEW_COLLECTION_ID && (showMoreIsVisible || transferIsVisible || editIsVisible)) {
-      if (!hideActions) refreshTrackers();
-    }
-    //TODO: refreshTrackers here creates an infinite loop if 2+ details are open at once
-  }, [collectionId, showMoreIsVisible, transferIsVisible, editIsVisible, hideActions]);
+  }, [collectionId, approval, approvalLevel, approverAddress, approvalCriteria, chain.cosmosAddress, challengeTrackerId, refreshable, alreadyRefreshed]);
 
   const router = useRouter();
   const query = router.query;
@@ -822,7 +854,6 @@ export function TransferabilityRow({
       }
     }
   }, [query.approvalId, approval.approvalId, hideActions, disapproved, populated, editable, onDelete]);
-
   //Only show rows that have at least one address (after filtration)
   if ((toAddresses.length == 0 && transfer.toMapping.includeAddresses) || (initiatedByAddresses.length == 0 && transfer.initiatedByMapping.includeAddresses) || (fromAddresses.length == 0 && transfer.fromMapping.includeAddresses)) {
     return null;
@@ -850,173 +881,7 @@ export function TransferabilityRow({
     ))
   );
 
-  const RowContentDetails = ({ mobile }: { mobile: boolean }) => {
-    const FromValue = <AddressDisplayList
-      users={transfer.fromMapping.addresses}
-      allExcept={!transfer.fromMapping.includeAddresses}
-      fontSize={16}
-      filterMint={filterFromMint}
-    />
 
-    const ToValue = <AddressDisplayList
-      users={toAddresses}
-      allExcept={!transfer.toMapping.includeAddresses}
-      filterMint
-      fontSize={16}
-    />
-
-    const InitiatedByValue = <AddressDisplayList
-      users={initiatedByAddresses}
-      allExcept={!transfer.initiatedByMapping.includeAddresses}
-      filterMint
-      fontSize={16}
-    />
-
-    const BadgeIdsValue = <> {getBadgeIdsString(transfer.badgeIds)}</>
-    const OwnershipTimesValue = <> {getTimeRangesElement(transfer.ownershipTimes, '', true)}</>
-    const TransferTimesValue = <> {getTimeRangesElement(transfer.transferTimes, '', true)}</>
-
-    const TagsValue = <> {!disapproved &&
-      <div style={{ alignItems: 'center', marginLeft: 8, height: '100%', }} className='flex-center flex-wrap flex-column'>
-        {onDelete && <>
-          {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? <Tag
-            style={{ margin: 4, backgroundColor: '#1890ff' }}
-            color='#1890ff'
-            className='primary-text'
-          >
-            Existing
-          </Tag> :
-            <Tag
-              style={{ margin: 4, backgroundColor: '#52c41a' }}
-              color='#52c41a'
-              className='primary-text'
-            >New</Tag>}
-        </>}
-
-        {grayedOut && <Tag
-          style={{ margin: 4, backgroundColor: '#FF5733' }}
-          color='#FF5733'
-          className='primary-text'
-        >Deleted</Tag>}
-
-        {approvalCriteriaHasNoAmountRestrictions(transfer.approvalCriteria) && <Tag
-          style={{ margin: 4, backgroundColor: '#1890ff' }}
-          color='#1890ff'
-          className='primary-text'
-        >No Amount Restrictions</Tag>}
-        {transfer.approvalCriteria?.merkleChallenge?.root && transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf && <Tag
-          style={{ margin: 4, backgroundColor: '#1890ff' }}
-          color='#1890ff'
-          className='primary-text'
-        >Whitelist</Tag>}
-        {transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
-          !transfer.details?.challengeDetails.hasPassword &&
-          <Tag
-            style={{ margin: 4, backgroundColor: '#1890ff' }}
-            color='#1890ff'
-            className='primary-text'
-          >Codes</Tag>}
-
-        {transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
-          transfer.details?.challengeDetails.hasPassword &&
-          <Tag
-            style={{ margin: 4, backgroundColor: '#df3372' }}
-            color='#1890ff'
-            className='primary-text'
-          >Password</Tag>}
-        {transfer.approvalCriteria?.overridesFromOutgoingApprovals && transfer.fromMappingId !== 'Mint' && <Tag
-          style={{ margin: 4, backgroundColor: '#FF5733' }}
-          color='#1890ff'
-          className='primary-text'
-        ><WarningOutlined /> Overrides Outgoing Approvals</Tag>}
-        {transfer.approvalCriteria?.overridesToIncomingApprovals && <Tag
-          style={{ margin: 4, backgroundColor: '#FF5733' }}
-          color='#1890ff'
-          className='primary-text'
-        ><WarningOutlined /> Overrides Incoming Approvals</Tag>}
-        {hasSameChallengeTrackerId && <Tag
-          style={{ margin: 4, backgroundColor: '#FF5733' }}
-          color='#1890ff'
-          className='primary-text'
-        ><WarningOutlined /> Duplicate Challenge Tracker</Tag>}
-        {hasSameTrackerId && <Tag
-          style={{ margin: 4, backgroundColor: '#FF5733' }}
-          color='#1890ff'
-          className='primary-text'
-        ><WarningOutlined /> Duplicate Amount Tracker</Tag>}
-
-        {(transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n) > 0n || (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n) > 0n && <Tag
-          style={{ margin: 4, backgroundColor: '#1890ff' }}
-          color='#1890ff'
-          className='primary-text'
-        >Incrementing Badge IDs</Tag>}
-      </div>
-    }
-      {!disapproved ? <td>
-      </td> :
-
-        <td className='flex-center'><Tag
-          style={{ margin: 4, backgroundColor: 'red' }}
-          color='#1890ff'
-          className='primary-text'
-        >Disapproved</Tag> </td>}
-    </>
-
-
-
-
-    if (mobile) {
-      return <>
-        <TableRow label={'From'} value={FromValue} />
-        <TableRow label={'To'} value={ToValue} />
-        <TableRow label={'Initiated By'} value={InitiatedByValue} />
-        <TableRow label={'Badge IDs'} value={BadgeIdsValue} />
-        <TableRow label={'Ownership Times'} value={OwnershipTimesValue} />
-        <TableRow label={'Transfer Times'} value={TransferTimesValue} />
-        <TableRow label={'Tags'} value={TagsValue} />
-      </>
-    }
-
-
-
-    return <tr style={{ opacity: grayedOut ? 0.5 : undefined }}>
-
-
-      {
-        !disapproved ?
-          <td style={{}}>
-
-            {<span style={{ fontSize: 20, marginLeft: 4, marginRight: 24, color: 'green' }}><CheckCircleFilled /></span>}
-
-          </td> :
-
-          <td style={{}}>{<span style={{ fontSize: 20, marginLeft: 4, marginRight: 24, color: 'red' }}><CloseCircleFilled /></span>} </td>}
-
-      <td style={{ alignItems: 'center' }}>
-        {FromValue}
-      </td>
-      <td style={{ alignItems: 'center' }}>
-        {ToValue}
-      </td>
-      <td style={{ alignItems: 'center' }}>
-        {InitiatedByValue}
-      </td>
-
-      <td style={{ alignItems: 'center' }}>
-        {TransferTimesValue}
-      </td>
-      <td style={{ alignItems: 'center' }}>
-        {BadgeIdsValue}
-      </td>
-      <td style={{ alignItems: 'center' }}>
-        {OwnershipTimesValue}
-      </td>
-
-      <td style={{ alignItems: 'center' }}>
-        {TagsValue}
-      </td>
-    </tr >
-  }
 
 
   if (isIncomingDisplay || isOutgoingDisplay) {
@@ -1024,332 +889,565 @@ export function TransferabilityRow({
   }
 
   const isMint = approval.fromMappingId === 'Mint'
-
-  const WideViewContent = () => {
-    return <div className='overflow-x-auto'>
+  const WideViewContent = <>
+    <div className='overflow-x-auto'>
       <table className="table-auto overflow-x-scroll w-full table-wrp">
         <thead className='sticky top-0 z-10' style={{ zIndex: 10 }}>
-          {getTableHeader()}
+          <TableHeader />
         </thead>
         <tbody>
-          {<RowContentDetails mobile={false} />}
+          <RowContentDetails
+            mobile={false}
+            transfer={transfer}
+            filterFromMint={filterFromMint}
+            grayedOut={grayedOut}
+            onDelete={onDelete}
+            startingApprovals={startingApprovals}
+            disapproved={disapproved}
+            toAddresses={toAddresses}
+            initiatedByAddresses={initiatedByAddresses}
+            hasSameChallengeTrackerId={!!hasSameChallengeTrackerId}
+            hasSameTrackerId={!!hasSameTrackerId}
+          />
         </tbody>
       </table>
     </div>
-  }
+  </>
 
 
-  const InnerContent = () => {
+
+  const OnRestoreValue = onRestore && <td>
+    {!disapproved &&
+      <div className='flex-center'>
+
+        <IconButton
+          secondary
+          src={<UndoOutlined />}
+          onClick={() => onRestore(transfer.approvalId)}
+          text='Restore'
+          size={40}
+          disabled={transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming'}
+        />
+      </div>}
+  </td>
+
+  const isExisting = startingApprovals?.find(x => x.approvalId === transfer.approvalId);
+  const isReserved = transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming';
+  const EditableValue = editable && <td>
 
 
-    const OnRestoreValue = onRestore && <td>
-      {!disapproved &&
-        <div className='flex-center'>
+    {!disapproved && !isExisting &&
+      <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
+        <IconButton
+          secondary
+          src={editIsVisible ? <MinusOutlined /> : <EditOutlined />}
+          onClick={async () => {
+            if (!hideActions) await refreshTrackers();
+            setEditIsVisible(!editIsVisible);
+            setShowMoreIsVisible(false);
+          }}
+          text={editIsVisible ? 'Cancel Edit' : 'Edit'}
+          size={40}
+          disabled={transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming'}
+        />
+      </div>}
 
-          <IconButton
-            secondary
-            src={<UndoOutlined />}
-            onClick={() => onRestore(transfer.approvalId)}
-            text='Restore'
-            size={40}
-            disabled={transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming'}
-          />
-        </div>}
-    </td>
+  </td>
 
-    const isExisting = startingApprovals?.find(x => x.approvalId === transfer.approvalId);
-    const EditableValue = editable && <td>
+  const OnDeleteValue = onDelete && <td>
+    {!disapproved &&
+      <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
 
+        <IconButton
+          secondary
+          src={<DeleteOutlined />}
+          onClick={() => onDelete(transfer.approvalId)}
+          size={40}
+          text='Delete'
+          disabled={transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming'}
+        />
 
-      {!disapproved && !isExisting &&
-        <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
-          <IconButton
-            secondary
-            src={editIsVisible ? <MinusOutlined /> : <EditOutlined />}
-            onClick={() => {
-              setEditIsVisible(!editIsVisible);
-              setShowMoreIsVisible(false);
-            }}
-            text={editIsVisible ? 'Cancel Edit' : 'Edit'}
-            size={40}
-            disabled={transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming'}
-          />
-        </div>}
+      </div>}
 
-    </td>
+  </td>
 
-    const OnDeleteValue = onDelete && <td>
-      {!disapproved &&
-        <div className='flex-center' onClick={(e) => { e.stopPropagation(); }}>
-
-          <IconButton
-            secondary
-            src={<DeleteOutlined />}
-            onClick={() => onDelete(transfer.approvalId)}
-            size={40}
-            text='Delete'
-            disabled={transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming'}
-          />
-
-        </div>}
-
-    </td>
-
-    if (!transfer.details && compareObjects(transferableApproval, transfer)) {
-      transfer.details = {
-        name: 'Transferable',
-        description: 'Excluding transfers from the Mint address, this approval allows any address to transfer any badge to any address.',
-        challengeDetails: {
-          leavesDetails: {
-            leaves: [],
-            isHashed: false,
-          }
-        },
-      }
+  if (!transfer.details && compareObjects(transferableApproval, transfer)) {
+    transfer.details = {
+      name: 'Transferable',
+      description: 'Excluding transfers from the Mint address, this approval allows any address to transfer any badge to any address.',
+      challengeDetails: {
+        leavesDetails: {
+          leaves: [],
+          isHashed: false,
+        }
+      },
     }
-
-    return <>
-      <br />
-      <div className='flex-center flex-wrap'>
-
-        <InformationDisplayCard title={transfer.details?.name ?? ''} md={24} xs={24} sm={24} >
-
-          {<><br />
-            {
-              <Col md={0} xs={24} sm={24}>
-                <RowContentDetails mobile />
-              </Col>
-            }
-            {
-              <Col md={24} xs={0} sm={0}>
-                {<WideViewContent />}
-              </Col>
-            }
-
-
-          </>
-          }
-
-          {showMoreIsVisible && !disapproved && <>
-            {transfer.details?.description && <> <MarkdownDisplay markdown={transfer.details?.description ?? ''} /><br /></>}
-
-            <div className='flex-center flex-wrap full-width' style={{ alignItems: 'normal' }}>
-              <DetailsCard
-                isEdit={!!onDelete || editable}
-
-                transfer={transfer} allTransfers={allTransfers} isIncomingDisplay={isIncomingDisplay} isOutgoingDisplay={isOutgoingDisplay} collectionId={collectionId} address={address} setAddress={setAddress} />
-
-              <InformationDisplayCard inheritBg noBorder title='Balances' md={12} xs={24} sm={24}>
-                <Radio.Group
-                  buttonStyle='solid'
-                  onChange={(e) => {
-                    setBalanceTab(e.target.value);
-                  }}
-                  value={balanceTab}
-                >
-                  {hasPredetermined && <Radio.Button value='current'>
-                    <div className='primary-text hover:text-gray-400'>
-                      Badges to Receive
-                    </div>
-                  </Radio.Button>}
-                  <Radio.Button value='remaining'><div className='primary-text hover:text-gray-400'>
-                    Sender Balances
-                  </div></Radio.Button>
-                  <Radio.Button value="all"><div className='primary-text hover:text-gray-400'>
-                    All Badges
-                  </div></Radio.Button>
-                </Radio.Group>
-                <br /><br />
-                {balanceTab === 'all' && collection && <>
-                  <div className='flex-center'>
-                    <BadgeAvatarDisplay
-                      collectionId={collectionId}
-                      badgeIds={transfer.badgeIds}
-                      filterGreaterThanMax
-                      showIds
-                    />
-
-                  </div>
-                </>}
-                {balanceTab === 'remaining' && <>
-                  {transfer.fromMapping.addresses.length > 1 || !transfer.fromMapping.includeAddresses ? <>
-                    <div className='secondary-text'>
-                      <InfoCircleOutlined /> There are multiple addresses approved as senders.
-                    </div>
-                    <br />
-                  </> : <></>}
-                  <BalanceOverview
-                    collectionId={collectionId}
-                    hideSelect={transfer.fromMapping?.addresses.length === 1 && transfer.fromMapping.includeAddresses}
-                    defaultAddress={transfer.fromMapping?.addresses.length >= 1 && transfer.fromMapping.includeAddresses ? transfer.fromMapping?.addresses[0] : undefined}
-
-                  />
-                </>}
-                {balanceTab === 'current' && <>
-                  {hasPredetermined && <>
-                    <PredeterminedCard
-                      transfer={transfer}
-                      orderNumber={orderNumber}
-                      setOrderNumber={setOrderNumber}
-                      collectionId={collectionId}
-                      address={address}
-                      setAddress={setAddress}
-                    />
-                  </>}
-
-                </>}
-
-              </InformationDisplayCard>
-
-            </div>
-          </>}
-          {!disapproved && <>
-            <br />
-            <div className="flex-center flex-wrap">
-
-              {!onDelete && currentManager && currentManager === chain.cosmosAddress && transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria.merkleChallenge.useCreatorAddressAsLeaf && <div>
-
-                <IconButton
-                  secondary
-                  src={<DatabaseOutlined size={40} />}
-                  onClick={() => setFetchCodesModalIsVisible(true)}
-                  text={'Codes'}
-                  tooltipMessage={'Since you are the manager of this collection, you can view the codes / password for this claim.'}
-                  size={40}
-                />
-
-                <FetchCodesModal
-                  visible={fetchCodesModalIsVisible}
-                  setVisible={setFetchCodesModalIsVisible}
-                  collectionId={collectionId}
-                />
-              </div>}
-              {collectionId !== NEW_COLLECTION_ID && showMoreIsVisible &&
-                <IconButton
-                  secondary
-                  src={<CloudSyncOutlined size={40} />}
-                  onClick={() => refreshTrackers(true)}
-                  text={'Refresh'}
-                  tooltipMessage={'Refresh'}
-                  size={40}
-                />}
-              {!disapproved &&
-                <IconButton
-
-                  secondary
-                  src={showMoreIsVisible ? <MenuFoldOutlined size={40} /> : <MenuUnfoldOutlined size={40} />}
-                  onClick={() => {
-                    setShowMoreIsVisible(!showMoreIsVisible)
-                    setEditIsVisible(false);
-                  }}
-                  disabled={editIsVisible}
-                  text={showMoreIsVisible ? 'Hide Details' : 'Details'}
-                  tooltipMessage={showMoreIsVisible ? 'Hide Details' : 'Details'}
-                  size={40}
-                />}
-              {!editable && !onDelete && !hideActions && !disapproved &&
-                <IconButton
-
-                  secondary
-                  src={<SwapOutlined />}
-                  onClick={() => setTransferIsVisible(!transferIsVisible)}
-                  text={"Transfer"}
-                  tooltipMessage={"Transfer"}
-                  size={40}
-                />}
-              {EditableValue}
-
-              {OnRestoreValue}
-              {OnDeleteValue}
-            </div>
-
-            {
-              editable && !disapproved && showMoreIsVisible && <>
-                <br />
-                <div className='flex-center'>
-                  <div>
-                    This approval is  <span style={{ alignItems: 'center', marginLeft: 8, height: '100%' }}>
-                      {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? <Tag
-                        style={{ backgroundColor: '#1890ff' }}
-                        color='#1890ff'
-                        className='primary-text'
-                      >Existing</Tag> :
-                        <Tag
-                          style={{ backgroundColor: '#52c41a' }}
-                          color='#52c41a'
-                          className='primary-text'
-                        >New</Tag>}
-                      meaning, if applicable, any trackers (amounts, number of transfers, which codes are used, which addresses have claimed, etc.)
-                      {startingApprovals?.find(x => x.approvalId === transfer.approvalId) ? ' will continue adding on to the existing tally.' : ' will start from scratch.'}
-
-                    </span>
-                  </div>
-                </div>
-                <br />
-              </>
-            }
-
-            {
-              approval && isMint && hasPredetermined &&
-              <CreateTxMsgClaimBadgeModal
-                collectionId={collectionId}
-                visible={transferIsVisible}
-                setVisible={setTransferIsVisible}
-                approval={approval}
-              />
-            }
-            {
-              approval && !(isMint && hasPredetermined) &&
-              <CreateTxMsgTransferBadgesModal
-                collectionId={collectionId}
-                visible={transferIsVisible}
-                setVisible={setTransferIsVisible}
-                defaultAddress={'Mint'}
-                approval={approval}
-                fromTransferabilityRow
-              />
-            }
-
-
-          </>}
-
-          {editIsVisible && collection && transfer && setAllTransfers &&
-
-            <tr style={{ paddingBottom: 10, borderBottom: noBorder ? undefined : '1px solid gray' }} className="transferability-row-more">
-              {
-                <td colSpan={1000} style={{ alignItems: 'center' }}>
-                  <div className='flex-center'>
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
-                      Editing Approval
-                    </Typography.Text>
-
-                  </div>
-                  <ApprovalSelectWrapper
-                    collection={collection}
-                    defaultApproval={transfer}
-                    approvalLevel={approvalLevel}
-                    approvals={allTransfers}
-                    approverAddress={approverAddress ?? ''}
-                    setApprovals={setAllTransfers}
-                    startingApprovals={startingApprovals ?? []}
-                    approvalPermissions={approvalPermissions ?? []}
-                    setVisible={setEditIsVisible}
-                    mintingOnly={!filterFromMint}
-                  />
-                </td>
-              }
-            </tr>
-          }
-        </InformationDisplayCard >
-      </div>
-
-
-    </>
   }
+
+  const isPasswordClaim = transfer.approvalCriteria?.merkleChallenge?.root && approvalCriteriaUsesPredeterminedBalances(transfer.approvalCriteria) && transfer.details?.hasPassword;
+  const isCodeClaim = transfer.approvalCriteria?.merkleChallenge?.root && approvalCriteriaUsesPredeterminedBalances(transfer.approvalCriteria) && !transfer.details?.hasPassword;
 
   return <>
     <div style={{ textAlign: 'center' }}>
-      {collection && <InnerContent />}
+      {collection && <>
+        <>
+          <br />
+          <div className='flex-center flex-wrap'>
+
+            <InformationDisplayCard noPadding title={transfer.details?.name ?? ''} md={24} xs={24} sm={24} >
+
+              {<><br />
+                {
+                  <Col md={0} xs={24} sm={24}>
+                    <RowContentDetails
+                      mobile
+                      transfer={transfer}
+                      filterFromMint={filterFromMint}
+                      grayedOut={grayedOut}
+                      onDelete={onDelete}
+                      startingApprovals={startingApprovals}
+                      disapproved={disapproved}
+                      toAddresses={toAddresses}
+                      initiatedByAddresses={initiatedByAddresses}
+                      hasSameChallengeTrackerId={!!hasSameChallengeTrackerId}
+                      hasSameTrackerId={!!hasSameTrackerId}
+                    />
+                  </Col>
+                }
+                {
+                  <Col md={24} xs={0} sm={0}>
+                    {WideViewContent}
+                  </Col>
+                }
+
+
+              </>
+              }
+
+              {showMoreIsVisible && !disapproved && <>
+                {transfer.details?.description && <><Divider /><div className='flex-center'><MarkdownDisplay markdown={transfer.details?.description ?? ''} /></div> <br /></>}
+
+                <div className='flex-center flex-wrap full-width' style={{ alignItems: 'normal', fontSize: 16 }}>
+                  <DetailsCard
+                    isEdit={!!onDelete || editable}
+
+                    transfer={transfer} allTransfers={allTransfers} isIncomingDisplay={isIncomingDisplay} isOutgoingDisplay={isOutgoingDisplay} collectionId={collectionId} address={address} setAddress={setAddress} />
+
+                  <InformationDisplayCard inheritBg noBorder title='Balances' md={12} xs={24} sm={24}>
+                    <RadioGroup value={balanceTab} onChange={(e) => setBalanceTab(e)}
+                      options={[
+                        { label: 'Badges to Receive', value: 'current' },
+                        { label: 'Sender Balances', value: 'remaining' },
+                        { label: 'All Badges', value: 'all' },
+                      ]}
+                    />
+                    <br /><br />
+                    {balanceTab === 'all' && collection && <>
+                      <div className='flex-center'>
+                        <BadgeAvatarDisplay
+                          collectionId={collectionId}
+                          badgeIds={transfer.badgeIds}
+                          filterGreaterThanMax
+                          showIds
+                        />
+
+                      </div>
+                    </>}
+                    {balanceTab === 'remaining' && <>
+                      {transfer.fromMapping.addresses.length > 1 || !transfer.fromMapping.includeAddresses ? <>
+                        <div className='secondary-text'>
+                          <InfoCircleOutlined /> There are multiple addresses approved as senders.
+                        </div>
+                        <br />
+                      </> : <></>}
+                      <BalanceOverview
+                        collectionId={collectionId}
+                        hideSelect={transfer.fromMapping?.addresses.length === 1 && transfer.fromMapping.includeAddresses}
+                        defaultAddress={transfer.fromMapping?.addresses.length >= 1 && transfer.fromMapping.includeAddresses ? transfer.fromMapping?.addresses[0] : undefined}
+
+                      />
+                    </>}
+                    {balanceTab === 'current' && <>
+                      {hasPredetermined && <>
+                        <PredeterminedCard
+                          transfer={transfer}
+                          collectionId={collectionId}
+                          address={address}
+                          setAddress={setAddress}
+                        />
+                      </>}
+
+                    </>}
+
+                  </InformationDisplayCard>
+
+                </div>
+              </>}
+              {!disapproved && <>
+                <br />
+                <div className="flex-center flex-wrap">
+
+                  {!onDelete && currentManager && currentManager === chain.cosmosAddress && transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria.merkleChallenge.useCreatorAddressAsLeaf && <div>
+
+                    <IconButton
+                      secondary
+                      src={<DatabaseOutlined size={40} />}
+                      onClick={() => setFetchCodesModalIsVisible(true)}
+                      text={'Codes'}
+                      tooltipMessage={'Since you are the manager of this collection, you can view the codes / password for this claim.'}
+                      size={40}
+                    />
+
+                    <FetchCodesModal
+                      visible={fetchCodesModalIsVisible}
+                      setVisible={setFetchCodesModalIsVisible}
+                      collectionId={collectionId}
+                      approvalId={transfer.approvalId}
+                    />
+                  </div>}
+                  {collectionId !== NEW_COLLECTION_ID && showMoreIsVisible && refreshable &&
+                    <IconButton
+                      secondary
+                      src={
+                        refreshing ? <Spin /> :
+                          <CloudSyncOutlined size={40} />}
+                      onClick={() => refreshTrackers(true)}
+                      text={'Refresh'}
+                      tooltipMessage={'Refresh'}
+                      disabled={refreshing}
+
+                      size={40}
+                    />}
+                  {!disapproved &&
+                    <IconButton
+
+                      secondary
+                      src={
+                        refreshing ? <Spin /> :
+                          showMoreIsVisible ? <MenuFoldOutlined size={40} /> : <MenuUnfoldOutlined size={40} />}
+                      onClick={async () => {
+                        if (!hideActions) await refreshTrackers();
+
+                        setShowMoreIsVisible(!showMoreIsVisible)
+                        setEditIsVisible(false);
+                      }}
+                      disabled={editIsVisible || refreshing}
+                      text={showMoreIsVisible ? 'Hide Details' : 'Details'}
+                      tooltipMessage={showMoreIsVisible ? 'Hide Details' : 'Details'}
+                      size={40}
+                    />}
+                  {!disapproved && collectionId !== NEW_COLLECTION_ID &&
+                    <IconButton
+
+                      secondary
+                      src={<BookOutlined />}
+                      onClick={async () => {
+                        window.open(`https://docs.bitbadges.io/overview/how-it-works/transferability`, '_blank');
+                      }}
+                      text={'Docs'}
+                      tooltipMessage={'Visit the docs to learn more about how transferability and approvals work.'}
+                      size={40}
+                    />}
+                  {!editable && !onDelete && !hideActions && !disapproved &&
+                    <IconButton
+
+                      secondary
+                      src={
+                        refreshing ? <Spin /> : <SwapOutlined size={40} />}
+                      onClick={async () => {
+                        if (!hideActions) await refreshTrackers();
+                        setTransferIsVisible(!transferIsVisible)
+                      }}
+                      disabled={refreshing}
+                      text={isPasswordClaim || isCodeClaim ? 'Claim' : 'Transfer'}
+                      tooltipMessage={
+                        isPasswordClaim ? 'Claim by entering the password for this approval.' :
+                          isCodeClaim ? 'Claim by entering a valid code for this approval.' : 'Transfer badges to another address via use of this approval.'
+                      }
+                      size={40}
+                    />}
+                  {EditableValue}
+
+                  {OnRestoreValue}
+                  {OnDeleteValue}
+                </div>
+
+                {
+                  editable && !disapproved && showMoreIsVisible && !isReserved && <>
+                    <br />
+                    <div className='flex-center'>
+                      <div>
+                        This approval is  <span style={{ alignItems: 'center', marginLeft: 8, height: '100%' }}>
+                          {isExisting ? <Tag
+                            style={{ backgroundColor: '#1890ff' }}
+                            color='#1890ff'
+                            className='primary-text'
+                          >Existing</Tag> :
+                            <Tag
+                              style={{ backgroundColor: '#52c41a' }}
+                              color='#52c41a'
+                              className='primary-text'
+                            >New</Tag>}
+                          meaning, if applicable, any trackers (amounts, number of transfers, which codes are used, which addresses have claimed, etc.)
+                          {isExisting ? ' will continue adding on to the existing tally.' : ' will start from scratch.'}
+
+                        </span>
+                      </div>
+                    </div>
+                    <br />
+                  </>
+                }
+
+                {
+                  approval && isMint && hasPredetermined &&
+                  <CreateTxMsgClaimBadgeModal
+                    collectionId={collectionId}
+                    visible={transferIsVisible}
+                    setVisible={setTransferIsVisible}
+                    approval={approval}
+                  />
+                }
+                {
+                  approval && !(isMint && hasPredetermined) &&
+                  <CreateTxMsgTransferBadgesModal
+                    collectionId={collectionId}
+                    visible={transferIsVisible}
+                    setVisible={setTransferIsVisible}
+                    defaultAddress={'Mint'}
+                    approval={approval}
+                    fromTransferabilityRow
+                  />
+                }
+
+
+              </>}
+
+              {editIsVisible && collection && transfer && setAllTransfers &&
+
+                <tr style={{ paddingBottom: 10, borderBottom: noBorder ? undefined : '1px solid gray' }} className="transferability-row-more">
+                  {
+                    <td colSpan={1000} style={{ alignItems: 'center' }}>
+                      <div className='flex-center'>
+                        <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
+                          Editing Approval
+                        </Typography.Text>
+
+                      </div>
+                      <ApprovalSelectWrapper
+                        collection={collection}
+                        defaultApproval={transfer}
+                        approvalLevel={approvalLevel}
+                        approvals={allTransfers}
+                        approverAddress={approverAddress ?? ''}
+                        setApprovals={setAllTransfers}
+                        startingApprovals={startingApprovals ?? []}
+                        approvalPermissions={approvalPermissions ?? []}
+                        setVisible={setEditIsVisible}
+                        mintingOnly={!filterFromMint}
+                      />
+                    </td>
+                  }
+                </tr>
+              }
+            </InformationDisplayCard >
+          </div>
+
+
+        </></>}
     </div >
   </>
+}
+
+
+const RowContentDetails = ({
+  mobile,
+  transfer,
+  filterFromMint,
+  grayedOut,
+  onDelete,
+  startingApprovals,
+  disapproved,
+  toAddresses,
+  initiatedByAddresses,
+  hasSameChallengeTrackerId,
+  hasSameTrackerId,
+}: {
+  transfer: CollectionApprovalWithDetails<bigint>,
+  filterFromMint?: boolean,
+  grayedOut?: boolean,
+  onDelete?: (approvalId: string) => void,
+  startingApprovals?: CollectionApprovalWithDetails<bigint>[],
+  disapproved?: boolean,
+  toAddresses: string[],
+  initiatedByAddresses: string[],
+  hasSameChallengeTrackerId: boolean,
+  hasSameTrackerId: boolean,
+  mobile: boolean
+}) => {
+
+  const FromValue = <AddressDisplayList
+    users={transfer.fromMapping.addresses}
+    allExcept={!transfer.fromMapping.includeAddresses}
+    fontSize={16}
+    filterMint={filterFromMint}
+  />
+
+  const ToValue = <AddressDisplayList
+    users={toAddresses}
+    allExcept={!transfer.toMapping.includeAddresses}
+    filterMint
+    fontSize={16}
+  />
+
+  const InitiatedByValue = <AddressDisplayList
+    users={initiatedByAddresses}
+    allExcept={!transfer.initiatedByMapping.includeAddresses}
+    filterMint
+    fontSize={16}
+  />
+
+  const BadgeIdsValue = <> {getBadgeIdsString(transfer.badgeIds)}</>
+  const OwnershipTimesValue = <> {getTimeRangesElement(transfer.ownershipTimes, '', true)}</>
+  const TransferTimesValue = <> {getTimeRangesElement(transfer.transferTimes, '', true)}</>
+
+  const isExisting = startingApprovals?.find(x => x.approvalId === transfer.approvalId);
+  const isReservedApproval = transfer.approvalId === 'default-outgoing' || transfer.approvalId === 'default-incoming';
+
+  const TagsValue = <> {!disapproved &&
+    <div style={{ alignItems: 'center', height: '100%', }} className='flex-center flex-wrap flex-column'>
+      {onDelete && !isReservedApproval && <>
+        {isExisting ? <Tag
+          style={{ margin: 4, backgroundColor: '#1890ff' }}
+          color='#1890ff'
+          className='primary-text'
+        >
+          Existing
+        </Tag> :
+          <Tag
+            style={{ margin: 4, backgroundColor: '#52c41a' }}
+            color='#52c41a'
+            className='primary-text'
+          >New</Tag>}
+      </>}
+
+      {grayedOut && <Tag
+        style={{ margin: 4, backgroundColor: '#FF5733' }}
+        color='#FF5733'
+        className='primary-text'
+      >Deleted</Tag>}
+
+      {approvalCriteriaHasNoAmountRestrictions(transfer.approvalCriteria) && <Tag
+        style={{ margin: 4, backgroundColor: '#1890ff' }}
+        color='#1890ff'
+        className='primary-text'
+      >No Amount Restrictions</Tag>}
+      {transfer.approvalCriteria?.merkleChallenge?.root && transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf && <Tag
+        style={{ margin: 4, backgroundColor: '#1890ff' }}
+        color='#1890ff'
+        className='primary-text'
+      >Whitelist</Tag>}
+      {transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
+        !transfer.details?.challengeDetails.hasPassword &&
+        <Tag
+          style={{ margin: 4, backgroundColor: '#1890ff' }}
+          color='#1890ff'
+          className='primary-text'
+        >Codes</Tag>}
+
+      {transfer.approvalCriteria?.merkleChallenge?.root && !transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
+        transfer.details?.challengeDetails.hasPassword &&
+        <Tag
+          style={{ margin: 4, backgroundColor: '#df3372' }}
+          color='#1890ff'
+          className='primary-text'
+        >Password</Tag>}
+      {transfer.approvalCriteria?.overridesFromOutgoingApprovals && transfer.fromMappingId !== 'Mint' && <Tag
+        style={{ margin: 4, backgroundColor: '#FF5733' }}
+        color='#1890ff'
+        className='primary-text'
+      ><WarningOutlined /> Overrides Outgoing Approvals</Tag>}
+      {transfer.approvalCriteria?.overridesToIncomingApprovals && <Tag
+        style={{ margin: 4, backgroundColor: '#FF5733' }}
+        color='#1890ff'
+        className='primary-text'
+      ><WarningOutlined /> Overrides Incoming Approvals</Tag>}
+      {hasSameChallengeTrackerId && <Tag
+        style={{ margin: 4, backgroundColor: '#FF5733' }}
+        color='#1890ff'
+        className='primary-text'
+      ><WarningOutlined /> Duplicate Challenge Tracker</Tag>}
+      {hasSameTrackerId && <Tag
+        style={{ margin: 4, backgroundColor: '#FF5733' }}
+        color='#1890ff'
+        className='primary-text'
+      ><WarningOutlined /> Duplicate Amount Tracker</Tag>}
+
+      {(transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n) > 0n || (transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n) > 0n && <Tag
+        style={{ margin: 4, backgroundColor: '#1890ff' }}
+        color='#1890ff'
+        className='primary-text'
+      >Incrementing Badge IDs</Tag>}
+    </div>
+  }
+    {!disapproved ? <td>
+    </td> :
+
+      <td className='flex-center'><Tag
+        style={{ margin: 4, backgroundColor: 'red' }}
+        color='#1890ff'
+        className='primary-text'
+      >Disapproved</Tag> </td>}
+  </>
+  
+  if (mobile) {
+    return <>
+      <TableRow label={'From'} value={FromValue} />
+      <TableRow label={'To'} value={ToValue} />
+      <TableRow label={'Initiated By'} value={InitiatedByValue} />
+      <TableRow label={'Badge IDs'} value={BadgeIdsValue} />
+      <TableRow label={'Ownership Times'} value={OwnershipTimesValue} />
+      <TableRow label={'Transfer Times'} value={TransferTimesValue} />
+      <TableRow label={'Tags'} value={TagsValue} />
+    </>
+  }
+
+
+
+  return <tr style={{ opacity: grayedOut ? 0.5 : undefined, fontWeight: 'bold', fontSize: 16 }}>
+
+
+    {
+      !disapproved ?
+        <td style={{}}>
+
+          {<span style={{ fontSize: 20, marginLeft: 4, marginRight: 24, color: 'green' }}><CheckCircleFilled /></span>}
+
+        </td> :
+
+        <td style={{}}>{<span style={{ fontSize: 20, marginLeft: 4, marginRight: 24, color: 'red' }}><CloseCircleFilled /></span>} </td>}
+
+    <td style={{ alignItems: 'center' }}>
+      {FromValue}
+    </td>
+    <td style={{ alignItems: 'center' }}>
+      {ToValue}
+    </td>
+    <td style={{ alignItems: 'center' }}>
+      {InitiatedByValue}
+    </td>
+
+    <td style={{ alignItems: 'center' }}>
+      {TransferTimesValue}
+    </td>
+    <td style={{ alignItems: 'center' }}>
+      {BadgeIdsValue}
+    </td>
+    <td style={{ alignItems: 'center' }}>
+      {OwnershipTimesValue}
+    </td>
+
+    <td style={{ alignItems: 'center' }}>
+      {TagsValue}
+    </td>
+  </tr >
 }

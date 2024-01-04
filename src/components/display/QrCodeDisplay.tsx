@@ -73,17 +73,17 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, hideCopyButtons, s
     </div>
     {value && !hideCopyButtons && <>
       <div className='flex-center flex-wrap' style={{ marginTop: 8 }}>
-        <button className='landing-button' style={{ minWidth: 130, margin: 5 }} onClick={async () => {
+        <button className='landing-button' style={{ minWidth: 150, margin: 5 }} onClick={async () => {
           const imageUrl = await toDataURL(value);
           handleDownload(imageUrl);
         }}>
-          Save As Image
+          Save QR As Image
         </button>
-        <button className='landing-button' style={{ minWidth: 130, margin: 5 }} onClick={async () => {
+        <button className='landing-button' style={{ minWidth: 150, margin: 5 }} onClick={async () => {
           const imageUrl = await toDataURL(value);
           handleCopy(imageUrl);
         }}>
-          Copy As Image
+          Copy QR As Image
         </button>
         {storeLocally && authCode &&
           <button className='landing-button' style={{ minWidth: 130, margin: 5 }} onClick={async () => {

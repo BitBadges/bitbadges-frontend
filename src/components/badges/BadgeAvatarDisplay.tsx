@@ -31,6 +31,7 @@ export function BadgeAvatarDisplay({
   showSupplys,
   defaultPageSize,
   maxWidth,
+  groupByCollection,
 
   cardView,
   hideCollectionLink,
@@ -40,7 +41,8 @@ export function BadgeAvatarDisplay({
   showPageJumper,
   onClick,
   filterGreaterThanMax,
-  sortBy
+  sortBy,
+
 }: {
   collectionId: bigint
   balance?: Balance<bigint>[]
@@ -60,15 +62,14 @@ export function BadgeAvatarDisplay({
   onClick?: (id: bigint) => void
   filterGreaterThanMax?: boolean
   sortBy?: 'oldest' | 'newest' | undefined
+  groupByCollection?: boolean
 }) {
   const txTimelineContext = useTxTimelineContext()
   const collection = useCollection(collectionId)
   const maxId = collection ? getMaxBadgeIdForCollection(collection) : 0n
   const [remaining, removed] = removeUintRangeFromUintRange([{ start: maxId + 1n, end: GO_MAX_UINT_64 }], badgeIds)
 
-  const toFilter = filterGreaterThanMax ?? true;
-  const passedInToFilterProp = filterGreaterThanMax !== undefined;
-  const inRangeBadgeIds = toFilter ? remaining : badgeIds
+  const inRangeBadgeIds = filterGreaterThanMax ? remaining : badgeIds
   const userBalance = balance
   const [currPage, setCurrPage] = useState<number>(1)
   const pageSize = defaultPageSize ?? (cardView ? 2 : 10)
@@ -199,6 +200,7 @@ export function BadgeAvatarDisplay({
                         ? getBalancesForId(badgeId, userBalance)
                         : undefined
                     }
+                    groupedByCollection={groupByCollection}
                   />
                 )}
               </div>
@@ -207,7 +209,7 @@ export function BadgeAvatarDisplay({
         })}
       </div>
 
-      {removed.length > 0 && passedInToFilterProp && (
+      {removed.length > 0 && filterGreaterThanMax && (
         <div className="secondary-text">
           <br />
           Badge IDs {getBadgeIdsString(removed)} have placeholder metadata or

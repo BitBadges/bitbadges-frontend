@@ -7,8 +7,6 @@ import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function DistributionMethodStepItem() {
-
-
   const txTimelineContext = useTxTimelineContext();
   const collection = useCollection(NEW_COLLECTION_ID);
   const startingCollection = txTimelineContext.startingCollection;
@@ -17,6 +15,7 @@ export function DistributionMethodStepItem() {
   const isOffChainBalances = collection?.balancesType === "Off-Chain - Indexed";
 
   const [err, setErr] = useState<Error | null>(null);
+
 
   if (!collection) return EmptyStepItem;
 
@@ -35,9 +34,10 @@ export function DistributionMethodStepItem() {
     </>}
   </div>
 
+
   return {
     title: `Collection Approvals (Transferability) - Minting`,
-    description: 'You previously created badges which have been sent to the Mint address. Here, you create the collection level approvals for who can transfer from the Mint address. All transfers must be approved on the collection level.',
+    description: 'You previously created badges which have been sent to the Mint address. Here, you create the collection level approvals for who can transfer from the Mint address. All transfers must be approved on the collection level. Use the advanced view to implement more custom complex restricitons.',
     node: () => <>
       {
         collection?.balancesType === "Off-Chain - Indexed" ? DistributionComponent :
@@ -64,6 +64,7 @@ export function DistributionMethodStepItem() {
             mintOnly
             node={DistributionComponent}
           />
+
       }
     </>,
     disabled: !collection || !!err

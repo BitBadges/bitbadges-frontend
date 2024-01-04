@@ -296,6 +296,7 @@ export function UpdateCollectionTimeline() {
       items.push(TemplateSelectStep)
     } else {
       items.push(
+        
         false && toShowUpdateStandardsAction
           ? StandardsSelectStep
           : EmptyStepItem,

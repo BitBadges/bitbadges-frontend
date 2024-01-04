@@ -1,4 +1,4 @@
-import {  Typography} from 'antd';
+import { Typography } from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { FormNavigationHeader } from './FormNavigationHeader';
@@ -107,11 +107,11 @@ export function FormTimeline({
         finalStepNumber={filteredItems.length}
         nextButtonDisabled={nextButtonDisabled}
       />
-
-
-      {getTitleElem(filteredItems[formStepNum - 1].title)}
-      {getTitleDescription(filteredItems[formStepNum - 1].description)}
-      {filteredItems[formStepNum - 1].node()}
+      {formStepNum - 1 < filteredItems.length && <>
+        {getTitleElem(filteredItems[formStepNum - 1].title)}
+        {getTitleDescription(filteredItems[formStepNum - 1].description)}
+        {filteredItems[formStepNum - 1].node()}
+      </>}
 
     </div>
   );

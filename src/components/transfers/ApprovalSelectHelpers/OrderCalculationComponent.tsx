@@ -1,12 +1,11 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Switch, Typography } from "antd";
-import { Balance, Numberify } from "bitbadgesjs-proto";
+import { Balance } from "bitbadgesjs-proto";
 import { DistributionMethod } from "bitbadgesjs-utils";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { BalanceDisplay } from "../../badges/BalanceDisplay";
 import { TableRow } from "../../display/TableRow";
 import { BalanceAmountInput } from "../../inputs/BalanceAmountInput";
-import { NumberInput } from "../../inputs/NumberInput";
 import { AmountType, CodeType, RequiredApprovalProps, getMaxIncrementsApplied } from "../ApprovalSelect";
 import { MaxUses } from "./MaxUsesSelectComponent";
 
@@ -18,9 +17,10 @@ export const OrderCalculationMethod = ({ approvalToAdd,
   startBalances,
   collectionId,
   amountType,
-
+  expectedPartitions,
   keyId, label }:
   {
+    expectedPartitions: bigint,
     amountType: AmountType,
     distributionMethod: DistributionMethod, codeType: CodeType, increment: bigint, startBalances: Balance<bigint>[], collectionId: bigint,
     setApprovalToAdd: (approvalToAdd: RequiredApprovalProps) => void,
@@ -29,10 +29,26 @@ export const OrderCalculationMethod = ({ approvalToAdd,
   }) => {
   const checked = approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod?.[keyId] || false;
   const setChecked = (checked: boolean) => {
+    let key = '' as keyof typeof approvalToAdd.approvalCriteria.maxNumTransfers;
+    if (keyId === 'useMerkleChallengeLeafIndex' || keyId === 'useOverallNumTransfers') {
+      key = 'overallMaxNumTransfers';
+    } else if (keyId === 'usePerFromAddressNumTransfers') {
+      key = 'perFromAddressMaxNumTransfers';
+    } else if (keyId === 'usePerInitiatedByAddressNumTransfers') {
+      key = 'perInitiatedByAddressMaxNumTransfers';
+    } else if (keyId === 'usePerToAddressNumTransfers') {
+      key = 'perToAddressMaxNumTransfers';
+    }
+
+
     setApprovalToAdd({
       ...approvalToAdd,
       approvalCriteria: {
         ...approvalToAdd.approvalCriteria,
+        maxNumTransfers: {
+          ...approvalToAdd.approvalCriteria.maxNumTransfers,
+          [key]: checked ? expectedPartitions : 0n,
+        },
         predeterminedBalances: {
           ...approvalToAdd.approvalCriteria.predeterminedBalances,
           orderCalculationMethod: {
@@ -53,6 +69,11 @@ export const OrderCalculationMethod = ({ approvalToAdd,
   const somethingElseChecked = Object.entries(approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod || {}).some(([key, val]) => key !== keyId && val === true);
   if (somethingElseChecked) return <></>
 
+
+
+  const maxIncrementsApplied = getMaxIncrementsApplied(approvalToAdd);
+
+
   let maxUsesErrorMessage = '';
   if ((keyId === 'useMerkleChallengeLeafIndex' || keyId === 'useOverallNumTransfers') && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
     maxUsesErrorMessage = 'To calculate number of partitions, you must set an overall max uses.';
@@ -62,9 +83,10 @@ export const OrderCalculationMethod = ({ approvalToAdd,
     maxUsesErrorMessage = 'To calculate number of partitions, you must set overall max uses or max uses per approver.';
   } else if (keyId === 'usePerToAddressNumTransfers' && approvalToAdd.approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers === 0n && approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers === 0n) {
     maxUsesErrorMessage = 'To calculate number of partitions, you must set overall max uses or max uses per recipient.';
+  } else if (maxIncrementsApplied !== expectedPartitions) {
+    maxUsesErrorMessage = `Expected ${expectedPartitions} partitions but got ${maxIncrementsApplied}.`;
   }
 
-  const maxIncrementsApplied = getMaxIncrementsApplied(approvalToAdd);
 
   return <><TableRow labelSpan={16} valueSpan={8} label={label} value={<>
     <Switch
@@ -80,10 +102,10 @@ export const OrderCalculationMethod = ({ approvalToAdd,
       <div style={{ textAlign: 'start', marginLeft: 10, marginBottom: 10 }}>
         <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
           <InfoCircleOutlined />
-          {keyId == 'useOverallNumTransfers' ? ' First use of this approval by any user will be assigned partition #1, second use of this approval partition #2, and so on regardless of who sends, receives, or initiates.' : ''}
-          {keyId == 'usePerFromAddressNumTransfers' ? ' Each unique sender will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
-          {keyId == 'usePerInitiatedByAddressNumTransfers' ? ' Each unique approver will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
-          {keyId == 'usePerToAddressNumTransfers' ? ' Each unique recipient will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on.' : ''}
+          {keyId == 'useOverallNumTransfers' ? ' First use of this approval by any user will be assigned partition #1, second use of this approval partition #2, and so on regardless of who sends, receives, or initiates. Each partition will only ever be approved once.' : ''}
+          {keyId == 'usePerFromAddressNumTransfers' ? ' Each unique sender will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on. Each partition will be approved more than once (if there are multiple senders).' : ''}
+          {keyId == 'usePerInitiatedByAddressNumTransfers' ? ' Each unique approver will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on. Each partition will be approved more than once (if there are multiple approved addresses).' : ''}
+          {keyId == 'usePerToAddressNumTransfers' ? ' Each unique recipient will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on. Each partition will be approved more than once (if there are multiple recipients).' : ''}
           {keyId == 'useMerkleChallengeLeafIndex' ?
             distributionMethod === DistributionMethod.Whitelist ? ' Reserve specific partitions for specific whitelisted users.' :
               distributionMethod === DistributionMethod.Codes ? codeType === CodeType.Unique ?
@@ -96,20 +118,19 @@ export const OrderCalculationMethod = ({ approvalToAdd,
     {checked && <>
       <hr />
       <b style={{ fontSize: 16 }}> Number of Partitions</b>
-      <br />
-      <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
-        <InfoCircleOutlined /> The number of partitions is calculated according to how many times users can send, receive, and / or initiate.
-        Note the Max Uses selections are the same as above in the address boxes.
-      </Typography.Text>
-      <br />
+      <br /><br />
 
-      <br />
       {<div style={{}}>
         {maxUsesErrorMessage && <div style={{ color: 'red' }}>{maxUsesErrorMessage}</div>}
         {!maxUsesErrorMessage && <Typography.Text className='primary-text' strong style={{ fontSize: 16 }}>Total Partitions: {maxIncrementsApplied.toString()}</Typography.Text>}
-        <br />
-        <br />
+
       </div>}
+
+      <Typography.Text className='secondary-text' style={{ fontSize: 12, textAlign: 'start' }}>
+        <InfoCircleOutlined /> The number of partitions is calculated according to how many times users can send, receive, and / or initiate.
+      </Typography.Text>
+      <br />
+      <br />
 
       <MaxUses
         approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
@@ -134,28 +155,6 @@ export const OrderCalculationMethod = ({ approvalToAdd,
         {(increment ? increment : 0) > 0 && <div style={{ textAlign: 'center', margin: 10 }}>
           {<div>
             {<div className='flex-center'>
-              <NumberInput
-
-                value={increment ? Numberify(increment.toString()) : 0}
-                setValue={(value) => {
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    approvalCriteria: {
-                      ...approvalToAdd.approvalCriteria,
-                      predeterminedBalances: {
-                        ...approvalToAdd.approvalCriteria.predeterminedBalances,
-                        incrementedBalances: {
-                          ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
-                          incrementBadgeIdsBy: BigInt(value),
-                        }
-                      }
-                    }
-                  });
-                }}
-                min={1}
-                title="IDs Increment"
-              />
-
               <div style={{ textAlign: 'center', margin: 10 }}>
                 <BalanceAmountInput
                   title={'Amount'}

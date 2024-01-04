@@ -24,44 +24,73 @@ export const SelectWithOptions = ({
   setValue,
   options,
 }: {
-  title: string,
-  value: string | undefined,
-  setValue: (value: string | undefined) => void,
+  title: string;
+  value: string | undefined;
+  setValue: (value: string | undefined) => void;
   options: {
-    label: string,
-    value: string | undefined
-  }[]
+    disabled?: boolean;
+    disabledReason?: string;
+    label: string;
+    value: string | undefined;
+  }[];
 }) => {
-  return <div className='primary-text flex-bet' style={{
-    display: 'flex',
-    alignItems: 'center',
-    margin: 4,
-  }}>
-    <div className=''>
-      <b className="text-md">{title}</b>
-      <div className="mt-2">
-        <select
-          // Cursor pointer
-          className="styled-button-normal rounded p-1 cursor-pointer"
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value === 'none' ? undefined : e.target.value);
-          }}
-          style={{ borderWidth: 1 }}
-        >
-          {options.map((option, idx) => {
-            return <option value={option.value} key={idx} style={{ color: 'black', height: 100 }} className='p-10 flex-center flex-column' >
+  const [open, setOpen] = useState(false);
 
-              {option.label}
-            </option>
-          })}
-        </select>
-
-
+  return (
+    <div className="primary-text flex-bet" style={{ margin: 4, }}>
+      <div>
+        <b className="text-md">{title}</b>
+        <div className="mt-2 relative">
+          <div className="relative inline-block w-full">
+            <div className="relative z-10">
+              <button
+                data-dropdown-toggle={"dropdown" + title}
+                type="button"
+                className="styled-button-normal rounded-lg w-full py-2 px-4 text-center cursor-pointer border-gray-300 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                style={{ borderWidth: 1, fontWeight: 'bold' }}
+                onClick={() => setOpen(!open)}
+              >
+                {value ? (
+                  options.find((option) => option.value === value)?.label
+                ) : (
+                  <span className="text-gray-400">Select an option</span>
+                )}
+              </button>
+            </div>
+            {open &&
+              <div id={"dropdown" + title} className="full-width absolute z-20">
+                {(
+                  <ul className="absolute z-20 mt-2  bg-white shadow-lg rounded py-1" id={"dropdown" + title}>
+                    {options.map((option, idx) => (
+                      <li
+                        key={idx}
+                        style={{ width: '100%' }}
+                        className={`${option.disabled
+                          ? 'text-red-500 cursor-not-allowed'
+                          : 'text-black hover:bg-blue-200 cursor-pointer'
+                          } px-4 py-2`}
+                        onClick={() => {
+                          if (!option.disabled) {
+                            setValue(option.value);
+                            setOpen(false);
+                          }
+                        }}
+                      >
+                        <Tooltip title={option.disabledReason ?? option.label}>
+                          {option.label}
+                        </Tooltip>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>}
+          </div>
+        </div>
       </div>
-    </div>
-  </div >
-}
+    </div >
+  );
+};
+
 
 
 export function BadgesTab({ collectionId }: {
@@ -305,7 +334,7 @@ export function BadgesTab({ collectionId }: {
         {!sortByMostViewed && <div
           // Cursor pointer
           className="styled-button-normal rounded cursor-pointer px-2"
-          style={{ border: 'none', fontSize: 24 }}
+          style={{ border: 'none', fontSize: 28 }}
           onClick={() => { setShowAdvancedFilters(!showAdvancedFilters) }}
         >
           <Tooltip title={showAdvancedFilters ? 'Hide Additional Filters' : 'Show Additional Filters'}>
@@ -319,7 +348,7 @@ export function BadgesTab({ collectionId }: {
         <SelectWithOptions title='Sort By' value={sortByMostViewed ? 'most-viewed' : sortBy ?? 'oldest'} setValue={(e) => {
           setSortBy(e === 'oldest' ? 'oldest' : e === 'newest' ? 'newest' : undefined)
           setSortByMostViewed(e === 'oldest' ? undefined : e === 'newest' ? undefined : 'daily')
-        }} options={[{ label: 'Oldest (ID Asc.)', value: 'oldest' }, { label: 'Newest  (ID Desc.)', value: 'newest' }, { label: 'Most Viewed', value: 'most-viewed' },]} />
+        }} options={[{ label: 'Oldest', value: 'oldest' }, { label: 'Newest', value: 'newest' }, { label: 'Most Viewed', value: 'most-viewed' },]} />
 
         {sortByMostViewed &&
           <SelectWithOptions title='Timeframe' value={sortByMostViewed} setValue={(e) => {

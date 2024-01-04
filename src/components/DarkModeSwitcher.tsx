@@ -2,11 +2,11 @@ import { Switch } from 'antd';
 import { useState, useEffect } from 'react';
 
 const DarkModeSwitcher: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
     // Check if dark mode is enabled in local storage
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    const isDarkMode = !localStorage.getItem('darkMode') || localStorage.getItem('darkMode') === 'true';
     setDarkMode(isDarkMode);
 
     // Apply dark mode styles if it's enabled

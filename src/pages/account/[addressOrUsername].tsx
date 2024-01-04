@@ -150,9 +150,9 @@ export const ListFilterSearchBar = ({
       onChange={async (e) => {
         setSearchValue(e.target.value)
       }}
-      className="form-input rounded p-1 px-2"
-      //styled-button-normal rounded p-1 focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer
-      style={{ height: 30 }}
+      className="form-input rounded-lg p-1 px-2"
+      //styled-button-normal rounded-lg p-1 focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer
+      style={{ height: 38 }}
     />
   )
 
@@ -206,8 +206,8 @@ export const CollectionsFilterSearchBar = ({
       onChange={async (e) => {
         setSearchValue(e.target.value)
       }}
-      className="form-input rounded p-1 px-2"
-      style={{ height: 30 }}
+      className="form-input rounded-lg p-1 px-2"
+      style={{ height: 38 }}
     />
   )
 
@@ -696,11 +696,15 @@ export const OptionsSelects = ({
 
   const CustomizeSelect = (
     <>
-      {chain.address === accountInfo.address && chain.loggedIn && (
+      {chain.address === accountInfo.address && (
         <SelectWithOptions title='Mode' value={editMode ? 'edit' : 'none'} setValue={(e) => {
           setEditMode(e === 'edit')
           setCardView(true)
-        }} options={[{ label: 'Normal', value: 'none' }, { label: 'Customize', value: 'edit' },]} />
+        }} options={[{ label: 'Normal', value: 'none' }, {
+          label: 'Customize', value: 'edit',
+          disabledReason: !chain.loggedIn ? 'Please sign in to go into customize mode' : undefined,
+          disabled: !chain.loggedIn
+        },]} />
       )}
     </>
   )

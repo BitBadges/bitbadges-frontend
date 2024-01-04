@@ -2,19 +2,26 @@ import { DeleteOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
 import IconButton from '../display/IconButton';
 
-export function Tabs({ type, style, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass, onDeleteCurrTab }: {
-  tab: string;
-  setTab: (tab: string) => void;
-  tabInfo: ({ key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element } | undefined)[];
-  fullWidth?: boolean;
-  theme?: MenuTheme;
-  noSelectedKeys?: boolean;
-  type?: 'underline' | 'default';
-  customClass?: string;
-  onDeleteCurrTab?: (tab: string) => Promise<void>;
-  style?: React.CSSProperties;
-}) {
+export function Tabs({
+  hideOnSingleTab,
+  type, style, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass, onDeleteCurrTab }: {
+    tab: string;
+    setTab: (tab: string) => void;
+    tabInfo: ({ key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element } | undefined)[];
+    fullWidth?: boolean;
+    theme?: MenuTheme;
+    noSelectedKeys?: boolean;
+    type?: 'underline' | 'default';
+    customClass?: string;
+    onDeleteCurrTab?: (tab: string) => Promise<void>;
+    style?: React.CSSProperties;
+    hideOnSingleTab?: boolean;
+  }) {
   let tabInfoFiltered = tabInfo.filter((tab) => tab != undefined) as { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
+
+  if (hideOnSingleTab && tabInfoFiltered.length == 1) {
+    return <></>
+  }
 
   const widthPerTab = fullWidth
     ? `calc(100% / ${tabInfoFiltered.length})`
@@ -65,9 +72,9 @@ export function Tabs({ type, style, tab, setTab, tabInfo, fullWidth, theme, noSe
           minWidth: 'fit-content',
           textAlign: 'center',
           float: 'left',
-          backgroundColor: type == 'underline' ? 
-          
-          'inherit' : undefined,
+          backgroundColor: type == 'underline' ?
+
+            'inherit' : undefined,
           // borderBottom: type == 'underline' ? '2px solid blue' : undefined,
           color: tab.key == selectedTab && type != 'underline' ? 'white' : undefined,
           borderBottom: type == 'underline' && selectedTab == tab.key ? '2px solid blue' : undefined,
@@ -87,7 +94,7 @@ export function Tabs({ type, style, tab, setTab, tabInfo, fullWidth, theme, noSe
         <div className={'primary-text ' + (type == 'underline' ? ' hover:text-gray-400' : '')}
           style={{
             color: tab.key == selectedTab && type != 'underline' ? 'white' : undefined,
-            
+
 
             fontSize: 18, fontWeight: 'bolder'
           }}>

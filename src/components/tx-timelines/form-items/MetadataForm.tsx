@@ -27,7 +27,7 @@ import {
   message,
   notification,
 } from "antd"
-import { useState } from "react"
+import { ReactNode, useState } from "react"
 
 import { faMinus, faReplyAll } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -67,13 +67,52 @@ import { CollectionHeader } from "../../badges/CollectionHeader"
 import { DevMode } from "../../common/DevMode"
 import IconButton from "../../display/IconButton"
 import { InformationDisplayCard } from "../../display/InformationDisplayCard"
-import { ToolIcon } from "../../display/ToolIcon"
 import { BadgeIdRangesInput } from "../../inputs/BadgeIdRangesInput"
 import { DateRangeInput } from "../../inputs/DateRangeInput"
 import { MetadataUriSelect } from "./MetadataUriSelect"
 
 const { Text } = Typography
 const { Option } = Select
+
+export const RadioGroup = ({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label?: string | ReactNode
+  value: any
+  onChange: (value: any) => void
+  options: {
+    label: string | ReactNode
+    value: any
+  }[]
+}) => {
+  return (
+    <div className="flex-center flex-column">
+      <div className="primary-text">{label}</div>
+      <Radio.Group
+        className="primary-text flex-center flex-wrap"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value)
+        }}
+        buttonStyle="solid"
+        style={{ marginTop: 10 }}
+      >
+        {options.map((option) => {
+          return (
+            <Radio.Button value={option.value} key={option.value}>
+              <div className="primary-text capitalize hover:text-gray-400" style={{ color: value === option.value ? 'white' : undefined }}>
+                {option.label}
+              </div>
+            </Radio.Button>
+          )
+        })}
+      </Radio.Group>
+    </div>
+  )
+}
 
 //Do not pass an badgeId if this is for the collection metadata
 export function MetadataForm({
@@ -617,8 +656,6 @@ export function MetadataForm({
             </div>
             {!isCollectionSelect && !isAddressMappingSelect && (<>
               <div className="secondary-text" style={{ textAlign: "center" }}>
-
-                {updatedIds.length > 0 && `You have updated the metadata for the IDs ${getBadgeIdsString(updatedIds)}. `}
                 {nonUpdatedIds.length > 0 &&
                   <span style={{ color: 'orange' }}>
                     <WarningOutlined />
@@ -636,32 +673,16 @@ export function MetadataForm({
 
             <div className="flex-center flex-column full-width">
               {!isCollectionSelect && !isAddressMappingSelect && (
-                <Radio.Group
-                  className="primary-text flex-center flex-wrap"
-                  value={uiDisplayMode}
-                  onChange={(e) => {
-                    setUiDisplayMode(e.target.value)
-                  }}
-                  buttonStyle="solid"
-                  style={{ marginTop: 10 }}
-                >
-                  <Radio.Button value={'header'}>
-                    <div className='primary-text hover:text-gray-400'>
-                      Header
-                    </div>
-                  </Radio.Button>
-                  <Radio.Button value={'card'}> <div className='primary-text hover:text-gray-400'>
-                    Card
-                  </div></Radio.Button>
-                  <Radio.Button value={'image'}> <div className='primary-text hover:text-gray-400'>
-                    Image
-                  </div></Radio.Button>
-
-                  <Radio.Button value={'collection'}> <div className='primary-text hover:text-gray-400'>
-                    Collection
-                  </div></Radio.Button>
-                </Radio.Group>
+                <RadioGroup value={uiDisplayMode} onChange={(value) => {
+                  setUiDisplayMode(value)
+                }} options={[
+                  { label: 'Card', value: 'card' },
+                  { label: 'Image', value: 'image' },
+                  { label: 'Collection', value: 'collection' },
+                  { label: 'Header', value: 'header' },
+                ]} />
               )}
+
             </div>
             <br />
 
@@ -835,7 +856,7 @@ export function MetadataForm({
                       video: e.target.value,
                     })
                   }}
-                  placeholder="Enter Video URL (Optional)"
+                  placeholder="Enter Video URL (optional)"
                 />
               </div>
               <div style={{ fontSize: 12 }}>
@@ -846,7 +867,25 @@ export function MetadataForm({
                 </Text>
               </div>
             </Form.Item>
-
+            <Form.Item
+              label={
+                <Text className="primary-text" strong>
+                  Description
+                </Text>
+              }
+            >
+              <div className="flex-between" style={{}}>
+                <MarkdownEditor
+                  markdown={currMetadata.description}
+                  setMarkdown={(markdown: string) => {
+                    setMetadata({
+                      ...currMetadata,
+                      description: markdown,
+                    })
+                  }}
+                />
+              </div>
+            </Form.Item>
             <Form.Item
               label={
                 <Text className="primary-text" strong>
@@ -902,25 +941,7 @@ export function MetadataForm({
                 </Select>
               </div>
             </Form.Item>
-            <Form.Item
-              label={
-                <Text className="primary-text" strong>
-                  Description
-                </Text>
-              }
-            >
-              <div className="flex-between" style={{}}>
-                <MarkdownEditor
-                  markdown={currMetadata.description}
-                  setMarkdown={(markdown: string) => {
-                    setMetadata({
-                      ...currMetadata,
-                      description: markdown,
-                    })
-                  }}
-                />
-              </div>
-            </Form.Item>
+
 
             <Form.Item
               label={
@@ -1198,21 +1219,6 @@ export function MetadataForm({
                   https://discord.com/invite/{currMetadata.socials?.discord}
                 </div>
               )}
-            </Form.Item>
-
-            <Form.Item
-              label={
-                <Text className="primary-text" strong>
-                  Useful Tools
-                </Text>
-              }
-            >
-              <div className="flex-between" style={{}}>
-                <div style={{ display: "flex" }} className="flex-wrap">
-                  <ToolIcon name="Sketch.io" />
-                  <ToolIcon name="Excalidraw" />
-                </div>
-              </div>
             </Form.Item>
           </Form>
         )}

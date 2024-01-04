@@ -238,7 +238,7 @@ const Home: NextPage = () => {
               <br />
               <br />
               <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
-                How is ownership verified?
+                How to verify ownership?
               </Typography.Text>
               <br />
 

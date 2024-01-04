@@ -1,4 +1,3 @@
-import { Divider } from "antd";
 import { deepCopy } from "bitbadgesjs-proto";
 import { CollectionApprovalWithDetails, getReservedAddressMapping, isFullUintRanges } from "bitbadgesjs-utils";
 import { useState } from "react";
@@ -13,12 +12,12 @@ import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export const transferableApproval = {
-  fromMappingId: 'AllWithoutMint',
-  fromMapping: getReservedAddressMapping("AllWithoutMint"),
-  toMappingId: "AllWithMint",
-  toMapping: getReservedAddressMapping("AllWithMint"),
-  initiatedByMappingId: "AllWithMint",
-  initiatedByMapping: getReservedAddressMapping("AllWithMint"),
+  fromMappingId: '!Mint',
+  fromMapping: getReservedAddressMapping("!Mint"),
+  toMappingId: "All",
+  toMapping: getReservedAddressMapping("All"),
+  initiatedByMappingId: "All",
+  initiatedByMapping: getReservedAddressMapping("All"),
   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -48,8 +47,7 @@ export function TransferabilitySelectStepItem() {
   return {
     title: `Collection Approvals (Transferability) - Post-Minting`,
     description: <>{`Excluding transfers from the Mint address, set the collection level approvals for who can transfer badges.
-    All transfers must be approved on the collection level.
-    For example, should badges be transferable or non-transferable between users? Revokable? Freezable?`}</>,
+    Use the advanced view to implement more complex transfer restrictions.`}</>,
     node: () => <UpdateSelectWrapper
       documentationLink={"https://docs.bitbadges.io/overview/how-it-works/transferability"}
       err={err}
@@ -58,6 +56,17 @@ export function TransferabilitySelectStepItem() {
       jsonPropertyPath='collectionApprovals'
       permissionName='canUpdateCollectionApprovals'
       setErr={(err) => { setErr(err) }}
+      advancedNode={() => <>
+        <div className='flex-center' style={{ textAlign: 'center' }}>
+          <TransferabilityTab
+            collectionId={NEW_COLLECTION_ID}
+            onlyShowNotFromMint
+            hideHelperMessage
+            showDeletedGrayedOut
+            editable
+          />
+        </div>
+      </>}
       customRevertFunction={() => {
         const prevNonMint = startingCollection ? getNonMintApprovals(startingCollection) : [];
         const currentMint = getMintApprovals(collection);
@@ -90,9 +99,9 @@ export function TransferabilitySelectStepItem() {
                   isFullUintRanges(x.badgeIds) &&
                   isFullUintRanges(x.transferTimes) &&
                   isFullUintRanges(x.ownershipTimes) &&
-                  x.fromMappingId === 'AllWithoutMint' &&
-                  x.toMappingId === 'AllWithMint' &&
-                  x.initiatedByMappingId === 'AllWithMint'
+                  x.fromMappingId === '!Mint' &&
+                  x.toMappingId === 'All' &&
+                  x.initiatedByMappingId === 'All'
                 )
             },
           ]}
@@ -104,16 +113,6 @@ export function TransferabilitySelectStepItem() {
             }
           }}
         />
-        <Divider />
-        <div className='flex-center' style={{ textAlign: 'center' }}>
-          <TransferabilityTab
-            collectionId={NEW_COLLECTION_ID}
-            onlyShowNotFromMint
-            hideHelperMessage
-            showDeletedGrayedOut
-            editable
-          />
-        </div>
       </div >
       }
     />,

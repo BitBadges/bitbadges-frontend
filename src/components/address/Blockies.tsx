@@ -14,9 +14,9 @@ export function BlockiesAvatar({
 }) {
 
   if (avatar) {
-    return <Avatar className='rounded-lg' shape={shape ? shape : 'square'} src={avatar} size={fontSize ? fontSize : 20} />
+    return <Avatar className='rounded' shape={shape ? shape : 'square'} src={avatar} size={fontSize ? fontSize : 20} />
   } else {
-    return <Avatar className='rounded-lg' shape={shape ? shape : 'square'} src={
+    return <Avatar className='rounded' shape={shape ? shape : 'square'} src={
       <Blockies
         color={address == 'All' ? 'white' : undefined}
         spotColor={address == 'All' ? '#FF5733' : undefined}

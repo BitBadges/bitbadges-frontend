@@ -1,14 +1,14 @@
+import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
 import { Input, Typography } from 'antd';
 import { MsgTransferBadges } from 'bitbadgesjs-proto';
 import { CollectionApprovalWithDetails, convertToCosmosAddress, isInAddressMapping, searchUintRangesForId } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
+import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { getCodeForPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/router';
-import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
@@ -16,6 +16,7 @@ import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../badges/BalanceDisplay';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { PredeterminedCard } from '../collection-page/TransferabilityRow';
+import { ErrDisplay } from '../common/ErrDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TxModal } from './TxModal';
 
@@ -51,6 +52,7 @@ export function CreateTxMsgClaimBadgeModal(
   const claim = merkleChallenge
   const leavesDetails = approval?.details?.challengeDetails?.leavesDetails;
   const treeOptions = approval?.details?.challengeDetails?.treeOptions;
+  const hasPassword = approval.details?.hasPassword;
 
 
   const query = router.query;
@@ -70,24 +72,26 @@ export function CreateTxMsgClaimBadgeModal(
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  tree');
+    if (!visible) return;
     if (merkleChallenge) {
       const tree = new MerkleTree(approval.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
         return approval.details?.challengeDetails?.leavesDetails?.isHashed ? x : SHA256(x);
       }) ?? [], SHA256, approval.details?.challengeDetails?.treeOptions);
       setTree(tree);
     }
-  }, [approval, merkleChallenge]);
+  }, [approval, merkleChallenge, visible]);
 
 
   //auto populate if navigated to page with a URL query (e.g. QR code)
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');
+    if (!visible) return;
     if (codeQuery) {
       if (setCode) setCode(codeQuery as string);
     } else if (passwordQuery) {
       if (setCode) setCode(passwordQuery as string);
     }
-  }, [codeQuery, passwordQuery, setCode]);
+  }, [codeQuery, passwordQuery, setCode, visible]);
 
   const calculationMethod = approvalCriteria?.predeterminedBalances?.orderCalculationMethod;
 
@@ -105,7 +109,6 @@ export function CreateTxMsgClaimBadgeModal(
   //4. Only one claim per code and code has been used
   //5. Could not fetch claim data when it was created (most likely due to not being created through BitBadges website and being incompatible)
   const [, validTime] = searchUintRangesForId(BigInt(Date.now()), approval.transferTimes);
-  const [orderNumber, setOrderNumber] = useState<number>(0);
   let errorMessage = '';
   let cantClaim = false;
   let notConnected = false;
@@ -131,9 +134,12 @@ export function CreateTxMsgClaimBadgeModal(
   } else if (claim && claim.root && claim.useCreatorAddressAsLeaf && !details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))) {
     cantClaim = true;
     errorMessage = 'You are not on the whitelist for this claim!';
-  } else if (code && challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
+  } else if (code && !hasPassword && challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
     cantClaim = true;
     errorMessage = 'The entered code has already been used!';
+  } else if (code && challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
+    cantClaim = true;
+    errorMessage = 'The entered password has already been used!';
   } else if (code && leafIndex < 0) {
     cantClaim = true;
     errorMessage = 'The entered code / password is invalid!';
@@ -220,7 +226,17 @@ export function CreateTxMsgClaimBadgeModal(
         type: 'MsgTransferBadges',
         msg: txCosmosMsg,
         afterTx: async () => {
-          await fetchCollections([collectionId], true);
+          await fetchCollections([collectionId], true)
+
+          const addressesToFetch = [txCosmosMsg.creator, chain.cosmosAddress];
+          for (const transfer of txCosmosMsg.transfers) {
+            addressesToFetch.push(...transfer.from);
+            addressesToFetch.push(...transfer.toAddresses);
+          }
+
+          //Anything after the first 10 addresses will not be fetched and they can just refresh the page, if necessary
+          const prunedAddresses = [...new Set(addressesToFetch.map(x => convertToCosmosAddress(x)))].slice(0, 10);
+          await fetchAccounts(prunedAddresses, true);
         }
       }
     ]
@@ -355,8 +371,7 @@ export function CreateTxMsgClaimBadgeModal(
 
                   {errorMessage ? <>
                     <br />
-                    <InfoCircleOutlined style={{ color: '#FF5733', marginRight: 4 }} />
-                    {errorMessage}
+                    <ErrDisplay err={errorMessage} />
                   </> : <>
                     <br />
 
@@ -377,7 +392,6 @@ export function CreateTxMsgClaimBadgeModal(
               />
             </> : <>
               <PredeterminedCard
-                orderNumber={orderNumber} setOrderNumber={setOrderNumber}
                 collectionId={collectionId} transfer={approval} address={address} setAddress={setAddress}
               />
             </>}

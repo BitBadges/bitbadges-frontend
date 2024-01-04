@@ -8,7 +8,6 @@ import { CollectionHeader } from '../../../components/badges/CollectionHeader';
 import { DistributionOverview } from '../../../components/badges/DistributionCard';
 import { MetadataDisplay } from '../../../components/badges/MetadataInfoDisplay';
 import { ActionsTab } from '../../../components/collection-page/ActionsTab';
-import { ClaimsTab } from '../../../components/collection-page/ClaimsTab';
 import { BalanceChecker, SpecificBadgeOwnersTab } from '../../../components/collection-page/OwnersTab';
 import { PermissionsOverview } from '../../../components/collection-page/PermissionsInfo';
 import { ActivityTab } from '../../../components/collection-page/TransferActivityDisplay';
@@ -104,14 +103,6 @@ export function BadgePage({ collectionPreview }
 
             <Tabs tab={tab} tabInfo={tabInfo} setTab={setTab} theme="dark" fullWidth />
 
-            {tab === 'claims' && collection && <>
-              <br />
-              <ClaimsTab
-                collectionId={collectionIdNumber}
-
-                badgeId={badgeIdNumber}
-              />
-            </>}
             {tab === 'transferability' && (
               <>{collection?.balancesType == 'Off-Chain - Indexed' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
               </>)}
@@ -127,7 +118,7 @@ export function BadgePage({ collectionPreview }
               {collection &&
                 <div className='flex-center'>
                   <Row className='flex-between full-width' style={{ alignItems: 'normal' }}>
-                    <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, }}>
+                    <Col md={12} xs={24} sm={24} style={{ minHeight: 100, }}>
 
                       {!noBalancesStandard && <>
                         <MetadataDisplay
@@ -135,7 +126,6 @@ export function BadgePage({ collectionPreview }
                           badgeId={badgeIdNumber}
                           span={24}
                         />
-                        <br />
                       </>}
                       {collection &&
                         <PermissionsOverview
@@ -147,14 +137,13 @@ export function BadgePage({ collectionPreview }
 
                     </Col>
                     <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
-                    <Col md={12} xs={24} sm={24} style={{ minHeight: 100, paddingLeft: 4, paddingRight: 4, flexDirection: 'column' }}>
+                    <Col md={12} xs={24} sm={24} style={{ minHeight: 100, flexDirection: 'column' }}>
                       {!noBalancesStandard && <>
                         <DistributionOverview
                           collectionId={collectionIdNumber}
                           span={24}
                           badgeId={badgeIdNumber}
                         />
-                        <br />
 
                         {collection && <BalanceChecker
                           collectionId={collectionIdNumber}

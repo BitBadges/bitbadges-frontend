@@ -35,8 +35,8 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
       title: 'Recipient',
       description: <div style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <AddressSelect onUserSelect={setCurrUserInfo} defaultValue={signedInAccount?.address} />
-        <br/>
-        {signedInAccount?.cosmosAddress === currSelectedAccount?.cosmosAddress ? <div style={{ color: 'red'}}>Recipient and sender cannot be the same.</div> : null}
+        <br />
+        {signedInAccount?.cosmosAddress === currSelectedAccount?.cosmosAddress ? <div style={{ color: 'red' }}>Recipient and sender cannot be the same.</div> : null}
       </div>,
       disabled: !currSelectedAccount
     },
@@ -65,29 +65,32 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
         type: 'MsgSend',
         msg: msgSend,
         afterTx: async () => {
-          await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true, fetchBalance: true }], true);
+          await fetchAccountsWithOptions([
+            { address: chain.cosmosAddress, fetchSequence: true, fetchBalance: true },
+            { address: currSelectedAccount?.cosmosAddress ?? '', fetchSequence: true, fetchBalance: true },
+          ], true);
         }
       }
     ]
-  }, [msgSend, chain.cosmosAddress]);
+  }, [msgSend, chain.cosmosAddress, currSelectedAccount]);
 
   return (
     <TxModal
-    msgSteps={msgSteps}
-    visible={visible}
-    setVisible={setVisible}
-    txsInfo={txsInfo}
-    txName="Send $BADGE"
-    requireRegistration
-    coinsToTransfer={[
-      {
-        denom: 'badge',
-        amount: BigInt(sendAmount)
-      }
-    ]}
-  >
-    {children}
-  </TxModal>
+      msgSteps={msgSteps}
+      visible={visible}
+      setVisible={setVisible}
+      txsInfo={txsInfo}
+      txName="Send $BADGE"
+      requireRegistration
+      coinsToTransfer={[
+        {
+          denom: 'badge',
+          amount: BigInt(sendAmount)
+        }
+      ]}
+    >
+      {children}
+    </TxModal>
 
   );
 }

@@ -23,6 +23,7 @@ export function BadgeCard({
   hideCollectionLink,
   showSupplys,
   balances,
+  groupedByCollection,
 }: {
   badgeId: bigint
   collectionId: bigint
@@ -30,7 +31,8 @@ export function BadgeCard({
   hoverable?: boolean
   hideCollectionLink?: boolean
   showSupplys?: boolean
-  balances?: Balance<bigint>[]
+  balances?: Balance<bigint>[],
+  groupedByCollection?: boolean
 }) {
   const router = useRouter()
 
@@ -55,6 +57,10 @@ export function BadgeCard({
   const isMobile = window.innerWidth < 768
 
   const oneVW = window.innerWidth / 100
+  const withinCard = groupedByCollection && isMobile ? 32 : 0
+  const maxWidth = isMobile ? (window.innerWidth - 32 - 4 * (oneVW * 4) - withinCard) / 2 : 200
+
+
   return (
     <Card
       className="primary-text card-bg card-border rounded-lg"
@@ -62,7 +68,8 @@ export function BadgeCard({
         margin: 8,
         textAlign: "center",
         //we want 2 per row so calc padding based on that (3vw margin, 1vw padding) + 8px margin either side of card
-        maxWidth: isMobile ? (window.innerWidth - 32 - 4 * (oneVW * 4)) / 2 : undefined,
+        maxWidth: maxWidth,
+        width: isMobile ? undefined : 200,
       }}
       hoverable={hoverable ? hoverable : true}
       onClick={() => {

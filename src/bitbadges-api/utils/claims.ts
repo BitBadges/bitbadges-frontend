@@ -19,14 +19,14 @@ export function approvalCriteriaHasNoAmountRestrictions(approvalCriteria?: Appro
 }
 
 
-export function approvalCriteriaHasNoAdditionalRestrictions(approvalCriteria?: ApprovalCriteriaWithDetails<bigint>, allowMintOverrides?: boolean) {
+export function approvalCriteriaHasNoAdditionalRestrictions(approvalCriteria?: ApprovalCriteriaWithDetails<bigint>, allowMintOverrides?: boolean, allowToOverrides?: boolean) {
   return (!approvalCriteria || (
     !approvalCriteria.requireFromDoesNotEqualInitiatedBy
     && !approvalCriteria.requireFromDoesNotEqualInitiatedBy
     && !approvalCriteria.requireToDoesNotEqualInitiatedBy
     && !approvalCriteria.requireToDoesNotEqualInitiatedBy
     && (allowMintOverrides || !approvalCriteria.overridesFromOutgoingApprovals)
-    && !approvalCriteria.overridesToIncomingApprovals
+    && (allowToOverrides || !approvalCriteria.overridesToIncomingApprovals)
     && !approvalCriteria.merkleChallenge?.root
   ))
 }

@@ -56,9 +56,9 @@ export function FreezeSelectStepItem() {
   const getPermissionsToSet = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
       ...AlwaysLockedPermission,
-      fromMapping: idx == 0 ? getReservedAddressMapping("AllWithMint")
-        : idx == 1 ? getReservedAddressMapping("AllWithoutMint") : getReservedAddressMapping("Mint"),
-      fromMappingId: idx == 0 ? "AllWithMint" : idx == 1 ? "AllWithoutMint" : "Mint",
+      fromMapping: idx == 0 ? getReservedAddressMapping("All")
+        : idx == 1 ? getReservedAddressMapping("!Mint") : getReservedAddressMapping("Mint"),
+      fromMappingId: idx == 0 ? "All" : idx == 1 ? "!Mint" : "Mint",
     }] : []
 
 
@@ -166,7 +166,6 @@ export function FreezeSelectStepItem() {
 
         <SwitchForm
           showCustomOption
-          fullWidthCards
           options={[
             {
               title: 'Freeze All',

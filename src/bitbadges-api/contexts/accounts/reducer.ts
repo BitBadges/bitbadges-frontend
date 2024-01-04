@@ -482,7 +482,6 @@ export const accountReducer = (
       const accountsToDelete = action.payload as string[];
       for (const accountToDelete of accountsToDelete) {
         const account = getAccount(state, accountToDelete);
-
         if (account) {
           delete accounts[account.cosmosAddress];
           if (account.username) {

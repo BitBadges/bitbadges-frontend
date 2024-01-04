@@ -18,7 +18,7 @@ const IconButton: React.FC<IconButtonProps> = ({ secondary, src, text, style, on
   return (
     <Tooltip title={tooltipMessage ?? text} color='black' placement='bottom'>
 
-      <div className='flex-center flex-column' style={{ margin: 8 }}>
+      <div className='flex-center flex-column' style={{ margin: 8, minWidth: 60 }}>
         <Avatar
           className={secondary ? 'styled-button-normal' : 'styled-icon-button'}
           src={src}
@@ -26,6 +26,10 @@ const IconButton: React.FC<IconButtonProps> = ({ secondary, src, text, style, on
 
             backgroundColor: disabled ? 'lightgrey' : undefined,
             cursor: disabled ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+
             ...style,
           }}
           onClick={disabled ? undefined : onClick}

@@ -144,7 +144,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 
   useEffect(() => {
     // Check if dark mode is enabled in local storage
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    const isDarkMode = !localStorage.getItem('darkMode') || localStorage.getItem('darkMode') === 'true';
 
     // Apply dark mode styles if it's enabled
     if (isDarkMode) {

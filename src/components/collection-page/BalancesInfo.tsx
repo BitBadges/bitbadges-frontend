@@ -1,7 +1,7 @@
 import { Empty } from 'antd';
 import { Balance } from 'bitbadgesjs-proto';
 import { getBalancesForId } from 'bitbadgesjs-utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -21,12 +21,31 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
   const collection = useCollection(collectionId);
   const signedInAccount = useAccount(chain.address);
   const isPreview = collectionId === NEW_COLLECTION_ID;
-  
-  const [currBalances, setCurrBalances] = useState<Balance<bigint>[]>();
+
   const [addressOrUsername, setAddressOrUsername] = useState<string>(defaultAddress || signedInAccount?.username || signedInAccount?.address || '');
   const account = useAccount(addressOrUsername);
 
+  const [lastFetchedBalances, setLastFetchedBalances] = useState<Balance<bigint>[]>([]);
   const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
+
+  const currBalances = useMemo(() => {
+    if (!account || !account.address) return [];
+    if (collectionId === NEW_COLLECTION_ID) return [];
+    if (isNonIndexedBalances) return lastFetchedBalances;
+
+    //Check both collections and users to see if we have anything cached
+    const accountHasBalance = account?.collected.find(x => x.collectionId === collectionId);
+    const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
+
+    if (accountHasBalance) {
+      return accountHasBalance.balances;
+    } else if (collectionHasBalance) {
+      return collectionHasBalance.balances;
+    }
+
+    return [];
+  }, [collectionId, account, collection, isNonIndexedBalances, lastFetchedBalances]);
+
 
   const DELAY_MS = 500;
   useEffect(() => {
@@ -43,21 +62,17 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
           const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
 
           if (accountHasBalance) {
-            setCurrBalances(accountHasBalance.balances);
             return;
           } else if (collectionHasBalance) {
-            setCurrBalances(collectionHasBalance.balances);
             return;
           }
         }
 
         const balance = await fetchBalanceForUser(collectionId, account.address);
-        setCurrBalances(balance.balances);
+        setLastFetchedBalances(balance.balances);
 
         return;
       } catch (e) { }
-
-      setCurrBalances([]);
     }
 
     const delayDebounceFn = setTimeout(async () => {
@@ -70,7 +85,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
   if (!collection) return <></>;
 
   const balancesToShow = badgeId && currBalances ? getBalancesForId(badgeId, currBalances) ?? [] : currBalances ?? [];
-  
+
   return (<div className='full-width flex-column'>
     <div className='full-width flex-center flex-column'>
       {<>
@@ -99,7 +114,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         </div><br />
         </>
       }
-      
+
       {!!setTab && collection.balancesType !== "Off-Chain - Non-Indexed" && <>
         <span className='secondary-text'>Head over to the <a
           onClick={() => { setTab('transferability') }}

@@ -3,22 +3,23 @@ import { Divider, Empty, Switch, Typography } from 'antd';
 import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { FC, useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { NODE_API_URL } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { AddressSelect } from '../address/AddressSelect';
+import { EmptyIcon } from '../common/Empty';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { Tabs } from '../navigation/Tabs';
 import { ApprovalSelect } from '../transfers/ApprovalSelect';
 import { SwitchForm } from '../tx-timelines/form-items/SwitchForm';
+import { DefaultApprovedDisplay, DefaultOptInDisplay } from '../tx-timelines/step-items/DefaultToApprovedSelectStepItem';
 import { UserPermissionsOverview } from './PermissionsInfo';
 import { TransferabilityRow } from './TransferabilityRow';
 import { TransferabilityTab } from './TransferabilityTab';
-import { EmptyIcon } from '../common/Empty';
-import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 interface DisplayProps {
   approvals: CollectionApprovalWithDetails<bigint>[];
@@ -89,7 +90,7 @@ export const ApprovalSelectWrapper: FC<{
       isIncomingDisplay ? getReservedAddressMapping(approverAddress) : getReservedAddressMapping("All")}
     defaultFromMapping={isMintDisplay ? getReservedAddressMapping("Mint") : isOutgoingDisplay ?
       getReservedAddressMapping(approverAddress)
-      : isPostMintDisplay ? getReservedAddressMapping("AllWithoutMint") : getReservedAddressMapping("All")
+      : isPostMintDisplay ? getReservedAddressMapping("!Mint") : getReservedAddressMapping("All")
     }
     defaultInitiatedByMapping={{
       ...getReservedAddressMapping(chain.cosmosAddress),
@@ -234,6 +235,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
     })
   }
 
+
   const getRows = () => {
     return <>
       {
@@ -301,6 +303,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
       title={title ?? ''}
       span={24} subtitle={subtitle}
       noBorder inheritBg
+      noPadding
     >
       <div style={{ float: 'right' }}>
         {onlyShowFromMint && <Switch
@@ -344,7 +347,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
       {!hideHelperMessage && <>
         <Divider />
         <p className='secondary-text'>
-          <InfoCircleOutlined />{' '}{"Successful transfers require sufficient balances from the sender and must satisfy the collection approvals, in addition to the sender's outgoing approvals and recipient's incoming approvals (if applicable)."}
+          <InfoCircleOutlined />{' '}{"Successful transfers require sufficient balances from the sender and must satisfy the collection approvals, sender's outgoing approvals, and recipient's incoming approvals where applicable."}
         </p></>}
       <Divider />
     </InformationDisplayCard >
@@ -366,6 +369,8 @@ export function UserApprovalsTab({
   showCollectionApprovals,
   hideDefaults,
   showingDefaults,
+  normalMode,
+  advancedMode,
 }: {
   collectionId: bigint,
   badgeId?: bigint,
@@ -383,6 +388,9 @@ export function UserApprovalsTab({
   hideUpdateHistory?: boolean,
   hideDefaults?: boolean,
   showingDefaults?: boolean,
+
+  normalMode?: boolean,
+  advancedMode?: boolean,
 }) {
 
   const chain = useChainContext();
@@ -475,29 +483,33 @@ export function UserApprovalsTab({
   }
 
   return (<>
-    <div className='primary-text'>
+    <div className='primary-text full-width'>
 
-      {isIncomingApprovalEdit && tab === 'incoming' && <><SwitchForm
+
+      {isIncomingApprovalEdit && tab === 'incoming' && normalMode && <><SwitchForm
         showCustomOption
+
         options={[
           {
             title: 'Approve All',
             message: 'Approve any incoming transfer for this collection.',
             isSelected: getUnhandledUserIncomingApprovals((userIncomingApprovals ?? []).filter(x => x.approvalId !== "default-incoming"), approverAccount?.cosmosAddress ?? '', true).length == 0,
+            additionalNode: () => <><DefaultApprovedDisplay address={approverAccount?.cosmosAddress ?? ''} /></>
           },
           {
             title: 'Must Initiate',
             message: 'Only approve incoming transfers that were initiated by you.',
             isSelected: (userIncomingApprovals ?? []).filter(x => x.approvalId !== "default-incoming").length === 0,
+            additionalNode: () => <><DefaultOptInDisplay address={approverAccount?.cosmosAddress ?? ''} /></>
           }
         ]}
         onSwitchChange={(value) => {
           if (value === 0) {
             setUserIncomingApprovals?.([{
-              fromMappingId: "AllWithMint",
-              fromMapping: getReservedAddressMapping("AllWithMint"),
-              initiatedByMapping: getReservedAddressMapping("AllWithMint"),
-              initiatedByMappingId: "AllWithMint",
+              fromMappingId: "All",
+              fromMapping: getReservedAddressMapping("All"),
+              initiatedByMapping: getReservedAddressMapping("All"),
+              initiatedByMappingId: "All",
               transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
               ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -516,7 +528,7 @@ export function UserApprovalsTab({
 
     </div >
 
-    <div className='primary-text'>
+    <div className='primary-text full-width'>
 
       {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && !hideSelect && <>
         <AddressSelect
@@ -628,31 +640,33 @@ export function UserApprovalsTab({
           />
         </>}
 
-        {tab === 'incoming' && <>
-          <EditableApprovalsDisplay
-            approvals={castedIncomingApprovals}
-            collection={collection}
-            badgeId={badgeId}
-            approvalLevel='incoming'
-            mintingOnly={false}
-            editable={!!setUserIncomingApprovals}
-            startingApprovals={castIncomingTransfersToCollectionTransfers(startingIncomingApprovals, approverAccount.address)}
-            approverAddress={approverAccount?.address ?? ''}
-            setApprovals={setUserIncomingApprovals ?? (() => { })}
-            approvalPermissions={castUserIncomingApprovalPermissionToCollectionApprovalPermission(
-              (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateIncomingApprovals ?? []).map(x => {
-                return {
-                  ...x,
-                  fromMapping: getReservedAddressMapping(x.fromMappingId),
-                  initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
-                }
-              }),
-              approverAccount.address
-            )}
-          />
-        </>}
+        {tab === 'incoming' && (!isIncomingApprovalEdit || (
+          isIncomingApprovalEdit && advancedMode
+        )) && <>
+            <EditableApprovalsDisplay
+              approvals={castedIncomingApprovals}
+              collection={collection}
+              badgeId={badgeId}
+              approvalLevel='incoming'
+              mintingOnly={false}
+              editable={!!setUserIncomingApprovals}
+              startingApprovals={castIncomingTransfersToCollectionTransfers(startingIncomingApprovals, approverAccount.address)}
+              approverAddress={approverAccount?.address ?? ''}
+              setApprovals={setUserIncomingApprovals ?? (() => { })}
+              approvalPermissions={castUserIncomingApprovalPermissionToCollectionApprovalPermission(
+                (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateIncomingApprovals ?? []).map(x => {
+                  return {
+                    ...x,
+                    fromMapping: getReservedAddressMapping(x.fromMappingId),
+                    initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
+                  }
+                }),
+                approverAccount.address
+              )}
+            />
+          </>}
       </>}
-    </div>
+    </div >
 
   </>
   );

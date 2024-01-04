@@ -22,6 +22,7 @@ export function BadgeIdRangesInput({
   uintRangeBounds = [{ start: 1n, end: GO_MAX_UINT_64 }],
   hideDisplay,
   suggestedRanges,
+  message,
 }: {
   uintRanges: UintRange<bigint>[]
   setUintRanges: (uintRanges: UintRange<bigint>[]) => void
@@ -31,6 +32,7 @@ export function BadgeIdRangesInput({
   collectionId: bigint
   hideDisplay?: boolean
   suggestedRanges?: UintRange<bigint>[]
+  message?: string
 }) {
   uintRangeBounds = sortUintRangesAndMergeIfNecessary(uintRangeBounds, true)
   const collection = useCollection(collectionId)
@@ -53,7 +55,7 @@ export function BadgeIdRangesInput({
   const totalNumberOfBadges = collection
     ? getMaxBadgeIdForCollection(collection)
     : 0n
-  
+
   const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
     uintRanges
       ? uintRanges.map(({ start, end }) => [start, end])
@@ -85,7 +87,7 @@ export function BadgeIdRangesInput({
     })
   })
 
-  
+
   const [remaining] = removeUintRangeFromUintRange(
     uintRangeBounds ?? [],
     uintRanges ?? []
@@ -107,7 +109,7 @@ export function BadgeIdRangesInput({
                 <BadgeAvatarDisplay
                   collectionId={collectionId}
                   badgeIds={sliderValues.map(([start, end]) => ({
-                    start,end,
+                    start, end,
                   }))}
                   showIds={true}
                 />
@@ -123,7 +125,7 @@ export function BadgeIdRangesInput({
     <>
       {(
         <>
-          <b>Select Badge IDs</b>
+          <b>{message ?? "Select Badge IDs"}</b>
           <div className="flex-center full-width">
             <Input
               style={{ textAlign: "center" }}

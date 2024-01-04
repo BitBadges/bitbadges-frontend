@@ -30,12 +30,17 @@ const FETCH_COLLECTIONS_START = 'FETCH_COLLECTIONS_START';
 const FETCH_COLLECTIONS_FAILURE = 'FETCH_COLLECTIONS_FAILURE';
 const FETCH_COLLECTIONS_SUCCESS = 'FETCH_COLLECTIONS_SUCCESS';
 const SET_COLLECTION = 'SET_COLLECTION';
+const DELETE_COLLECTION = 'DELETE_COLLECTION';
 
 interface FetchCollectionsSuccessAction {
   type: typeof FETCH_COLLECTIONS_SUCCESS;
   payload: CollectionRequestParams[];
 }
 
+interface DeleteCollectionReduxAction {
+  type: typeof DELETE_COLLECTION;
+  payload: DesiredNumberType;
+}
 
 interface FetchCollectionsRequestAction {
   type: typeof FETCH_COLLECTIONS_REQUEST;
@@ -58,13 +63,18 @@ type CollectionsActionTypes =
   | FetchCollectionsFailureAction
   | UpdateCollectionsReduxAction
   | FetchCollectionsSuccessAction
-  | SetCollectionReduxAction;
+  | SetCollectionReduxAction
+  | DeleteCollectionReduxAction;
 
 export const setCollectionRedux = (newCollection: Partial<BitBadgesCollection<DesiredNumberType> | { collectionPermissions?: Partial<CollectionPermissions<bigint>> }> & { collectionId: DesiredNumberType }): SetCollectionReduxAction => ({
   type: SET_COLLECTION,
   payload: newCollection
 });
 
+export const deleteCollectionRedux = (collectionId: DesiredNumberType): DeleteCollectionReduxAction => ({
+  type: DELETE_COLLECTION,
+  payload: collectionId
+});
 
 export const updateCollectionsRedux = (newCollection: Partial<BitBadgesCollection<DesiredNumberType> | { collectionPermissions?: Partial<CollectionPermissions<bigint>> }> & { collectionId: DesiredNumberType }, onlyUpdateProvidedFields: boolean): UpdateCollectionsReduxAction => ({
   type: UPDATE_COLLECTIONS,
@@ -564,7 +574,6 @@ export const fetchMetadataForPreviewRedux = (existingCollectionId: DesiredNumber
   }
 
 
-
 export const fetchCollectionsRedux = (
   collectionsToFetch: CollectionRequestParams[]
 ): ThunkAction<
@@ -684,6 +693,11 @@ export const collectionReducer = (state = initialState, action: { type: string; 
     case 'SET_COLLECTION':
       const newCollection = action.payload as BitBadgesCollection<DesiredNumberType>;
       return updateCollection(state, newCollection, false);
+    case 'DELETE_COLLECTION':
+      const collectionId = action.payload as DesiredNumberType;
+      const collections = state.collections;
+      delete collections[`${collectionId}`];
+      return { ...state, collections };
     case 'UPDATE_COLLECTIONS':
       const currCollection = state.collections[`${action.payload.newCollection.collectionId}`];
       const hasExisting = !!currCollection;

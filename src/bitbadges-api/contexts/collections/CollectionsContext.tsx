@@ -5,7 +5,7 @@ import { CollectionReducerState, GlobalReduxState, dispatch, store } from '../..
 import { DesiredNumberType, getBadgeBalanceByAddress, refreshMetadata } from '../../api';
 import { NEW_COLLECTION_ID } from '../TxTimelineContext';
 import { getAccount, updateAccount } from '../accounts/AccountsContext';
-import { fetchAndUpdateMetadataDirectlyFromCollectionRedux, fetchAndUpdateMetadataRedux, fetchCollectionsRedux, fetchMetadataForPreviewRedux, setCollectionRedux, updateCollectionsRedux } from './reducer';
+import { deleteCollectionRedux, fetchAndUpdateMetadataDirectlyFromCollectionRedux, fetchAndUpdateMetadataRedux, fetchCollectionsRedux, fetchMetadataForPreviewRedux, setCollectionRedux, updateCollectionsRedux } from './reducer';
 
 // Custom hook to fetch and convert a collection based on collectionIdNumber
 export function useCollection(collectionIdNumber?: NumberType) {
@@ -111,6 +111,12 @@ export const fetchBalanceForUser = async (collectionId: DesiredNumberType, addre
 export const fetchCollections = async (collectionsToFetch: DesiredNumberType[], forceful?: boolean) => {
   if (collectionsToFetch.some(x => x === NEW_COLLECTION_ID)) {
     throw new Error('Cannot fetch preview collection ID === 0');
+  }
+
+  if (forceful) {
+    for (const collectionId of collectionsToFetch) {
+      dispatch(deleteCollectionRedux(collectionId));
+    }
   }
 
   return await fetchCollectionsWithOptions(collectionsToFetch.map(x => {

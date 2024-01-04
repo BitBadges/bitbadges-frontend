@@ -199,7 +199,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
           <DevMode obj={collection} />
         </InformationDisplayCard>
       }
-      {!isAddressListDisplay && <br />}
+      {/* {!isAddressListDisplay && <br />} */}
       <InformationDisplayCard
         title={<>
           {badgeId && "Badge Metadata"}

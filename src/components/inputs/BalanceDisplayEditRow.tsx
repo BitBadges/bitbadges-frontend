@@ -90,6 +90,8 @@ export function BalanceDisplayEditRow({
   >({ start: 1n, end: 1n })
   const collection = useCollection(NEW_COLLECTION_ID)
 
+  // const selectedCollection = useCollection(selectedCollectionId)
+
   const currTimeNextHour = new Date()
   currTimeNextHour.setHours(currTimeNextHour.getHours())
   currTimeNextHour.setMinutes(0)
@@ -118,7 +120,6 @@ export function BalanceDisplayEditRow({
     checkIfUintRangesOverlap(currentSupply.ownershipTimes) ||
     checkIfUintRangesOverlap(currentSupply.badgeIds) ||
     nonSequential
-
   return (
     <>
       <tr style={{ color: currentSupply.amount < 0 ? "red" : undefined }}>

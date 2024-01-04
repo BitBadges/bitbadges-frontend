@@ -28,7 +28,7 @@ export function DirectTransfersStepItem() {
 
   return {
     title: `Direct Mints`,
-    description: 'If you would like to directly mint some badges to users now, you can do so here. All mints must satisfy approvals (collection, sender, and recipient). These transfers will be from the Mint address and initiated (approved) by your address.',
+    description: 'If you would like to directly mint some badges to users now, you can do so here. All mints must satisfy approvals (collection, sender, and recipient) where applicable. These transfers will be from the Mint address and initiated (approved) by your address.',
     node: () => <GenericFormStepWrapper
       documentationLink="https://docs.bitbadges.io/overview/how-it-works/distribution"
       node={() => <DirectTransfersNode err={err} setErr={setErr} />}
@@ -193,7 +193,6 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
       <br /></>}
     {collection.defaultBalances.incomingApprovals.length == 0 && <>
       <ErrDisplay warning err={"The default incoming approvals set (opt-in only) do not allow transfers from the Mint address. Any direct mint must satisfy a collection approval that overrides incoming approvals."} />
-      <br />
     </>}
     {!hasManagerApproval && <>
       <ErrDisplay warning err={"The collection approvals set do not specify an approval that allows a transfer from the Mint address, inititated by your address, and is valid at the current moment."} />

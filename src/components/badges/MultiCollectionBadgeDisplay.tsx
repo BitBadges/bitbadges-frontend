@@ -104,7 +104,7 @@ export function CollectionDisplayWithBadges({
   return (
     <InformationDisplayCard
       title=""
-      style={{ margin: 8, alignItems: "normal" }}
+      style={{ alignItems: "normal" }}
       md={span ?? 8}
       xs={span ?? 24}
       sm={span ?? 24}
@@ -143,6 +143,7 @@ export function CollectionDisplayWithBadges({
         showOnSinglePage
         fromMultiCollectionDisplay
         sortBy={sortBy}
+        groupByCollection
       />
     </InformationDisplayCard>
   )

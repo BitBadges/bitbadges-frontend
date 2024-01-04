@@ -526,7 +526,7 @@ export const PermissionDisplay = (
     nonMintOnly?: boolean,
     onFreezePermitted?: (frozen: boolean) => void
     editMode?: boolean
-    
+
     //all permissons are the ones to be edited
     allPermissions?: GenericCollectionPermission[],
     setAllPermissions?: (permissions: GenericCollectionPermission[]) => void
@@ -601,7 +601,7 @@ export const PermissionDisplay = (
 
                     </tr>
                     {dataSource.map((y, idx) => {
-                      
+
                       if (hasBothPermittedAndForbidden) {
                         if (y.forbidden && !showForbidden) {
                           return null;
@@ -639,10 +639,10 @@ export const PermissionDisplay = (
                       return <PermissionTableRow key={idx}
                         idx={idx}
                         permissions={allPermissions}
-                        permission={y} 
+                        permission={y}
                         columns={columns} onFreezePermitted={onFreezePermitted}
                         setPermissions={setAllPermissions}
-                        />
+                      />
                     })}
                   </table>
                 </div>
@@ -797,12 +797,13 @@ export function PermissionsOverview({
   </InformationDisplayCard>
 }
 
-export const BadgeIDSelectWithSwitch = ({ collectionId, uintRanges, setUintRanges }: { collectionId: bigint, uintRanges: UintRange<bigint>[], setUintRanges: (uintRanges: UintRange<bigint>[]) => void }) => {
+export const BadgeIDSelectWithSwitch = ({ message, hideBadges, disabled, collectionId, uintRanges, setUintRanges }: { message?: string, hideBadges?: boolean, disabled?: boolean, collectionId: bigint, uintRanges: UintRange<bigint>[], setUintRanges: (uintRanges: UintRange<bigint>[]) => void }) => {
   return <>
-  <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
-    
+    <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
+
       <Switch
         checked={isFullUintRanges(uintRanges)}
+        disabled={disabled}
         checkedChildren="All Badges"
         unCheckedChildren="Custom"
         onChange={(checked) => {
@@ -815,27 +816,28 @@ export const BadgeIDSelectWithSwitch = ({ collectionId, uintRanges, setUintRange
         }}
       />
       <br />
-      <div className="secondary-text">
-        <InfoCircleOutlined />{' '}
-        {isFullUintRanges(uintRanges) && "All IDs are selected, even IDs that may have not been created yet."}
-        {!isFullUintRanges(uintRanges) && "Custom IDs are selected."}
-      </div>
+      {isFullUintRanges(uintRanges) &&
+        <div className="secondary-text">
+          <InfoCircleOutlined />{' '}
+          {isFullUintRanges(uintRanges) && "All IDs are selected, even IDs that may have not been created yet."}
+        </div>}
       <br />
       <>
         {isFullUintRanges(uintRanges) ? <></> : <>
 
           <BadgeIdRangesInput
+            message={message}
             uintRangeBounds={[{ start: 1n, end: GO_MAX_UINT_64 }]}
             collectionId={collectionId}
             uintRanges={uintRanges}
             setUintRanges={(uintRanges) => {
               setUintRanges(uintRanges);
             }}
-
+            hideDisplay={hideBadges}
           />
         </>}</>
     </div>
-</>
+  </>
 }
 
 
@@ -960,19 +962,14 @@ export function PermissionSelect({
   const [selectedTimes, setSelectedTimes] = useState<UintRange<bigint>[]>([{ start: 1n, end: GO_MAX_UINT_64 }]);
 
   return <>
-    <div className="secondary-text" style={{ textAlign: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column', }}>
-      Below are all the permissions you have added. By default, everything is permitted but not frozen. We take first match only, so the priority of these permissions matters.
-    </div>
-    <br />
-
     <div className="flex">
-      <InformationDisplayCard title={'Added'} md={12} xs={24} sm={24} subtitle={'All added permissions before filtering first match only. By default, everything is permitted but not frozen.'}>
+      <InformationDisplayCard title={'Added Permissions'} md={12} xs={24} sm={24} subtitle={'By default, everything is permitted but not frozen.'}>
 
         <br />
         <PermissionDisplay permissions={permissions} usedFlags={usedFlags} neverHasManager={false} editMode allPermissions={value} setAllPermissions={setValue} />
       </InformationDisplayCard>
 
-      <InformationDisplayCard title={'Permissions (First Match Only)'} md={12} xs={24} sm={24} subtitle={'Permissions after first match is taken into account.'}>
+      <InformationDisplayCard title={'Selected Permissions (First Match Only)'} md={12} xs={24} sm={24} subtitle={'Permissions after first match is taken into account.'}>
         <br />
         <PermissionDisplay permissions={permissions} usedFlags={usedFlags} neverHasManager={false} />
       </InformationDisplayCard>
@@ -991,7 +988,7 @@ export function PermissionSelect({
     {addIsVisible && <>
       <div className="flex flex-wrap" style={{ textAlign: 'center' }}>
         <InformationDisplayCard title={'Allowed?'} md={12} xs={24} sm={24} subtitle={'If allowed, the times below will be permitted. If not allowed, the times below will be forbidden.'}>
-          <br/>
+          <br />
           <TableRow label={"Allowed?"} value={<Switch
             checked={allowed}
             onChange={(checked) => {
@@ -1016,7 +1013,7 @@ export function PermissionSelect({
 
         </InformationDisplayCard>
         {usedFlags.usesBadgeIds && <InformationDisplayCard title={'Badge IDs'} md={12} xs={24} sm={24} subtitle={'Select what badge IDs this permission applies to.'}>
-          <br/>
+          <br />
           <BadgeIDSelectWithSwitch
             collectionId={collectionId}
             uintRanges={newPermissionToAdd.badgeIds} setUintRanges={(x) => {
@@ -1028,7 +1025,7 @@ export function PermissionSelect({
           />
         </InformationDisplayCard>}
         {usedFlags.usesOwnershipTimes && <InformationDisplayCard title={'Ownership Times'} md={12} xs={24} sm={24} subtitle={'Which ownership times for the selected badge IDs does this permission apply to?'}>
-          <br/>
+          <br />
           <DateSelectWithSwitch timeRanges={newPermissionToAdd.ownershipTimes} setTimeRanges={(x) => {
             setNewPermissionToAdd({
               ...newPermissionToAdd,
@@ -1037,8 +1034,8 @@ export function PermissionSelect({
           }} />
         </InformationDisplayCard>}
         {usedFlags.usesTimelineTimes && <InformationDisplayCard title={'Updatable Times'} md={12} xs={24} sm={24} subtitle={'This permission is for a dynamic value which can change over time. What times is the value allowed to be udpated for?'}>
-        <br/>
-        <DateSelectWithSwitch timeRanges={newPermissionToAdd.timelineTimes} setTimeRanges={(x) => {
+          <br />
+          <DateSelectWithSwitch timeRanges={newPermissionToAdd.timelineTimes} setTimeRanges={(x) => {
             setNewPermissionToAdd({
               ...newPermissionToAdd,
               timelineTimes: x
@@ -1046,7 +1043,7 @@ export function PermissionSelect({
           }} />
         </InformationDisplayCard>}
         {usedFlags.usesTransferTimes && <InformationDisplayCard title={'Transfer Times'} md={12} xs={24} sm={24} subtitle={'What transfer times does this permission apply to?'}>
-          <br/>
+          <br />
           <DateSelectWithSwitch timeRanges={newPermissionToAdd.transferTimes} setTimeRanges={(x) => {
             setNewPermissionToAdd({
               ...newPermissionToAdd,
@@ -1055,19 +1052,19 @@ export function PermissionSelect({
           }} />
         </InformationDisplayCard>}
         {usedFlags.usesToMapping && <InformationDisplayCard title={'To'} md={12} xs={24} sm={24} subtitle={'Which recipients does this permission apply to?'}>
-          <br/>
+          <br />
           <div className='flex-center'>
-            <AddressMappingSelect 
+            <AddressMappingSelect
               addressMapping={newPermissionToAdd.toMapping} setAddressMapping={(x) => {
                 setNewPermissionToAdd({
                   ...newPermissionToAdd,
                   toMapping: x
                 })
               }} />
-            </div>
+          </div>
         </InformationDisplayCard>}
         {usedFlags.usesFromMapping && <InformationDisplayCard title={'From'} md={12} xs={24} sm={24} subtitle={'Which senders does this permission apply to?'}>
-        <br/><div className='flex-center'>
+          <br /><div className='flex-center'>
             <AddressMappingSelect
               addressMapping={newPermissionToAdd.fromMapping} setAddressMapping={(x) => {
                 setNewPermissionToAdd({
@@ -1077,7 +1074,7 @@ export function PermissionSelect({
               }} /></div>
         </InformationDisplayCard>}
         {usedFlags.usesInitiatedByMapping && <InformationDisplayCard title={'Approved'} md={12} xs={24} sm={24} subtitle={'Which approved users does this permission apply to?'}>
-        <br/> <div className='flex-center'>
+          <br /> <div className='flex-center'>
             <AddressMappingSelect addressMapping={newPermissionToAdd.initiatedByMapping} setAddressMapping={(x) => {
               setNewPermissionToAdd({
                 ...newPermissionToAdd,
@@ -1087,7 +1084,7 @@ export function PermissionSelect({
         </InformationDisplayCard>}
 
         {usedFlags.usesAmountTrackerIdMapping && <InformationDisplayCard title={'Amount Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which amount tracker IDs does this permission apply to?'}>
-        <br/><div className='flex-center'>
+          <br /><div className='flex-center'>
             <AddressMappingSelect
               isIdSelect
               addressMapping={newPermissionToAdd.amountTrackerIdMapping} setAddressMapping={(x) => {
@@ -1098,7 +1095,7 @@ export function PermissionSelect({
               }} /></div>
         </InformationDisplayCard>}
         {usedFlags.usesChallengeTrackerIdMapping && <InformationDisplayCard title={'Challenge Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which challenge tracker IDs does this permission apply to?'}>
-        <br/><div className='flex-center'>
+          <br /><div className='flex-center'>
             <AddressMappingSelect
               isIdSelect
               addressMapping={newPermissionToAdd.challengeTrackerIdMapping} setAddressMapping={(x) => {

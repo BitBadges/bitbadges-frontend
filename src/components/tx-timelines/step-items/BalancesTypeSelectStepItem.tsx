@@ -6,6 +6,7 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { InformationDisplayCard } from "../../display/InformationDisplayCard";
 
 export function BalanceTypeSelectStepItem() {
 
@@ -57,7 +58,7 @@ export function BalanceTypeSelectStepItem() {
       />
       <br />
       <div className="secondary-text" style={{ textAlign: 'center' }}>
-        If you are unsure, choose indexed. Indexed has full support for all features if less than 15k unique owners, while non-indexed is more limited and requires technical knowledge to use.
+        If you are unsure, choose indexed. Indexed has full support for all features if less than 15k unique owners and can be outsourced to BitBadges, while non-indexed is more limited and must be self-hosted.
       </div>
 
       {collection.balancesType === "Off-Chain - Non-Indexed" && <div >
@@ -131,108 +132,107 @@ export function BalanceTypeSelectStepItem() {
 }
 
 export const BalanceComparisonTable = () => {
-  return <div className="max-w-4xl mx-auto p-4 rounded-lg shadow-lg primary-text overflow-x-auto">
-    <table className="w-full">
-      <thead>
-        <tr>
-          <th className="border p-2">Features</th>
-          <th className="border p-2">Off-Chain - Indexed</th>
-          <th className="border p-2">Off-Chain - Non-Indexed</th>
-          <th className="border p-2">Standard</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td className="border p-2">Collection Details Storage</td>
-          <td className="border p-2 secondary-text">Blockchain</td>
-          <td className="border p-2 secondary-text">Blockchain</td>
-          <td className="border p-2 secondary-text">Blockchain</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Balances Storage</td>
-          <td className="border p-2 secondary-text">Server</td>
-          <td className="border p-2 secondary-text">Server</td>
-          <td className="border p-2 secondary-text">Blockchain</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Balances Customization</td>
-          <td className="border p-2 secondary-text">Can access non-blockchain data and integrate with non-blockchain tools to customize the experience.</td>
-          <td className="border p-2 secondary-text">Can access non-blockchain data and integrate with non-blockchain tools to customize the experience.</td>
-          <td className="border p-2 secondary-text">Must use blockchain data only (i.e. smart contracts, native features, etc.).</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Real-time fetches?</td>
-          <td className="border p-2 secondary-text">Somewhat, cached and indexed by BitBadges using a refresh queue.</td>
-          <td className="border p-2 secondary-text">Yes, fetched on-demand from source.</td>
-          <td className="border p-2 secondary-text">Yes, blockchain indexed in real-time by BitBadges.</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Scalability?</td>
-          <td className="border p-2 secondary-text">Good</td>
-          <td className="border p-2 secondary-text">Great</td>
-          <td className="border p-2 secondary-text">Poor</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Transfer / Approvals Support</td>
-          <td className="border p-2 secondary-text">No, balances updates by centralized entity only. No on-chain transfers or approvals. If self-hosting, you can custom implement an off-chain solution.</td>
-          <td className="border p-2 secondary-text">No, balances updates by centralized entity only. No on-chain transfers or approvals. If self-hosting, you can custom implement an off-chain solution.</td>
-          <td className="border p-2 secondary-text">Yes</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Balance update / transfer costs?</td>
-          <td className="border p-2 secondary-text">Free (if URL does not change)</td>
-          <td className="border p-2 secondary-text">Free (if URL does not change)</td>
-          <td className="border p-2 secondary-text">Yes, gas fees</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Owner experience</td>
-          <td className="border p-2 secondary-text">No blockchain transactions required.</td>
-          <td className="border p-2 secondary-text">No blockchain transactions required.</td>
-          <td className="border p-2 secondary-text">Requires blockchain transactions for all approvals / transfers.</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Search results?</td>
-          <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
-          <td className="border p-2 secondary-text"><span className="text-red-500">❌</span></td>
-          <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
-        </tr>
-        <tr>
-          <td className="border p-2">Verifiable total supply?</td>
-          <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
-          <td className="border p-2 secondary-text"><span className="text-red-500">❌</span></td>
-          <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
-        </tr>
-        <tr>
-          <td className="border p-2">All balances / owners known?</td>
-          <td className="border p-2 secondary-text">Yes, all balances / owners are known at any given time.</td>
-          <td className="border p-2 secondary-text">No, you can query individual addresses, but a verifiable list of all balances / owners is not kept.</td>
-          <td className="border p-2 secondary-text">Yes, all balances / owners are known at any given time.</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Ledger of activity?</td>
-          <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
-          <td className="border p-2 secondary-text"><span className="text-red-500">❌</span></td>
-          <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
-        </tr>
-        <tr>
-          <td className="border p-2">Max owners limit?</td>
-          <td className="border p-2 secondary-text">15k (can change)</td>
-          <td className="border p-2 secondary-text">None</td>
-          <td className="border p-2 secondary-text">None</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Self-hosted?</td>
-          <td className="border p-2 secondary-text">Optional, can outsource to BitBadges.</td>
-          <td className="border p-2 secondary-text">Mandatory</td>
-          <td className="border p-2 secondary-text">No, blockchain only.</td>
-        </tr>
-        <tr>
-          <td className="border p-2">Decentralized?</td>
-          <td className="border p-2 secondary-text">No, unless specific criteria is met (i.e. frozen balances and using permanent storage).</td>
-          <td className="border p-2 secondary-text">No, unless specific criteria is met (i.e. frozen balances and using permanent storage).</td>
-          <td className="border p-2 secondary-text">Yes.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  return <InformationDisplayCard title='Comparison' subtitle='' span={24}>
+
+    <div className="max-w-4xl mx-auto p-4 rounded-lg shadow-lg primary-text overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr>
+            <th className="border p-2">Features</th>
+            <th className="border p-2">Off-Chain - Indexed</th>
+            <th className="border p-2">Off-Chain - Non-Indexed</th>
+            <th className="border p-2">Standard</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="border p-2">Collection Details Storage</td>
+            <td className="border p-2 secondary-text">Blockchain</td>
+            <td className="border p-2 secondary-text">Blockchain</td>
+            <td className="border p-2 secondary-text">Blockchain</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Balances Storage</td>
+            <td className="border p-2 secondary-text">Server</td>
+            <td className="border p-2 secondary-text">Server</td>
+            <td className="border p-2 secondary-text">Blockchain</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Balances Customization</td>
+            <td className="border p-2 secondary-text">Can access non-blockchain data and integrate with non-blockchain tools to customize the experience.</td>
+            <td className="border p-2 secondary-text">Can access non-blockchain data and integrate with non-blockchain tools to customize the experience.</td>
+            <td className="border p-2 secondary-text">Must use blockchain data only (i.e. smart contracts, native features, etc.).</td>
+          </tr>
+          
+          <tr>
+            <td className="border p-2">Max owners limit?</td>
+            <td className="border p-2 secondary-text">15k (can change)</td>
+            <td className="border p-2 secondary-text">None</td>
+            <td className="border p-2 secondary-text">None</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Self-hosted?</td>
+            <td className="border p-2 secondary-text">Optional, can outsource to BitBadges.</td>
+            <td className="border p-2 secondary-text">Mandatory</td>
+            <td className="border p-2 secondary-text">No, blockchain only.</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Real-time fetches?</td>
+            <td className="border p-2 secondary-text">Somewhat, cached and indexed by BitBadges using a refresh queue.</td>
+            <td className="border p-2 secondary-text">Yes, fetched on-demand from source.</td>
+            <td className="border p-2 secondary-text">Yes, blockchain indexed in real-time by BitBadges.</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Scalability?</td>
+            <td className="border p-2 secondary-text">Good</td>
+            <td className="border p-2 secondary-text">Great</td>
+            <td className="border p-2 secondary-text">Poor</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Transfer / Approvals Support</td>
+            <td className="border p-2 secondary-text">No, balances updates by centralized entity only. No on-chain transfers or approvals. If self-hosting, you can custom implement an off-chain solution.</td>
+            <td className="border p-2 secondary-text">No, balances updates by centralized entity only. No on-chain transfers or approvals. If self-hosting, you can custom implement an off-chain solution.</td>
+            <td className="border p-2 secondary-text">Yes</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Balance update / transfer costs?</td>
+            <td className="border p-2 secondary-text">Free (if URL does not change)</td>
+            <td className="border p-2 secondary-text">Free (if URL does not change)</td>
+            <td className="border p-2 secondary-text">Yes, gas fees</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Owner experience</td>
+            <td className="border p-2 secondary-text">No blockchain transactions required.</td>
+            <td className="border p-2 secondary-text">No blockchain transactions required.</td>
+            <td className="border p-2 secondary-text">Requires blockchain transactions for all approvals / transfers.</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Search results?</td>
+            <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
+            <td className="border p-2 secondary-text"><span className="text-red-500">❌</span></td>
+            <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
+          </tr>
+          <tr>
+            <td className="border p-2">Verifiable total supply?</td>
+            <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
+            <td className="border p-2 secondary-text"><span className="text-red-500">❌</span></td>
+            <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
+          </tr>
+          <tr>
+            <td className="border p-2">All balances / owners known?</td>
+            <td className="border p-2 secondary-text">Yes, all balances / owners are known at any given time.</td>
+            <td className="border p-2 secondary-text">No, you can query individual addresses, but a verifiable list of all balances / owners is not kept.</td>
+            <td className="border p-2 secondary-text">Yes, all balances / owners are known at any given time.</td>
+          </tr>
+          <tr>
+            <td className="border p-2">Ledger of activity?</td>
+            <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
+            <td className="border p-2 secondary-text"><span className="text-red-500">❌</span></td>
+            <td className="border p-2 secondary-text"><span className="text-green-500">✅</span></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </InformationDisplayCard>
 }

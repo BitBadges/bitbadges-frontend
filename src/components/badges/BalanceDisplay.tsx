@@ -6,6 +6,7 @@ import {
   MustOwnBadges,
   UintRange,
   convertUintRange,
+  deepCopy,
 } from "bitbadgesjs-proto"
 import { ReactNode, useMemo, useState } from "react"
 import { getBadgeIdsString } from "../../utils/badgeIds"
@@ -83,8 +84,10 @@ export function BalanceDisplay({
 
   const [incrementNum, setIncrementNum] = useState<number>(0)
 
+  const displaySize = !floatToRight ? 'large' : 'small';
+
   const allBalances = useMemo(() => {
-    let balancesToReturn = balances
+    let balancesToReturn = deepCopy(balances)
     if (numIncrements > 1n) {
       balancesToReturn = balances.map((x) => {
         return {
@@ -127,7 +130,7 @@ export function BalanceDisplay({
       return getAllBadgeIdsToBeTransferred([
         {
           from: "",
-          balances: balances,
+          balances: deepCopy(balances),
           toAddresses: [],
           toAddressesLength: numIncrements > 0 ? numIncrements : 1n,
           incrementBadgeIdsBy: incrementBadgeIdsBy,
@@ -138,10 +141,10 @@ export function BalanceDisplay({
 
     return (
       allBalances?.map((balanceAmount) => {
-          return balanceAmount.badgeIds.map((uintRange) =>
-            convertUintRange(uintRange, BigIntify)
-          )
-        })
+        return balanceAmount.badgeIds.map((uintRange) =>
+          convertUintRange(uintRange, BigIntify)
+        )
+      })
         .flat() ?? []
     )
   }, [
@@ -183,7 +186,6 @@ export function BalanceDisplay({
         collectionId: 0n,
       }
     })
-
   return (
     <div className="flex-center flex-column full-width">
       {!hideMessage && (
@@ -196,7 +198,8 @@ export function BalanceDisplay({
           </div>
         </div>
       )}
-      <div className="flex-center full-width">
+      {/* //dynamic tailwind text size */}
+      <div className="flex-center full-width" style={{ fontSize: displaySize === 'large' ? 18 : 14 }}>
         <div
           className="flex-column full-width"
           style={{
@@ -410,7 +413,7 @@ export function BalanceDisplay({
                           showIds
                           showSupplys={numIncrements > 1n ? false : true}
                           cardView={cardView}
-                          size={size ? size : 75}
+                          size={size ? size : 60}
                         />
                       </div>
                     )}

@@ -6,7 +6,7 @@ import React, { useCallback, useMemo } from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
-import { MsgUniversalUpdateCollectionProps, NEW_COLLECTION_ID, useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { MsgUniversalUpdateCollectionProps, NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { TxModal } from './TxModal';
 
@@ -21,8 +21,6 @@ export function CreateTxMsgCreateAddressMappingModal(
   const chain = useChainContext();
   const router = useRouter();
   const collection = useCollection(NEW_COLLECTION_ID);
-  const txTimelineContext = useTxTimelineContext();
-
   
   const updateIPFSUris = useCallback(async (simulate: boolean) => {
 
@@ -83,11 +81,10 @@ export function CreateTxMsgCreateAddressMappingModal(
         afterTx: async () => {
           notification.success({ message: 'Created successfully!' });
           await router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
-          txTimelineContext.resetState();
         }
       }
     ]
-  }, [inheritedTxState?.addressMapping, chain.cosmosAddress, router, txTimelineContext, updateIPFSUris]);
+  }, [inheritedTxState?.addressMapping, chain.cosmosAddress, router, updateIPFSUris]);
 
   return (
       <TxModal

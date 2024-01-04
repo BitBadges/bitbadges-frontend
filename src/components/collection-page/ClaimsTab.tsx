@@ -1,4 +1,4 @@
-import { Empty, Spin } from 'antd';
+import { Divider, Empty, Spin } from 'antd';
 import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 
@@ -6,14 +6,15 @@ import { useCollection } from '../../bitbadges-api/contexts/collections/Collecti
 import { CodesDisplay } from '../claims/CodesPasswordsDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
+import { TransferabilityRow } from './TransferabilityRow';
 
-export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
+export function ClaimsTab({ collectionId, codesAndPasswords, badgeId, approvalId }: {
   collectionId: bigint;
   codesAndPasswords?: CodesAndPasswords[]
   badgeId?: bigint;
+  approvalId?: string;
 }) {
-
-
+  const [address, setAddress] = useState<string>('');
   const [currPage, setCurrPage] = useState<number>(1);
 
   const collection = useCollection(collectionId)
@@ -21,21 +22,27 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
   const approvalsForClaims: CollectionApprovalWithDetails<bigint>[] = [];
   const approvals = collection?.collectionApprovals ?? [];
 
-  for (const approval of approvals) {
+  const normalizedCodesAndPasswords = [];
+  for (let i = 0; i < approvals.length; i++) {
+    const approval = approvals[i];
     if (isInAddressMapping(approval.fromMapping, 'Mint')) {
-      approvalsForClaims.push(approval);
+      if (approvalId && approvalId !== approval.approvalId) continue;
+      if (codesAndPasswords && (codesAndPasswords[i]?.codes.length > 0 || codesAndPasswords[i]?.password)) {
+        approvalsForClaims.push(approval);
+        normalizedCodesAndPasswords.push(codesAndPasswords[i]);
+      }
     }
   }
 
   const numActiveClaims = approvalsForClaims.length;
   const currApproval = currPage > 0 && currPage <= approvalsForClaims.length ? approvalsForClaims[currPage - 1] : undefined;
 
-  const approvalItem = numActiveClaims > currPage - 1 ? currApproval : undefined;
+  const approvalItem = currApproval ?? undefined;
   const approvalCriteria = approvalItem?.approvalCriteria
   const claimItem = approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
 
 
-  if (!collection) return <Spin />
+  if (!collection || !codesAndPasswords) return <Spin />
 
   return (
     <div className='primary-text'
@@ -43,18 +50,21 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId }: {
         justifyContent: 'center',
         width: '100%',
       }}>
-
-      <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
-
-
+      {numActiveClaims > 1 && <>
+        <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
+        {approvalItem &&
+          <TransferabilityRow collectionId={collectionId} transfer={approvalItem} hideActions allTransfers={collection?.collectionApprovals ?? []}
+            address={address} setAddress={setAddress} />}
+        <Divider />
+      </>}
       <div className=''>
         {currApproval &&
           <>
             <CodesDisplay
               collectionId={collectionId}
               approval={currApproval}
-              codes={codesAndPasswords ? codesAndPasswords[currPage - 1]?.codes : []}
-              claimPassword={codesAndPasswords ? codesAndPasswords[currPage - 1]?.password : ""}
+              codes={normalizedCodesAndPasswords ? normalizedCodesAndPasswords[currPage - 1]?.codes : []}
+              claimPassword={normalizedCodesAndPasswords ? normalizedCodesAndPasswords[currPage - 1]?.password : ""}
             />
           </>
         }

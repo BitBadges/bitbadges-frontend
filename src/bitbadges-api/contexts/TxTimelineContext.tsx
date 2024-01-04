@@ -1,5 +1,5 @@
 import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
-import { AddressMappingEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, getReservedAddressMapping, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
+import { AddressMappingEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { defaultApprovedOption } from '../../components/tx-timelines/step-items/DefaultToApprovedSelectStepItem';
@@ -395,25 +395,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           updateHistory: [],
         }],
         views: {},
-        //By default, we add a 24 hour distribution approval for the connected address. Editable during the select step
-        collectionApprovals: [{
-          fromMappingId: 'Mint',
-          fromMapping: getReservedAddressMapping("Mint"),
-          toMappingId: "AllWithMint",
-          toMapping: getReservedAddressMapping("AllWithMint"),
-          initiatedByMappingId: chain.cosmosAddress ? chain.cosmosAddress : "AllWithMint",
-          initiatedByMapping: chain.cosmosAddress ? getReservedAddressMapping(chain.cosmosAddress) : getReservedAddressMapping("AllWithMint"),
-          transferTimes: [{ start: BigInt(Date.now()), end: BigInt(Date.now() + 60 * 60 * 24 * 1000) }],
-          ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          approvalCriteria: {
-            overridesFromOutgoingApprovals: true,
-            overridesToIncomingApprovals: true,
-          },
-          approvalId: 'default-distribution-approval',
-          amountTrackerId: 'default-distribution-approval',
-          challengeTrackerId: 'default-distribution-approval',
-        }],
+        collectionApprovals: [],
         badgeMetadataTimeline: [],
         // standardsTimeline: [{
         //   standards: ["BitBadges"],

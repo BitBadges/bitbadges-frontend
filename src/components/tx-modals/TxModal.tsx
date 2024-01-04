@@ -61,6 +61,7 @@ import { DevMode } from '../common/DevMode';
 import IconButton from '../display/IconButton';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 import { MessageGenerated, createProtoMsg } from 'bitbadgesjs-proto';
+import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const { Step } = Steps;
 
@@ -111,6 +112,7 @@ export function TxModal(
 
   const router = useRouter();
   const statusContext = useStatusContext();
+  const txTimelineContext = useTxTimelineContext();
 
 
   const [irreversibleChecked, setIrreversibleChecked] = useState(false);
@@ -119,6 +121,7 @@ export function TxModal(
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [useRecommendedFee, setUseRecommendedFee] = useState(true);
+
   const [amount, setAmount] = useState(0n);
   const [simulatedGas, setSimulatedGas] = useState(200000n);
   const [simulated, setSimulated] = useState(false);
@@ -286,7 +289,6 @@ export function TxModal(
         if (!signedInAccount) return;
 
         const status = await updateStatus();
-
         const gasPrice = Number(status.lastXGasAmounts.reduce((a, b) => a + b, 0n)) / Number(status.lastXGasLimits.reduce((a, b) => a + b, 0n));
 
         const generatedMsgs: MessageGenerated[] = []
@@ -550,6 +552,7 @@ export function TxModal(
         }
       }
 
+      await txTimelineContext.resetState();
       setVisible(false);
     } catch (err: any) {
       console.error(err);

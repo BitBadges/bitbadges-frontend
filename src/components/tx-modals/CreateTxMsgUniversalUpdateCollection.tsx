@@ -354,7 +354,6 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
           }
 
           if (afterTxParam) await afterTxParam(collectionId);
-          txTimelineContext.resetState();
         }
       }
     ]

@@ -71,101 +71,101 @@ export function ConfirmManagerStepItem() {
       </a>
     </>,
     node: () => <UpdateSelectWrapper
-        documentationLink={"https://docs.bitbadges.io/overview/how-it-works/manager"}
-        err={err}
-        setErr={(err) => { setErr(err) }}
-        updateFlag={canUpdateManager}
-        setUpdateFlag={setCanUpdateManager}
-        jsonPropertyPath="managerTimeline"
-        permissionName="canUpdateManager"
-        node={() => <div className='primary-text' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-            <div className='primary-text'
-              style={{
-                padding: '0',
-                textAlign: 'center',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginTop: 20,
-              }}
-            >
-              <SwitchForm
-                showCustomOption
-                onSwitchChange={(idx) => {
-                  if (idx == 0) {
-                    updateCollection({
-                      collectionId: NEW_COLLECTION_ID,
-                      managerTimeline: [],
-                    })
-                  } else {
-                    updateCollection({
-                      collectionId: NEW_COLLECTION_ID,
-                      managerTimeline: [{
-                        manager: convertToCosmosAddress(address),
-                        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                      }],
-                    })
-                  }
-                }}
-                options={[{
-                  title: 'No Manager',
-                  message: <>Do not have a manager for this collection. No admin privileges will ever be available for this collection. <span style={{ fontWeight: 'bold', color: 'orange' }}>All collection details will be frozen and final after this transaction. No manager permissions will be executable moving forward.</span></>,
-                  isSelected: !hasManager,
-                  additionalNode: () => <>
-                    <div className="flex-center">
-                      <PermissionsOverview
-                        span={24}
-                        collectionId={collection.collectionId}
-                      />
-                    </div>
-                  </>,
-                },
-                {
-                  title: 'Manager',
-                  message: <>{'Specify a manager for this collection that can execute admin privileges. You can select which permissions are enabled.'}</>,
-                  additionalNode: () => <>
-                    {hasManager && <div>
+      documentationLink={"https://docs.bitbadges.io/overview/how-it-works/manager"}
+      err={err}
+      setErr={(err) => { setErr(err) }}
+      updateFlag={canUpdateManager}
+      setUpdateFlag={setCanUpdateManager}
+      jsonPropertyPath="managerTimeline"
+      permissionName="canUpdateManager"
+      node={() => <div className='primary-text' style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+        <div className='primary-text'
+          style={{
+            padding: '0',
+            textAlign: 'center',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 20,
+          }}
+        >
+          <SwitchForm
+            showCustomOption
+            onSwitchChange={(idx) => {
+              if (idx == 0) {
+                updateCollection({
+                  collectionId: NEW_COLLECTION_ID,
+                  managerTimeline: [],
+                })
+              } else {
+                updateCollection({
+                  collectionId: NEW_COLLECTION_ID,
+                  managerTimeline: [{
+                    manager: convertToCosmosAddress(address),
+                    timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                  }],
+                })
+              }
+            }}
+            options={[{
+              title: 'No Manager',
+              message: <>Do not have a manager for this collection. No admin privileges will ever be available for this collection. <span style={{ fontWeight: 'bold', color: 'orange' }}>All collection details will be frozen and final after this transaction. No manager permissions will be executable moving forward.</span></>,
+              isSelected: !hasManager,
+              additionalNode: () => <>
+                <div className="flex-center">
+                  <PermissionsOverview
+                    span={24}
+                    collectionId={collection.collectionId}
+                  />
+                </div>
+              </>,
+            },
+            {
+              title: 'Manager',
+              message: <>{'Specify a manager for this collection that can execute admin privileges. You can select which permissions are enabled.'}</>,
+              additionalNode: () => <>
+                {hasManager && <div>
 
-                      <TimelineEditor
-                        emptyValue="No Manager"
-                        timelineName="Manager"
-                        valueToAdd={{
-                          manager: convertToCosmosAddress(address),
-                          timelineTimes: [], //overriden
-                        }}
-                        timeline={collection.managerTimeline} displayNode={(item) => {
-                          return <div className='flex' style={{ alignItems: 'center' }}>
-                            <AddressDisplay addressOrUsername={item.manager} />
-                          </div>
-                        }}
-                        createNode={<AddManagerNode address={address} setAddress={setAddress} />}
-                        setTimeline={(timeline) => {
-                          updateCollection({
-                            collectionId: NEW_COLLECTION_ID,
-                            managerTimeline: timeline,
-                          })
-                        }}
-                      />
-
-                      <Divider />
-                      <div className="flex-center">
-                        <PermissionsOverview
-                          span={24}
-                          tbd
-                          collectionId={collection.collectionId}
-                        />
+                  <TimelineEditor
+                    emptyValue="No Manager"
+                    timelineName="Manager"
+                    valueToAdd={{
+                      manager: convertToCosmosAddress(address),
+                      timelineTimes: [], //overriden
+                    }}
+                    timeline={collection.managerTimeline} displayNode={(item) => {
+                      return <div className='flex' style={{ alignItems: 'center' }}>
+                        <AddressDisplay addressOrUsername={item.manager} />
                       </div>
-                    </div>
-                    }
-                  </>,
-                  isSelected: hasManager,
-                },
-                ]}
-              />
-            </div>
-            <DevMode obj={collection.managerTimeline} />
-          </div >
-        }
-      />
+                    }}
+                    createNode={<AddManagerNode address={address} setAddress={setAddress} />}
+                    setTimeline={(timeline) => {
+                      updateCollection({
+                        collectionId: NEW_COLLECTION_ID,
+                        managerTimeline: timeline,
+                      })
+                    }}
+                  />
+
+                  <Divider />
+                  <div className="flex-center">
+                    <PermissionsOverview
+                      span={24}
+                      tbd
+                      collectionId={collection.collectionId}
+                    />
+                  </div>
+                </div>
+                }
+              </>,
+              isSelected: hasManager,
+            },
+            ]}
+          />
+        </div>
+        <DevMode obj={collection.managerTimeline} />
+      </div >
+      }
+    />
   }
 }
 
