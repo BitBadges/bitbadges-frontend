@@ -114,7 +114,7 @@ export function CollectionDisplayWithBadges({
         title={"Collection ID: " + collectionId}
         placement="bottom"
       >
-        <CollectionHeader collectionId={collectionId} multiDisplay />
+        <CollectionHeader collectionId={collectionId} multiDisplay hideCollectionLink={hideCollectionLink} />
         {collection && !hideAddress && (
           <div className="flex-center">
             <Typography.Text

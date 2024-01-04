@@ -770,6 +770,7 @@ export function ApprovalSelect({
                 <BalanceInput
                   fullWidthCards
                   isMustOwnBadgesInput
+                  noOffChainBalances
                   message="Must Own Badges"
                   hideOwnershipTimes
                   balancesToShow={mustOwnBadges.map(x => {
@@ -780,7 +781,7 @@ export function ApprovalSelect({
                     }
                   })}
                   mustOwnBadges={mustOwnBadges}
-                  onAddBadges={(balance, amountRange, collectionId) => {
+                  onAddBadges={(balance, amountRange, collectionId, mustOwnAll) => {
                     if (!collectionId || !amountRange) return;
 
                     setMustOwnBadges([...mustOwnBadges, {
@@ -789,7 +790,7 @@ export function ApprovalSelect({
                       amountRange: amountRange,
                       badgeIds: balance.badgeIds,
                       ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                      mustOwnAll: true
+                      mustOwnAll: !!mustOwnAll
                     }]);
                   }}
                   onRemoveAll={() => {

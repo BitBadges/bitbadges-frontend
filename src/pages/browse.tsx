@@ -192,6 +192,7 @@ function BrowsePage() {
                 if (idx >= browseInfo?.collections[collectionsTab]?.length) return null
                 const collection = browseInfo?.collections[collectionsTab][idx];
                 return <MultiCollectionBadgeDisplay
+                  hideCollectionLink
                   collectionIds={[collection.collectionId]}
                   groupByCollection
                   cardView={cardView}

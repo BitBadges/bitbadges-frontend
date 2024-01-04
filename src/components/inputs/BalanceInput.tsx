@@ -20,10 +20,11 @@ export function BalanceInput({
   setIncrement,
   timeString,
   numIncrements,
-  suggestedBalances
+  suggestedBalances,
+  noOffChainBalances
 }: {
   balancesToShow: Balance<bigint>[],
-  onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint) => void,
+  onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint, mustOwnAll?: boolean) => void,
   onRemoveAll?: () => void,
   maximum?: bigint,
   minimum?: bigint,
@@ -40,7 +41,8 @@ export function BalanceInput({
   timeString?: string
   setIncrement?: (increment: bigint) => void
   numIncrements?: bigint
-  suggestedBalances?: Balance<bigint>[]
+  suggestedBalances?: Balance<bigint>[],
+  noOffChainBalances?: boolean
 }) {
   return <>
     <BalanceDisplay
@@ -62,6 +64,8 @@ export function BalanceInput({
       onAddBadges={onAddBadges}
       minimum={minimum}
       maximum={maximum}
+
+      noOffChainBalances={noOffChainBalances}
 
       hideOwnershipTimeSelect={hideOwnershipTimes}
       editable

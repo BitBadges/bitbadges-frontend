@@ -27,6 +27,7 @@ export function BalanceDisplay({
   incrementOwnershipTimesBy = 0n,
   hideOwnershipTimeSelect,
   mustOwnBadges,
+  noOffChainBalances,
 
   cardView,
   hideMessage,
@@ -64,10 +65,12 @@ export function BalanceDisplay({
   floatToRight?: boolean
   isMustOwnBadgesInput?: boolean
   editable?: boolean
+  noOffChainBalances?: boolean
   onAddBadges?: (
     balance: Balance<bigint>,
     amountRange?: UintRange<bigint>,
-    collectionId?: bigint
+    collectionId?: bigint,
+    mustOwnAll?: boolean
   ) => void
   minimum?: bigint
   maximum?: bigint
@@ -160,6 +163,7 @@ export function BalanceDisplay({
       collectionId={collectionId}
       balances={balances}
       isMustOwnBadgesInput={isMustOwnBadgesInput}
+      noOffChainBalances={noOffChainBalances}
       onAddBadges={onAddBadges}
       minimum={minimum}
       maximum={maximum}
@@ -184,6 +188,7 @@ export function BalanceDisplay({
         ...x,
         amountRange: { start: x.amount, end: GO_MAX_UINT_64 },
         collectionId: 0n,
+        mustOwnAll: true,
       }
     })
   return (
@@ -199,7 +204,7 @@ export function BalanceDisplay({
         </div>
       )}
       {/* //dynamic tailwind text size */}
-      <div className="flex-center full-width" style={{ fontSize: displaySize === 'large' ? 18 : 14 }}>
+      <div className="flex-center full-width" style={{ fontSize: displaySize === 'large' ? 16 : 14 }}>
         <div
           className="flex-column full-width"
           style={{
@@ -245,6 +250,18 @@ export function BalanceDisplay({
                             }}
                           >
                             Collection ID
+                          </th>
+                        )}
+                        {isMustOwnBadgesInput && (
+                          <th
+                            style={{
+                              textAlign: "center",
+                              verticalAlign: "top",
+                              fontWeight: "bold",
+                              paddingRight: 4,
+                            }}
+                          >
+                            Reqs.
                           </th>
                         )}
                         <th
@@ -316,6 +333,17 @@ export function BalanceDisplay({
                               {collectionId.toString()}
                             </td>
                           )}
+                          {isMustOwnBadgesInput && (
+                            <td
+                              style={{
+                                textAlign: "center",
+                                verticalAlign: "top",
+                                paddingRight: 4,
+                              }}
+                            >
+                              {balance.mustOwnAll ? "Must Own All" : "Must Own One"}
+                            </td>
+                          )}
                           {!isMustOwnBadgesInput && (
                             <td
                               style={{
@@ -335,8 +363,8 @@ export function BalanceDisplay({
                                 paddingRight: 4,
                               }}
                             >
-                              {amountRange.start.toString()} (Min) -{" "}
-                              {amountRange.end.toString()} (Max)
+                              x{amountRange.start.toString()} (Min) -{" "}
+                              x{amountRange.end.toString()} (Max)
                             </td>
                           )}
                           <td
@@ -418,6 +446,31 @@ export function BalanceDisplay({
                       </div>
                     )}
                   </div>
+                </>
+              )}
+              {isMustOwnBadgesInput && (
+                <>
+                  {mustOwnBadges?.map((x, idx) => {
+                    return (
+                      <div
+                        key={idx}
+                        className="full-width flex-center"
+                        style={{ textAlign: "center", display: "flex" }}
+                      >
+                        <div style={{ marginTop: 4 }} className=" full-width">
+                          <br />
+                          <BadgeAvatarDisplay
+                            collectionId={x.collectionId}
+                            badgeIds={x.badgeIds}
+                            showIds
+                            showSupplys={false}
+                            cardView={cardView}
+                            size={size ? size : 60}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
                 </>
               )}
               {editable && (

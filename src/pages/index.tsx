@@ -103,7 +103,7 @@ const Home: NextPage = () => {
       {/* gradient-bg  */}
       <div className='landing-padding gradient-bg'>
         <Row className='flex-around ' style={{ textAlign: 'start', flexWrap: 'wrap', alignItems: 'normal', minHeight: '60vh' }}>
-          <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh', }}>
+          <Col md={14} sm={24} xs={24} style={{ alignItems: "center", height: '100%', marginTop: '10vh' }}>
             <div className='collect-title capitalize primary-text flex flex-wrap' style={{
               alignItems: 'center'
             }}><span className='mr-2'>Collect {' '}</span><img src='/images/bitbadgeslogotext.png' alt='BitBadges Logo' className='inline-logo primary-pink' />
@@ -163,7 +163,7 @@ const Home: NextPage = () => {
 
           </Col>
           {/* Custom scrollbar */}
-          <Col md={10} sm={24} xs={24} style={{ alignItems: "normal", height: '100%', marginTop: '10vh', marginBottom: 32, }}>
+          <Col md={10} sm={24} xs={24} style={{ alignItems: "normal", height: '100%', marginTop: '10vh', marginBottom: '10vh' }}>
             {/* <div style={{ maxWidth: 400, justifyContent: 'center' }}>
                   <img src="/images/bitbadgeslogo.png" alt="BitBadges Logo" className='landing-logo' />
                 </div> */}
@@ -293,7 +293,7 @@ const Home: NextPage = () => {
             <InformationDisplayCard noBorder inheritBg title='Reputation' subtitle='' md={8} sm={24} xs={24}>
               <br /><BadgeAvatar size={150} collectionId={1n} badgeId={9n} /> <br />
               <div className='secondary-text' style={{ fontSize: 14 }}>
-                Your badges become your digital identity. Some might positively impact your reputation while others might negatively impact your reputation. Or, some may just be informational.
+                Your badges become your digital identity. Some might positively impact your reputation while others might negatively impact your reputation.
               </div>
             </InformationDisplayCard>
 

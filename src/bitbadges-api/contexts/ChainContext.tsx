@@ -7,6 +7,7 @@ import { useCosmosContext } from './chains/CosmosContext';
 import { useEthereumContext } from './chains/EthereumContext';
 import { useSolanaContext } from './chains/SolanaContext';
 import { useBitcoinContext } from './chains/BitcoinContext';
+import { useCookies } from 'react-cookie';
 
 export type SignChallengeResponse = {
   signature: string
@@ -82,6 +83,7 @@ type Props = {
 export const ChainContextProvider: React.FC<Props> = ({ children }) => {
   //TODO: default based on cookie of last signed in chain
   const [chain, setChain] = useState<SupportedChain>(SupportedChain.ETH);
+  const [cookies, setCookies] = useCookies(['latestChain']);
 
   const ethereumContext = useEthereumContext();
   const cosmosContext = useCosmosContext();
@@ -95,6 +97,20 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
       ethereumContext.setChainId('eth');
     }
   }, [chain, setChain, ethereumContext]);
+
+  useEffect(() => {
+    if (cookies.latestChain) {
+      setChain(cookies.latestChain);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('useEffect: chainContext');
+
+    if (cookies.latestChain !== chain) {
+      setCookies('latestChain', chain);
+    }
+  }, [chain]);
 
   let currentChainContext: ChainSpecificContextType;
   if (chain?.startsWith('Cosmos')) {

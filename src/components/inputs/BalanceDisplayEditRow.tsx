@@ -8,6 +8,7 @@ import { Row, Switch } from "antd"
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
   checkIfUintRangesOverlap,
+  getTotalNumberOfBadgeIds,
   invertUintRanges,
   isFullUintRanges,
   sortUintRangesAndMergeIfNecessary,
@@ -26,9 +27,11 @@ import { SwitchForm } from "../tx-timelines/form-items/SwitchForm"
 import { BadgeIdRangesInput } from "./BadgeIdRangesInput"
 import { DateRangeInput } from "./DateRangeInput"
 import { NumberInput } from "./NumberInput"
+import { ErrDisplay } from "../common/ErrDisplay"
 
 export function BalanceDisplayEditRow({
   suggestedBalances,
+  noOffChainBalances,
   collectionId,
   onAddBadges,
   isMustOwnBadgesInput,
@@ -56,7 +59,7 @@ export function BalanceDisplayEditRow({
   message?: string | ReactNode
   size?: number
   showingSupplyPreview?: boolean
-
+  noOffChainBalances?: boolean
   cardView?: boolean
   hideMessage?: boolean
   hideBadges?: boolean
@@ -66,7 +69,8 @@ export function BalanceDisplayEditRow({
   onAddBadges?: (
     balances: Balance<bigint>,
     amountRange?: UintRange<bigint>,
-    collectionId?: bigint
+    collectionId?: bigint,
+    mustOwnAll?: boolean
   ) => void
   minimum?: bigint
   maximum?: bigint
@@ -79,6 +83,7 @@ export function BalanceDisplayEditRow({
   suggestedBalances?: Balance<bigint>[]
 }) {
   const [selectIsVisible, setSelectIsVisible] = useState(false)
+  const [mustOwnAll, setMustOwnAll] = useState(true)
   const [currentSupply, setCurrentSupply] = useState<Balance<bigint>>({
     amount: 1n,
     badgeIds: [],
@@ -90,7 +95,7 @@ export function BalanceDisplayEditRow({
   >({ start: 1n, end: 1n })
   const collection = useCollection(NEW_COLLECTION_ID)
 
-  // const selectedCollection = useCollection(selectedCollectionId)
+  const selectedCollection = useCollection(selectedCollectionId)
 
   const currTimeNextHour = new Date()
   currTimeNextHour.setHours(currTimeNextHour.getHours())
@@ -119,7 +124,8 @@ export function BalanceDisplayEditRow({
     currentSupply.ownershipTimes.length === 0 ||
     checkIfUintRangesOverlap(currentSupply.ownershipTimes) ||
     checkIfUintRangesOverlap(currentSupply.badgeIds) ||
-    nonSequential
+    nonSequential ||
+    (isMustOwnBadgesInput && selectedCollection?.balancesType !== 'Standard' && noOffChainBalances)
   return (
     <>
       <tr style={{ color: currentSupply.amount < 0 ? "red" : undefined }}>
@@ -189,6 +195,7 @@ export function BalanceDisplayEditRow({
                   min={1}
                   max={Number.MAX_SAFE_INTEGER}
                 />
+                {selectedCollection?.balancesType !== 'Standard' && noOffChainBalances && <ErrDisplay err="Only collections with on-chain balances are supported." />}
               </InformationDisplayCard>
             )}
             {isMustOwnBadgesInput && (
@@ -230,8 +237,11 @@ export function BalanceDisplayEditRow({
                   min={0}
                   max={Number.MAX_SAFE_INTEGER}
                 />
+
+
               </InformationDisplayCard>
             )}
+
             {!isMustOwnBadgesInput && (
               <InformationDisplayCard
                 md={fullWidthCards ? 24 : 4}
@@ -295,6 +305,31 @@ export function BalanceDisplayEditRow({
                 />
               )}
             </InformationDisplayCard>
+            {isMustOwnBadgesInput && getTotalNumberOfBadgeIds(currentSupply.badgeIds) > 1n && (
+              <InformationDisplayCard
+                md={fullWidthCards ? 24 : 4}
+                xs={24}
+                sm={24}
+                style={{ marginTop: 16 }}
+                title={"Requirements"}
+              >
+                <Switch
+                  checkedChildren="Must Own All"
+                  unCheckedChildren="Must Own One"
+                  checked={mustOwnAll}
+                  onChange={(checked) => {
+                    setMustOwnAll(checked)
+                  }}
+                />
+                <br />
+                <div className="secondary-text">
+                  <InfoCircleOutlined />{" "}
+                  {mustOwnAll
+                    ? "To be approved, the requirements for ALL selected badges must be met."
+                    : "To be approved, the requirements for ONE of the selected badges must be met."}
+                </div>
+              </InformationDisplayCard>
+            )}
             <InformationDisplayCard
               md={fullWidthCards ? 24 : 9}
               xs={24}
@@ -475,7 +510,8 @@ export function BalanceDisplayEditRow({
                   onAddBadges?.(
                     deepCopy(currentSupply),
                     selectedAmountRange,
-                    selectedCollectionId
+                    selectedCollectionId,
+                    mustOwnAll
                   )
                 } else {
                   onAddBadges?.(deepCopy(currentSupply))

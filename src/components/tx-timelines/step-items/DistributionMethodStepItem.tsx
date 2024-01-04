@@ -37,7 +37,7 @@ export function DistributionMethodStepItem() {
 
   return {
     title: `Collection Approvals (Transferability) - Minting`,
-    description: 'You previously created badges which have been sent to the Mint address. Here, you create the collection level approvals for who can transfer from the Mint address. All transfers must be approved on the collection level. Use the advanced view to implement more custom complex restricitons.',
+    description: 'You previously created badges which have been sent to the Mint address. Here, you create the collection level approvals for who can transfer from the Mint address. All transfers must be approved on the collection level.',
     node: () => <>
       {
         collection?.balancesType === "Off-Chain - Indexed" ? DistributionComponent :

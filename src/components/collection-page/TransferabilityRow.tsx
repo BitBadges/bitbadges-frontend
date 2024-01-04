@@ -279,26 +279,10 @@ export const MustOwnBadgesCard = ({ transfer }: {
 
           return <div className='flex-center flex-column primary-text' key={idx}>
             <BalanceDisplay
-              message='Min Amounts'
-              balances={[approvalCriteria?.mustOwnBadges[idx]].map(x => {
-                return {
-                  ...x,
-                  amount: x.amountRange.start,
-                }
-              })}
-              collectionId={mustOwnBadge.collectionId}
-              isMustOwnBadgesInput={mustOwnBadge.overrideWithCurrentTime}
-            />
-            <br />
-            <br />
-            <BalanceDisplay
-              message='Max Amounts'
-              balances={[approvalCriteria.mustOwnBadges[idx]].map(x => {
-                return {
-                  ...x,
-                  amount: x.amountRange.start,
-                }
-              })}
+              hideMessage
+              message='Amounts'
+              mustOwnBadges={approvalCriteria?.mustOwnBadges}
+              balances={[]}
               collectionId={mustOwnBadge.collectionId}
               isMustOwnBadgesInput={mustOwnBadge.overrideWithCurrentTime}
             />
@@ -1398,7 +1382,7 @@ const RowContentDetails = ({
         className='primary-text'
       >Disapproved</Tag> </td>}
   </>
-  
+
   if (mobile) {
     return <>
       <TableRow label={'From'} value={FromValue} />

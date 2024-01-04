@@ -130,7 +130,7 @@ export const BlockinDisplay = ({
   }
 
   return <>
-    <div className='flex-center primary-text img-overrides'>
+    <div className='flex-center primary-text img-overrides' style={{ marginTop: 10 }}>
       {
         <BlockinUIDisplay
           connected={connected}
