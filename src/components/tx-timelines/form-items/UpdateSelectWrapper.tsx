@@ -185,7 +185,7 @@ export function UpdateSelectWrapper({
             <Switch
               checkedChildren="Update"
               unCheckedChildren="Do not update"
-              style={{ marginLeft: 10 }}
+              style={{  }}
               checked={updateFlag}
               onChange={(e) => {
                 setUpdateFlag(e);

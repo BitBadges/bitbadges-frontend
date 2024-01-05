@@ -48,6 +48,7 @@ async function handleApiError(error: any): Promise<void> {
 }
 
 function assertPositiveInteger(num: NumberType) {
+
   try {
     BigInt(num);
   } catch (e) {

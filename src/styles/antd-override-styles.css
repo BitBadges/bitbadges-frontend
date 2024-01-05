@@ -314,3 +314,12 @@
   color: transparent !important;
   border-color: transparent;
 }
+
+.ant-notification-notice {
+  @apply rounded-lg
+  
+}
+
+.ant-notification-notice-message {
+  font-weight: bold;
+}

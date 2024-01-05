@@ -1,4 +1,4 @@
-import { Empty } from 'antd';
+import { Empty, Switch } from 'antd';
 import { Balance } from 'bitbadgesjs-proto';
 import { getBalancesForId } from 'bitbadgesjs-utils';
 import { useEffect, useMemo, useState } from 'react';
@@ -27,6 +27,8 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
 
   const [lastFetchedBalances, setLastFetchedBalances] = useState<Balance<bigint>[]>([]);
   const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
+
+  const [onlyShowBadge, setOnlyShowBadge] = useState<boolean>(!!badgeId);
 
   const currBalances = useMemo(() => {
     if (!account || !account.address) return [];
@@ -84,7 +86,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
 
   if (!collection) return <></>;
 
-  const balancesToShow = badgeId && currBalances ? getBalancesForId(badgeId, currBalances) ?? [] : currBalances ?? [];
+  const balancesToShow = badgeId && currBalances && onlyShowBadge ? getBalancesForId(badgeId, currBalances) ?? [] : currBalances ?? [];
 
   return (<div className='full-width flex-column'>
     <div className='full-width flex-center flex-column'>
@@ -104,6 +106,12 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         ></Empty>
       </>}
       {
+        !!badgeId && !isPreview && <>
+          <Switch checked={onlyShowBadge} onChange={setOnlyShowBadge} checkedChildren={`Filter by ID ${badgeId}`} unCheckedChildren="All Badges" />
+          <br /> <br />
+        </>
+      }
+      {
         currBalances && !isPreview && <><div>
           <BalanceDisplay
             hideMessage
@@ -115,7 +123,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         </>
       }
 
-      {!!setTab && collection.balancesType !== "Off-Chain - Non-Indexed" && <>
+      {!!setTab && collection.balancesType !== "Off-Chain - Non-Indexed" && !badgeId && <>
         <span className='secondary-text'>Head over to the <a
           onClick={() => { setTab('transferability') }}
 

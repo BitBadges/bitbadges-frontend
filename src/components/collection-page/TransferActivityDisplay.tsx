@@ -100,7 +100,9 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
   currPage: number,
   numShown: number
 }) {
-    return <>{/** No activity */}
+  const router = useRouter();
+
+  return <>{/** No activity */}
     {activity.length === 0 && !hasMore && <EmptyIcon description='No Activity' />}
 
     {/** Activity Collapse Panel */}
@@ -137,7 +139,16 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                   <div key={idx} className='primary-text'>
                     <Row>
                       <Col span={24}>
+                        <div className='flex-center'>
+                          <a
+                            style={{ fontSize: 20, fontWeight: 'bolder' }}
+                            onClick={() => {
+                              router.push(`/collections/${collectionId}`)
+                            }}>
+                            {collection?.cachedCollectionMetadata?.name}
+                          </a>
 
+                        </div>
                         <TransferDisplay
 
                           key={idx}

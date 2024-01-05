@@ -373,8 +373,8 @@ export const BatchBadgeDetailsTag = ({
             <Tooltip title={`Collection ID: ${badgeIdObj.collectionId}\n\n${isFullUintRanges(badgeIdObj.badgeIds) ? "All" : `Badge IDs: ${badgeIdObj.badgeIds.map((x) => x.start === x.end ? `${x.start}` : `${x.start}-${x.end}`).join(", ")}`}`}>
               <div style={{}}>{metadata?.name}</div>
             </Tooltip>
-            <div style={{ fontSize: 12 }}>
-              {/* Collection ID: {badgeIdObj.collectionId.toString()}
+            <div style={{ fontSize: 12 }} className="secondary-text">
+              Collection ID: {badgeIdObj.collectionId.toString()}
               <br />
               {isFullUintRanges(badgeIdObj.badgeIds)
                 ? "All"
@@ -382,7 +382,7 @@ export const BatchBadgeDetailsTag = ({
                   .map((x) =>
                     x.start === x.end ? `${x.start}` : `${x.start}-${x.end}`
                   )
-                  .join(", ")}`} */}
+                  .join(", ")}`}
             </div>
           </Typography.Text>
         </div>

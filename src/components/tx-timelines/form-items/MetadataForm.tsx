@@ -83,11 +83,13 @@ export const RadioGroup = ({
   label?: string | ReactNode
   value: any
   onChange: (value: any) => void
-  options: {
+  options: ({
     label: string | ReactNode
     value: any
-  }[]
+  } | undefined)[]
 }) => {
+
+
   return (
     <div className="flex-center flex-column">
       <div className="primary-text">{label}</div>
@@ -101,6 +103,8 @@ export const RadioGroup = ({
         style={{ marginTop: 10 }}
       >
         {options.map((option) => {
+          if (!option) return <></>
+
           return (
             <Radio.Button value={option.value} key={option.value}>
               <div className="primary-text capitalize hover:text-gray-400" style={{ color: value === option.value ? 'white' : undefined }}>
@@ -331,7 +335,7 @@ export function MetadataForm({
   const hasOutOfBoundsids = removed.length > 0
 
   const PopulateComponent = () => {
-    let message = badgeId ? `ID ${badgeId}'s metadata`
+    let message = badgeId && !isCollectionSelect ? `ID ${badgeId}'s metadata`
       : " the collection metadata"
 
     return (
@@ -862,8 +866,8 @@ export function MetadataForm({
               <div style={{ fontSize: 12 }}>
                 <Text className="secondary-text">
                   Videos can either be a URL to a video file (e.g. .mp4) or a YouTube embed link.
-                  We will use the image above as a thumbnail for the video.
-
+                  Videos will be viewable only after navigating to the badge page.
+                  For icons, avatars, and thumbnails, we will use the image provided above.
                 </Text>
               </div>
             </Form.Item>

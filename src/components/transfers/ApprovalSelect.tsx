@@ -1,4 +1,4 @@
-import { InfoCircleOutlined, LockOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { FormOutlined, InfoCircleOutlined, LockOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Col, Input, Row, Switch, Tooltip, Typography, notification } from 'antd';
 import { AddressMapping, ApprovalAmounts, Balance, MustOwnBadges, UintRange, deepCopy } from 'bitbadgesjs-proto';
 import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
@@ -474,10 +474,10 @@ export function ApprovalSelect({
     <br /><br />
     {mintOnlyApproval && <div style={{ textAlign: 'center' }} className="">
       <b>Apply a template?</b>{' '}
-      <div className='flex-center flex-wrap'>
+      <div className='flex-center secondary-text flex-wrap'>
         <Tooltip color='black' title='Approve yourself for 24 hours to transfer with no restrictions from the Mint address.'>
           <button
-            className='cursor-pointer hoverable styled-button-normal rounded p-2 m-2'
+            className='cursor-pointer hoverable styled-button-normal rounded p-2 m-2 '
             style={{ borderWidth: 1 }}
             onClick={() => {
               if (!collection) return;
@@ -489,7 +489,7 @@ export function ApprovalSelect({
               });
             }}
           >
-            Approve self for 24 hours
+            <FormOutlined /> Approve self for 24 hours
           </button>
         </Tooltip>
         {getCurrentManagerApprovals().length == 1 &&
@@ -509,10 +509,11 @@ export function ApprovalSelect({
                 });
               }}
             >
-              Approve current manager at any given time
+              <FormOutlined />  Approve current manager at any given time
             </button>
           </Tooltip>}
       </div>
+      <br />
     </div>}
 
 

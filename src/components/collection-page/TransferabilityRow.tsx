@@ -1020,7 +1020,7 @@ export function TransferabilityRow({
                   <InformationDisplayCard inheritBg noBorder title='Balances' md={12} xs={24} sm={24}>
                     <RadioGroup value={balanceTab} onChange={(e) => setBalanceTab(e)}
                       options={[
-                        { label: 'Badges to Receive', value: 'current' },
+                        hasPredetermined ? { label: 'Badges to Receive', value: 'current' } : undefined,
                         { label: 'Sender Balances', value: 'remaining' },
                         { label: 'All Badges', value: 'all' },
                       ]}

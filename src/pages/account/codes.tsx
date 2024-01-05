@@ -3,6 +3,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { BigIntify, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { deleteAuthCode, getAuthCode } from '../../bitbadges-api/api';
 import { getAuthCodesView, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -18,7 +19,6 @@ import QrCodeDisplay from '../../components/display/QrCodeDisplay';
 import { TableRow } from '../../components/display/TableRow';
 import { Tabs } from '../../components/navigation/Tabs';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
-import { useRouter } from 'next/router';
 
 
 const { Content } = Layout;
@@ -59,12 +59,13 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
         ...x,
       }}
       hideCollectionLink
+      multiDisplay
+
     />
     <div className='flex-center flex-column'>
       <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
         {x.description}
       </div>
-      <br />
       <QrCodeDisplay
         label={x.name}
         value={x.signature}

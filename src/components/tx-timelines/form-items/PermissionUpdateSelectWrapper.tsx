@@ -172,7 +172,7 @@ export function PermissionUpdateSelectWrapper({
 
         {!isMint &&
           <Switch
-            style={{ marginLeft: 10, marginBottom: 10 }}
+            style={{  marginBottom: 10 }}
             checked={checked}
             checkedChildren="Update"
             unCheckedChildren="Do Not Update"

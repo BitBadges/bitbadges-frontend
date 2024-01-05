@@ -109,7 +109,9 @@ const Home: NextPage = () => {
             }}><span className='mr-2'>Collect {' '}</span><img src='/images/bitbadgeslogotext.png' alt='BitBadges Logo' className='inline-logo primary-pink' />
               {' '} to build your digital identity!</div>
             <br />
-            <p className='secondary-text' style={{ fontSize: 14 }}>This is a beta version of BitBadges which is completely free for users. Badges and profiles can optionally be migrated to mainnet once launched. $BADGE will be redistributed via an airdrop based on betanet contributions.</p>
+            <p className='secondary-text' style={{ fontSize: 14 }}>
+              BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, managing, and verifying digital NFT badges.
+              This is a beta version of BitBadges which is completely free for users. </p>
             <div className='flex flex-wrap full-width mt-3'>
               <Button
                 size='large'
@@ -214,17 +216,6 @@ const Home: NextPage = () => {
               <div style={{ marginBottom: 12, marginLeft: -4 }} className=''>
                 <img src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" className='h-[4rem]' />
               </div>
-              <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
-                What is BitBadges?
-              </Typography.Text>
-              <br />
-              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, managing, and displaying digital NFT badges.
-              </Typography.Text>
-
-
-              <br />
-              <br />
               <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
                 How to collect badges?
               </Typography.Text>
@@ -246,6 +237,21 @@ const Home: NextPage = () => {
                 {"All badges are public, meaning you can verify the authenticity and ownership of anyone's badges at any time, both digitally and in-person. "}
 
                 This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
+              </Typography.Text>
+              <br />
+              <br />
+              <Typography.Text strong className='primary-text primary-text' style={{ fontSize: 24 }}>
+                What is betanet?
+              </Typography.Text>
+              <br />
+
+              <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
+                BitBadges is currently in a beta phase. This means that the platform is not yet intended for production use.
+                Bugs and issues are expected. However, we believe it is stable enough for users to start using it and providing feedback.
+                This allows us to build a better product for you!
+                <br /> <br />
+                Betanet is completely free to use for users. Once mainnet launches, badges and profiles can optionally be migrated.
+                $BADGE will be redistributed via an airdrop based on betanet contributions.
               </Typography.Text>
 
               {/* <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
