@@ -10,7 +10,6 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
-//TODO: have option to only show a single claim?
 export function FetchCodesModal({ visible, setVisible, children, collectionId, approvalId }: {
   collectionId: bigint,
   visible: boolean,

@@ -92,7 +92,7 @@ function CollectionPage({
 
   useEffect(() => {
 
-    //TODO: Warn if balances are out of sync
+    //TODO: Warn if balances are out of sync?
     //We don't care ab metadata
     if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
 

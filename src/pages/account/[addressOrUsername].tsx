@@ -900,9 +900,13 @@ export const BadgeInfiniteScroll = ({
     //Calculate total number of badge IDs
     let total = 0n
     for (const obj of badgesToShow) {
-      //TODO: Will this be weird if we have not fetched the collection yet.
+
       const collection = getCollection(obj.collectionId)
-      if (!collection) continue
+      if (!collection) {
+        //TODO: Valid hacky way to do this, or is this going to cause issues?
+        total += GO_MAX_UINT_64
+        continue
+      }
 
       //Filter out > max badge ID
       const maxBadgeId = getMaxBadgeIdForCollection(collection)
@@ -922,9 +926,7 @@ export const BadgeInfiniteScroll = ({
     return Numberify(total)
   }, [badgesToShow])
 
-  const totalNumToShow = groupByCollection
-    ? badgesToShow.length
-    : numTotalBadges
+  const totalNumToShow = groupByCollection ? badgesToShow.length : numTotalBadges
 
   if (groupByCollection) {
     badgesToShow = badgesToShow.slice(0, numBadgesDisplayed)

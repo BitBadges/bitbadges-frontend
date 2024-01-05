@@ -81,7 +81,6 @@ type Props = {
 };
 
 export const ChainContextProvider: React.FC<Props> = ({ children }) => {
-  //TODO: default based on cookie of last signed in chain
   const [chain, setChain] = useState<SupportedChain>(SupportedChain.ETH);
   const [cookies, setCookies] = useCookies(['latestChain']);
 

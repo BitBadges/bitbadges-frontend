@@ -113,11 +113,7 @@ export const fetchCollections = async (collectionsToFetch: DesiredNumberType[], 
     throw new Error('Cannot fetch preview collection ID === 0');
   }
 
-  if (forceful) {
-    for (const collectionId of collectionsToFetch) {
-      dispatch(deleteCollectionRedux(collectionId));
-    }
-  }
+
 
   return await fetchCollectionsWithOptions(collectionsToFetch.map(x => {
     return {
@@ -144,9 +140,10 @@ export const fetchCollectionsWithOptions = async (collectionsToFetch: (
   if (collectionsToFetch.length === 0) return [];
 
   if (forceful) {
-    //TODO: RESET COLLECTIOn
+    for (const collectionToFetch of collectionsToFetch) {
+      dispatch(deleteCollectionRedux(collectionToFetch.collectionId));
+    }
   }
-
   //Could check here to see if it really needs a fetch as well but don't this
   await dispatch(fetchCollectionsRedux(collectionsToFetch));
 

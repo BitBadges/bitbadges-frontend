@@ -31,8 +31,6 @@ export function BadgePage({ collectionPreview }
 
   const [tab, setTab] = useState('overview');
   const [activity, setActivity] = useState<TransferActivityDoc<bigint>[]>([]);
-
-  //TODO: Do within contexts
   const [hasMore, setHasMore] = useState(true);
   const [bookmark, setBookmark] = useState<string>('');
 
