@@ -1,18 +1,14 @@
-import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
 
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
+import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
-import { neverHasManager } from "../../../bitbadges-api/utils/manager";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function CanArchiveCollectionStepItem() {
-
-
   const collection = useCollection(NEW_COLLECTION_ID);
 
   const [checked, setChecked] = useState<boolean>(true);
@@ -20,7 +16,8 @@ export function CanArchiveCollectionStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canArchiveCollection ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection));
+  const permissionDetails = getDetailsForCollectionPermission(collection, "canArchiveCollection");
+
   const AdditionalNode = () => <>
     <div className="flex-center">
       <PermissionsOverview
@@ -73,21 +70,18 @@ export function CanArchiveCollectionStepItem() {
             {
               title: 'No',
               message: `The collection can never be archived or unarchived by the manager. This permission can not be updated. It will be frozen forever.`,
-              isSelected: isCompletelyForbidden(permissionDetails),
+              isSelected: permissionDetails.isAlwaysFrozenAndForbidden,
               additionalNode: AdditionalNode
             },
             {
               title: 'Yes',
               message: `The collection can be archived or unarchived by the manager.`,
-              isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
+              isSelected: permissionDetails.isAlwaysPermittedOrNeutral,
               additionalNode: AdditionalNode
             }
           ]}
           onSwitchChange={handleSwitchChangeIdxOnly}
         />
-        <br />
-        <br />
-
       </>
       }
     />

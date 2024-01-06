@@ -9,7 +9,7 @@ import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsCon
 import { fetchNextForCollectionViews, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { BalanceDisplay } from '../badges/BalanceDisplay';
+import { BalanceDisplay } from '../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { BalanceOverview } from './BalancesInfo';
 
@@ -47,7 +47,7 @@ export function CollectionOwnersTab({ collectionId }: {
 
   return (<>
     {!isNonIndexedBalances && <>
-      <InformationDisplayCard title="" inheritBg noBorder>
+      <InformationDisplayCard inheritBg noBorder>
         <div className='primary-text flex-center flex-column'>
           <InfiniteScroll
             dataLength={owners.length}
@@ -82,13 +82,18 @@ export function CollectionOwnersTab({ collectionId }: {
   </>)
 }
 
-export const BalanceCard = ({ collectionId, owner }: {
+export const BalanceCard = ({ collectionId, owner, fullWidth }: {
   collectionId: bigint;
-  owner: BalanceDoc<bigint>;
+  owner?: BalanceDoc<bigint>;
+  fullWidth?: boolean;
 }) => {
-  return <InformationDisplayCard md={8} xs={24} sm={24} title={<div className='flex-center'>
-    <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={24} />
-  </div>}>
+  if (!owner) return <></>;
+
+  return <InformationDisplayCard
+    noBorder={fullWidth} inheritBg={fullWidth}
+    md={fullWidth ? 24 : 8} xs={24} sm={24} title={<div className='flex-center'>
+      <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={24} />
+    </div>}>
     <div className='primary-text flex-center flex-column'>
       <BalanceDisplay
         collectionId={collectionId}
@@ -143,7 +148,7 @@ export function SpecificBadgeOwnersTab({ collectionId, badgeId }: {
 
   return (<>
     {!isNonIndexedBalances && <>
-      <InformationDisplayCard title="" inheritBg noBorder>
+      <InformationDisplayCard inheritBg noBorder>
         <div className='primary-text flex-center flex-wrap full-width'>
           <InfiniteScroll
             dataLength={owners.length}
@@ -182,28 +187,22 @@ export function SpecificBadgeOwnersTab({ collectionId, badgeId }: {
 
 export function BalanceChecker({ collectionId, badgeId, setTab }: {
   collectionId: bigint;
-  badgeId: bigint
+  badgeId?: bigint
   setTab?: (tab: string) => void;
 }) {
 
-  return (<>
+  return (
     <InformationDisplayCard
       title="Balance Checker"
     >
-      {
-        <div className='primary-text flex-center flex-column'>
-          {<div className='full-width'>
-            <div className='flex'>
-              <BalanceOverview
-                collectionId={collectionId}
-                badgeId={badgeId}
-                setTab={setTab}
-              />
-            </div>
-          </div>}
-        </div>
-      }
+      <div className='primary-text flex-center flex-column full-width'>
+        <BalanceOverview
+          collectionId={collectionId}
+          badgeId={badgeId}
+          setTab={setTab}
+        />
+      </div>
     </InformationDisplayCard>
-  </>)
+  )
 
 }

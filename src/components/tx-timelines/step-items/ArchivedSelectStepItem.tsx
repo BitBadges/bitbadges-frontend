@@ -6,7 +6,7 @@ import { updateCollection, useCollection } from "../../../bitbadges-api/contexts
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { TimelineEditor } from "./ConfirmManagerStepItem";
+import { TimelineEditor } from "../../wrappers/TimelineFieldWrapper";
 
 const ArchivedSwitch = ({
   isArchived,

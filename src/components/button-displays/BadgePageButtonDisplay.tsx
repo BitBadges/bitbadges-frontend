@@ -11,9 +11,9 @@ import { useState } from 'react';
 import { ReportModal } from '../tx-modals/ReportModal';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { updateAccountInfo } from '../../bitbadges-api/api';
-import { addToArray } from '../../pages/account/[addressOrUsername]';
 import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { addToBatchArray } from '../../bitbadges-api/utils/batches';
 
 export function BadgeButtonDisplay({
   website,
@@ -41,7 +41,7 @@ export function BadgeButtonDisplay({
 
   const isPreview = collectionId === NEW_COLLECTION_ID && !mappingId
   return (
-    <div style={{}}>
+    <div>
 
       <div style={{ display: 'flex' }}>
         {socials?.twitter && (
@@ -125,7 +125,7 @@ export function BadgeButtonDisplay({
 
             const mainWatchlistPage = signedInAccount?.watchedBadgePages?.find(x => x.title === 'Main') ?? { title: 'Main', description: '', badges: [] };
 
-            const newBadges = addToArray(mainWatchlistPage.badges, [{
+            const newBadges = addToBatchArray(mainWatchlistPage.badges, [{
               collectionId: collectionId,
               badgeIds: [{ start: badgeId, end: badgeId }],
             }]);

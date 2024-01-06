@@ -1,23 +1,22 @@
 import { Form, Input, Typography } from "antd";
 import { Transfer } from "bitbadgesjs-proto";
-import { BigIntify, MetadataAddMethod, convertOffChainBalancesMap } from "bitbadgesjs-utils";
+import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
-import { fetchMetadataDirectly } from "../../../bitbadges-api/api";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { areBalancesBitBadgesHosted } from "../../../bitbadges-api/utils/balances";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { TransferSelect } from "../../transfers/TransferOrClaimSelect";
+import { getExistingBalanceMap } from "../../tx-modals/UpdateBalancesModal";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 const { Text } = Typography
 
 export const DistributionComponent = () => {
-
   const collection = useCollection(NEW_COLLECTION_ID);
-
   const txTimelineContext = useTxTimelineContext();
 
   if (!collection) return <></>;
@@ -42,20 +41,7 @@ export const DistributionComponent = () => {
         plusButton
         isOffChainBalancesUpdate
         fetchExisting={!!txTimelineContext.existingCollectionId && txTimelineContext.existingCollectionId > 0n && collection.offChainBalancesMetadataTimeline.length > 0 ? async () => {
-
-          const offChainBalancesMapRes = await fetchMetadataDirectly({
-            uris: [collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri]
-          });
-
-          //filter undefined entries
-          const filteredMap = Object.entries(offChainBalancesMapRes.metadata[0] as any).filter(([, balances]) => {
-            return !!balances;
-          }).reduce((obj, [cosmosAddress, balances]) => {
-            obj[cosmosAddress] = balances;
-            return obj;
-          }, {} as any);
-
-          const balancesMap = convertOffChainBalancesMap(filteredMap as any, BigIntify)
+          const balancesMap = await getExistingBalanceMap(collection);
           const transfers: Transfer<bigint>[] = Object.entries(balancesMap).map(([cosmosAddress, balances]) => {
             return {
               from: 'Mint',
@@ -114,7 +100,7 @@ export function OffChainBalancesStorageSelectStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  const isBitBadgesHosted = existingCollection && existingCollection.offChainBalancesMetadataTimeline.length > 0 && existingCollection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/');
+  const isBitBadgesHosted = areBalancesBitBadgesHosted(existingCollection);
 
   const Component = () => <>
 

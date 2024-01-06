@@ -16,6 +16,7 @@ import { FetchCodesModal } from '../tx-modals/FetchCodesModal';
 import { RefreshModal } from '../tx-modals/RefreshModal';
 import { UpdateBalancesModal } from '../tx-modals/UpdateBalancesModal';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { areBalancesBitBadgesHosted } from '../../bitbadges-api/utils/balances';
 
 export interface Action {
   title: string,
@@ -104,10 +105,7 @@ export function ActionsTab({
 
   const actions: Action[] = [];
 
-  const isBitBadgesHosted = collection && collection.offChainBalancesMetadataTimeline.length > 0 &&
-    collection.balancesType == "Off-Chain - Indexed" &&
-    collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/');
-
+  const isBitBadgesHosted = areBalancesBitBadgesHosted(collection);
   const isManager = collection && getCurrentValuesForCollection(collection).manager === chain.cosmosAddress && chain.cosmosAddress;
   const isOffChainIndexedBalances = collection && collection.balancesType == "Off-Chain - Indexed" ? true : false;
   const isOnChainBalances = collection && collection.balancesType == "Standard";

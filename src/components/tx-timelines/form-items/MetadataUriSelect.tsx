@@ -1,13 +1,13 @@
 import { Form, Input, Typography } from "antd";
 import { useEffect, useState } from "react";
 
+import { NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { setCollection, updateCollectionAndFetchMetadataDirectly, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { INFINITE_LOOP_MODE } from "../../../constants";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay";
 import { CollectionHeader } from "../../badges/CollectionHeader";
 import { DevMode } from "../../common/DevMode";
-import { NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { useCollection, updateCollectionAndFetchMetadataDirectly, setCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { MultiViewBadgeDisplay } from "./MetadataForm";
 
 const { Text } = Typography;
 
@@ -29,6 +29,7 @@ export function MetadataUriSelect({
 
   const [collectionUri, setCollectionUri] = useState(collection?.collectionMetadataTimeline && collection.collectionMetadataTimeline[0]?.collectionMetadata?.uri);
   const [badgeUri, setBadgeUri] = useState(collection?.badgeMetadataTimeline && collection.badgeMetadataTimeline[0]?.badgeMetadata[0]?.uri);
+  const [badgeId, setBadgeId] = useState(1n);
 
   const DELAY_MS = 1000;
   useEffect(() => {
@@ -104,9 +105,7 @@ export function MetadataUriSelect({
         />
       </Form.Item>
 
-      {collectionUri &&
-        <CollectionHeader collectionId={collectionId} />
-      }
+      {collectionUri && <CollectionHeader collectionId={collectionId} />}
     </>
     }
 
@@ -139,13 +138,19 @@ export function MetadataUriSelect({
 
 
       {(collection?.badgeMetadataTimeline[0]?.badgeMetadata ?? []).length > 0 &&
-        <div className='flex-center primary-tect full-width'>
+        <div className='primary-tect full-width'>
+          <MultiViewBadgeDisplay
+            badgeId={badgeId}
+            badgeIds={(collection?.badgeMetadataTimeline[0].badgeMetadata.map(b => b.badgeIds).flat() ?? [])}
+            setBadgeId={setBadgeId}
+          />
+          {/* 
           <BadgeAvatarDisplay
             badgeIds={(collection?.badgeMetadataTimeline[0].badgeMetadata.map(b => b.badgeIds).flat() ?? [])}
             collectionId={collectionId}
             showIds
             fetchDirectly
-          />
+          /> */}
         </div>
       }
 

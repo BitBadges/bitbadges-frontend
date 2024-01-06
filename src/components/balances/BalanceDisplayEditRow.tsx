@@ -14,20 +14,19 @@ import {
   sortUintRangesAndMergeIfNecessary,
 } from "bitbadgesjs-utils"
 import { ReactNode, useState } from "react"
-import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext"
 
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getBadgeIdsString } from "../../utils/badgeIds"
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates"
-import { BalanceDisplay } from "../badges/BalanceDisplay"
+import { ErrDisplay } from "../common/ErrDisplay"
 import IconButton from "../display/IconButton"
 import { InformationDisplayCard } from "../display/InformationDisplayCard"
+import { BadgeIdRangesInput } from "../inputs/BadgeIdRangesInput"
+import { DateRangeInput } from "../inputs/DateRangeInput"
+import { NumberInput } from "../inputs/NumberInput"
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm"
-import { BadgeIdRangesInput } from "./BadgeIdRangesInput"
-import { DateRangeInput } from "./DateRangeInput"
-import { NumberInput } from "./NumberInput"
-import { ErrDisplay } from "../common/ErrDisplay"
+import { BalanceDisplay } from "./BalanceDisplay"
 
 export function BalanceDisplayEditRow({
   suggestedBalances,
@@ -35,8 +34,6 @@ export function BalanceDisplayEditRow({
   collectionId,
   onAddBadges,
   isMustOwnBadgesInput,
-  minimum,
-  maximum,
   message,
   defaultBalancesToShow,
   hideOwnershipTimeSelect,
@@ -60,7 +57,6 @@ export function BalanceDisplayEditRow({
   size?: number
   showingSupplyPreview?: boolean
   noOffChainBalances?: boolean
-  cardView?: boolean
   hideMessage?: boolean
   hideBadges?: boolean
   floatToRight?: boolean
@@ -72,8 +68,6 @@ export function BalanceDisplayEditRow({
     collectionId?: bigint,
     mustOwnAll?: boolean
   ) => void
-  minimum?: bigint
-  maximum?: bigint
   defaultBalancesToShow?: Balance<bigint>[]
   onRemoveAll?: () => void
   sequentialOnly?: boolean
@@ -90,11 +84,9 @@ export function BalanceDisplayEditRow({
     ownershipTimes: [{ start: BigInt(1n), end: GO_MAX_UINT_64 }],
   })
   const [selectedCollectionId, setSelectedCollectionId] = useState<bigint>(1n)
-  const [selectedAmountRange, setSelectedAmountRange] = useState<
-    UintRange<bigint>
-  >({ start: 1n, end: 1n })
-  const collection = useCollection(NEW_COLLECTION_ID)
+  const [selectedAmountRange, setSelectedAmountRange] = useState<UintRange<bigint>>({ start: 1n, end: 1n })
 
+  const collection = useCollection(collectionId)
   const selectedCollection = useCollection(selectedCollectionId)
 
   const currTimeNextHour = new Date()
@@ -103,29 +95,29 @@ export function BalanceDisplayEditRow({
   currTimeNextHour.setSeconds(0)
   currTimeNextHour.setMilliseconds(0)
 
-  //Does current supply cause a gap
+  //Does current badges to add cause a gap in IDs
+  let nonSequential = false
+  if (sequentialOnly) {
+    let currBadgeIds = collection?.owners.find((x) => x.cosmosAddress === "Total")
+      ?.balances?.map((x) => x.badgeIds).flat() ?? []
+    currBadgeIds.push(...currentSupply.badgeIds)
+    currBadgeIds = sortUintRangesAndMergeIfNecessary(currBadgeIds, true)
+    let maxBadgeId =
+      currBadgeIds.length > 0 ? currBadgeIds[currBadgeIds.length - 1].end : 0n
+    let invertedBadgeIds = invertUintRanges(currBadgeIds, 1n, maxBadgeId)
+    nonSequential = invertedBadgeIds.length > 0 && sequentialOnly
+  }
 
-  let currBadgeIds =
-    collection?.owners
-      .find((x) => x.cosmosAddress === "Total")
-      ?.balances?.map((x) => x.badgeIds)
-      .flat() ?? []
-  currBadgeIds.push(...currentSupply.badgeIds)
-  currBadgeIds = sortUintRangesAndMergeIfNecessary(currBadgeIds, true)
-  let maxBadgeId =
-    currBadgeIds.length > 0 ? currBadgeIds[currBadgeIds.length - 1].end : 0n
-  let invertedBadgeIds = invertUintRanges(currBadgeIds, 1n, maxBadgeId)
 
-  const nonSequential = invertedBadgeIds.length > 0 && sequentialOnly
-
-  const isDisabled =
-    currentSupply.amount <= 0 ||
+  const isDisabled = currentSupply.amount <= 0 ||
     currentSupply.badgeIds.length === 0 ||
     currentSupply.ownershipTimes.length === 0 ||
     checkIfUintRangesOverlap(currentSupply.ownershipTimes) ||
     checkIfUintRangesOverlap(currentSupply.badgeIds) ||
     nonSequential ||
     (isMustOwnBadgesInput && selectedCollection?.balancesType !== 'Standard' && noOffChainBalances)
+
+  
   return (
     <>
       <tr style={{ color: currentSupply.amount < 0 ? "red" : undefined }}>
@@ -188,7 +180,6 @@ export function BalanceDisplayEditRow({
                 <NumberInput
                   value={Number(selectedCollectionId)}
                   setValue={(value) => {
-                    // currentSupply.amount = BigInt(value);
                     setSelectedCollectionId(BigInt(value))
                   }}
                   title="Collection ID"
@@ -198,6 +189,7 @@ export function BalanceDisplayEditRow({
                 {selectedCollection?.balancesType !== 'Standard' && noOffChainBalances && <ErrDisplay err="Only collections with on-chain balances are supported." />}
               </InformationDisplayCard>
             )}
+
             {isMustOwnBadgesInput && (
               <InformationDisplayCard
                 md={fullWidthCards ? 24 : 4}
@@ -210,7 +202,6 @@ export function BalanceDisplayEditRow({
                 <NumberInput
                   value={Number(selectedAmountRange.start)}
                   setValue={(value) => {
-                    // currentSupply.amount = BigInt(value);
                     setSelectedAmountRange((selectedAmountRange) => {
                       return {
                         ...selectedAmountRange,
@@ -254,7 +245,6 @@ export function BalanceDisplayEditRow({
                 <NumberInput
                   value={Number(currentSupply.amount)}
                   setValue={(value) => {
-                    // currentSupply.amount = BigInt(value);
                     setCurrentSupply((currentSupply) => {
                       return {
                         ...currentSupply,
@@ -297,8 +287,6 @@ export function BalanceDisplayEditRow({
                       }
                     })
                   }}
-                  minimum={minimum ?? 1n}
-                  maximum={maximum ?? 100000n}
                   collectionId={
                     isMustOwnBadgesInput ? selectedCollectionId : collectionId
                   }
@@ -425,7 +413,7 @@ export function BalanceDisplayEditRow({
                     md={fullWidthCards ? 24 : 12}
                     xs={24}
                     sm={24}
-                    style={{}}
+
                     title={"Increment"}
                   >
                     <SwitchForm
@@ -476,7 +464,7 @@ export function BalanceDisplayEditRow({
                 md={fullWidthCards ? 24 : setIncrementBadgeIdsBy ? 12 : 24}
                 xs={24}
                 sm={24}
-                style={{}}
+
                 title={""}
               >
                 <BalanceDisplay
@@ -506,16 +494,13 @@ export function BalanceDisplayEditRow({
               style={{ width: "100%" }}
               disabled={isDisabled}
               onClick={() => {
-                if (isMustOwnBadgesInput) {
-                  onAddBadges?.(
-                    deepCopy(currentSupply),
-                    selectedAmountRange,
-                    selectedCollectionId,
-                    mustOwnAll
-                  )
-                } else {
-                  onAddBadges?.(deepCopy(currentSupply))
-                }
+                onAddBadges?.(
+                  deepCopy(currentSupply),
+                  //rest are ignored unless mustOwnBadges input
+                  selectedAmountRange,
+                  selectedCollectionId,
+                  mustOwnAll
+                )
 
                 setCurrentSupply({
                   amount: 1n,

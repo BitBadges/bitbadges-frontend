@@ -25,8 +25,7 @@ import {
   getMaxBadgeIdForCollection,
   getMetadataForBadgeId,
   isFullUintRanges,
-  removeUintRangeFromUintRange,
-  sortUintRangesAndMergeIfNecessary,
+  removeUintRangeFromUintRange
 } from "bitbadgesjs-utils"
 import { SHA256 } from "crypto-js"
 import { useRouter } from "next/router"
@@ -54,18 +53,19 @@ import {
   fetchBalanceForUser,
   getCollection,
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
+import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "../../bitbadges-api/utils/batches"
 import { AccountHeader } from "../../components/badges/AccountHeader"
 import { AddressListCard } from "../../components/badges/AddressListCard"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
 import { MultiCollectionBadgeDisplay } from "../../components/badges/MultiCollectionBadgeDisplay"
 import { BlockinDisplay } from "../../components/blockin/BlockinDisplay"
-import { SelectWithOptions } from "../../components/collection-page/BadgesTab"
 import { ListActivityTab } from "../../components/collection-page/ListActivityDisplay"
 import { ReputationTab } from "../../components/collection-page/ReputationTab"
 import { ActivityTab } from "../../components/collection-page/TransferActivityDisplay"
 import { DevMode } from "../../components/common/DevMode"
 import IconButton from "../../components/display/IconButton"
 import { InformationDisplayCard } from "../../components/display/InformationDisplayCard"
+import { SelectWithOptions } from "../../components/inputs/Selects"
 import { SearchDropdown } from "../../components/navigation/SearchDropdown"
 import { Tabs } from "../../components/navigation/Tabs"
 import { ReportedWrapper } from "../../components/wrappers/ReportedWrapper"
@@ -76,57 +76,7 @@ import { GO_MAX_UINT_64 } from "../../utils/dates"
 
 const { Content } = Layout
 
-export interface BatchBadgeDetails {
-  collectionId: bigint
-  badgeIds: UintRange<bigint>[]
-}
 
-export const addToArray = (
-  arr: BatchBadgeDetails[],
-  badgeIdObjsToAdd: BatchBadgeDetails[]
-) => {
-  for (const badgeIdObj of badgeIdObjsToAdd) {
-    const badgeIdsToAdd = badgeIdObj.badgeIds
-    const existingIdx = arr.findIndex(
-      (x) => x.collectionId == badgeIdObj.collectionId
-    )
-    if (existingIdx != -1) {
-      arr[existingIdx].badgeIds = sortUintRangesAndMergeIfNecessary(
-        [...arr[existingIdx].badgeIds, ...badgeIdsToAdd],
-        true
-      )
-    } else {
-      arr.push({
-        collectionId: badgeIdObj.collectionId,
-        badgeIds: badgeIdsToAdd,
-      })
-    }
-  }
-
-  return arr.filter((x) => x.badgeIds.length > 0)
-}
-
-export const removeFromArray = (
-  arr: BatchBadgeDetails[],
-  badgeIdObjsToRemove: BatchBadgeDetails[]
-) => {
-  for (const badgeIdObj of badgeIdObjsToRemove) {
-    const badgeIdsToRemove = badgeIdObj.badgeIds
-
-    const existingIdx = arr.findIndex(
-      (x) => x.collectionId == badgeIdObj.collectionId
-    )
-    if (existingIdx != -1) {
-      const [remaining] = removeUintRangeFromUintRange(
-        badgeIdsToRemove,
-        arr[existingIdx].badgeIds
-      )
-      arr[existingIdx].badgeIds = remaining
-    }
-  }
-
-  return arr.filter((x) => x.badgeIds.length > 0)
-}
 
 export const ListFilterSearchBar = ({
   searchValue,
@@ -251,7 +201,7 @@ export const NewPageInputForm = ({
       {visible && (
         <div className="flex-center ">
           <Col md={12} xs={24} style={{ marginBottom: 8 }}>
-            <b className="primary-text" style={{}}>
+            <b className="primary-text">
               Name
             </b>
             <br />
@@ -268,7 +218,7 @@ export const NewPageInputForm = ({
             />
             <br />
             <br />
-            <b className="primary-text" style={{}}>
+            <b className="primary-text">
               Description
             </b>
             <br />
@@ -371,7 +321,7 @@ export const BatchBadgeDetailsTag = ({
             }}
           >
             <Tooltip title={`Collection ID: ${badgeIdObj.collectionId}\n\n${isFullUintRanges(badgeIdObj.badgeIds) ? "All" : `Badge IDs: ${badgeIdObj.badgeIds.map((x) => x.start === x.end ? `${x.start}` : `${x.start}-${x.end}`).join(", ")}`}`}>
-              <div style={{}}>{metadata?.name}</div>
+              <div>{metadata?.name}</div>
             </Tooltip>
             <div style={{ fontSize: 12 }} className="secondary-text">
               Collection ID: {badgeIdObj.collectionId.toString()}
@@ -432,7 +382,7 @@ export const CustomizeAddRemoveListFromPage = ({
         setCustomizeSearchListValue(e.target.value)
       }}
       className="form-input"
-      style={{}}
+
     />
   )
 
@@ -474,7 +424,7 @@ export const CustomizeAddRemoveListFromPage = ({
 
   return (
     <InformationDisplayCard
-      title=""
+
       md={12}
       xs={24}
       style={{ marginBottom: 8 }}
@@ -550,7 +500,7 @@ export const CustomizeAddRemoveBadgeFromPage = ({
         setCustomizeSearchValue(e.target.value)
       }}
       className="form-input"
-      style={{}}
+
     />
   )
 
@@ -600,7 +550,7 @@ export const CustomizeAddRemoveBadgeFromPage = ({
   return (
     <>
       <InformationDisplayCard
-        title=""
+
         md={12}
         xs={24}
         style={{ marginBottom: 8 }}
@@ -1614,7 +1564,7 @@ function PortfolioPage() {
                                         (x) => x.title === badgeTab
                                       )?.badges ?? []
                                     )
-                                currCustomPageBadges = addToArray(
+                                currCustomPageBadges = addToBatchArray(
                                   currCustomPageBadges,
                                   [selectedBadge]
                                 )
@@ -1654,7 +1604,7 @@ function PortfolioPage() {
                                         (x) => x.title === badgeTab
                                       )?.badges ?? []
                                     )
-                                currCustomPageBadges = removeFromArray(
+                                currCustomPageBadges = removeFromBatchArray(
                                   currCustomPageBadges,
                                   [selectedBadge]
                                 )
@@ -1873,7 +1823,7 @@ function PortfolioPage() {
                                   overflowWrap: "break-word",
                                 }}
                               >
-                                <div style={{}}>{metadata?.name}</div>
+                                <div>{metadata?.name}</div>
                               </Typography.Text>
                             </div>
                           </div>

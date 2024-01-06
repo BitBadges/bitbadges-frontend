@@ -10,7 +10,8 @@ export function RecipientsSelectStep({
   toAddresses,
   showApprovalsMessage,
   setToAddresses,
-  setNumRecipients }
+  setNumRecipients
+}
   : {
     sender: string,
     toAddresses: string[],

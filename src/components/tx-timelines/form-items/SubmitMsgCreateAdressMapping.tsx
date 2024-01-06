@@ -46,7 +46,7 @@ export function SubmitMsgCreateAddressMapping() {
     }
   }, [])
 
-  const ListIDInput = () => <><div style={{}} >
+  const ListIDInput = () => <><div >
     <Typography.Text strong style={{ fontSize: 18 }} className='primary-text'>List ID</Typography.Text>
   </div>
     <Input
@@ -77,7 +77,7 @@ export function SubmitMsgCreateAddressMapping() {
             message: <div>{`We handle the storage for you! We will store your list info on our centralized servers and IPFS. This is completely free!  `}
             </div>,
             isSelected: clicked && !onChainStorage,
-            additionalNode: ()=> <>
+            additionalNode: () => <>
               <>{ListIDInput()}</>
               {<>
                 {clicked && !onChainStorage &&
@@ -116,7 +116,7 @@ export function SubmitMsgCreateAddressMapping() {
                         <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
                           <InfoCircleOutlined /> {editKeys.length > 0 ? 'You can update and delete, but also, others can add to the list, according to the criteria specified.' : 'Only you will be able to update and delete the list.'}
                         </div>
-          
+
                         {editKeys.length > 0 && <>
                           <TableRow label='Require sign in?' value={<Switch
                             checked={editKeys[0].mustSignIn}
@@ -160,10 +160,10 @@ export function SubmitMsgCreateAddressMapping() {
                           />
                           <div className='flex-between' style={{ marginLeft: 10, marginTop: 6 }}>
                             <div className='primary-text inherit-bg full-width'>
-          
-          
+
+
                               {!editKeys[0].expirationDate || editKeys[0].expirationDate !== GO_MAX_UINT_64 && <>
-          
+
                                 <DatePicker
                                   showMinute
                                   showTime
@@ -181,7 +181,7 @@ export function SubmitMsgCreateAddressMapping() {
                               </>
                               }
                             </div>
-          
+
                           </div>
                           <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
                             <InfoCircleOutlined /> Users can only add to the list until the expiration date (if set).
@@ -195,7 +195,7 @@ export function SubmitMsgCreateAddressMapping() {
           {
             title: 'On-Chain',
             message: <>
-              The address list will be stored on-chain. This will cost a transaction fee to store it. <span style={{color: 'orange', fontWeight: 'bolder' }}>The list will be permanently frozen, meaning it can never be updated or deleted.</span>
+              The address list will be stored on-chain. This will cost a transaction fee to store it. <span style={{ color: 'orange', fontWeight: 'bolder' }}>The list will be permanently frozen, meaning it can never be updated or deleted.</span>
             </>,
             isSelected: clicked && onChainStorage,
             additionalNode: ListIDInput
@@ -214,7 +214,7 @@ export function SubmitMsgCreateAddressMapping() {
 
     </>
     }
-    
+
     < br />
     <button
       className='landing-button'
@@ -243,7 +243,7 @@ export function SubmitMsgCreateAddressMapping() {
               private: privateMode,
             }],
           });
-          router.push(`/addresses/${!isUpdateAddressMapping ? mappingId : addressMapping.mappingId}`);
+          router.push(`/lists/${!isUpdateAddressMapping ? mappingId : addressMapping.mappingId}`);
 
         }
         setLoading(false);

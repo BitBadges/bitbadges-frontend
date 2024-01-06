@@ -1,6 +1,7 @@
-import '../styles/custom.css'
+import '../styles/custom.css';
 import '../styles/index.css';
 import '../styles/antd-override-styles.css';
+
 
 import { configureStore, createSerializableStateInvariantMiddleware } from '@reduxjs/toolkit';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
@@ -22,13 +23,13 @@ import { ChainContextProvider } from '../bitbadges-api/contexts/ChainContext';
 import { StatusContextProvider } from '../bitbadges-api/contexts/StatusContext';
 import { TxTimelineContextProvider } from '../bitbadges-api/contexts/TxTimelineContext';
 import { accountReducer } from '../bitbadges-api/contexts/accounts/reducer';
+import { BitcoinContextProvider } from '../bitbadges-api/contexts/chains/BitcoinContext';
 import { CosmosContextProvider } from '../bitbadges-api/contexts/chains/CosmosContext';
 import { EthereumContextProvider } from '../bitbadges-api/contexts/chains/EthereumContext';
 import { SolanaContextProvider } from '../bitbadges-api/contexts/chains/SolanaContext';
-import { CollectionRequestParams, collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
+import { collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
 import { WalletFooter } from '../components/navigation/WebsiteFooter';
 import { WalletHeader } from '../components/navigation/WebsiteHeader';
-import { BitcoinContextProvider } from '../bitbadges-api/contexts/chains/BitcoinContext';
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -68,16 +69,10 @@ export const dispatch = store.dispatch
 export interface AccountReducerState {
   accounts: Record<string, BitBadgesUserInfo<bigint> | undefined>;
   cosmosAddressesByUsernames: { [username: string]: string };
-  loading: boolean;
-  error: string | undefined;
 }
 
 export interface CollectionReducerState {
   collections: CollectionMap<bigint>,
-  queue: CollectionRequestParams[],
-  fetching: CollectionRequestParams[],
-  error: string | undefined,
-  loading: boolean,
 }
 
 export interface GlobalReduxState {

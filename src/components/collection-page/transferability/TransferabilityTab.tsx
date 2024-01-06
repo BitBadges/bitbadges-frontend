@@ -1,7 +1,7 @@
 
-import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { updateCollection, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { EditableApprovalsDisplay } from './ApprovalsTab';
+import { useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
+import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { EditableApprovalsDisplay } from './ApprovalsDisplay';
 
 export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, onlyShowNotFromMint, hideHelperMessage, showDeletedGrayedOut, editable }: {
   collectionId: bigint,

@@ -3,7 +3,7 @@ import { Switch, Typography } from "antd";
 import { Balance } from "bitbadgesjs-proto";
 import { DistributionMethod } from "bitbadgesjs-utils";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
-import { BalanceDisplay } from "../../badges/BalanceDisplay";
+import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { TableRow } from "../../display/TableRow";
 import { BalanceAmountInput } from "../../inputs/BalanceAmountInput";
 import { AmountType, CodeType, RequiredApprovalProps, getMaxIncrementsApplied } from "../ApprovalSelect";
@@ -120,7 +120,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
       <b style={{ fontSize: 16 }}> Number of Partitions</b>
       <br /><br />
 
-      {<div style={{}}>
+      {<div>
         {maxUsesErrorMessage && <div style={{ color: 'red' }}>{maxUsesErrorMessage}</div>}
         {!maxUsesErrorMessage && <Typography.Text className='primary-text' strong style={{ fontSize: 16 }}>Total Partitions: {maxIncrementsApplied.toString()}</Typography.Text>}
 

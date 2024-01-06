@@ -60,7 +60,6 @@ export function ClaimAlertsTab({ claimAlerts, fetchMore, hasMore, showToAddress 
 export function ClaimAlertDisplay({
   claimAlert,
   showToAddress,
-
 }: {
   claimAlert: ClaimAlertDoc<bigint>,
   showToAddress?: boolean

@@ -29,7 +29,7 @@ export function SwitchForm({
   if (showCustomOption && filteredOptions.every(x => !x.isSelected)) {
     customValueIdx = filteredOptions.length;
     filteredOptions.push({
-      title: <>Custom <WarningOutlined style={{color: 'orange'}}></WarningOutlined></>,
+      title: <>Custom <WarningOutlined style={{ color: 'orange' }}></WarningOutlined></>,
       message: 'A custom value has been set that does not match any of the other options. This typically happens because the value was set manually, or you went back to a previous step and changed a detail that this depends on (oftentimes, the number of badges). If this was not intentional, please select one of the other options.',
       isSelected: true,
     })
@@ -51,7 +51,7 @@ export function SwitchForm({
               <Card
                 key={index}
                 hoverable
-                className={option.disabled ? 'primary-text tertiary-blue-bg full-width flex-center card-bg' : 'primary-text card-bg full-width flex-center'}
+                className={option.disabled ? 'primary-text tertiary-blue-bg full-width flex-center card-bg' : 'primary-text card-bg full-width flex-center rounded-lg'}
                 style={{
                   textAlign: 'center',
                   border: option.isSelected ? '3px solid #1890ff' : undefined,

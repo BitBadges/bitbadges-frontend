@@ -68,6 +68,8 @@ export function Tabs({
       <Menu.Item
         disabled={tab.disabled}
         style={{
+          marginLeft: 1,
+          marginRight: 1,
           width: widthPerTab,
           minWidth: 'fit-content',
           textAlign: 'center',
@@ -89,8 +91,8 @@ export function Tabs({
         }
         id={tab.key}
         className={
-          'primary-text inherit-bg border-vivid-blue ' + (customClass ? ' ' + customClass : '')}
-      >
+          'primary-text   inherit-bg border-vivid-blue ' + (customClass ? ' ' + customClass : '') + (type !== 'underline' ? ' rounded-lg' : '')
+        }          >
         <div className={'primary-text ' + (type == 'underline' ? ' hover:text-gray-400' : '')}
           style={{
             color: tab.key == selectedTab && type != 'underline' ? 'white' : undefined,

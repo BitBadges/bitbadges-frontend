@@ -13,20 +13,19 @@ import {
   useTxTimelineContext,
 } from "../../../bitbadges-api/contexts/TxTimelineContext"
 
+import { InfoCircleOutlined } from "@ant-design/icons"
+import { Balance } from "bitbadgesjs-proto"
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
-import { DistributionOverview } from "../../badges/DistributionCard"
-import { DevMode } from "../../common/DevMode"
-import { BalanceInput } from "../../inputs/BalanceInput"
-import { validateUintRangeArr } from "../form-items/CustomJSONSetter"
-import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper"
 import {
   updateCollection,
   useCollection,
 } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
-import { BadgeIdRangesInput } from "../../inputs/BadgeIdRangesInput"
-import { Balance } from "bitbadgesjs-proto"
 import { GO_MAX_UINT_64 } from "../../../utils/dates"
-import { InfoCircleOutlined } from "@ant-design/icons"
+import { DistributionOverview } from "../../badges/DistributionCard"
+import { BalanceInput } from "../../balances/BalanceInput"
+import { DevMode } from "../../common/DevMode"
+import { BadgeIdRangesInput } from "../../inputs/BadgeIdRangesInput"
+import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper"
 
 export function BadgeSupplySelectStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID)
@@ -36,8 +35,7 @@ export function BadgeSupplySelectStepItem() {
   const badgesToCreate = txTimelineContext.badgesToCreate
   const setBadgesToCreate = txTimelineContext.setBadgesToCreate
 
-  const balancesToShow =
-    collection?.owners.find((x) => x.cosmosAddress === "Total")?.balances || []
+  const balancesToShow = collection?.owners.find((x) => x.cosmosAddress === "Total")?.balances || []
   const [err, setErr] = useState<Error | null>(null)
   const [limitedSupply, setLimitedSupply] = useState<boolean>(
     collection?.defaultBalances.balances.length === 0
@@ -143,10 +141,7 @@ export function BadgeSupplySelectStepItem() {
     })
   }
 
-  if (
-    txTimelineContext.existingCollectionId &&
-    txTimelineContext.existingCollectionId > 0n
-  ) {
+  if (txTimelineContext.existingCollectionId && txTimelineContext.existingCollectionId > 0n) {
     if ((collection?.defaultBalances.balances.length ?? 0) > 0) {
       return EmptyStepItem //cant update defaults anymore
     }
@@ -191,28 +186,8 @@ export function BadgeSupplySelectStepItem() {
         }}
         updateFlag={updateFlag}
         setUpdateFlag={setUpdateFlag}
-        jsonPropertyPath=""
+        jsonPropertyPath={limitedSupply ? "badgesToCreate" : ""}
         permissionName="canCreateMoreBadges"
-        customValue={badgesToCreate}
-        customSetValueFunction={(val: any) => {
-          //Check it is a valid balance sarray
-          if (!Array.isArray(val))
-            throw new Error("Must be valid balances array")
-          for (let i = 0; i < val.length; i++) {
-            if (!val[i].badgeIds) throw new Error("Must specify badgeIds")
-            if (!val[i].ownershipTimes)
-              throw new Error("Must specify ownershipTimes")
-            if (!val[i].amount || !BigInt(val[i].amount))
-              throw new Error("Must specify amount")
-
-            if (!validateUintRangeArr(val[i].badgeIds))
-              throw new Error("Must be valid badgeIds array")
-            if (!validateUintRangeArr(val[i].ownershipTimes))
-              throw new Error("Must be valid ownershipTimes array")
-          }
-
-          setBadgesToCreate(val)
-        }}
         customRevertFunction={revertFunction}
         node={() => (
           <div

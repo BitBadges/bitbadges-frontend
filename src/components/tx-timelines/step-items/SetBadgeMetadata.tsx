@@ -1,9 +1,5 @@
 import {
-  BitBadgesCollection,
-  MetadataAddMethod,
-  TimedUpdateWithBadgeIdsPermissionUsedFlags,
-  castTimedUpdateWithBadgeIdsPermissionToUniversalPermission,
-  sortUintRangesAndMergeIfNecessary,
+  MetadataAddMethod
 } from "bitbadgesjs-utils"
 import { useState } from "react"
 import {
@@ -13,40 +9,9 @@ import {
 } from "../../../bitbadges-api/contexts/TxTimelineContext"
 
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
-import { neverHasManager } from "../../../bitbadges-api/utils/manager"
-import { getPermissionDetails } from "../../collection-page/PermissionsInfo"
+import { getBadgesWithUpdatableMetadata } from "../../../bitbadges-api/utils/badges"
 import { MetadataForm } from "../form-items/MetadataForm"
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper"
-
-export const getBadgesWithUpdatableMetadata = (
-  collection: BitBadgesCollection<bigint>,
-  startingCollection: BitBadgesCollection<bigint> | undefined,
-  currentCollection = false
-) => {
-  const collectionToCheck = currentCollection ? collection : startingCollection
-  if (!collectionToCheck) return []
-
-  const canUpdateBadgeMetadataRes = getPermissionDetails(
-    collectionToCheck
-      ? castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(
-        collectionToCheck.collectionPermissions.canUpdateBadgeMetadata ?? []
-      )
-      : [],
-    TimedUpdateWithBadgeIdsPermissionUsedFlags,
-    neverHasManager(collectionToCheck),
-    [{ start: 1n, end: getMaxBadgeIdForCollection(collection) }]
-  )
-
-  const toUpdateBadges = sortUintRangesAndMergeIfNecessary(
-    canUpdateBadgeMetadataRes.dataSource
-      .filter((x) => !x.forbidden)
-      .map((x) => x.badgeIds ?? [])
-      .flat(),
-    true
-  )
-  return toUpdateBadges
-}
 
 export function SetBadgeMetadataStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID)
@@ -64,7 +29,9 @@ export function SetBadgeMetadataStepItem() {
 
   const toUpdateBadges = getBadgesWithUpdatableMetadata(
     collection,
-    startingCollection
+    startingCollection,
+    undefined,
+    'current'
   )
 
   return {
@@ -104,8 +71,7 @@ export function SetBadgeMetadataStepItem() {
       (addMethod === MetadataAddMethod.Manual &&
         collection.cachedBadgeMetadata.length == 0) ||
       (addMethod === MetadataAddMethod.UploadUrl &&
-        (collection.collectionMetadataTimeline.length == 0 ||
-          collection.badgeMetadataTimeline.length == 0)) ||
+        (collection.badgeMetadataTimeline.length == 0)) ||
       !!err,
   }
 }

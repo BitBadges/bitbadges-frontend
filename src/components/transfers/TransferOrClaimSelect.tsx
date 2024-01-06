@@ -7,12 +7,12 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
-import { BalanceDisplay } from '../badges/BalanceDisplay';
+import { BalanceDisplay } from '../balances/BalanceDisplay';
+import { BalanceInput } from '../balances/BalanceInput';
 import { ActivityTab } from '../collection-page/TransferActivityDisplay';
 import IconButton from '../display/IconButton';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
-import { BalanceInput } from '../inputs/BalanceInput';
-import { RadioGroup } from '../tx-timelines/form-items/MetadataForm';
+import { RadioGroup } from '../inputs/Selects';
 import { RecipientsSelectStep } from './RecipientsSelectStep';
 import { TransferDisplay } from './TransferDisplay';
 
@@ -97,13 +97,6 @@ export function TransferSelect({
     setCurrentStep(value);
   };
 
-  let totalNumBadges = 0n;
-  for (const balance of balances) {
-    for (const badgeUintRange of balance.badgeIds) {
-      totalNumBadges += badgeUintRange.end - badgeUintRange.start + 1n;
-    }
-  }
-
   //Whenever something changes, update the pre and post transfer balances
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: convert transfers');
@@ -123,11 +116,11 @@ export function TransferSelect({
     setPostTransferBalancesWithCurrent(postTransferBalanceObj);
   }, [originalSenderBalances, transfers, balances, sender, toAddresses, incrementAmount]);
 
-  const uintRangesOverlap = checkIfUintRangesOverlap(balances[0]?.badgeIds || []);
-  const uintRangesLengthEqualsZero = balances[0]?.badgeIds.length === 0;
 
-  const ownedTimesOverlap = checkIfUintRangesOverlap(balances[0]?.ownershipTimes || []);
-  const ownedTimesLengthEqualsZero = balances[0]?.ownershipTimes.length === 0;
+  const uintRangesOverlap = balances.some(balance => checkIfUintRangesOverlap(balance.badgeIds));
+  const ownedTimesOverlap = balances.some(balance => checkIfUintRangesOverlap(balance.ownershipTimes));
+  const uintRangesLengthEqualsZero = balances.some(balance => balance.badgeIds.length === 0);
+  const ownedTimesLengthEqualsZero = balances.some(balance => balance.ownershipTimes.length === 0);
 
   //We have five potential steps
   //1. Select recipients, number of codes, max number of claims depending on distribution method
@@ -151,7 +144,6 @@ export function TransferSelect({
     title: 'Amounts',
     description: <div>
       {numRecipients > 0n && transfersToAdd.length > 0 && balances.length > 0 && < div className='flex'>
-        {/* <hr /> */}
         <Col md={24} xs={24}>
           <TransferDisplay
             transfers={transfersToAdd}
@@ -171,9 +163,7 @@ export function TransferSelect({
           }}
           hideDisplay
           message='asd'
-          onRemoveAll={() => {
-            setBalances([]);
-          }}
+          onRemoveAll={() => { setBalances([]); }}
           increment={incrementAmount}
           setIncrement={numRecipients > 1n ? setIncrementAmount : undefined}
           numIncrements={numRecipients}

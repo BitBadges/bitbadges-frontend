@@ -1,19 +1,9 @@
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto"
-import {
-  getBadgesToDisplay,
-  getBalancesForId,
-  getTotalNumberOfBadgeIds,
-  removeUintRangeFromUintRange
-} from "bitbadgesjs-utils"
+import { getBadgesToDisplay, getBalancesForId, getTotalNumberOfBadgeIds, removeUintRangeFromUintRange } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext"
-
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
-import {
-  fetchAndUpdateMetadata,
-  fetchMetadataForPreview,
-  useCollection,
-} from "../../bitbadges-api/contexts/collections/CollectionsContext"
+import { fetchAndUpdateMetadata, fetchMetadataForPreview, useCollection, } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { getBadgeIdsString } from "../../utils/badgeIds"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
@@ -42,7 +32,6 @@ export function BadgeAvatarDisplay({
   onClick,
   filterGreaterThanMax,
   sortBy,
-
 }: {
   collectionId: bigint
   balance?: Balance<bigint>[]
@@ -68,7 +57,6 @@ export function BadgeAvatarDisplay({
   const collection = useCollection(collectionId)
   const maxId = collection ? getMaxBadgeIdForCollection(collection) : 0n
   const [remaining, removed] = removeUintRangeFromUintRange([{ start: maxId + 1n, end: GO_MAX_UINT_64 }], badgeIds)
-
   const inRangeBadgeIds = filterGreaterThanMax ? remaining : badgeIds
   const userBalance = balance
   const [currPage, setCurrPage] = useState<number>(1)
@@ -91,19 +79,15 @@ export function BadgeAvatarDisplay({
       sortBy
     )
 
-    const badgeIdsToDisplay: UintRange<bigint>[] = []
-    for (const badgeIdObj of badgeIdsToDisplayResponse) {
-      badgeIdsToDisplay.push(...badgeIdObj.badgeIds)
-    }
-
+    const badgeIdsToDisplay: UintRange<bigint>[] = badgeIdsToDisplayResponse.map(x => x.badgeIds).flat()
     return badgeIdsToDisplay
   }, [inRangeBadgeIds, currPage, pageSize, collectionId, sortBy])
 
   useEffect(() => {
-    if (INFINITE_LOOP_MODE)
-      console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId)
+    if (INFINITE_LOOP_MODE) console.log("BadgeAvatarDisplay: useEffect: collection: ", collectionId)
 
     async function updateMetadata() {
+      // If from multiCollectionDisplay, then don't fetch metadata for page 1 (we assume it is fetched by the parent)
       if (fromMultiCollectionDisplay && currPage === 1) return
       if (badgeIdsToDisplay.length === 0) return
 
@@ -125,16 +109,8 @@ export function BadgeAvatarDisplay({
     }
 
     updateMetadata()
-  }, [
-    collectionId,
-    txTimelineContext.existingCollectionId,
-    fromMultiCollectionDisplay,
-    currPage,
-    fetchDirectly,
-    badgeIdsToDisplay,
-  ])
+  }, [collectionId, txTimelineContext.existingCollectionId, fromMultiCollectionDisplay, currPage, fetchDirectly, badgeIdsToDisplay,])
 
-  //Calculate pageSize based on the width of this componetnt
   return (
     <div style={{ maxWidth: maxWidth, minWidth: cardView ? 200 : undefined }}>
       <Pagination
@@ -145,7 +121,6 @@ export function BadgeAvatarDisplay({
         showOnSinglePage={showOnSinglePage}
         showPageJumper={showPageJumper}
       />
-
       <div
         key={currPage}
         className="flex-center flex-wrap full-width primary-text"

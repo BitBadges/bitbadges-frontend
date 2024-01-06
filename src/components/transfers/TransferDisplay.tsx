@@ -1,13 +1,12 @@
-import { DeleteOutlined } from "@ant-design/icons";
-import { Avatar, Empty, Tooltip, Typography } from "antd";
+import { Empty, Typography } from "antd";
 import { TransferWithIncrements } from "bitbadgesjs-utils";
 import { useState } from "react";
 
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { AddressDisplayList } from "../address/AddressDisplayList";
-import { BalanceDisplay } from "../badges/BalanceDisplay";
+import { BalanceDisplay } from "../balances/BalanceDisplay";
 import { Pagination } from "../common/Pagination";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 
 const { Text } = Typography
 
@@ -15,21 +14,11 @@ const { Text } = Typography
 export function TransferDisplay({
   transfers,
   collectionId,
-  hideAddresses,
-  hideBalances,
-  setTransfers,
   initiatedBy,
-  deletable,
-  doNotCalculate
 }: {
   collectionId: bigint;
   transfers: TransferWithIncrements<bigint>[],
-  hideAddresses?: boolean;
-  hideBalances?: boolean;
-  setTransfers?: (transfers: TransferWithIncrements<bigint>[]) => void;
-  deletable?: boolean;
   initiatedBy?: string
-  doNotCalculate?: boolean
 }) {
 
   const collection = useCollection(collectionId)
@@ -51,14 +40,12 @@ export function TransferDisplay({
     }
 
 
-    {!hideBalances && transfer && toLength > 0 && <div className="full-width">
+    {transfer && toLength > 0 && <div className="full-width">
       {collection &&
         <BalanceDisplay
-          doNotCalculate={doNotCalculate}
           message={'All Badges Transferred'}
           hideMessage
           collectionId={collectionId}
-          // balances={[{ amount: 1n, badgeIds: [{ start: 1n, end: 1n }], ownershipTimes: [{ start: 1n, end: 1n }] }]}
           balances={transfer.balances}
           numIncrements={toLength}
           incrementBadgeIdsBy={transfer.incrementBadgeIdsBy}
@@ -67,7 +54,7 @@ export function TransferDisplay({
     </div>}
 
     {
-      !hideAddresses && transfer && <div className="full-width">
+      transfer && <div className="full-width">
         <br />
         <div className="flex-center flex-wrap">
           {!isBalanceUpdate &&
@@ -111,23 +98,6 @@ export function TransferDisplay({
         </div>
       </div>
     }
-
-
-
-    {deletable && setTransfers && transfers.length > 0 && <div style={{ textAlign: 'center' }}>
-      <br />
-      <Avatar
-        className='styled-button-normal'
-        style={{ cursor: 'pointer', fontSize: 14 }}
-        onClick={() => {
-          setTransfers(transfers.filter((_, index) => index !== page));
-        }}>
-        <Tooltip title='Delete Transfer'>
-          <DeleteOutlined />
-        </Tooltip>
-      </Avatar>
-      <br />
-    </div>}
   </div>
   </InformationDisplayCard>
 

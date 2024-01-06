@@ -4,14 +4,14 @@ import {
   getUintRangesForAllBadgeIdsInCollection,
 } from "bitbadgesjs-utils"
 
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay"
 import { DistributionOverview } from "../badges/DistributionCard"
 import { MetadataDisplay } from "../badges/MetadataInfoDisplay"
 import { InformationDisplayCard } from "../display/InformationDisplayCard"
-import { BalanceOverview } from "./BalancesInfo"
+import { BalanceChecker } from "./OwnersTab"
 import { PermissionsOverview } from "./PermissionsInfo"
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
 
 export function OverviewTab({
   collectionId,
@@ -24,14 +24,9 @@ export function OverviewTab({
 
   if (!collection) return <></>
 
-  const noBalancesStandard =
-    collection &&
-    getCurrentValuesForCollection(collection).standards.includes("No Balances")
-  const MetadataDisplayElem = (
-    <>
-      <MetadataDisplay collectionId={collectionId} span={24} />
-    </>
-  )
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances")
+  const MetadataDisplayElem = <MetadataDisplay collectionId={collectionId} span={24} />
+
   return (
     <>
       <div>
@@ -43,7 +38,6 @@ export function OverviewTab({
             badgeIds={getUintRangesForAllBadgeIdsInCollection(collection)}
             maxWidth={"100%"}
             showPageJumper={getMaxBadgeIdForCollection(collection) > 100}
-          // doNotAdaptToWidth
           />
         </InformationDisplayCard>
       </div>
@@ -73,15 +67,7 @@ export function OverviewTab({
           {!noBalancesStandard && (
             <>
               <DistributionOverview collectionId={collectionId} span={24} />
-              
-              <InformationDisplayCard title={<>Balance Checker</>} span={24}>
-                <div className="flex">
-                  <BalanceOverview
-                    collectionId={collectionId}
-                    setTab={setTab}
-                  />
-                </div>
-              </InformationDisplayCard>
+              <BalanceChecker collectionId={collectionId} setTab={setTab} />
             </>
           )}
         </Col>

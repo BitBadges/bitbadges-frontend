@@ -1,7 +1,7 @@
 import { DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Col, Collapse, Row, Spin, Typography } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { TransferActivityDoc } from 'bitbadgesjs-utils';
+import { TransferActivityDoc, getTotalNumberOfBadgeIds } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -32,31 +32,16 @@ export function PanelHeaderAddresses({ addresses }: { addresses: string[] }) {
 function PanelHeader({ collectionId, activity, onDelete, idx }: { idx: number, collectionId: bigint, activity: TransferActivityDoc<DesiredNumberType>, onDelete?: (idx: number) => void }) {
   const router = useRouter();
   const collection = useCollection(collectionId);
-
-  let numBadgesTransferred = 0n;
-  activity.balances.forEach(balance => {
-    for (const badgeIdRange of balance.badgeIds) {
-      numBadgesTransferred += badgeIdRange.end - badgeIdRange.start + 1n;
-    }
-  });
+  const numBadgesTransferred = getTotalNumberOfBadgeIds(activity.balances.map(x => x.badgeIds).flat());
 
   return <>
     <div className='flex' style={{ width: '100%' }}>
-      {/* <div style={{marginRight: 16 }}>
-        <BadgeAvatar
-          collectionId={collectionId}
-          metadataOverride={collection?.cachedCollectionMetadata}
-          size={25}
-          
-        />
-      </div> */}
       <div className='primary-text'>
         <div className='flex flex-wrap' style={{ display: 'flex', alignItems: 'center' }}>
           {collection?.balancesType === 'Standard' ? <>
             <PanelHeaderAddresses addresses={[activity.from]} />
             <b style={{ marginRight: 8, marginLeft: 8 }}>to</b>
-          </> :
-            <></>}
+          </> : <></>}
 
           <PanelHeaderAddresses addresses={activity.to} />
         </div>
@@ -150,9 +135,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
 
                         </div>
                         <TransferDisplay
-
                           key={idx}
-                          doNotCalculate
                           collectionId={collectionId}
                           initiatedBy={activity.initiatedBy}
                           transfers={[

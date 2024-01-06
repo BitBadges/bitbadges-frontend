@@ -1,20 +1,12 @@
-import { UintRange, deepCopy } from "bitbadgesjs-proto"
+import { deepCopy } from "bitbadgesjs-proto"
 import {
-  ApprovalPermissionUsedFlags,
-  BalancesActionPermissionUsedFlags,
   BitBadgesCollection,
   MetadataAddMethod,
-  TimedUpdatePermissionUsedFlags,
-  TimedUpdateWithBadgeIdsPermissionUsedFlags,
-  castBalancesActionPermissionToUniversalPermission,
-  castCollectionApprovalPermissionToUniversalPermission,
-  castTimedUpdatePermissionToUniversalPermission,
-  castTimedUpdateWithBadgeIdsPermissionToUniversalPermission,
-  invertUintRanges,
-  sortUintRangesAndMergeIfNecessary,
+  sortUintRangesAndMergeIfNecessary
 } from "bitbadgesjs-utils"
 import { ReactNode, useState } from "react"
 
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
 import {
   EmptyStepItem,
   NEW_COLLECTION_ID,
@@ -24,117 +16,15 @@ import {
   updateCollection,
   useCollection,
 } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
-import { neverHasManager } from "../../../bitbadges-api/utils/manager"
+import { getBadgesWithLockedSupply } from "../../../bitbadges-api/utils/badges"
+import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions"
 import { GO_MAX_UINT_64 } from "../../../utils/dates"
 import {
-  PermissionsOverview,
-  getPermissionDetails,
+  PermissionsOverview
 } from "../../collection-page/PermissionsInfo"
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper"
 import { SwitchForm } from "../form-items/SwitchForm"
-import {
-  isCompletelyForbidden,
-  isCompletelyNeutralOrCompletelyPermitted,
-} from "./CanUpdateOffChainBalancesStepItem"
 
-export const getBadgesWithFrozenMetadata = (
-  collection: BitBadgesCollection<bigint>,
-) => {
-
-  const canUpdateRes = getPermissionDetails(
-    collection
-      ? castTimedUpdatePermissionToUniversalPermission(
-        collection.collectionPermissions.canUpdateBadgeMetadata ?? []
-      )
-      : [],
-    TimedUpdateWithBadgeIdsPermissionUsedFlags,
-    neverHasManager(collection)
-  )
-
-  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary(
-    [
-      ...(canUpdateRes.dataSource
-        .map((x) => (x.forbidden ? x.badgeIds : undefined))
-        .filter((x) => x !== undefined)
-        .flat() as UintRange<bigint>[]),
-    ],
-    true
-  )
-  return lockedBadgeIds
-}
-
-export const getBadgesWithFrozenTransferability = (
-  collection: BitBadgesCollection<bigint>,
-) => {
-
-  const canTransferRes = getPermissionDetails(
-    collection
-      ? castCollectionApprovalPermissionToUniversalPermission(
-        collection.collectionPermissions.canUpdateCollectionApprovals ?? []
-      )
-      : [],
-    ApprovalPermissionUsedFlags,
-    neverHasManager(collection)
-  )
-
-  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary(
-    [
-      ...(canTransferRes.dataSource
-        .map((x) => (x.forbidden ? x.badgeIds : undefined))
-        .filter((x) => x !== undefined)
-        .flat() as UintRange<bigint>[]),
-    ],
-    true
-  )
-  return lockedBadgeIds
-}
-
-export const getBadgesWithLockedSupply = (
-  collection: BitBadgesCollection<bigint>,
-  startingCollection: BitBadgesCollection<bigint> | undefined,
-  currentCollection = false
-) => {
-  const collectionToCheck = currentCollection ? collection : startingCollection
-  if (!collectionToCheck) return []
-
-  const canCreateMoreBadgesRes = getPermissionDetails(
-    collectionToCheck
-      ? castBalancesActionPermissionToUniversalPermission(
-        collectionToCheck.collectionPermissions.canCreateMoreBadges ?? []
-      )
-      : [],
-    BalancesActionPermissionUsedFlags,
-    neverHasManager(collectionToCheck)
-  )
-
-  const lockedBadgeIds = sortUintRangesAndMergeIfNecessary(
-    [
-      ...(canCreateMoreBadgesRes.dataSource
-        .map((x) => (x.forbidden ? x.badgeIds : undefined))
-        .filter((x) => x !== undefined)
-        .flat() as UintRange<bigint>[]),
-    ],
-    true
-  )
-  return lockedBadgeIds
-}
-
-export const getBadgesWithUnlockedSupply = (
-  collection: BitBadgesCollection<bigint>,
-  startingCollection: BitBadgesCollection<bigint> | undefined,
-  currentCollection = false
-) => {
-  return invertUintRanges(
-    getBadgesWithLockedSupply(
-      collection,
-      startingCollection,
-      currentCollection
-    ),
-    1n,
-    GO_MAX_UINT_64
-  )
-}
 
 export function UpdatableMetadataSelectStepItem(
   collectionMetadataUpdate: boolean
@@ -153,7 +43,8 @@ export function UpdatableMetadataSelectStepItem(
   const badgeIdsWithLockedSupply = getBadgesWithLockedSupply(
     deepCopy(collection) as BitBadgesCollection<bigint>,
     undefined,
-    true
+    true,
+    'current'
   ) //Get badge IDs that will have locked supply moving forward
   const badgeIdsToLockMetadata = sortUintRangesAndMergeIfNecessary(
     [{ start: 1n, end: maxBadgeId }, ...badgeIdsWithLockedSupply],
@@ -161,22 +52,7 @@ export function UpdatableMetadataSelectStepItem(
   )
 
   if (!collection) return EmptyStepItem
-  const permissionDetails = collectionMetadataUpdate
-    ? getPermissionDetails(
-      castTimedUpdatePermissionToUniversalPermission(
-        collection?.collectionPermissions.canUpdateCollectionMetadata ?? []
-      ),
-      TimedUpdatePermissionUsedFlags,
-      neverHasManager(collection)
-    )
-    : getPermissionDetails(
-      castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(
-        collection?.collectionPermissions.canUpdateBadgeMetadata ?? []
-      ),
-      TimedUpdateWithBadgeIdsPermissionUsedFlags,
-      neverHasManager(collection),
-      [{ start: 1n, end: maxBadgeId }]
-    )
+  const permissionDetails = collectionMetadataUpdate ? getDetailsForCollectionPermission(collection, "canUpdateCollectionMetadata") : getDetailsForCollectionPermission(collection, "canUpdateBadgeMetadata", [{ start: 1n, end: maxBadgeId }])
 
   function AdditionalNode({ noOption }: { noOption?: boolean }) {
     if (!collection) return <></>
@@ -215,7 +91,7 @@ export function UpdatableMetadataSelectStepItem(
       ? "The URIs for the metadata (i.e. the self-hosted ones provided by you)"
       : "The metadata"
       } will be frozen and cannot be updated after this transaction.`,
-    isSelected: isCompletelyForbidden(permissionDetails),
+    isSelected: permissionDetails.isAlwaysFrozenAndForbidden,
     additionalNode: () => <AdditionalNode noOption />,
   })
 
@@ -229,7 +105,7 @@ export function UpdatableMetadataSelectStepItem(
     `}</div>
     ),
     additionalNode: () => <AdditionalNode />,
-    isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
+    isSelected: permissionDetails.isAlwaysPermittedOrNeutral,
   })
 
   const handleSwitchChangeIdxOnly = (idx: number) => {

@@ -1,28 +1,26 @@
 import { Col, Row, Typography } from 'antd';
-import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateBadgeMetadataUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate } from 'bitbadgesjs-utils';
+import { ActionPermissionUsedFlags, ApprovalPermissionUsedFlags, BalancesActionPermissionUsedFlags, TimedUpdatePermissionUsedFlags, TimedUpdateWithBadgeIdsPermissionUsedFlags, UniversalPermission, UsedFlags, castActionPermissionToUniversalPermission, castBalancesActionPermissionToUniversalPermission, castCollectionApprovalPermissionToUniversalPermission, castTimedUpdatePermissionToUniversalPermission, castTimedUpdateWithBadgeIdsPermissionToUniversalPermission, validateActionPermissionUpdate, validateBadgeMetadataUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateCollectionApprovalsUpdate, validateCollectionMetadataUpdate, validateIsArchivedUpdate, validateManagerUpdate, validateOffChainBalancesMetadataUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { neverHasManager } from '../../../bitbadges-api/utils/manager';
-import { PermissionDisplay } from '../../collection-page/PermissionsInfo';
+import { PermissionDisplayTable, PermissionNameString } from '../../collection-page/PermissionsInfo';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 
 
 export function BeforeAfterPermission({
   permissionName,
 }: {
-  permissionName: string,
+  permissionName: PermissionNameString,
 }) {
-
   const txTimelineContext = useTxTimelineContext();
   const startingCollection = txTimelineContext.startingCollection;
   const collection = useCollection(NEW_COLLECTION_ID);
 
-  const { castFunction, flags } = getCastFunctionsAndUsedFlags(permissionName);
   const oldPermissions = startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
   const newPermissions = collection?.collectionPermissions[`${permissionName}` as keyof typeof collection.collectionPermissions];
 
-  if (!collection) return <></>;
+  if (!collection || !oldPermissions || !newPermissions) return <></>;
 
   const noManager = neverHasManager(collection);
 
@@ -37,7 +35,7 @@ export function BeforeAfterPermission({
           </Typography.Text>
           <br />
           <br />
-          <PermissionDisplay permissions={castFunction(oldPermissions as any)} usedFlags={flags} neverHasManager={noManager} />
+          <PermissionDisplayTable permissions={oldPermissions} permissionName={permissionName} neverHasManager={noManager} />
         </Col>}
         <Col md={11} xs={24} style={{ textAlign: 'center' }}>
           <Typography.Text className='primary-text' strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 24, alignItems: 'center' }}>
@@ -45,7 +43,7 @@ export function BeforeAfterPermission({
           </Typography.Text>
           <br />
           <br />
-          <PermissionDisplay permissions={castFunction(newPermissions as any)} usedFlags={flags} neverHasManager={noManager} />
+          <PermissionDisplayTable permissions={newPermissions} permissionName={permissionName} neverHasManager={noManager} />
         </Col>
       </Row>
     </InformationDisplayCard>
@@ -53,12 +51,13 @@ export function BeforeAfterPermission({
   )
 }
 
-export const getCastFunctionsAndUsedFlags = (permissionName: string) => {
+export const getPermissionVariablesFromName = (permissionName: PermissionNameString) => {
 
   let castFunction: (permissions: any[]) => UniversalPermission[] = () => { return [] }
   let flags: UsedFlags = ApprovalPermissionUsedFlags
 
   let validateFunction: any = undefined;
+  let validatePermissionUpdateFunction: any = undefined;
   switch (permissionName) {
     case 'canArchiveCollection':
       validateFunction = validateIsArchivedUpdate;
@@ -81,8 +80,34 @@ export const getCastFunctionsAndUsedFlags = (permissionName: string) => {
       validateFunction = validateCollectionApprovalsUpdate
       break;
   }
+  switch (permissionName) {
+    case 'canDeleteCollection':
+    case 'canUpdateAutoApproveSelfInitiatedOutgoingTransfers':
+    case 'canUpdateAutoApproveSelfInitiatedIncomingTransfers':
+      validatePermissionUpdateFunction = validateActionPermissionUpdate;
+      break;
+    case 'canArchiveCollection':
+    case 'canUpdateOffChainBalancesMetadata':
+    case 'canUpdateStandards':
+    case 'canUpdateCustomData':
+    case 'canUpdateManager':
+    case 'canUpdateCollectionMetadata':
+      validatePermissionUpdateFunction = validateTimedUpdatePermissionUpdate
+      break;
+    case 'canCreateMoreBadges':
+      validatePermissionUpdateFunction = validateBalancesActionPermissionUpdate
 
-  
+      break;
+    case 'canUpdateBadgeMetadata':
+      // case 'canUpdateInheritedBalances':
+      validatePermissionUpdateFunction = validateTimedUpdateWithBadgeIdsPermissionUpdate
+
+      break;
+    case 'canUpdateCollectionApprovals':
+      validatePermissionUpdateFunction = validateCollectionApprovalPermissionsUpdate
+      break;
+  }
+
   let question = "";
   switch (permissionName) {
     case 'canDeleteCollection':
@@ -115,11 +140,19 @@ export const getCastFunctionsAndUsedFlags = (permissionName: string) => {
     case 'canUpdateCollectionApprovals':
       question = "Can update collection approvals?";
       break;
+    case 'canUpdateAutoApproveSelfInitiatedOutgoingTransfers':
+      question = "Can update auto approve self initiated outgoing transfers?";
+      break;
+    case 'canUpdateAutoApproveSelfInitiatedIncomingTransfers':
+      question = "Can update auto approve self initiated incoming transfers?";
+      break;
     // Add custom questions for other permissions as needed
   }
 
   switch (permissionName) {
     case 'canDeleteCollection':
+    case 'canUpdateAutoApproveSelfInitiatedOutgoingTransfers':
+    case 'canUpdateAutoApproveSelfInitiatedIncomingTransfers':
       castFunction = castActionPermissionToUniversalPermission;
       flags = ActionPermissionUsedFlags;
       break;
@@ -153,7 +186,8 @@ export const getCastFunctionsAndUsedFlags = (permissionName: string) => {
     castFunction,
     flags,
     question,
-    validateFunction
+    validateFunction,
+    validatePermissionUpdateFunction
   }
 }
 
@@ -161,12 +195,11 @@ export function AfterPermission({
   permissionName,
   onFreezePermitted
 }: {
-  permissionName: string,
+  permissionName: PermissionNameString,
   onFreezePermitted?: (frozen: boolean) => void
 }) {
 
   const collection = useCollection(NEW_COLLECTION_ID);
-  const { castFunction, flags } = getCastFunctionsAndUsedFlags(permissionName);
   const newPermissions = collection?.collectionPermissions[`${permissionName}` as keyof typeof collection.collectionPermissions];
 
   if (!collection) return <></>;
@@ -180,9 +213,9 @@ export function AfterPermission({
       <br />
 
       <Col md={24} xs={24} style={{ textAlign: 'center' }}>
-        <PermissionDisplay
-          permissions={castFunction(newPermissions as any)}
-          usedFlags={flags as any}
+        <PermissionDisplayTable
+          permissions={newPermissions ?? []}
+          permissionName={permissionName}
           onFreezePermitted={onFreezePermitted}
           neverHasManager={noManager}
         />

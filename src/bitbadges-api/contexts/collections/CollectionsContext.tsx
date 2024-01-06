@@ -7,53 +7,52 @@ import { NEW_COLLECTION_ID } from '../TxTimelineContext';
 import { getAccount, updateAccount } from '../accounts/AccountsContext';
 import { deleteCollectionRedux, fetchAndUpdateMetadataDirectlyFromCollectionRedux, fetchAndUpdateMetadataRedux, fetchCollectionsRedux, fetchMetadataForPreviewRedux, setCollectionRedux, updateCollectionsRedux } from './reducer';
 
+const replaceWithPlaceholderIfReported = (collection?: BitBadgesCollection<DesiredNumberType>) => {
+  if (!collection) return collection;
+  if (!collection.reported) return collection;
+
+
+  return {
+    ...deepCopy(collection),
+    cachedBadgeMetadata: collection.cachedBadgeMetadata?.map(x => {
+      return {
+        ...x,
+        metadata: DefaultPlaceholderMetadata,
+      }
+    }),
+    cachedCollectionMetadata: DefaultPlaceholderMetadata,
+    collectionApprovals: collection.collectionApprovals?.map(x => {
+      return {
+        ...x,
+        details: x.details ? {
+          ...x.details,
+          name: '',
+          description: '',
+        } : undefined,
+      }
+    })
+  }
+}
+
 // Custom hook to fetch and convert a collection based on collectionIdNumber
 export function useCollection(collectionIdNumber?: NumberType) {
   const str = collectionIdNumber !== undefined ? BigInt(collectionIdNumber).toString() : '';
   const _collection = useSelector((state: GlobalReduxState) => state.collections.collections[`${str}`]);
 
-  // Replace all metadata with placeholders if reported
-  if (_collection?.reported) {
-    const newCollection: BitBadgesCollection<DesiredNumberType> = {
-      ..._collection,
-      cachedBadgeMetadata: _collection.cachedBadgeMetadata?.map(x => {
-        return {
-          ...x,
-          metadata: DefaultPlaceholderMetadata,
-        }
-      }),
-      cachedCollectionMetadata: DefaultPlaceholderMetadata,
-      collectionApprovals: _collection.collectionApprovals?.map(x => {
-        return {
-          ...x,
-          details: x.details ? {
-            ...x.details,
-            name: '',
-            description: '',
-          } : undefined,
-        }
-      })
-    }
-
-    return newCollection;
-  }
-
-  return _collection;
+  // Replace all metadata with placeholder if marked as reported
+  const collection = replaceWithPlaceholderIfReported(_collection);
+  return collection;
 }
 
 export const initialState: CollectionReducerState = {
   collections: {},
-  error: undefined,
-  queue: [],
-  fetching: [],
-  loading: false
 };
 
 //Export reusable dispatch functions
 export const getCollection = (collectionId: DesiredNumberType) => {
   const collection = store.getState().collections.collections[`${collectionId}`];
   if (!collection) return undefined;
-  return convertBitBadgesCollection(collection, BigIntify)
+  return replaceWithPlaceholderIfReported(convertBitBadgesCollection(collection, BigIntify));
 }
 
 export const setCollection = (collection: Partial<BitBadgesCollection<DesiredNumberType> | { collectionPermissions?: Partial<CollectionPermissions<bigint>> }> & { collectionId: DesiredNumberType }) => {
@@ -77,8 +76,6 @@ export const fetchBalanceForUser = async (collectionId: DesiredNumberType, addre
 
   const account = await getAccount(addressOrUsername);
   if (!account) throw new Error('Account does not exist');
-
-
 
   let res;
   if (forceful || collection.balancesType === "Off-Chain - Non-Indexed") {
@@ -112,8 +109,6 @@ export const fetchCollections = async (collectionsToFetch: DesiredNumberType[], 
   if (collectionsToFetch.some(x => x === NEW_COLLECTION_ID)) {
     throw new Error('Cannot fetch preview collection ID === 0');
   }
-
-
 
   return await fetchCollectionsWithOptions(collectionsToFetch.map(x => {
     return {

@@ -50,7 +50,7 @@ export function WalletHeader() {
     } else if (isCollection || isBadge) {
       await router.push('/collections/' + value);
     } else {
-      await router.push('/addresses/' + value);
+      await router.push('/lists/' + value);
     }
 
     setSearchValue('');
@@ -232,16 +232,13 @@ export function WalletHeader() {
             className='flex-center'
             style={{ height: 72 }}
           ><>
+              {/* AntD Badge, not BitBadge */}
               <Badge count={unseenNotificationCount} overflowCount={overflowCount}>
-
                 <BlockiesAvatar
                   fontSize={40}
                   avatar={avatar}
                   address={address.toLowerCase()}
                 />
-
-
-
               </Badge>
             </>
           </div>
@@ -255,16 +252,11 @@ export function WalletHeader() {
   const SearchBar = <Input
     defaultValue=""
     placeholder="Enter an Address, Username, List, Badge, or Collection"
-    // onSearch={async (value) => {
-    //   onSearch(value, true);
-    // }}
     value={searchValue}
     onChange={async (e) => {
       setSearchValue(e.target.value);
     }}
-    // style={{ marginLeft: 10, marginRight: 10 }}
     className='form-input inherit-bg'
-    // enterButton
     size='large'
     prefix={<SearchOutlined style={{ fontSize: 22, fontWeight: 'bold' }} className='primary-text' />}
   />;

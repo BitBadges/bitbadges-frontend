@@ -27,7 +27,7 @@ export function Notifications() {
   //We don't want to mark all notifications as read if we haven't yet loaded notifications from last seen to T
   const transferActivity = (getAccountActivityView(signedInAccount, 'latestActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
   const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'latestClaimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
-  
+
   const listsActivity = (getAccountListsActivityView(signedInAccount, 'listsActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
   const listsTab = 'latestAddressMappings';
   const hasMoreAddressMappings = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
@@ -65,7 +65,7 @@ export function Notifications() {
   const unseenClaimAlertsCount = claimAlerts.filter((claimAlert) => claimAlert.createdTimestamp > (prevSeenActivity ?? 0)).length;
   const unseenTransferActivityCount = transferActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
   const unseenListsActivityCount = listsActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
-  
+
   //Make badge count disappear 5 seconds after being seen
   useEffect(() => {
     if (tab === 'announcements') {
@@ -94,10 +94,8 @@ export function Notifications() {
   const TabComponent = ({ title, count }: { title: string, count: number }) => {
     const toShow = (title === 'Announcements' && !seenAnnouncements) || (title === 'Claim Alerts' && !seenClaimAlerts) || (title === 'Transfer Activity' && !seenTransferActivity) || (title === 'Lists' && !seenAddressMappings);
 
-
     return <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
-      
-        {title}
+      {title}
       {'      '}
       {count > 0 && toShow && <Badge style={{ marginLeft: 6 }} count={count} overflowCount={10}>
       </Badge>}

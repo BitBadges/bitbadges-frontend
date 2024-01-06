@@ -17,10 +17,10 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
 
   const signedInAccount = useAccount(chain.address);
 
-  const [currUserInfo, setCurrUserInfo] = useState<string>(signedInAccount?.address ?? '');
+  const [recipient, setRecipient] = useState<string>('');
   const [sendAmount, setSendAmount] = useState<number>(0);
 
-  const currSelectedAccount = useAccount(currUserInfo);
+  const currSelectedAccount = useAccount(recipient);
 
   const msgSend: MsgSend<bigint> = useMemo(() => {
     return {
@@ -34,7 +34,7 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
     {
       title: 'Recipient',
       description: <div style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-        <AddressSelect onUserSelect={setCurrUserInfo} defaultValue={signedInAccount?.address} />
+        <AddressSelect onUserSelect={setRecipient} defaultValue={signedInAccount?.address} />
         <br />
         {signedInAccount?.cosmosAddress === currSelectedAccount?.cosmosAddress ? <div style={{ color: 'red' }}>Recipient and sender cannot be the same.</div> : null}
       </div>,

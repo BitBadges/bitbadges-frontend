@@ -4,11 +4,9 @@ import { updateCollection, useCollection } from "../../../bitbadges-api/contexts
 import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+
 export function ChooseControlTypeStepItem() {
-
   const collection = useCollection(NEW_COLLECTION_ID);
-
-
   const txTimelineContext = useTxTimelineContext();
   const completeControl = txTimelineContext.completeControl;
   const setCompleteControl = txTimelineContext.setCompleteControl;
@@ -81,7 +79,6 @@ export function ChooseControlTypeStepItem() {
           }
           }
         />
-
       </div>
       }
     />

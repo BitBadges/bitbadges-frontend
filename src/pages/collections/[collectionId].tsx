@@ -6,13 +6,13 @@ import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContex
 import { fetchCollections, fetchNextForCollectionViews, getCollection, getCollectionActivityView, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
-import { UserApprovalsTab } from '../../components/collection-page/ApprovalsTab';
+import { UserApprovalsTab } from '../../components/collection-page/transferability/ApprovalsTab';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
-import { OffChainTransferabilityTab } from '../../components/collection-page/OffChainTransferabilityTab';
+import { OffChainTransferabilityTab } from '../../components/collection-page/transferability/OffChainTransferabilityTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
-import { TransferabilityTab } from '../../components/collection-page/TransferabilityTab';
+import { TransferabilityTab } from '../../components/collection-page/transferability/TransferabilityTab';
 import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
 import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
@@ -27,12 +27,12 @@ function CollectionPage({
   collectionPreview: boolean
 }) {
   const router = useRouter()
-  const { collectionId, password, code, claimsTab } = router.query;
+  const { collectionId, password, code } = router.query;
   const isPreview = collectionPreview ? true : false;
   const collectionIdNumber = collectionId && !isPreview && typeof collectionId === 'string' ? BigInt(collectionId) : isPreview ? NEW_COLLECTION_ID : -1n;
   const collection = useCollection(collectionIdNumber);
 
-  const [tab, setTab] = useState((password || code || claimsTab) ? 'claims' : 'overview');
+  const [tab, setTab] = useState((password || code) ? 'transferability' : 'overview');
   const [warned, setWarned] = useState(false);
 
   const collectionMetadata = collection?.cachedCollectionMetadata;
@@ -48,7 +48,6 @@ function CollectionPage({
       { key: 'owners', content: 'Owners', disabled: false },
       { key: 'transferability', content: 'Transferability', disabled: false },
       { key: 'approvals', content: 'Approvals', disabled: false },
-      // { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
       { key: 'history', content: 'Update History', disabled: false },
@@ -61,7 +60,6 @@ function CollectionPage({
 
       { key: 'owners', content: 'Owners', disabled: false },
       { key: 'transferability', content: 'Transferability', disabled: false },
-      // { key: 'announcements', content: 'Announcements', disabled: false },
       { key: 'reputation', content: 'Reviews', disabled: false },
       { key: 'activity', content: 'Activity', disabled: false },
       { key: 'history', content: 'Update History', disabled: false },
@@ -83,7 +81,6 @@ function CollectionPage({
     async function fetchCollectionsFunc() {
       if (collectionIdNumber > 0) {
         await fetchCollections([collectionIdNumber]);
-        //IMPORTANT: Note that collectionsRes is the fetched collection which may be paginated, incomplete, etc
       }
     }
     if (isPreview) return;
@@ -92,16 +89,10 @@ function CollectionPage({
 
   useEffect(() => {
 
-    //TODO: Warn if balances are out of sync?
-    //We don't care ab metadata
+    //TODO: Warn if balances / metadata are out of sync?
     if (collection?.cachedCollectionMetadata?._isUpdating || collection?.cachedBadgeMetadata.find(badge => badge.metadata._isUpdating)) {
 
       if (!warned && !isPreview) {
-        // notification.warn({
-        //   message: collection?.balancesType === "Off-Chain - Indexed" ? `Metadata for this collection is currently being refreshed.` : `Metadata and balances for this collection are currently being refreshed.`,
-        //   description: 'Certain metadata may be empty or not up to date until the sync is complete.',
-        // });
-
         setWarned(true);
       }
     }
@@ -112,11 +103,11 @@ function CollectionPage({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: set tab to claims');
     if (populated) return;
-    if (code || password || claimsTab) {
+    if (code || password) {
       setTab('transferability');
       setPopulated(true);
     }
-  }, [code, password, claimsTab, populated])
+  }, [code, password, populated])
 
 
   return (
@@ -164,7 +155,7 @@ function CollectionPage({
               )}
 
 
-              {isPreview && (tab === 'claims' || tab == 'history' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation' || tab == 'approvals') && <Empty
+              {isPreview && (tab === 'owners' || tab == 'history' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation' || tab == 'approvals') && <Empty
                 className='primary-text'
                 description={
                   "This tab is not supported for previews."

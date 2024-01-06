@@ -1,12 +1,12 @@
 import { Balance, MustOwnBadges, UintRange } from 'bitbadgesjs-proto';
-import { BalanceDisplay } from '../badges/BalanceDisplay';
+import { BalanceDisplay } from '../balances/BalanceDisplay';
+
+//Just a wrapper for BalanceDisplay. Should be unified in the future
 
 export function BalanceInput({
   balancesToShow,
   onAddBadges,
   onRemoveAll,
-  maximum,
-  minimum,
   collectionId,
   message,
   hideOwnershipTimes,
@@ -26,8 +26,6 @@ export function BalanceInput({
   balancesToShow: Balance<bigint>[],
   onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint, mustOwnAll?: boolean) => void,
   onRemoveAll?: () => void,
-  maximum?: bigint,
-  minimum?: bigint,
   collectionId?: bigint,
   message?: string,
   hideOwnershipTimes?: boolean
@@ -62,9 +60,6 @@ export function BalanceInput({
 
       //Edit props
       onAddBadges={onAddBadges}
-      minimum={minimum}
-      maximum={maximum}
-
       noOffChainBalances={noOffChainBalances}
 
       hideOwnershipTimeSelect={hideOwnershipTimes}

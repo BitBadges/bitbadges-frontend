@@ -1,19 +1,18 @@
 import { AuditOutlined, BookOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
 import { Divider, Switch } from 'antd';
-import { ActionPermission, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission } from 'bitbadgesjs-proto';
-import { CollectionApprovalPermissionWithDetails, validateActionPermissionUpdate, validateBalancesActionPermissionUpdate, validateCollectionApprovalPermissionsUpdate, validateTimedUpdatePermissionUpdate, validateTimedUpdateWithBadgeIdsPermissionUpdate } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DEV_MODE, INFINITE_LOOP_MODE } from '../../../constants';
 import { compareObjects } from '../../../utils/compare';
-import { PermissionSelect, PermissionsOverview } from '../../collection-page/PermissionsInfo';
-import IconButton from '../../display/IconButton';
-import { BeforeAfterPermission, getCastFunctionsAndUsedFlags } from './BeforeAfterPermission';
-import { JSONSetter } from './CustomJSONSetter';
+import { PermissionNameString, PermissionsOverview } from '../../collection-page/PermissionsInfo';
 import { ErrDisplay } from '../../common/ErrDisplay';
+import IconButton from '../../display/IconButton';
+import { BeforeAfterPermission, getPermissionVariablesFromName } from './BeforeAfterPermission';
+import { JSONSetter } from './CustomJSONSetter';
 import { SwitchForm } from './SwitchForm';
+import { PermissionSelect } from '../../inputs/UniversalPermissionSelect';
 
 
 export function PermissionUpdateSelectWrapper({
@@ -29,7 +28,7 @@ export function PermissionUpdateSelectWrapper({
   setChecked: (checked: boolean) => void,
   err: Error | null,
   setErr: (err: Error | null) => void,
-  permissionName: string,
+  permissionName: PermissionNameString,
   node: () => JSX.Element,
   documentationLink?: string
 }) {
@@ -45,47 +44,21 @@ export function PermissionUpdateSelectWrapper({
   const [formView, setFormView] = useState<boolean>(true);
 
   const isMint = !existingCollectionId;
+  const { flags } = getPermissionVariablesFromName(permissionName);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: permission update select wrapper, collectionId changed ');
-
+    const { validatePermissionUpdateFunction } = getPermissionVariablesFromName(permissionName);
     if (startingCollection && collection) {
       const oldPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
       const newPermissions = collection.collectionPermissions[`${permissionName}` as keyof typeof collection.collectionPermissions];
 
-      let err = null;
-      switch (permissionName) {
-        case 'canDeleteCollection':
-          err = validateActionPermissionUpdate(oldPermissions as ActionPermission<bigint>[], newPermissions as ActionPermission<bigint>[]);
-          break;
-        case 'canArchiveCollection':
-        case 'canUpdateOffChainBalancesMetadata':
-        case 'canUpdateStandards':
-        case 'canUpdateCustomData':
-        case 'canUpdateManager':
-        case 'canUpdateCollectionMetadata':
-          err = validateTimedUpdatePermissionUpdate(oldPermissions as TimedUpdatePermission<bigint>[], newPermissions as TimedUpdatePermission<bigint>[]);
-
-          break;
-        case 'canCreateMoreBadges':
-          err = validateBalancesActionPermissionUpdate(oldPermissions as BalancesActionPermission<bigint>[], newPermissions as BalancesActionPermission<bigint>[]);
-
-          break;
-        case 'canUpdateBadgeMetadata':
-          // case 'canUpdateInheritedBalances':
-          err = validateTimedUpdateWithBadgeIdsPermissionUpdate(oldPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[], newPermissions as TimedUpdateWithBadgeIdsPermission<bigint>[]);
-
-          break;
-        case 'canUpdateCollectionApprovals':
-          err = validateCollectionApprovalPermissionsUpdate(oldPermissions as CollectionApprovalPermissionWithDetails<bigint>[], newPermissions as CollectionApprovalPermissionWithDetails<bigint>[]);
-          break;
-      }
-
+      const err = validatePermissionUpdateFunction(oldPermissions, newPermissions);
       setErr(err);
     }
-  }, [collection, startingCollection, permissionName, setErr]);
+  }, [collection, startingCollection, permissionName, setErr
+  ]);
 
-  const { flags } = getCastFunctionsAndUsedFlags(permissionName);
 
   const startingPermissions = startingCollection?.collectionPermissions[`${permissionName as keyof typeof startingCollection.collectionPermissions}`] ?? [] as any;
   const currPermissions = collection?.collectionPermissions[`${permissionName as keyof typeof collection.collectionPermissions}`] ?? [] as any;
@@ -104,15 +77,6 @@ export function PermissionUpdateSelectWrapper({
                 setShowBeforeAndAfter(!showBeforeAndAfter);
               }}
             />}
-          {/* {checked && !customJson &&
-            <IconButton
-              src={<CodeOutlined style={{ fontSize: 16 }} />}
-              text={'JSON'}
-              tooltipMessage='Custom JSON (Advanced)'
-              onClick={() => {
-                setCustomJson(true);
-              }}
-            />} */}
           {checked && customJson &&
             <IconButton
               src={<FormOutlined style={{ fontSize: 16 }} />}
@@ -172,7 +136,7 @@ export function PermissionUpdateSelectWrapper({
 
         {!isMint &&
           <Switch
-            style={{  marginBottom: 10 }}
+            style={{ marginBottom: 10 }}
             checked={checked}
             checkedChildren="Update"
             unCheckedChildren="Do Not Update"
@@ -237,9 +201,8 @@ export function PermissionUpdateSelectWrapper({
         {err &&
           <><br />
             <div style={{ color: 'red', textAlign: 'center' }}>
-              <b>Error: </b> The newly selected value for this permissions is updating a previously frozen value. See before / after.
+              <ErrDisplay err={err} />
               <br />
-
               {DEV_MODE && <>
                 {err.message}
                 <br />
@@ -249,9 +212,9 @@ export function PermissionUpdateSelectWrapper({
         <br />
 
         {formView && node()}
+        {/* Advanced permission select view */}
         {!formView && <PermissionSelect
           collectionId={NEW_COLLECTION_ID}
-
           permissionName={permissionName}
           value={currPermissions}
           setValue={(value) => {

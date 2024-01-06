@@ -20,7 +20,6 @@ export function AddressDisplayList({
   title,
   hideTitle,
   center = true,
-  // toLength,
   pageSize = 10,
   allExcept,
   filterMint,
@@ -36,7 +35,6 @@ export function AddressDisplayList({
   title?: string,
   hideTitle?: boolean
   center?: boolean,
-  // toLength?: number
   pageSize?: number
   allExcept?: boolean,
   filterMint?: boolean,

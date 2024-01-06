@@ -7,7 +7,7 @@ import { updateCollection, useCollection } from "../../../bitbadges-api/contexts
 import { approvalCriteriaHasNoAdditionalRestrictions, approvalCriteriaHasNoAmountRestrictions } from "../../../bitbadges-api/utils/claims";
 import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
+import { TransferabilityTab } from "../../collection-page/transferability/TransferabilityTab";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 

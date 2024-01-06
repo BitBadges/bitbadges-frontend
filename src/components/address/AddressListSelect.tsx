@@ -31,15 +31,14 @@ export function AddressListSelect({
   const [batchAddAddressListInput, setBatchAddAddressListInput] = useState<string>('');
 
   //For EnterMethod.Single, we use the AddressSelect component.
-
   //For EnterMethod.Batch, set the user list when the batch add is clicked.
   async function handleAddBatchUsers() {
     setLoading(true);
     const addressesList: string[] = batchAddAddressListInput.split(delimiter).filter((a) => a !== '').map(x => x.trim());
 
-
     //Manually generate blank accounts with the addresses if not already in context
-    //We will check fetchedProfile later to see if we need to actually fetch from server
+    //These are not actually fetched from server but rather just added to context with known fields such as address, chain, etc.
+    //We can check the fetchedProfile flag later to see if we need to actually fetch from server
     const accountsToUpdate = [];
     for (const address of addressesList) {
       if (!getAccount(address)) {

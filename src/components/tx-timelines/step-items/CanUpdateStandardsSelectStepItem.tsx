@@ -1,14 +1,12 @@
-import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
 
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
+import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
-import { neverHasManager } from "../../../bitbadges-api/utils/manager";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function CanUpdateStandardsStepItem() {
 
@@ -19,8 +17,8 @@ export function CanUpdateStandardsStepItem() {
   const [err, setErr] = useState<Error | null>(null);
 
   if (!collection) return EmptyStepItem;
+  const permissionDetails = getDetailsForCollectionPermission(collection, "canUpdateStandards");
 
-  const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateStandards ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection));
   const AdditionalNode = () => <>
     <div className="flex-center">
       <PermissionsOverview
@@ -73,13 +71,13 @@ export function CanUpdateStandardsStepItem() {
             {
               title: 'No',
               message: `The manager can never update the standards for this collection. They will be frozen forever.`,
-              isSelected: isCompletelyForbidden(permissionDetails),
+              isSelected: permissionDetails.isAlwaysFrozenAndForbidden,
               additionalNode: AdditionalNode
             },
             {
               title: 'Yes',
               message: `The manager can update the standards for this collection`,
-              isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
+              isSelected: permissionDetails.isAlwaysPermittedOrNeutral,
               additionalNode: AdditionalNode
             }
           ]}

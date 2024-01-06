@@ -2,13 +2,12 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { CodesAndPasswords } from "bitbadgesjs-utils";
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
-import { ClaimsTab } from "../../collection-page/ClaimsTab";
+import { CodesPasswordsTab } from "../../codes/CodesPasswordsTab";
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 
 export function CodesViewStepItem() {
-
   const collection = useCollection(NEW_COLLECTION_ID);
   const chain = useChainContext();
 
@@ -19,15 +18,12 @@ export function CodesViewStepItem() {
     return EmptyStepItem
   }
 
-
-
   const noManager = neverHasManager(collection);
-
   const showWarning = noManager || collection.managerTimeline.some(x => x.manager !== chain.cosmosAddress);
 
   return {
     title: 'View Codes / Passwords',
-    description: <div className="secondary-text" style={{}}>
+    description: <div className="secondary-text">
       <InfoCircleOutlined /> For the code or password-based claims that you have created, you have the option to view, save, and download the codes now.
       Moving forward, they will only be viewable to whoever the current collection manager is. <span style={{ color: '#FF5733' }}>{showWarning
         ? "Since no manager was selected, this is the only time you will be able to see these codes." : ""}
@@ -35,7 +31,7 @@ export function CodesViewStepItem() {
     </div>,
     node: () => <div className='flex-center flex-column'>
       <br />
-      <ClaimsTab
+      <CodesPasswordsTab
         collectionId={NEW_COLLECTION_ID}
         codesAndPasswords={codesAndPasswords}
       />

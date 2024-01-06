@@ -19,6 +19,7 @@ export const ConvertFunction = BigIntify;
 const BitBadgesApi = new BitBadgesAPI({
   apiUrl: BACKEND_URL,
   convertFunction: BigIntify
+  //apiKey: none specified since we auto-allwo CORS from the .io domain
 });
 
 async function handleApiError(error: any): Promise<void> {
@@ -28,19 +29,15 @@ async function handleApiError(error: any): Promise<void> {
     const data: ErrorResponse = error.response.data;
 
     //if localhost, show errors but not on actual site
-    // if (window.location.hostname === "localhost") {
     notification.error({
       message: "Oops! We ran into an error!",
       description: data.message ? data.message : "Unknown error",
     });
-    // }
   } else {
-    // if (window.location.hostname === "localhost") {
     notification.error({
       message: "Oops! We ran into an error!",
       description: error.message ? error.message : "Unknown error: " + error,
     });
-    // }
   }
 
 
@@ -48,7 +45,6 @@ async function handleApiError(error: any): Promise<void> {
 }
 
 function assertPositiveInteger(num: NumberType) {
-
   try {
     BigInt(num);
   } catch (e) {

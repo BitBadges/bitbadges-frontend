@@ -1,43 +1,43 @@
 import { CloseOutlined, CodeOutlined, InfoCircleOutlined, MinusOutlined, ZoomInOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
+import {
+  MsgCreateAddressMappings,
+  MsgCreateCollection,
+  MsgCreateProtocol,
+  MsgDeleteCollection,
+  MsgDeleteProtocol,
+  MsgSend,
+  MsgSetCollectionForProtocol,
+  MsgTransferBadges,
+  MsgUniversalUpdateCollection,
+  MsgUnsetCollectionForProtocol,
+  MsgUpdateCollection,
+  MsgUpdateProtocol,
+  MsgUpdateUserApprovals
+} from 'bitbadgesjs-proto';
 import { BigIntify, CosmosCoin, Numberify, TransactionStatus, generatePostBodyBroadcast } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
-import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { simulateTx } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
-import {
-  MsgUniversalUpdateCollection,
-  MsgCreateAddressMappings,
-  MsgCreateCollection,
-  MsgDeleteCollection,
-  MsgTransferBadges,
-  MsgUpdateUserApprovals,
-  MsgUpdateCollection,
-  MsgCreateProtocol,
-  MsgUpdateProtocol,
-  MsgDeleteProtocol,
-  MsgSetCollectionForProtocol,
-  MsgUnsetCollectionForProtocol,
-  MsgSend
-} from 'bitbadgesjs-proto';
 
 import {
   MsgCreateAddressMappings as ProtoMsgCreateAddressMappings,
-  MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection,
   MsgCreateCollection as ProtoMsgCreateCollection,
   MsgDeleteCollection as ProtoMsgDeleteCollection,
   MsgTransferBadges as ProtoMsgTransferBadges,
-  MsgUpdateUserApprovals as ProtoMsgUpdateUserApprovals,
+  MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection,
   MsgUpdateCollection as ProtoMsgUpdateCollection,
+  MsgUpdateUserApprovals as ProtoMsgUpdateUserApprovals,
 } from 'bitbadgesjs-proto/dist/proto/badges/tx_pb';
 
 import {
   MsgCreateProtocol as ProtoMsgCreateProtocol,
-  MsgUpdateProtocol as ProtoMsgUpdateProtocol,
   MsgDeleteProtocol as ProtoMsgDeleteProtocol,
   MsgSetCollectionForProtocol as ProtoMsgSetCollectionForProtocol,
   MsgUnsetCollectionForProtocol as ProtoMsgUnsetCollectionForProtocol,
+  MsgUpdateProtocol as ProtoMsgUpdateProtocol,
 } from 'bitbadgesjs-proto/dist/proto/protocols/tx_pb';
 
 import {
@@ -45,14 +45,17 @@ import {
 } from 'bitbadgesjs-proto/dist/proto/cosmos/bank/v1beta1/tx_pb';
 
 import {
-  convertMsgUniversalUpdateCollection,
+  MessageGenerated,
   convertMsgCreateCollection,
-  convertMsgUpdateCollection,
   convertMsgDeleteCollection,
   convertMsgTransferBadges,
+  convertMsgUniversalUpdateCollection,
+  convertMsgUpdateCollection,
   convertMsgUpdateUserApprovals,
+  createProtoMsg,
   createTransactionPayload
 } from 'bitbadgesjs-proto';
+import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
 import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
@@ -60,8 +63,6 @@ import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import IconButton from '../display/IconButton';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
-import { MessageGenerated, createProtoMsg } from 'bitbadgesjs-proto';
-import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const { Step } = Steps;
 
@@ -84,7 +85,6 @@ export function TxModal(
     closeIcon,
     bodyStyle,
     msgSteps,
-    displayMsg,
     disabled,
     requireRegistration,
     coinsToTransfer,
@@ -100,8 +100,6 @@ export function TxModal(
     bodyStyle?: React.CSSProperties,
 
     msgSteps?: StepProps[],
-    displayMsg?: string | ReactNode
-    // width?: number | string
     disabled?: boolean,
     requireRegistration?: boolean
     coinsToTransfer?: CosmosCoin<bigint>[],
@@ -202,7 +200,7 @@ export function TxModal(
         case 'MsgSend':
           createFunction = (params: MsgSend<bigint>) => {
             return new ProtoMsgSend({
-              fromAddress: chain.cosmosAddress, //TODO: Better way to do this?
+              fromAddress: chain.cosmosAddress,
               toAddress: params.destinationAddress,
               amount: [{
                 denom: params.denom,
@@ -269,7 +267,6 @@ export function TxModal(
   const updateStatus = useCallback(async () => {
     const status = await statusContext.updateStatus();
     return status;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const msgStepsLength = useMemo(() => {
@@ -291,8 +288,8 @@ export function TxModal(
         const status = await updateStatus();
         const gasPrice = Number(status.lastXGasAmounts.reduce((a, b) => a + b, 0n)) / Number(status.lastXGasLimits.reduce((a, b) => a + b, 0n));
 
+        //Don't do anything with these msgs like setShowJson bc they are simulated messages, not final ones
         const generatedMsgs: MessageGenerated[] = []
-
         for (const tx of txsInfoPopulated) {
           const { generateProtoMsg, beforeTx, msg } = tx;
 
@@ -337,9 +334,6 @@ export function TxModal(
         setSimulated(true);
         setAmount(BigIntify(gasUsed) * BigIntify(Math.round(gasPrice)));
         setRecommendedAmount(BigIntify(gasUsed) * BigIntify(Math.round(gasPrice)));
-        // notification.success({
-        //   message: 'Transaction Simulation Successful',
-        // });
       } catch (e: any) {
         if (e?.response?.data?.message) {
           setError(e.response.data.message);
@@ -383,7 +377,6 @@ export function TxModal(
         } else {
           generatedMsgs.push(finalMsgs[i]);
         }
-
       }
       setFinalMsgs(generatedMsgs);
 
@@ -413,19 +406,9 @@ export function TxModal(
           pubkey: publicKey
         }
       }
-
-      // if (Number(gasUsed) > Numberify(simulatedGas) * 1.3 || Number(gasUsed) < Numberify(simulatedGas) * 0.7) {
-      //   // setSimulated(false);
-      //   setSimulatedGas(BigIntify(gasUsed));
-      //   throw new Error(`Gas used (${gasUsed}) is too different from simulated gas (${simulatedGas}). We are stopping the transaction out of precaution. Please review the updated recommended fee and try again.`);
-      // }
-
-      // console.log(cosmosMsg.transfers);
-      // console.log((cosmosMsg as any).transfers.map((x: any) => convertTransfer(x, Stringify, true)));
       const unsignedTx = await createTransactionPayload(finalTxDetails, generatedMsgs);
       console.log("Unsigned TX:", unsignedTx);
       const rawTx = await chain.signTxn(unsignedTx, false);
-      console.log("Raw TX:", rawTx);
 
 
       const initialRes = await broadcastTransaction(rawTx);
@@ -563,16 +546,6 @@ export function TxModal(
     title: <>Submit</>,
     description: <div>
       {currentStep === (msgSteps ?? []).length && <div>
-
-        {displayMsg &&
-          <div style={{ textAlign: 'center' }} className='primary-text'>
-            <br />
-            {/* <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }}> */}
-            {displayMsg}
-            {/* </Typography.Text> */}
-            <hr />
-          </div>
-        }
         <div className='flex-center flex-wrap' style={{ alignItems: 'normal' }}>
           <Col md={8} xs={24} style={{ textAlign: 'center' }}>
 

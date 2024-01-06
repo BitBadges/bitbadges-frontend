@@ -1,15 +1,16 @@
 import { ClockCircleOutlined } from "@ant-design/icons"
-import { Avatar, Spin, Tooltip } from "antd"
+import { Avatar, Spin, Tooltip, notification } from "antd"
 import { Balance } from "bitbadgesjs-proto"
 import {
   DefaultPlaceholderMetadata,
   Metadata,
   getBalanceForIdAndTime,
+  getMaxBadgeIdForCollection,
   getMetadataForBadgeId,
   isFullUintRanges,
 } from "bitbadgesjs-utils"
 import { useRouter } from "next/router"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getTimeRangesString } from "../../utils/dates"
 
@@ -39,14 +40,12 @@ export function BadgeAvatar({
   autoPlay?: boolean
 }) {
   const router = useRouter()
-
   const collection = useCollection(collectionId)
-  let metadata = metadataOverride
-    ? metadataOverride
-    : badgeId
-      ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])
-      : collection?.cachedCollectionMetadata
+  let metadata = metadataOverride ? metadataOverride : badgeId
+    ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])
+    : collection?.cachedCollectionMetadata
 
+  // If the badgeId is greater than the max badgeId for the collection, then it is a placeholder badge
   if (!metadata && badgeId && collection && badgeId > getMaxBadgeIdForCollection(collection)) {
     metadata = DefaultPlaceholderMetadata
   }
@@ -119,6 +118,14 @@ export function BadgeAvatar({
 
           size={size ? size : 65}
           onClick={() => {
+            if (collectionId == NEW_COLLECTION_ID) {
+              notification.info({
+                message: "Navigating to a preview badge is not supported.",
+                description: 'You will be able to see a preview of the pages on the last step of this form.',
+              })
+              return
+            }
+
             if (onClick) {
               onClick()
               return

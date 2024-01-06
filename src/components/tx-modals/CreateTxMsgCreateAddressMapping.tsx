@@ -21,7 +21,7 @@ export function CreateTxMsgCreateAddressMappingModal(
   const chain = useChainContext();
   const router = useRouter();
   const collection = useCollection(NEW_COLLECTION_ID);
-  
+
   const updateIPFSUris = useCallback(async (simulate: boolean) => {
 
     if (!inheritedTxState || !collection) return;
@@ -80,14 +80,14 @@ export function CreateTxMsgCreateAddressMappingModal(
         },
         afterTx: async () => {
           notification.success({ message: 'Created successfully!' });
-          await router.push(`/addresses/${inheritedTxState?.addressMapping.mappingId}`);
+          await router.push(`/lists/${inheritedTxState?.addressMapping.mappingId}`);
         }
       }
     ]
   }, [inheritedTxState?.addressMapping, chain.cosmosAddress, router, updateIPFSUris]);
 
   return (
-      <TxModal
+    <TxModal
       visible={visible}
       setVisible={setVisible}
       txsInfo={txsInfo}

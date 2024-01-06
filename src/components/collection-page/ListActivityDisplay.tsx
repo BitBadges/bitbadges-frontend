@@ -21,7 +21,8 @@ import { PanelHeaderAddresses } from './TransferActivityDisplay';
 
 function PanelHeader({ addressMappings, mappingId, activity, onDelete, idx }: {
   addressMappings: AddressMappingWithMetadata<bigint>[],
-  idx: number, mappingId: string, activity: ListActivityDoc<DesiredNumberType>, onDelete?: (idx: number) => void }) {
+  idx: number, mappingId: string, activity: ListActivityDoc<DesiredNumberType>, onDelete?: (idx: number) => void
+}) {
   const router = useRouter();
   const mapping = addressMappings.find(x => x.mappingId === mappingId);
 
@@ -50,7 +51,7 @@ function PanelHeader({ addressMappings, mappingId, activity, onDelete, idx }: {
 
         >
           <a style={{ fontWeight: 'bolder' }} onClick={(e) => {
-            router.push(`/addresses/${activity.mappingId}`);
+            router.push(`/lists/${activity.mappingId}`);
             e.stopPropagation();
           }}>
             {mapping?.metadata?.name ?? ''}
@@ -109,7 +110,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
             key={idx}
             className='full-width card-bg'
             header={<>
-              <PanelHeader activity={activity} onDelete={onDelete} idx={idx}  mappingId={activity.mappingId} addressMappings={addressMappings} />
+              <PanelHeader activity={activity} onDelete={onDelete} idx={idx} mappingId={activity.mappingId} addressMappings={addressMappings} />
             </>
             }
           >
@@ -120,7 +121,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                   <div key={idx} className='primary-text'>
                     <Row>
                       <Col span={24}>
-                        {mapping &&  <AddressListCard addressMapping={mapping} />}
+                        {mapping && <AddressListCard addressMapping={mapping} />}
 
                         <br />
                         {activity.txHash &&
@@ -183,7 +184,7 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
 
       //We only fetch accounts for the panel headers, so if not displayed we don't fetch
       const accountsToFetch = [...new Set(currActivityToDisplay.map(a => { return [...new Set([...a.addresses ?? []])].filter(a => a !== 'Mint') }).flat())];
-      
+
       const mappingsToFetch = currActivityToDisplay.map(a => a.mappingId).filter(x => x);
       const mappingsRes = await getAddressMappings({ mappingIds: mappingsToFetch });
       setAddressMappings((curr) => {
@@ -205,10 +206,10 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
             hasMore={hasMore || numShown < activity.length}
             loader={
               <div>
-                <br/>
+                <br />
                 <Spin size={'large'} />
                 <br />
-                    <br />
+                <br />
               </div>
             }
             scrollThreshold={"300px"}
@@ -217,9 +218,9 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
             className='full-width'
             style={{ overflow: 'hidden' }}
           >
-            <CollapseComponent 
-            addressMappings={addressMappings}
-            activity={activity} onDelete={onDelete} paginated={paginated} hasMore={hasMore} currPage={currPage} numShown={numShown} />
+            <CollapseComponent
+              addressMappings={addressMappings}
+              activity={activity} onDelete={onDelete} paginated={paginated} hasMore={hasMore} currPage={currPage} numShown={numShown} />
           </InfiniteScroll>
           : <>
             <div className='full-width'>
@@ -227,7 +228,7 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
               <br />
               <CollapseComponent
                 addressMappings={addressMappings}
-              activity={activity} onDelete={onDelete} paginated={paginated} hasMore={hasMore} currPage={currPage} numShown={numShown} />
+                activity={activity} onDelete={onDelete} paginated={paginated} hasMore={hasMore} currPage={currPage} numShown={numShown} />
             </div>
           </>}
       </div>

@@ -5,7 +5,7 @@ import { verifyADR36Amino } from '@keplr-wallet/cosmos';
 import { AccountData, Window as KeplrWindow } from "@keplr-wallet/types";
 import { createTxRaw } from 'bitbadgesjs-proto';
 import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
-import { PresetUri, SupportedChainMetadata } from 'blockin';
+import { SupportedChainMetadata } from 'blockin';
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
@@ -74,18 +74,11 @@ export const CosmosContext = createContext<CosmosContextType>({
   signer: undefined,
   setSigner: () => { },
   address: '',
-  setAddress: () => { },
-  cosmosAddress: '',
-  setCosmosAddress: () => { },
   connect: async () => { },
   disconnect: async () => { },
-  chainId: 'bitbadges_1-2',
-  setChainId: () => { },
   signChallenge: async () => { return { message: '', signature: '' } },
   getPublicKey: async () => { return '' },
   signTxn: async () => { },
-  ownedAssetIds: [],
-  displayedResources: [],
   selectedChainInfo: {},
   connected: false,
   setConnected: () => { },
@@ -101,11 +94,10 @@ type Props = {
 };
 
 export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
-
+  const chainId = 'bitbadges_1-2';
 
   const [address, setAddress] = useState<string>('')
   const [connected, setConnected] = useState<boolean>(false);
-  const [chainId, setChainId] = useState<string>('bitbadges_1-2');
   const [signer, setSigner] = useState<SigningStargateClient>();
   const [cosmosAddress, setCosmosAddress] = useState<string>('');
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
@@ -118,10 +110,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     logo: COSMOS_LOGO,
     abbreviation: 'COSM'
   };
-  const displayedResources: PresetUri[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
-
-  //If you would like to support this, you can call this with a useEffect every time connected or address is updated
-  const ownedAssetIds: string[] = [];
 
   useEffect(() => {
     async function fetchDetails() {
@@ -136,7 +124,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
           setLoggedIn(signedInRes.signedIn);
           loggedIn = signedInRes.signedIn;
         }
-        
+
 
         if (loggedIn) {
           setLastSeenActivity(Date.now());
@@ -158,6 +146,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
       alert("Please install Keplr to continue with Cosmos")
       return
     }
+    
     await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
     const offlineSigner = window.getOfflineSigner(chainId);
     const signingClient = await SigningStargateClient.connectWithSigner(
@@ -265,22 +254,15 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   const cosmosContext: CosmosContextType = {
     connected,
     setConnected,
-    chainId,
-    setChainId,
     connect,
     disconnect,
-    ownedAssetIds,
     selectedChainInfo,
-    displayedResources,
     signChallenge,
     signTxn,
     address,
-    setAddress,
     signer,
     setSigner,
     getPublicKey,
-    cosmosAddress,
-    setCosmosAddress,
     loggedIn,
     setLoggedIn,
     lastSeenActivity,

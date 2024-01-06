@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { StatusDoc } from 'bitbadgesjs-utils';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { DesiredNumberType, getStatus } from '../api';

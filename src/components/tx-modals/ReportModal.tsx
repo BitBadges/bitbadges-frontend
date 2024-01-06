@@ -22,7 +22,7 @@ export function ReportModal({ visible, setVisible, collectionId, addressOrUserna
     <Modal
       title={<div className='primary-text inherit-bg'><b>{'Report Form'}</b></div>}
       open={visible}
-      style={{}}
+
       footer={null}
       closeIcon={<div className='primary-text inherit-bg'>{<CloseOutlined />}</div>}
       bodyStyle={{

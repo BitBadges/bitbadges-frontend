@@ -1,8 +1,8 @@
-import { ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, DownOutlined, FieldTimeOutlined, FileProtectOutlined, QrcodeOutlined, UpOutlined } from '@ant-design/icons';
+import { ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, FieldTimeOutlined, FileProtectOutlined, QrcodeOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Divider, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPage } from 'next/types';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from '../components/badges/BadgeAvatar';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
@@ -27,44 +27,6 @@ export const LandingCard = ({ content, customClass, }: {
   </div>
 }
 
-
-export const PrevLandingCard = ({ content, additionalContent, onClick }: {
-  content: JSX.Element,
-  additionalContent?: JSX.Element,
-  onClick?: () => void
-}) => {
-
-  const [showMore, setShowMore] = useState<boolean>(false);
-
-  return <Col lg={6} md={24} sm={24} xs={24} style={{
-    padding: 6, display: 'flex',
-  }}>
-
-    <div style={{ display: 'flex' }}>
-
-      <Card hoverable={!!additionalContent} className='primary-blue-bg primary-text rounded-lg'
-        style={{
-          height: showMore ? undefined : additionalContent ? 360 : 260,
-          background: `linear-gradient(0deg, black 10%, #121212 100%)`,
-        }} onClick={() => {
-          if (onClick) onClick();
-          else setShowMore(!showMore)
-        }}>
-        <div className='landing-card' >
-          {content}
-          {additionalContent && showMore && additionalContent}
-          {additionalContent && <>
-            <br />
-            <br />
-            {/* {/* <Button className='styled-button' onClick={() => setShowMore(!showMore)}>{showMore ? 'Show Less' : 'Show More'}</Button> */}
-
-            {!showMore ? <DownOutlined /> : <UpOutlined />}</>}
-        </div>
-      </Card >
-    </div>
-
-  </Col >
-}
 
 const Home: NextPage = () => {
   const router = useRouter();

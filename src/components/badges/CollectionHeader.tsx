@@ -1,4 +1,4 @@
-import { Col, Typography } from 'antd';
+import { Col, Typography, notification } from 'antd';
 import { useRouter } from 'next/router';
 
 import { Metadata, getMetadataDetailsForBadgeId } from 'bitbadgesjs-utils';
@@ -9,6 +9,7 @@ import { FullscreenExitOutlined, FullscreenOutlined } from '@ant-design/icons';
 import { useLayoutEffect, useState } from 'react';
 import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 import { BadgeButtonDisplay } from '../button-displays/BadgePageButtonDisplay';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const { Text } = Typography;
 
@@ -36,11 +37,10 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
     const height = descriptionElement?.clientHeight ?? 0;
     const height2 = descriptionElement2?.clientHeight ?? 0;
     setContentHeight(Math.max(height, height2));
-
-  }, [badgeId, collectionId, metadata?.description]);
+  }, [badgeId, collectionId, metadata?.description, mappingId]);
 
   const Avatar = <>
-    <div style={{}}>
+    <div>
       <BadgeAvatar
         collectionId={collectionId}
         showMultimedia
@@ -58,11 +58,19 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
     <div className='flex-center-if-mobile'>
       <Text strong className='primary-text' style={{ fontSize: 20 }}>
         <a onClick={() => {
+          if (collectionId == NEW_COLLECTION_ID) {
+            notification.info({
+              message: "Navigating to a preview collection is not supported.",
+              description: 'You will be able to see a preview on the last steps of this form.',
+            })
+            return
+          }
           router.push(`/collections/${collectionId}`)
         }}>{collectionMetadata?.name}</a>
       </Text>
     </div>
   </>
+
   const Title = <>
     <div className='flex-center-if-mobile flex-column'>
       <Text strong className='primary-text' style={{ fontSize: 30 }}>
@@ -80,9 +88,7 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
       {Title}
 
       <div className='flex-center-if-mobile' style={{ maxWidth: 350 }}>
-        {
-          <BadgeButtonDisplay mappingId={mappingId} website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
-        }
+        <BadgeButtonDisplay mappingId={mappingId} website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
       </div>
     </div>
 

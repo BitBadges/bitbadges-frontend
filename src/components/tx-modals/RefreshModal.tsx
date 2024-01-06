@@ -48,7 +48,7 @@ export function RefreshModal({ visible, setVisible, collectionId, }: {
     <Modal
       title={<div className='primary-text inherit-bg'><b>{'Refresh Collection ID '}{collectionId?.toString()}</b></div>}
       open={visible}
-      style={{}}
+
       footer={null}
       closeIcon={<div className='primary-text inherit-bg'>{<CloseOutlined />}</div>}
       bodyStyle={{

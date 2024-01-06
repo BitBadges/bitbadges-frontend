@@ -5,7 +5,7 @@ import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../..
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { getBadgesWithUpdatableMetadata } from "./SetBadgeMetadata";
+import { getBadgesWithUpdatableMetadata } from "../../../bitbadges-api/utils/badges";
 
 export function SetCollectionMetadataStepItem() {
 
@@ -22,7 +22,7 @@ export function SetCollectionMetadataStepItem() {
 
   if (!collection) return EmptyStepItem
 
-  const toUpdateBadges = getBadgesWithUpdatableMetadata(collection, startingCollection);
+  const toUpdateBadges = getBadgesWithUpdatableMetadata(collection, startingCollection, undefined, 'current');
 
   return {
     title: 'Set Collection Metadata',
@@ -52,7 +52,7 @@ export function SetCollectionMetadataStepItem() {
     />,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
       || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0)
-        || (collection.badgeMetadataTimeline.length == 0)))
+        ))
       || !!err,
   }
 }

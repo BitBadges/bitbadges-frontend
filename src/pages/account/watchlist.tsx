@@ -29,7 +29,6 @@ import { Tabs } from "../../components/navigation/Tabs"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import {
-  BatchBadgeDetails,
   BatchBadgeDetailsTag,
   BadgeInfiniteScroll,
   CustomizeAddRemoveBadgeFromPage,
@@ -37,10 +36,9 @@ import {
   ListInfiniteScroll,
   NewPageInputForm,
   OptionsSelects,
-  addToArray,
-  removeFromArray,
 } from "./[addressOrUsername]"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
+import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "../../bitbadges-api/utils/batches"
 
 const { Content } = Layout
 
@@ -80,12 +78,7 @@ function WatchlistPage() {
   }, [badgeTab])
 
   const [cardView, setCardView] = useState(true)
-  const [filteredCollections, setFilteredCollections] = useState<
-    {
-      collectionId: bigint
-      badgeIds: UintRange<bigint>[]
-    }[]
-  >([])
+  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails[]>([])
   const [groupByCollection, setGroupByCollection] = useState(false)
 
   const [editMode, setEditMode] = useState(false)
@@ -389,7 +382,7 @@ function WatchlistPage() {
                               (x) => x.title === badgeTab
                             )?.badges ?? []
                           )
-                          currCustomPageBadges = addToArray(
+                          currCustomPageBadges = addToBatchArray(
                             currCustomPageBadges,
                             [selectedBadge]
                           )
@@ -418,7 +411,7 @@ function WatchlistPage() {
                               (x) => x.title === badgeTab
                             )?.badges ?? []
                           )
-                          currCustomPageBadges = removeFromArray(
+                          currCustomPageBadges = removeFromBatchArray(
                             currCustomPageBadges,
                             [selectedBadge]
                           )
@@ -573,7 +566,7 @@ function WatchlistPage() {
                               overflowWrap: "break-word",
                             }}
                           >
-                            <div style={{}}>{metadata?.name}</div>
+                            <div>{metadata?.name}</div>
                           </Typography.Text>
                         </div>
                       </div>

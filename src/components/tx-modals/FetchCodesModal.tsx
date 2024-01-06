@@ -1,14 +1,14 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Empty, Modal } from 'antd';
+import { CodesAndPasswords } from 'bitbadgesjs-utils';
 import React, { useEffect, useState } from 'react';
 import { getAllPasswordsAndCodes } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { ClaimsTab } from '../collection-page/ClaimsTab';
-import { CodesAndPasswords } from 'bitbadgesjs-utils';
-import { INFINITE_LOOP_MODE } from '../../constants';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { INFINITE_LOOP_MODE } from '../../constants';
+import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { CodesPasswordsTab } from '../codes/CodesPasswordsTab';
 
 export function FetchCodesModal({ visible, setVisible, children, collectionId, approvalId }: {
   collectionId: bigint,
@@ -20,14 +20,14 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId, a
   const chain = useChainContext();
 
   const [codesAndPasswords, setCodesAndPasswords] = useState<CodesAndPasswords[] | undefined>(undefined);
-
+  const [fetched, setFetched] = useState(false);
   const collection = useCollection(collectionId);
 
   useEffect(() => {
     if (!visible) return;
     if (!collection) return;
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch codes modal ');
-    if (collectionId && chain.connected && chain.loggedIn && visible) {
+    if (collectionId && chain.connected && chain.loggedIn && visible && !fetched) {
       const getAll = async () => {
         const codesRes = await getAllPasswordsAndCodes(collectionId);
         const codesAndPasswords = [];
@@ -42,10 +42,11 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId, a
         }
 
         setCodesAndPasswords(codesAndPasswords);
+        setFetched(true);
       }
       getAll();
     }
-  }, [collectionId, chain, visible, collection]);
+  }, [collectionId, chain, visible, collection, fetched]);
 
   return (
     <Modal
@@ -74,7 +75,7 @@ export function FetchCodesModal({ visible, setVisible, children, collectionId, a
               <div style={{ textAlign: 'center' }}>
                 <BlockinDisplay />
               </div>
-              : <ClaimsTab
+              : <CodesPasswordsTab
                 collectionId={collectionId}
                 codesAndPasswords={codesAndPasswords}
                 approvalId={approvalId}

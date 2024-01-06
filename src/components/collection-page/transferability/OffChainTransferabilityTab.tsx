@@ -1,10 +1,11 @@
 import { WarningOutlined } from '@ant-design/icons';
-import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { DistributionOverview } from '../badges/DistributionCard';
-import { Divider } from '../display/Divider';
-import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { DistributionOverview } from '../../badges/DistributionCard';
+import { Divider } from '../../display/Divider';
+import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
-import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
+import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/settings';
+import { areBalancesBitBadgesHosted } from '../../../bitbadges-api/utils/balances';
 
 export function OffChainTransferabilityTab({ collectionId, badgeId }: {
   collectionId: bigint,
@@ -12,9 +13,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
 }) {
 
   const collection = useCollection(collectionId);
-
-  const isBitBadgesHosted = (collection?.offChainBalancesMetadataTimeline ?? [])?.length > 0 &&
-    collection?.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/');
+  const isBitBadgesHosted = areBalancesBitBadgesHosted(collection);
 
   if (!collection) return <></>;
 

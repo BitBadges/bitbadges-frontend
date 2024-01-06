@@ -8,7 +8,7 @@ import IconButton from "../display/IconButton"
 import { AddressDisplayList } from "./AddressDisplayList"
 import { AddressListSelect } from "./AddressListSelect"
 
-export const addMappingId = (
+export const autoGenerateId = (
   addressMapping: AddressMapping,
   autoGenerateMappingId: boolean
 ): AddressMapping => {
@@ -65,7 +65,7 @@ export function AddressMappingSelect({
               unCheckedChildren={"Blacklist"}
               onChange={(e) => {
                 setAddressMapping(
-                  addMappingId(
+                  autoGenerateId(
                     {
                       ...addressMapping,
                       includeAddresses: e,
@@ -81,9 +81,6 @@ export function AddressMappingSelect({
           </b>
         </div>
         <div style={{ textAlign: "center" }}>
-          {/* Any inputted addresses have been {addressMapping.includeAddresses ? 'whitelisted' : 'blacklisted'}.
-        {addressMapping.includeAddresses ? ' ' : ' All other addresses will be valid.'} */}
-
           {showErrorOnEmpty && isAddressMappingEmpty(addressMapping) && (
             <>
               <br />
@@ -103,7 +100,7 @@ export function AddressMappingSelect({
               allExcept={!addressMapping.includeAddresses}
               setUsers={(users) => {
                 setAddressMapping(
-                  addMappingId(
+                  autoGenerateId(
                     {
                       ...addressMapping,
                       addresses: users,
@@ -139,7 +136,7 @@ export function AddressMappingSelect({
             users={addressMapping.addresses}
             setUsers={(users) => {
               setAddressMapping(
-                addMappingId(
+                autoGenerateId(
                   {
                     ...addressMapping,
                     addresses: users,
@@ -172,7 +169,7 @@ export function AddressMappingSelect({
             style={{ width: "100%" }}
             onClick={() => {
               setAddressMapping(
-                addMappingId(
+                autoGenerateId(
                   {
                     ...addressMapping,
                     addresses: [...addressMapping.addresses, currId],

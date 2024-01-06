@@ -10,16 +10,16 @@ import { DistributionComponent } from '../tx-timelines/step-items/OffChainBalanc
 import { DisconnectedWrapper } from '../wrappers/DisconnectedWrapper';
 
 const getCollectionFromId = async (collectionId: bigint) => {
-  let followCollection = getCollection(collectionId);
-  if (!followCollection) {
+  let collection = getCollection(collectionId);
+  if (!collection) {
     const res = await getCollectionById(collectionId, {}, true);
-    followCollection = res.collection;
+    collection = res.collection;
   }
 
-  return followCollection
+  return collection
 }
 
-const getExistingBalanceMap = async (collection: BitBadgesCollection<bigint>) => {
+export const getExistingBalanceMap = async (collection: BitBadgesCollection<bigint>) => {
   if (collection.balancesType !== 'Off-Chain - Indexed' || collection.offChainBalancesMetadataTimeline.length === 0 || !collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri.startsWith('https://bitbadges-balances.nyc3.digitaloceanspaces.com/balances/')) {
     message.error('The collection you are trying to set balances for is custom created. You will have to assign balances manually.');
     throw new Error('The collection you are trying to set balances for is custom created. You will have to assign balances manually.');

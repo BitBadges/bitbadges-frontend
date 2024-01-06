@@ -1,15 +1,5 @@
 import {
-  ActionPermissionUsedFlags,
-  ApprovalPermissionUsedFlags,
-  BalancesActionPermissionUsedFlags,
-  TimedUpdatePermissionUsedFlags,
-  TimedUpdateWithBadgeIdsPermissionUsedFlags,
-  castActionPermissionToUniversalPermission,
-  castBalancesActionPermissionToUniversalPermission,
-  castCollectionApprovalPermissionToUniversalPermission,
-  castTimedUpdatePermissionToUniversalPermission,
-  castTimedUpdateWithBadgeIdsPermissionToUniversalPermission,
-  isInAddressMapping,
+  isInAddressMapping
 } from "bitbadgesjs-utils"
 import {
   EmptyStepItem,
@@ -17,10 +7,10 @@ import {
   useTxTimelineContext,
 } from "../../bitbadges-api/contexts/TxTimelineContext"
 
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { neverHasManager } from "../../bitbadges-api/utils/manager"
-import { getPermissionDetails } from "../collection-page/PermissionsInfo"
+import { getDetailsForCollectionPermission, getDetailsForPermission } from "../../bitbadges-api/utils/permissions"
 import { FormTimeline, TimelineItem } from "../navigation/FormTimeline"
 import { AddressMappingSelectStepItem } from "./step-items/AddressMappingSelectStepItem"
 import { IsArchivedSelectStepItem } from "./step-items/ArchivedSelectStepItem"
@@ -33,6 +23,7 @@ import { CanArchiveCollectionStepItem } from "./step-items/CanUpdateArchivedStep
 import { FreezeSelectStepItem } from "./step-items/CanUpdateCollectionApprovals"
 import { UpdatableMetadataSelectStepItem } from "./step-items/CanUpdateMetadata"
 import { CanUpdateBalancesStepItem } from "./step-items/CanUpdateOffChainBalancesStepItem"
+import { CanUpdateStandardsStepItem } from "./step-items/CanUpdateStandardsSelectStepItem"
 import {
   ChooseBadgeTypeStepItem,
   MintType,
@@ -42,19 +33,18 @@ import { ChooseControlTypeStepItem } from "./step-items/CompleteControlStepItem"
 import { ConfirmManagerStepItem } from "./step-items/ConfirmManagerStepItem"
 import { CreateAddressMappingStepItem } from "./step-items/CreateAddressMappingStepItem"
 import { CreateCollectionStepItem } from "./step-items/CreateCollectionStepItem"
+import { CollectionTypeSelect } from "./step-items/CustomVsPresetCollection"
 import { DefaultToApprovedSelectStepItem } from "./step-items/DefaultToApprovedSelectStepItem"
+import { DirectTransfersStepItem } from "./step-items/DirectTransfersStepItem"
 import { DistributionMethodStepItem } from "./step-items/DistributionMethodStepItem"
 import { OffChainBalancesStorageSelectStepItem } from "./step-items/OffChainBalancesStepItem"
-import { PreviewCollectionStepItem } from "./step-items/PreviewCollectionStepItem"
+import { PreviewBadgePagesStepItem, PreviewCollectionStepItem } from "./step-items/PreviewCollectionStepItem"
 import { SetAddressMappingMetadataStepItem } from "./step-items/SetAddressMappingMetadataStepItem"
 import { SetBadgeMetadataStepItem } from "./step-items/SetBadgeMetadata"
 import { SetCollectionMetadataStepItem } from "./step-items/SetCollectionMetadataStepItem"
+import { StandardsSelectStepItem } from "./step-items/StandardsSelectStepItem"
 import { TemplateCollectionSelect } from "./step-items/TemplateCollections"
 import { TransferabilitySelectStepItem } from "./step-items/TransferabilitySelectStepItem"
-import { CollectionTypeSelect } from "./step-items/CustomVsPresetCollection"
-import { StandardsSelectStepItem } from "./step-items/StandardsSelectStepItem"
-import { CanUpdateStandardsStepItem } from "./step-items/CanUpdateStandardsSelectStepItem"
-import { DirectTransfersStepItem } from "./step-items/DirectTransfersStepItem"
 
 //See TxTimeline for explanations and documentation
 export function UpdateCollectionTimeline() {
@@ -75,8 +65,7 @@ export function UpdateCollectionTimeline() {
   const FreezeSelectStep = FreezeSelectStepItem()
   const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem()
   const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(true)
-  const UpdatableBadgeMetadataSelectStep =
-    UpdatableMetadataSelectStepItem(false)
+  const UpdatableBadgeMetadataSelectStep = UpdatableMetadataSelectStepItem(false)
   const SetAddressMappingMetadataStep = SetAddressMappingMetadataStepItem()
   const SetCollectionMetadataStep = SetCollectionMetadataStepItem()
   const SetBadgeMetadataStep = SetBadgeMetadataStepItem()
@@ -85,12 +74,12 @@ export function UpdateCollectionTimeline() {
   const CanCreateMoreStep = CanCreateMoreStepItem()
   const CanDeleteStep = CanDeleteStepItem()
   const CollectionPreviewStep = PreviewCollectionStepItem()
+  const BadgePreviewsStep = PreviewBadgePagesStepItem()
   const TransferabilityStep = TransferabilitySelectStepItem()
   const IsArchivedSelectStep = IsArchivedSelectStepItem()
   const CanArchiveCollectionStep = CanArchiveCollectionStepItem()
   const DefaultToApprovedStepItem = DefaultToApprovedSelectStepItem()
-  const OffChainBalancesStorageStepItem =
-    OffChainBalancesStorageSelectStepItem()
+  const OffChainBalancesStorageStepItem = OffChainBalancesStorageSelectStepItem()
   const ChooseControlStepItem = ChooseControlTypeStepItem()
   const CanUpdateBytesStep = CanUpdateBalancesStepItem()
   const StandardsSelectStep = StandardsSelectStepItem()
@@ -124,50 +113,21 @@ export function UpdateCollectionTimeline() {
     //For the following, we show the PERMISSION UPDATE if it has neutral times (i.e. it's not always permitted or always forbidden at all times)
     //We show the ACTION if the previous permissions allow it, meaning it has neutral (currently permitted) or permitted times (always permitted)
 
-    const deleteDetails = getPermissionDetails(
-      castActionPermissionToUniversalPermission(
-        startingCollection.collectionPermissions.canDeleteCollection ?? []
-      ),
-      ActionPermissionUsedFlags,
-      !hasManager
-    )
+    const deleteDetails = getDetailsForCollectionPermission(startingCollection, "canDeleteCollection")
     const toShowCanDeletePermission = deleteDetails.hasNeutralTimes
 
-    const canCreateMoreDetails = getPermissionDetails(
-      castBalancesActionPermissionToUniversalPermission(
-        startingCollection.collectionPermissions.canCreateMoreBadges ?? []
-      ),
-      BalancesActionPermissionUsedFlags,
-      !hasManager
-    )
+    const canCreateMoreDetails = getDetailsForCollectionPermission(startingCollection, "canCreateMoreBadges")
     const toShowCanCreateMorePermission = canCreateMoreDetails.hasNeutralTimes
-    const toShowCreateMoreAction =
-      canCreateMoreDetails.hasNeutralTimes ||
-      canCreateMoreDetails.hasPermittedTimes
+    const toShowCreateMoreAction = !canCreateMoreDetails.isAlwaysFrozenAndForbidden
 
-    const canManagerBeTransferredDetails = getPermissionDetails(
-      castTimedUpdatePermissionToUniversalPermission(
-        startingCollection.collectionPermissions.canUpdateManager ?? []
-      ),
-      TimedUpdatePermissionUsedFlags,
-      !hasManager
-    )
-    const toShowCanManagerBeTransferredPermission =
-      canManagerBeTransferredDetails.hasNeutralTimes
-    const toShowManagerTransferAction =
-      canManagerBeTransferredDetails.hasNeutralTimes ||
-      canManagerBeTransferredDetails.hasPermittedTimes
+    const canManagerBeTransferredDetails = getDetailsForCollectionPermission(startingCollection, "canUpdateManager")
+    const toShowCanManagerBeTransferredPermission = canManagerBeTransferredDetails.hasNeutralTimes
+    const toShowManagerTransferAction = !canManagerBeTransferredDetails.isAlwaysFrozenAndForbidden
 
-    const canUpdateBadgeMetadataDetails = getPermissionDetails(
-      castTimedUpdateWithBadgeIdsPermissionToUniversalPermission(
-        startingCollection.collectionPermissions.canUpdateBadgeMetadata ?? []
-      ),
-      TimedUpdateWithBadgeIdsPermissionUsedFlags,
-      !hasManager
-    )
+
+    const canUpdateBadgeMetadataDetails = getDetailsForCollectionPermission(startingCollection, "canUpdateBadgeMetadata")
     const maxBadgeId = getMaxBadgeIdForCollection(collection)
-    const toShowCanUpdateBadgeMetadataPermission =
-      canUpdateBadgeMetadataDetails.hasNeutralTimes
+    const toShowCanUpdateBadgeMetadataPermission = canUpdateBadgeMetadataDetails.hasNeutralTimes
     const toShowUpdateBadgeMetadataAction =
       canUpdateBadgeMetadataDetails.dataSource.some(
         (x) =>
@@ -177,83 +137,38 @@ export function UpdateCollectionTimeline() {
           undefined
       )
 
-    const canUpdateCollectionMetadataDetails = getPermissionDetails(
-      castTimedUpdatePermissionToUniversalPermission(
-        startingCollection.collectionPermissions.canUpdateCollectionMetadata ??
-        []
-      ),
-      TimedUpdatePermissionUsedFlags,
-      !hasManager
-    )
-    const toShowCanUpdateCollectionMetadataPermission =
-      canUpdateCollectionMetadataDetails.hasNeutralTimes
-    const toShowUpdateCollectionMetadataAction =
-      canUpdateCollectionMetadataDetails.hasNeutralTimes ||
-      canUpdateCollectionMetadataDetails.hasPermittedTimes
+    const canUpdateCollectionMetadataDetails = getDetailsForCollectionPermission(startingCollection, "canUpdateCollectionMetadata")
+    const toShowCanUpdateCollectionMetadataPermission = canUpdateCollectionMetadataDetails.hasNeutralTimes
+    const toShowUpdateCollectionMetadataAction = !canUpdateCollectionMetadataDetails.isAlwaysFrozenAndForbidden
 
-    const canUpdateOffChainBalancesMetadata = getPermissionDetails(
-      castTimedUpdatePermissionToUniversalPermission(
-        startingCollection.collectionPermissions
-          .canUpdateOffChainBalancesMetadata ?? []
-      ),
-      TimedUpdatePermissionUsedFlags,
-      !hasManager
-    )
-    const toShowCanUpdateOffChainBalancesMetadataPermission =
-      canUpdateOffChainBalancesMetadata.hasNeutralTimes
-    const toShowUpdateOffChainBalancesMetadataAction =
-      canUpdateOffChainBalancesMetadata.hasNeutralTimes ||
-      canUpdateOffChainBalancesMetadata.hasPermittedTimes
+    const canUpdateOffChainBalancesMetadata = getDetailsForCollectionPermission(startingCollection, "canUpdateOffChainBalancesMetadata")
+    const toShowCanUpdateOffChainBalancesMetadataPermission = canUpdateOffChainBalancesMetadata.hasNeutralTimes
+    const toShowUpdateOffChainBalancesMetadataAction = !canUpdateOffChainBalancesMetadata.isAlwaysFrozenAndForbidden
 
-    const canArchiveCollection = getPermissionDetails(
-      castTimedUpdatePermissionToUniversalPermission(
-        startingCollection.collectionPermissions.canArchiveCollection ?? []
-      ),
-      TimedUpdatePermissionUsedFlags,
-      !hasManager
-    )
-    const toShowCanArchiveCollectionPermission =
-      canArchiveCollection.hasNeutralTimes
-    const toShowArchiveCollectionAction =
-      canArchiveCollection.hasNeutralTimes ||
-      canArchiveCollection.hasPermittedTimes
+    const canArchiveCollection = getDetailsForCollectionPermission(startingCollection, "canArchiveCollection")
+    const toShowCanArchiveCollectionPermission = canArchiveCollection.hasNeutralTimes
+    const toShowArchiveCollectionAction = !canArchiveCollection.isAlwaysFrozenAndForbidden
 
-    const canUpdateStandards = getPermissionDetails(
-      castTimedUpdatePermissionToUniversalPermission(
-        startingCollection.collectionPermissions.canUpdateStandards ?? []
-      ),
-      TimedUpdatePermissionUsedFlags,
-      !hasManager
-    )
-    const toShowCanUpdateStandardsPermission =
-      canUpdateStandards.hasNeutralTimes
-    const toShowUpdateStandardsAction =
-      canUpdateStandards.hasNeutralTimes || canUpdateStandards.hasPermittedTimes
+    const canUpdateStandards = getDetailsForCollectionPermission(startingCollection, "canUpdateStandards")
 
-    const canUpdateCollectionApprovalsDetails = getPermissionDetails(
-      castCollectionApprovalPermissionToUniversalPermission(
-        startingCollection.collectionPermissions.canUpdateCollectionApprovals ??
-        []
-      ),
-      ApprovalPermissionUsedFlags,
-      !hasManager
-    )
-    const toShowCanUpdateCollectionApprovalsPermission =
-      canUpdateCollectionApprovalsDetails.hasNeutralTimes
+    const toShowCanUpdateStandardsPermission = canUpdateStandards.hasNeutralTimes
+    const toShowUpdateStandardsAction = !canUpdateStandards.isAlwaysFrozenAndForbidden
 
-    const canUpdateMintCollectionApprovalsDetails = getPermissionDetails(
-      castCollectionApprovalPermissionToUniversalPermission(
+    const canUpdateCollectionApprovalsDetails = getDetailsForCollectionPermission(startingCollection, "canUpdateCollectionApprovals")
+    const toShowCanUpdateCollectionApprovalsPermission = canUpdateCollectionApprovalsDetails.hasNeutralTimes
+
+    const canUpdateMintCollectionApprovalsDetails = getDetailsForPermission(
+      (
         startingCollection.collectionPermissions.canUpdateCollectionApprovals ??
         []
       ).filter(
         (x) => x.fromMapping && isInAddressMapping(x.fromMapping, "Mint")
       ),
-      ApprovalPermissionUsedFlags,
-      !hasManager
+      "canUpdateCollectionApprovals"
     )
 
-    const canUpdateNonMintCollectionApprovalsDetails = getPermissionDetails(
-      castCollectionApprovalPermissionToUniversalPermission(
+    const canUpdateNonMintCollectionApprovalsDetails = getDetailsForPermission(
+      (
         startingCollection.collectionPermissions.canUpdateCollectionApprovals ??
         []
       ).filter(
@@ -264,17 +179,10 @@ export function UpdateCollectionTimeline() {
             x.fromMapping.addresses[0] === "Mint"
           )
       ),
-      ApprovalPermissionUsedFlags,
-      !hasManager
+      "canUpdateCollectionApprovals"
     )
-
-    const toShowUpdateMintTransfersAction =
-      canUpdateMintCollectionApprovalsDetails.hasNeutralTimes ||
-      canUpdateMintCollectionApprovalsDetails.hasPermittedTimes
-
-    const toShowUpdateNonMintTransfersAction =
-      canUpdateNonMintCollectionApprovalsDetails.hasNeutralTimes ||
-      canUpdateNonMintCollectionApprovalsDetails.hasPermittedTimes
+    const toShowUpdateMintTransfersAction = !canUpdateMintCollectionApprovalsDetails.isAlwaysFrozenAndForbidden
+    const toShowUpdateNonMintTransfersAction = !canUpdateNonMintCollectionApprovalsDetails.isAlwaysFrozenAndForbidden
 
     const toShowCompleteControl =
       !existingCollectionId ||
@@ -296,7 +204,7 @@ export function UpdateCollectionTimeline() {
       items.push(TemplateSelectStep)
     } else {
       items.push(
-        
+
         false && toShowUpdateStandardsAction
           ? StandardsSelectStep
           : EmptyStepItem,
@@ -305,9 +213,7 @@ export function UpdateCollectionTimeline() {
           : EmptyStepItem,
 
         toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
-        hasManager && toShowCompleteControl
-          ? ChooseControlStepItem
-          : EmptyStepItem,
+        hasManager && toShowCompleteControl ? ChooseControlStepItem : EmptyStepItem,
         !completeControl &&
           hasManager &&
           toShowCanManagerBeTransferredPermission
@@ -384,6 +290,7 @@ export function UpdateCollectionTimeline() {
           : EmptyStepItem,
 
         CollectionPreviewStep,
+        BadgePreviewsStep,
         CreateCollectionStep
       )
     }

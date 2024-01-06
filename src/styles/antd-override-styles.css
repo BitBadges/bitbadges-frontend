@@ -323,3 +323,7 @@
 .ant-notification-notice-message {
   font-weight: bold;
 }
+
+.ant-radio-button-wrapper:not(:first-child)::before {
+  width: 0
+}

@@ -17,8 +17,7 @@ export function SetAddressMappingMetadataStepItem() {
           isAddressMappingSelect
           addMethod={MetadataAddMethod.Manual}
         />
-      </>
-      }
+      </>}
     />,
   }
 }

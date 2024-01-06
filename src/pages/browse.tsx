@@ -55,7 +55,7 @@ function BrowsePage() {
       if (!badgeObj) continue;
 
       const collection = convertBitBadgesCollection(badgeObj.collection, BigIntify);
-      const badgeIds = badgeObj.badgeIds.map(x => { return { start: BigInt(x.start), end: BigInt(x.end) } });
+      const badgeIds = badgeObj.badgeIds;
 
       allItems.push(...badgeIds.map(badgeIdRange => {
         const start = badgeIdRange.start;
@@ -241,10 +241,11 @@ function BrowsePage() {
               >{idxArr.map(idx => {
                 if (idx >= browseInfo?.addressMappings[listsTab]?.length) return null
                 const addressMapping = browseInfo?.addressMappings[listsTab][idx];
-                return <> <AddressListCard
-                  addressMapping={addressMapping}
-                  key={idx}
-                />
+                return <>
+                  <AddressListCard
+                    addressMapping={addressMapping}
+                    key={idx}
+                  />
                 </>
               }).filter(x => x)}</div>
             }).filter(x => x) ?? []}
@@ -293,7 +294,7 @@ function BrowsePage() {
                   if (idx >= browseInfo?.profiles[tab]?.length) return null
                   const profile = browseInfo?.profiles[tab][idx];
 
-                  return <InformationDisplayCard title='' key={idx} style={{}}>
+                  return <InformationDisplayCard title='' key={idx}>
                     <>
                       <div style={{ alignItems: 'normal' }}>
                         <AccountHeader

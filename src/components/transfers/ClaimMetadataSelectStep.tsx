@@ -81,7 +81,6 @@ export function ClaimMetadataSelectSelectStep(
           </div>
         </Form>
       </>
-    </div>,
-    // disabled: !approvalDetails.name || !approvalDetails.description,
+    </div>
   }
 }

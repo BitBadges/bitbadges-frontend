@@ -8,9 +8,9 @@ import { updateCollection, useCollection } from "../../../bitbadges-api/contexts
 import { compareObjects } from "../../../utils/compare";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { AddressDisplayList } from "../../address/AddressDisplayList";
-import { EditableApprovalsDisplay } from "../../collection-page/ApprovalsTab";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { EditableApprovalsDisplay } from "../../collection-page/transferability/ApprovalsDisplay";
 
 export const defaultApprovedOption = [{
   fromMappingId: "All",
@@ -128,7 +128,6 @@ export function DefaultToApprovedSelectStepItem() {
       updateFlag={updateFlag}
       setUpdateFlag={setUpdateFlag}
       jsonPropertyPath='defaultUserIncomingApprovals'
-      permissionName='canUpdateDefaultUserIncomingApprovals'
       advancedNode={() => <>
         <div style={{ textAlign: 'center' }}>
           <EditableApprovalsDisplay

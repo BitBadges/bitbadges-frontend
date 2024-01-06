@@ -3,10 +3,10 @@ import { UserOutgoingApprovalWithDetails } from 'bitbadgesjs-utils';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
-import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
-import { TxModal } from './TxModal';
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { EditableUserApprovalsTab } from '../collection-page/transferability/ApprovalsTab';
+import { TxModal } from './TxModal';
 
 export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
@@ -31,9 +31,8 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
     {
       title: 'Select',
       description: <div style={{ textAlign: 'center', }}>
-        <UserApprovalsTab
+        <EditableUserApprovalsTab
           collectionId={collectionId}
-          isOutgoingApprovalEdit
           userOutgoingApprovals={newOutgoingApprovals}
           setUserOutgoingApprovals={setNewOutgoingApprovals}
         />

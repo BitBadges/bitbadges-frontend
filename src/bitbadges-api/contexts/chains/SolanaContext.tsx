@@ -2,7 +2,6 @@
 import { notification } from 'antd';
 import { SupportedChain, createTxRawEIP712, signatureToWeb3ExtensionSolana } from 'bitbadgesjs-proto';
 import { Numberify, convertToCosmosAddress, solanaToCosmos } from 'bitbadgesjs-utils';
-import { PresetUri } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useCallback, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { CHAIN_DETAILS, SOLANA_LOGO } from '../../../constants';
@@ -21,18 +20,11 @@ export type SolanaContextType = ChainSpecificContextType & {
 
 export const SolanaContext = createContext<SolanaContextType>({
   address: '',
-  setAddress: () => { },
-  cosmosAddress: '',
-  setCosmosAddress: () => { },
   connect: async () => { },
   disconnect: async () => { },
-  chainId: 'Mainnet',
-  setChainId: () => { },
   signChallenge: async () => { return { message: '', signature: '' } },
   getPublicKey: async () => { return '' },
   signTxn: async () => { },
-  ownedAssetIds: [],
-  displayedResources: [],
   selectedChainInfo: {},
   connected: false,
   setConnected: () => { },
@@ -49,7 +41,6 @@ type Props = {
 };
 
 export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
-  const [chainId, setChainId] = useState<string>('Mainnet');
   const [cookies, setCookies] = useCookies(['blockincookie', 'pub_key']);
 
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
@@ -82,11 +73,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
     abbreviation: 'SOL',
     getAddressExplorerUrl: (address: string) => `https://explorer.solana.com/address/${address}`,
   }
-  const displayedResources: PresetUri[] = []; //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
-
-  //If you would like to support this, you can call this with a useEffect every time connected or address is updated
-  const ownedAssetIds: string[] = [];
-
+  
   const connect = async () => {
     await connectAndPopulate(address ?? '', cookies.blockincookie);
   }
@@ -200,19 +187,12 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
   const solanaContext: SolanaContextType = {
     connected,
     setConnected,
-    chainId,
-    setChainId,
     connect,
     disconnect,
-    ownedAssetIds,
     selectedChainInfo,
-    displayedResources,
     signChallenge,
     signTxn,
-    cosmosAddress,
-    setCosmosAddress: () => { },
     address,
-    setAddress: () => { },
     setSolanaProvider,
     solanaProvider,
     getPublicKey,
@@ -225,7 +205,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
 
   return <SolanaContext.Provider value={solanaContext}>
     {children}
-  </ SolanaContext.Provider>
+  </SolanaContext.Provider>
 }
 
 export const useSolanaContext = () => useContext(SolanaContext)  

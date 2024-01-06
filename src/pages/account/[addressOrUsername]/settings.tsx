@@ -109,12 +109,7 @@ export function AccountSettings() {
   const customPages = newAccount?.customPages ? newAccount.customPages : [];
   const username = newAccount?.username ? newAccount.username : '';
 
-  // const setShowAllByDefault = (showAllByDefault: boolean) => { setNewAccount({ ...newAccount, onlyShowApproved: !showAllByDefault }) };
-  // const setShownBadges = (shownBadges: any[]) => { setNewAccount({ ...newAccount, shownBadges }) };
-  // const setHiddenBadges = (hiddenBadges: any[]) => { setNewAccount({ ...newAccount, hiddenBadges }) };
-  // const setCustomPages = (customPages: any[]) => { setNewAccount({ ...newAccount, customPages }) };
   const setUsername = (username: string) => { setNewAccount({ ...newAccount, username }) };
-
 
   const [newCustomLinkTitle, setNewCustomLinkTitle] = useState('');
   const [newCustomLinkUrl, setNewCustomLinkUrl] = useState('');

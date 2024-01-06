@@ -1,10 +1,7 @@
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 import { MessageGenerated, MsgTransferBadges, MsgUniversalUpdateCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, createProtoMsg, createTransactionPayload } from "bitbadgesjs-proto";
-import {
-  MsgTransferBadges as ProtoMsgTransferBadges,
-  MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection
-} from 'bitbadgesjs-proto/dist/proto/badges/tx_pb';
+import { MsgTransferBadges as ProtoMsgTransferBadges, MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection } from 'bitbadgesjs-proto/dist/proto/badges/tx_pb';
 import { convertToCosmosAddress, generatePostBodyBroadcast, getTransfersFromTransfersWithIncrements, isInAddressMapping } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { simulateTx } from "../../../bitbadges-api/api";
@@ -53,6 +50,7 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
       if (!signedInAccount) return;
       if (txTimelineContext.transfers.length === 0) return;
 
+      //Simulate the creation + mint txs to see if they return an error
 
       //Shortened msg bc this is all we care ab for transfers
       const msg: MsgUniversalUpdateCollection<bigint> = {
@@ -109,11 +107,9 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
         if (!signedInAccount) return;
 
         const generatedMsgs: MessageGenerated[] = []
-
         for (const tx of txsInfo) {
           const { generateProtoMsg, msg } = tx;
           if (!generateProtoMsg) continue;
-
           generatedMsgs.push(createProtoMsg(generateProtoMsg(msg)))
         }
 

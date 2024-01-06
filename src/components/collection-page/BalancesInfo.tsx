@@ -8,7 +8,7 @@ import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContex
 import { fetchBalanceForUser, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
-import { BalanceDisplay } from '../badges/BalanceDisplay';
+import { BalanceDisplay } from '../balances/BalanceDisplay';
 
 export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddress, setTab }: {
   collectionId: bigint;
@@ -30,6 +30,8 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
 
   const [onlyShowBadge, setOnlyShowBadge] = useState<boolean>(!!badgeId);
 
+  //If we are in non-indexed balances mode, we need to fetch balances manually for the user
+  //If we are not, we will store it somewhere in the context (account or collection)
   const currBalances = useMemo(() => {
     if (!account || !account.address) return [];
     if (collectionId === NEW_COLLECTION_ID) return [];
@@ -63,18 +65,14 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
           const accountHasBalance = account?.collected.find(x => x.collectionId === collectionId);
           const collectionHasBalance = collection?.owners.find(x => x.cosmosAddress === account?.cosmosAddress);
 
-          if (accountHasBalance) {
-            return;
-          } else if (collectionHasBalance) {
-            return;
-          }
+          if (accountHasBalance || collectionHasBalance) return
         }
 
         const balance = await fetchBalanceForUser(collectionId, account.address);
         setLastFetchedBalances(balance.balances);
-
-        return;
-      } catch (e) { }
+      } catch (e) {
+        console.log(e);
+      }
     }
 
     const delayDebounceFn = setTimeout(async () => {
@@ -86,13 +84,11 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
 
   if (!collection) return <></>;
 
-  const balancesToShow = badgeId && currBalances && onlyShowBadge ? getBalancesForId(badgeId, currBalances) ?? [] : currBalances ?? [];
+  const balancesToShow = badgeId && currBalances && onlyShowBadge ? getBalancesForId(badgeId, currBalances) : currBalances;
 
   return (<div className='full-width flex-column'>
     <div className='full-width flex-center flex-column'>
-      {<>
-        <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} disabled={hideSelect} />
-      </>}
+      <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} disabled={hideSelect} />
     </div>
     <div
       className='primary-text full-width'

@@ -10,7 +10,6 @@ import {
   isAddressValid,
 } from "bitbadgesjs-utils"
 import { useRouter } from "next/router"
-
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 import { AddressDisplay } from "./AddressDisplay"
 
@@ -51,8 +50,7 @@ export function Address({
   let address = (overrideChain ? newAddress : userInfo?.address) || addressOrUsername || ""
   let chain = overrideChain ?? userInfo?.chain
 
-  const isValidAddress =
-    isAddressValid(address) || address == "All" || address == "All Other"
+  const isValidAddress = isAddressValid(address) || address == "All";
   const displayAddress = addressName ? addressName : resolvedName ? resolvedName : getAbbreviatedAddress(address)
 
   const innerContent =
@@ -269,16 +267,14 @@ export function Address({
       displayAddress
     )
 
-  const showLink =
-    !hidePortfolioLink &&
+  const showLink = !hidePortfolioLink &&
     address &&
     address !== MINT_ACCOUNT.address &&
-    address != "All" &&
-    address != "All Other"
+    address != "All"
   const invalidAddress = !isValidAddress
 
   return (
-    <div style={{}}>
+    <div>
       <div
         style={{
           verticalAlign: "middle",
@@ -308,11 +304,7 @@ export function Address({
           <b>
             {userInfo ? (
               <>{innerContent}</>
-            ) : !invalidAddress ? (
-              <Spin />
-            ) : (
-              <>{displayAddress}</>
-            )}
+            ) : !invalidAddress ? (<Spin />) : (<>{displayAddress}</>)}
           </b>
         </Text>
       </div>

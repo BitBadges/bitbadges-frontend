@@ -1,7 +1,7 @@
-import { FormOutlined, InfoCircleOutlined, LockOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { FormOutlined, InfoCircleOutlined, LockOutlined, WarningOutlined } from '@ant-design/icons';
 import { Col, Input, Row, Switch, Tooltip, Typography, notification } from 'antd';
-import { AddressMapping, ApprovalAmounts, Balance, MustOwnBadges, UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, sortUintRangesAndMergeIfNecessary, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
+import { AddressMapping, ApprovalAmounts, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-proto';
+import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, Numberify, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBadgeIdsToBeTransferred, getReservedAddressMapping, isAddressMappingEmpty, isFullUintRanges, isInAddressMapping, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -12,14 +12,14 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { getBadgeIdsString } from '../../utils/badgeIds';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
-import { BalanceDisplay } from '../badges/BalanceDisplay';
-import { BadgeIDSelectWithSwitch } from '../collection-page/PermissionsInfo';
+import { BalanceDisplay } from '../balances/BalanceDisplay';
+import { BalanceInput } from '../balances/BalanceInput';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
-import { BalanceInput } from '../inputs/BalanceInput';
+import { BadgeIDSelectWithSwitch } from '../inputs/BadgeIdRangesInput';
 import { DateRangeInput } from '../inputs/DateRangeInput';
 import { NumberInput } from '../inputs/NumberInput';
-import { RadioGroup } from '../tx-timelines/form-items/MetadataForm';
+import { RadioGroup } from '../inputs/Selects';
 import { AddressMappingSelectComponent } from './ApprovalSelectHelpers/AddressMappingSelectComponent';
 import { ApprovalAmounts as ApprovalAmountsComponent } from './ApprovalSelectHelpers/ApprovalAmountsSelectComponent';
 import { MaxUses } from './ApprovalSelectHelpers/MaxUsesSelectComponent';
@@ -77,42 +77,6 @@ export const getMaxIncrementsApplied = (
 
   return maxIncrementsApplied;
 }
-export const getAllBadgeIdsToBeTransferred = (transfers: TransferWithIncrements<bigint>[]) => {
-  const allBadgeIds: UintRange<bigint>[] = [];
-  for (const transfer of transfers) {
-    for (const balance of transfer.balances) {
-
-      //toAddressesLength takes priority
-      const _numRecipients = transfer.toAddressesLength ? transfer.toAddressesLength : transfer.toAddresses ? transfer.toAddresses.length : 0;
-      const numRecipients = BigInt(_numRecipients);
-
-      const badgeIds = deepCopy(balance.badgeIds);
-      const ownershipTimes = deepCopy(balance.ownershipTimes);
-
-      //If incrementIdsBy is not set, then we are not incrementing badgeIds and we can just batch calculate the balance
-      if (!transfer.incrementBadgeIdsBy && !transfer.incrementOwnershipTimesBy) {
-        allBadgeIds.push(...deepCopy(badgeIds));
-      } else {
-        for (let i = 0; i < numRecipients; i++) {
-          allBadgeIds.push(...deepCopy(badgeIds));
-
-          for (const badgeId of badgeIds) {
-            badgeId.start += transfer.incrementBadgeIdsBy || 0n;
-            badgeId.end += transfer.incrementBadgeIdsBy || 0n;
-          }
-
-          for (const ownershipTime of ownershipTimes) {
-            ownershipTime.start += transfer.incrementOwnershipTimesBy || 0n;
-            ownershipTime.end += transfer.incrementOwnershipTimesBy || 0n;
-          }
-        }
-      }
-    }
-  }
-
-  return sortUintRangesAndMergeIfNecessary(allBadgeIds, true);
-}
-
 
 export const getAllApprovedBadges = (
   approvalToAdd: RequiredApprovalProps,
@@ -143,7 +107,6 @@ export const getAllApprovedBadges = (
 
 export function ApprovalSelect({
   collectionId,
-  plusButton,
   setVisible,
   distributionMethod,
   setDistributionMethod,
@@ -171,7 +134,6 @@ export function ApprovalSelect({
   collectionId: bigint;
   distributionMethod: DistributionMethod;
   setDistributionMethod: (distributionMethod: DistributionMethod) => void;
-  plusButton?: boolean;
   hideRemaining?: boolean;
   setVisible?: (visible: boolean) => void;
   defaultApproval?: CollectionApprovalWithDetails<bigint>
@@ -190,15 +152,10 @@ export function ApprovalSelect({
   const collection = useCollection(collectionId);
   const [showMustOwnBadges, setShowMustOwnBadges] = useState(false);
   const [codeType, setCodeType] = useState(CodeType.None);
-  // const mustEditApprovalIds = !defaultApproval;
-  // const [autoGenerateIds, setAutoGenerateIds] = useState(defaultApproval ? false : true);
-  // const [editApprovalIds, setEditApprovalIds] = useState(false);
   const [claimPassword, setClaimPassword] = useState('');
   const [predeterminedType, setPredeterminedType] = useState(PredeterminedType.NoLimit);
 
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
-
-
 
   const defaultApprovalToAdd: CollectionApprovalWithDetails<bigint> & {
     approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>>
@@ -286,7 +243,6 @@ export function ApprovalSelect({
   const [approvalToAdd, setApprovalToAdd] = useState<CollectionApprovalWithDetails<bigint> & {
     approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>>,
     details: ApprovalInfoDetails<bigint>
-
   }>(deepCopy(defaultApprovalToAdd));
 
   const numRecipients = approvalToAdd?.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers || 0n;
@@ -1300,102 +1256,6 @@ export function ApprovalSelect({
           }} />
 
         </InformationDisplayCard>
-        {/* <InformationDisplayCard title='Start Point' md={8} xs={24} sm={24} subtitle='Decide to start from scratch or from a prior approval.'>
-          <br />
-          {isEdit && <Typography.Text className='secondary-text'>
-            You are editing an approval. To start from scratch, please create a new approval.
-          </Typography.Text>
-
-          }
-          {!isEdit && <>
-            <TableRow labelSpan={16} valueSpan={8} label={'Start from scratch?'} value={<Switch
-              checked={autoGenerateIds}
-              onChange={(checked) => {
-                setAutoGenerateIds(checked);
-              }}
-            />} />
-            {!autoGenerateIds && !mustEditApprovalIds && <div style={{ textAlign: 'center' }}>
-              <TableRow labelSpan={16} valueSpan={8} label={'Edit approval IDs (advanced)?'} value={<Switch
-                checked={editApprovalIds}
-                onChange={(checked) => {
-                  setEditApprovalIds(checked);
-                }}
-              />} />
-            </div>}
-            {autoGenerateIds && <div style={{ textAlign: 'center' }}>
-              <div style={{ textAlign: 'center' }}>
-                <br />
-                <span style={{ marginLeft: 8 }}>
-                  This approval will be  <Tag
-                    style={{ margin: 4, backgroundColor: '#52c41a' }}
-                    color='#52c41a'
-                    className='primary-text'
-                  >New</Tag> meaning it will have no prior history and not be based on any prior approvals.
-
-
-                </span>
-              </div>
-            </div>}
-
-
-            {
-              !autoGenerateIds && <>
-
-                <br />
-                <b style={{ fontSize: 16 }}> Approval ID</b >
-                <Input
-                  disabled={!editApprovalIds && !mustEditApprovalIds}
-                  className='primary-text inherit-bg'
-                  value={approvalToAdd.approvalId}
-                  onChange={(e) => {
-                    setApprovalToAdd({
-                      ...approvalToAdd,
-                      approvalId: e.target.value,
-                    });
-                  }}
-                  placeholder='Approval ID'
-                />
-                <b style={{ fontSize: 16 }}>Amount Tracker ID</b>
-                <Input
-                  disabled={!editApprovalIds && !mustEditApprovalIds}
-                  className='primary-text inherit-bg'
-                  value={approvalToAdd.amountTrackerId}
-                  onChange={(e) => {
-                    setApprovalToAdd({
-                      ...approvalToAdd,
-                      amountTrackerId: e.target.value,
-                    });
-                  }}
-                  placeholder='Amount Tracker ID'
-                />
-                <br />
-                <b style={{ fontSize: 16 }}>Challenge Tracker ID</b>
-                <Input
-                  disabled={!editApprovalIds && !mustEditApprovalIds}
-                  className='primary-text inherit-bg'
-                  value={approvalToAdd.challengeTrackerId}
-                  onChange={(e) => {
-                    setApprovalToAdd({
-                      ...approvalToAdd,
-                      challengeTrackerId: e.target.value,
-                    });
-                  }}
-                  placeholder='Challenge Tracker ID'
-                />
-              </>}
-            {!autoGenerateIds && <div style={{ textAlign: 'center' }}>
-              <div style={{ textAlign: 'center', color: '#FF5733' }}>
-                <br />
-                <span style={{ marginLeft: 8 }}>
-                  <InfoCircleOutlined /> Editing IDs is advanced and not recommended.
-
-
-                  Learn more <a href='https://docs.bitbadges.io/for-developers/concepts/approval-criteria' target='_blank'>here</a>.
-                </span>
-              </div>
-            </div>}
-          </>}
-        </InformationDisplayCard > */}
       </div>
     </Row >
     < button className='landing-button' style={{ width: '100%', marginTop: 16 }
@@ -1567,14 +1427,11 @@ export function ApprovalSelect({
 
         setApprovalToAdd(deepCopy(defaultApprovalToAdd));
 
-
-
-
-
         if (setVisible) setVisible(false);
       }
       }>
-      {plusButton ? <PlusOutlined /> : isEdit ? 'Edit Approval' : 'Set Approval'}
+
+      {isEdit ? 'Edit Approval' : 'Set Approval'}
     </button >
     {
       isEdit && <div className='flex-center secondary-text'>

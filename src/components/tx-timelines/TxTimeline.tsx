@@ -5,11 +5,9 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
 
 export function TxTimeline({
-  txType,
   collectionId,
   addressMappingId,
 }: {
-  txType: 'UpdateCollection'
   collectionId?: bigint,
   onFinish?: ((props: MsgUniversalUpdateCollectionProps) => void),
   addressMappingId?: string,
@@ -28,10 +26,5 @@ export function TxTimeline({
     {<p>Fetching all details for this collection. This may take some time.</p>}
   </ div>
 
-  if (txType === 'UpdateCollection') {
-    return <UpdateCollectionTimeline />
-    return <></>
-  } else {
-    return <></>
-  }
+  return <UpdateCollectionTimeline />
 }

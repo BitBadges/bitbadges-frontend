@@ -1,106 +1,29 @@
-import { Checkbox, Form, Input, Spin, Tag, Tooltip, Typography } from 'antd';
+import { Form, Input, Spin, Tag, Tooltip, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { FullscreenExitOutlined, FullscreenOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { PaginationInfo, getCurrentValueForTimeline, getMaxBadgeIdForCollection, getMaxMetadataId, getUintRangesForAllBadgeIdsInCollection, invertUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { PaginationInfo, getMaxBadgeIdForCollection, getUintRangesForAllBadgeIdsInCollection, invertUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
 
 import { BigIntify, UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
 import { filterBadgesInCollection } from '../../bitbadges-api/api';
 import { fetchCollectionsWithOptions, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { getBadgesWithFrozenMetadata, getBadgesWithFrozenTransferability, getBadgesWithLockedSupply } from '../../bitbadges-api/utils/badges';
+import { BatchBadgeDetails } from '../../bitbadges-api/utils/batches';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { BadgeInfiniteScroll, BatchBadgeDetailsTag, CollectionsFilterSearchBar } from '../../pages/account/[addressOrUsername]';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { Divider } from '../display/Divider';
-import { getBadgesWithFrozenMetadata, getBadgesWithFrozenTransferability, getBadgesWithLockedSupply } from '../tx-timelines/step-items/CanUpdateMetadata';
+import { CheckboxSelect, SelectWithOptions } from '../inputs/Selects';
 
 const { Text } = Typography;
 
 
 
-export const SelectWithOptions = ({
-  title,
-  value,
-  setValue,
-  options,
-}: {
-  title: string;
-  value: string | undefined;
-  setValue: (value: string | undefined) => void;
-  options: {
-    disabled?: boolean;
-    disabledReason?: string;
-    label: string;
-    value: string | undefined;
-  }[];
-}) => {
-  const [open, setOpen] = useState(false);
 
-  return (
-    <div className="primary-text flex-bet" style={{ margin: 4, }}>
-      <div>
-        <b className="text-md">{title}</b>
-        <div className="mt-2 relative">
-          <div className="relative inline-block w-full">
-            <div className="relative z-10">
-              <button
-                data-dropdown-toggle={"dropdown" + title}
-                type="button"
-                className="styled-button-normal rounded-lg w-full py-2 px-4 text-center cursor-pointer border-gray-300 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                style={{ borderWidth: 1, fontWeight: 'bold' }}
-                onClick={() => setOpen(!open)}
-              >
-                {value ? (
-                  options.find((option) => option.value === value)?.label
-                ) : (
-                  <span className="text-gray-400">Select an option</span>
-                )}
-              </button>
-            </div>
-            {open &&
-              <div id={"dropdown" + title} className="full-width absolute z-20">
-                {(
-                  <ul className="absolute z-20 mt-2  bg-white shadow-lg rounded py-1" id={"dropdown" + title}>
-                    {options.map((option, idx) => (
-                      <li
-                        key={idx}
-                        style={{ width: '100%' }}
-                        className={`${option.disabled
-                          ? 'text-red-500 cursor-not-allowed'
-                          : 'text-black hover:bg-blue-200 cursor-pointer'
-                          } px-4 py-2`}
-                        onClick={() => {
-                          if (!option.disabled) {
-                            setValue(option.value);
-                            setOpen(false);
-                          }
-                        }}
-                      >
-                        <Tooltip title={option.disabledReason ?? option.label}>
-                          {option.label}
-                        </Tooltip>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>}
-          </div>
-        </div>
-      </div>
-    </div >
-  );
-};
-
-
-
-export function BadgesTab({ collectionId }: {
-  collectionId: bigint
-}) {
+export function BadgesTab({ collectionId }: { collectionId: bigint }) {
   const [cardView, setCardView] = useState(true);
-  const [filteredCollections, setFilteredCollections] = useState<{
-    collectionId: bigint,
-    badgeIds: UintRange<bigint>[]
-  }[]>([]);
+  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const collection = useCollection(collectionId)
   const [loading, setLoading] = useState(false);
@@ -112,6 +35,10 @@ export function BadgesTab({ collectionId }: {
   const [sortBy, setSortBy] = useState<'oldest' | 'newest' | undefined>('oldest');
   const [sortByMostViewed, setSortByMostViewed] = useState<undefined | 'allTime' | 'daily' | 'weekly' | 'monthly' | 'yearly'>(undefined);
 
+  //These will be true, false, or undefined
+  //undefined = do nothin
+  //true = filter for true
+  //false = filter for false
   const [hasCirculatingSupplyFilter, setHasCirculatingSupplyFilter] = useState<boolean | undefined>(undefined);
   const [canUpdateMetadataFilter, setCanUpdateMetadataFilter] = useState<boolean | undefined>(undefined);
   const [canCreateMoreFilter, setCanCreateMoreFilter] = useState<boolean | undefined>(undefined);
@@ -129,7 +56,7 @@ export function BadgesTab({ collectionId }: {
         collectionId,
         metadataToFetch: {
           metadataIds: [{
-            start: 1n, end: getMaxMetadataId(getCurrentValueForTimeline(collection?.badgeMetadataTimeline ?? [])?.badgeMetadata ?? [])
+            start: 1n, end: 10n
           }]
         }
       }]);
@@ -141,9 +68,9 @@ export function BadgesTab({ collectionId }: {
 
   const filteredBadges = useMemo(() => {
     const badgesWithCirculatingSupply = collection ? [{ start: 1n, end: getMaxBadgeIdForCollection(collection) }] : [];
-    const badgesWithLockedSupply = collection ? getBadgesWithLockedSupply(collection, undefined, true) : [];
-    const badgesWithFrozenTransferability = collection ? getBadgesWithFrozenTransferability(collection) : [];
-    const badgesWithFrozenMetadata = collection ? getBadgesWithFrozenMetadata(collection) : [];
+    const badgesWithLockedSupply = collection ? getBadgesWithLockedSupply(collection, undefined, true, 'always') : [];
+    const badgesWithFrozenTransferability = collection ? getBadgesWithFrozenTransferability(collection, 'always') : [];
+    const badgesWithFrozenMetadata = collection ? getBadgesWithFrozenMetadata(collection, 'always') : [];
 
     const badgesWithoutCirculatingSupply = invertUintRanges(badgesWithCirculatingSupply, 1n, GO_MAX_UINT_64);
     const badgesWithoutLockedSupply = invertUintRanges(badgesWithLockedSupply, 1n, GO_MAX_UINT_64);
@@ -253,24 +180,19 @@ export function BadgesTab({ collectionId }: {
 
   const FilterSearchDropdown = <CollectionsFilterSearchBar
     specificCollectionId={collectionId}
-    onSearch={async (searchValue: any, _isAccount?: boolean | undefined, _isCollection?: boolean | undefined, isBadge?: boolean | undefined) => {
+    onSearch={async (searchValue: any) => {
       if (typeof searchValue === 'string') {
-        if (isBadge) {
-          const collectionId = BigInt(searchValue.split('/')[0]);
-          const badgeId = BigInt(searchValue.split('/')[1]);
+        const collectionId = BigInt(searchValue.split('/')[0]);
+        const badgeId = BigInt(searchValue.split('/')[1]);
 
-          setFilteredCollections([...filteredCollections, {
-            collectionId,
-            badgeIds: [{ start: badgeId, end: badgeId }]
-          }]);
-        }
+        setFilteredCollections([...filteredCollections, {
+          collectionId,
+          badgeIds: [{ start: badgeId, end: badgeId }]
+        }])
 
         setSearchValue('');
       }
     }} searchValue={searchValue} setSearchValue={setSearchValue} />
-
-
-
 
   const suggestedTags = useMemo(() => {
     return (collection?.cachedBadgeMetadata.map(x => x.metadata.tags).flat() ?? []).filter(x => x);
@@ -280,47 +202,6 @@ export function BadgesTab({ collectionId }: {
     return (collection?.cachedBadgeMetadata.map(x => x.metadata.category).flat() ?? []).filter(x => x);
   }, [collection]);
 
-  const BadgeRadioFilter = ({
-    title,
-    value,
-    setValue,
-    options,
-  }: {
-    title: string,
-    value: boolean | undefined,
-    setValue: (value: boolean | undefined) => void,
-    options: {
-      label: string,
-      value: boolean | undefined
-    }[]
-  }) => {
-    return <div className='flex' style={{ marginRight: 8, textAlign: 'start' }}>
-      <div style={{ width: 200 }}>
-        <b>{title}</b>
-      </div>
-      {options.map((option, idx) => {
-        return <Checkbox
-          className='primary-text'
-          checked={value === option.value}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setValue(option.value);
-            } else {
-              setValue(undefined);
-            }
-          }}
-          style={{ marginLeft: 8 }}
-          key={idx}>
-          {option.label}
-        </Checkbox>
-      }
-      )
-      }
-    </div>
-  }
-
-
-
 
   return (
     <div className='primary-text full-width'>
@@ -328,9 +209,6 @@ export function BadgesTab({ collectionId }: {
         className="flex-wrap full-width flex"
         style={{ flexDirection: "row-reverse", alignItems: "flex-end", marginTop: 4 }}
       >
-
-
-
         {!sortByMostViewed && <div
           // Cursor pointer
           className="styled-button-normal rounded cursor-pointer px-2"
@@ -355,11 +233,11 @@ export function BadgesTab({ collectionId }: {
             setSortByMostViewed(e === 'allTime' ? 'allTime' : e === 'daily' ? 'daily' : e === 'weekly' ? 'weekly' : e === 'monthly' ? 'monthly' : 'yearly')
           }} options={[{ label: 'All Time', value: 'allTime' }, { label: 'Daily', value: 'daily' }, { label: 'Weekly', value: 'weekly' }, { label: 'Monthly', value: 'monthly' }, { label: 'Yearly', value: 'yearly' },]} />
         }
-        {(
-          <div style={{ marginBottom: 4, flexGrow: 1 }}> {/* Add this style to make it grow */}
-            {FilterSearchDropdown}
-          </div>
-        )}
+
+        <div style={{ marginBottom: 4, flexGrow: 1 }}>
+          {FilterSearchDropdown}
+        </div>
+
       </div>
 
       {
@@ -377,8 +255,6 @@ export function BadgesTab({ collectionId }: {
       {
         showAdvancedFilters && !sortByMostViewed && <>
           <Form colon={false} layout="vertical" style={{ textAlign: 'start' }}>
-
-
             <br />
             <Form.Item
               label={
@@ -395,7 +271,7 @@ export function BadgesTab({ collectionId }: {
                 </Text>
               }
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <Input
                   value={tags}
                   onChange={(e) => {
@@ -405,7 +281,7 @@ export function BadgesTab({ collectionId }: {
                     }
                     setTags(e.target.value.split(","))
                   }}
-                  style={{}}
+
                   className="primary-text"
                 />
               </div>
@@ -437,7 +313,7 @@ export function BadgesTab({ collectionId }: {
                 </Text>
               }
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <Input
                   value={categories}
                   onChange={(e) => {
@@ -447,7 +323,7 @@ export function BadgesTab({ collectionId }: {
                     }
                     setCategories(e.target.value.split(","))
                   }}
-                  style={{}}
+
                   className="primary-text"
                 />
               </div>
@@ -471,16 +347,16 @@ export function BadgesTab({ collectionId }: {
             </Form.Item>
           </Form>
           <div className=''>
-            <BadgeRadioFilter title='Currently Circulating?' value={hasCirculatingSupplyFilter} setValue={setHasCirculatingSupplyFilter} options={[
+            <CheckboxSelect title='Currently Circulating?' value={hasCirculatingSupplyFilter} setValue={setHasCirculatingSupplyFilter} options={[
               { label: 'No', value: false }, { label: 'Yes', value: true },
             ]} />
-            <BadgeRadioFilter title='Frozen Metadata?' value={canUpdateMetadataFilter} setValue={setCanUpdateMetadataFilter} options={[
+            <CheckboxSelect title='Frozen Metadata?' value={canUpdateMetadataFilter} setValue={setCanUpdateMetadataFilter} options={[
               { label: 'No', value: false }, { label: 'Yes', value: true },
             ]} />
-            <BadgeRadioFilter title='Locked Supply?' value={canCreateMoreFilter} setValue={setCanCreateMoreFilter} options={[
+            <CheckboxSelect title='Locked Supply?' value={canCreateMoreFilter} setValue={setCanCreateMoreFilter} options={[
               { label: 'No', value: false }, { label: 'Yes', value: true },
             ]} />
-            <BadgeRadioFilter title='Frozen Transferability?' value={canUpdateTransferabilityFilter} setValue={setCanUpdateTransferabilityFilter} options={[
+            <CheckboxSelect title='Frozen Transferability?' value={canUpdateTransferabilityFilter} setValue={setCanUpdateTransferabilityFilter} options={[
               { label: 'No', value: false }, { label: 'Yes', value: true },
             ]} />
           </div>

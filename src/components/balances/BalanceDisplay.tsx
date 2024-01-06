@@ -1,20 +1,16 @@
 import { InfoCircleOutlined } from "@ant-design/icons"
 import { Col, Empty, Tooltip } from "antd"
-import {
-  Balance,
-  BigIntify,
-  MustOwnBadges,
-  UintRange,
-  convertUintRange,
-  deepCopy,
-} from "bitbadgesjs-proto"
+import { Balance, BigIntify, MustOwnBadges, UintRange, convertUintRange, deepCopy } from "bitbadgesjs-proto"
 import { ReactNode, useMemo, useState } from "react"
 import { getBadgeIdsString } from "../../utils/badgeIds"
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates"
 import { Pagination } from "../common/Pagination"
-import { BalanceDisplayEditRow } from "../inputs/BalanceDisplayEditRow"
-import { getAllBadgeIdsToBeTransferred } from "../transfers/ApprovalSelect"
-import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay"
+import { BalanceDisplayEditRow } from "./BalanceDisplayEditRow"
+import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay"
+import { applyIncrementsToBalances } from "../../bitbadges-api/utils/balances"
+import { getAllBadgeIdsToBeTransferred } from "bitbadgesjs-utils"
+
+
 
 export function BalanceDisplay({
   collectionId,
@@ -28,7 +24,6 @@ export function BalanceDisplay({
   hideOwnershipTimeSelect,
   mustOwnBadges,
   noOffChainBalances,
-
   cardView,
   hideMessage,
   hideBadges,
@@ -37,13 +32,9 @@ export function BalanceDisplay({
   isMustOwnBadgesInput,
   editable,
   onAddBadges,
-  minimum,
-  maximum,
   onRemoveAll,
   sequentialOnly,
-  fullWidthCards,
   setIncrementBadgeIdsBy,
-  doNotCalculate,
   timeString,
   suggestedBalances,
 }: {
@@ -72,14 +63,11 @@ export function BalanceDisplay({
     collectionId?: bigint,
     mustOwnAll?: boolean
   ) => void
-  minimum?: bigint
-  maximum?: bigint
   setBalances?: (balances: Balance<bigint>[]) => void
   onRemoveAll?: () => void
   sequentialOnly?: boolean
   fullWidthCards?: boolean
   setIncrementBadgeIdsBy?: (incrementBadgeIdsBy: bigint) => void
-  doNotCalculate?: boolean
   timeString?: string
   suggestedBalances?: Balance<bigint>[]
 }) {
@@ -87,45 +75,20 @@ export function BalanceDisplay({
 
   const [incrementNum, setIncrementNum] = useState<number>(0)
 
-  const displaySize = !floatToRight ? 'large' : 'small';
+  const currBalancesToDisplay = useMemo(() => {
+    let balancesToReturn = applyIncrementsToBalances(deepCopy(balances), incrementBadgeIdsBy, incrementOwnershipTimesBy, BigInt(incrementNum))
 
-  const allBalances = useMemo(() => {
-    let balancesToReturn = deepCopy(balances)
-    if (numIncrements > 1n) {
-      balancesToReturn = balances.map((x) => {
-        return {
-          ...x,
-          badgeIds: x.badgeIds.map((y) => {
-            return {
-              start: y.start + incrementBadgeIdsBy * BigInt(incrementNum),
-              end: y.end + incrementBadgeIdsBy * BigInt(incrementNum),
-            }
-          }),
-          ownershipTimes: x.ownershipTimes.map((y) => {
-            return {
-              start: y.start + incrementOwnershipTimesBy * BigInt(incrementNum),
-              end: y.end + incrementOwnershipTimesBy * BigInt(incrementNum),
-            }
-          }),
-        }
-      })
-    }
-
-    return doNotCalculate
+    return !isMustOwnBadgesInput
       ? balancesToReturn
-      : !isMustOwnBadgesInput
-        ? balancesToReturn
-        : balancesToReturn.map((x) => {
-          return { ...x, ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] }
-        })
+      : balancesToReturn.map((x) => {
+        return { ...x, ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }] }
+      })
   }, [
     balances,
-    doNotCalculate,
     isMustOwnBadgesInput,
     incrementNum,
     incrementBadgeIdsBy,
     incrementOwnershipTimesBy,
-    numIncrements,
   ])
 
   const allBadgeIdsArr: UintRange<bigint>[] = useMemo(() => {
@@ -143,7 +106,7 @@ export function BalanceDisplay({
     }
 
     return (
-      allBalances?.map((balanceAmount) => {
+      currBalancesToDisplay?.map((balanceAmount) => {
         return balanceAmount.badgeIds.map((uintRange) =>
           convertUintRange(uintRange, BigIntify)
         )
@@ -151,7 +114,7 @@ export function BalanceDisplay({
         .flat() ?? []
     )
   }, [
-    allBalances,
+    currBalancesToDisplay,
     numIncrements,
     incrementBadgeIdsBy,
     incrementOwnershipTimesBy,
@@ -165,14 +128,11 @@ export function BalanceDisplay({
       isMustOwnBadgesInput={isMustOwnBadgesInput}
       noOffChainBalances={noOffChainBalances}
       onAddBadges={onAddBadges}
-      minimum={minimum}
-      maximum={maximum}
       hideOwnershipTimeSelect={hideOwnershipTimeSelect}
       message={message}
       defaultBalancesToShow={defaultBalancesToShow}
       onRemoveAll={onRemoveAll}
       sequentialOnly={sequentialOnly}
-      fullWidthCards={fullWidthCards}
       incrementBadgeIdsBy={incrementBadgeIdsBy}
       setIncrementBadgeIdsBy={setIncrementBadgeIdsBy}
       numRecipients={numIncrements}
@@ -183,7 +143,7 @@ export function BalanceDisplay({
 
   let castedMustOwnBadges = mustOwnBadges
     ? mustOwnBadges
-    : allBalances.map((x) => {
+    : currBalancesToDisplay.map((x) => {
       return {
         ...x,
         amountRange: { start: x.amount, end: GO_MAX_UINT_64 },
@@ -191,6 +151,7 @@ export function BalanceDisplay({
         mustOwnAll: true,
       }
     })
+
   return (
     <div className="flex-center flex-column full-width">
       {!hideMessage && (
@@ -203,18 +164,15 @@ export function BalanceDisplay({
           </div>
         </div>
       )}
-      {/* //dynamic tailwind text size */}
-      <div className="flex-center full-width" style={{ fontSize: displaySize === 'large' ? 16 : 14 }}>
-        <div
-          className="flex-column full-width"
-          style={{
-            textAlign: floatToRight ? "right" : "center",
-            justifyContent: "end",
-          }}
+      <div className="flex-center full-width" style={{}}>
+        <div className="flex-column full-width" style={{
+          textAlign: floatToRight ? "right" : "center",
+          justifyContent: "end",
+        }}
         >
           <Col md={24} xs={24} sm={24}>
             {numIncrements > 1n &&
-              allBalances.length > 0 &&
+              currBalancesToDisplay.length > 0 &&
               allBadgeIdsArr.length > 0 &&
               !hideTable && (
                 <div
@@ -392,16 +350,6 @@ export function BalanceDisplay({
                       )
 
                       return <>{NormalRowComponent}</>
-
-                      // let displayStr = '';
-                      // if (!isMustOwnBadgesInput) displayStr += 'x' + amount.toString() + ' - ';
-                      // if (isMustOwnBadgesInput) displayStr += 'x' + amountRange.start.toString() + ' (Min) - x' + amountRange.end.toString() + ' (Max) - ';
-                      // if (isMustOwnBadgesInput) displayStr += 'Collection ID ' + collectionId.toString() + ' - ';
-                      // displayStr += 'IDs ' + getBadgeIdsString(badgeIds) + ' - ';
-
-                      // return <>
-                      //   {displayStr}{isMustOwnBadgesInput ? (timeString ?? 'Transfer Time') : getTimeRangesElement(ownershipTimes, '', true)}
-                      // </>
                     })}
                   </tbody>
                   {castedMustOwnBadges?.length === 0 && (
@@ -430,7 +378,7 @@ export function BalanceDisplay({
                         <br />
                         <BadgeAvatarDisplay
                           collectionId={collectionId}
-                          balance={allBalances}
+                          balance={currBalancesToDisplay}
                           badgeIds={
                             numIncrements > 1n
                               ? castedMustOwnBadges

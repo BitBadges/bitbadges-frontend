@@ -1,11 +1,53 @@
-import { Avatar, Button, DatePicker, Divider } from 'antd';
+import { Avatar, Button, DatePicker, Divider, Switch } from 'antd';
 import { UintRange, deepCopy } from 'bitbadgesjs-proto';
 import moment from 'moment';
-import { getTimeRangesElement } from '../../utils/dates';
-import { DeleteOutlined, EditOutlined, MinusOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { checkIfUintRangesOverlap, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
+import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
+import { DeleteOutlined, EditOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
+import { checkIfUintRangesOverlap, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import IconButton from '../display/IconButton';
+
+
+
+export const DateSelectWithSwitch = ({ timeRanges, setTimeRanges }: { timeRanges: UintRange<bigint>[], setTimeRanges: (timeRanges: UintRange<bigint>[]) => void }) => {
+  return <>
+    <br />
+    <div className="flex-center flex-column" style={{ textAlign: 'center' }}>
+      <div>
+        <Switch
+          checked={isFullUintRanges(timeRanges)}
+          checkedChildren="All Times"
+          unCheckedChildren="Custom"
+          onChange={(checked) => {
+            if (checked) {
+              setTimeRanges([{ start: 1n, end: GO_MAX_UINT_64 }],
+              );
+            } else {
+              setTimeRanges([]);
+            }
+          }}
+        />
+        <br /><br />
+        <div className="secondary-text">
+          <InfoCircleOutlined />{' '}
+          {isFullUintRanges(timeRanges) && "All times are selected."}
+          {!isFullUintRanges(timeRanges) && "Custom times are selected."}
+        </div>
+        <br />
+        <>
+          {isFullUintRanges(timeRanges) ? <></> : <>
+
+            <DateRangeInput
+              timeRanges={timeRanges}
+              setTimeRanges={(timeRanges) => {
+                setTimeRanges(timeRanges);
+              }}
+            />
+          </>}</>
+      </div>
+    </div>
+  </>
+}
 
 export function DateRangeInput({
   timeRanges,

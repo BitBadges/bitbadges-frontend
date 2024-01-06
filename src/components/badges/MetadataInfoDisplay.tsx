@@ -8,25 +8,25 @@ import {
   WarningFilled
 } from '@ant-design/icons';
 import { Divider, Tag, Tooltip } from 'antd';
-import { BadgeMetadataTimeline, CollectionMetadataTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, OffChainBalancesMetadataTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
+import { BadgeMetadataTimeline, CollectionMetadataTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
 import { Metadata, getCurrentValuesForCollection, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
 
+import { useEffect } from 'react';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { TimelineFieldWrapper } from '../wrappers/TimelineFieldWrapper';
-import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { useEffect } from 'react';
-import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { BalancesStorageRow } from './DistributionCard';
 
-export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLink, metadataOverride, isAddressListDisplay, metadataUrl }: {
+export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride, isAddressListDisplay, metadataUrl }: {
   collectionId: bigint,
   badgeId?: bigint,
   span?: number;
-  showCollectionLink?: boolean
   metadataOverride?: Metadata<bigint>,
   isAddressListDisplay?: boolean,
   metadataUrl?: string
@@ -38,31 +38,18 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
   const isCollectionInfo = !badgeId;
   const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
   const [_, isValid] = searchUintRangesForId(BigInt(Date.now()), metadata?.validFrom ?? []);
-  let balancesTypeInfoStr = '';
-  if (collection?.balancesType === "Off-Chain - Indexed") {
-    balancesTypeInfoStr = 'Balances are stored off the blockchain and controlled via a typical server (chosen by the manager). Transferring and obtaining badges is not facilitated via the blockchain but rather via this server. Balances are indexed, meaning all owners and their balances are known. Also, a log of update activity is kept.';
-  } else if (collection?.balancesType === "Standard") {
-    balancesTypeInfoStr = 'Transferring and obtaining badges is all facilitated via blockchain transactions.';
-  } else if (collection?.balancesType === "Inherited") {
-    balancesTypeInfoStr = 'Balances of a badge are inherited from some parent badge. When you obtain or transfer the parent badge, the child badge will also be obtained or transferred.';
-  } else if (collection?.balancesType === "Off-Chain - Non-Indexed") {
-    balancesTypeInfoStr = 'Balances are stored off-chain and controlled via a typical server. There is no verifiable total supply, and these balances do not show up in standard search results. The only way to view balances is with the balance checker.';
-  }
 
   useEffect(() => {
     fetchAccounts([collection?.createdBy ?? '', ...collection?.managerTimeline.map(x => x.manager) ?? [], collection?.aliasAddress ?? ''])
   }, [collection])
 
+  if (!collection) return <></>
+
   return (
     <>
       {!isAddressListDisplay &&
         <InformationDisplayCard
-          title={isCollectionInfo ? <>Collection Info
-            <br />
-            <div style={{ fontSize: 14 }}>
-              {showCollectionLink && <a style={{ marginLeft: 8 }} href={`/collections/${collectionId}`} target="_blank" rel="noreferrer">View Collection <LinkOutlined /></a>}
-            </div>
-          </> : "Badge Info"}
+          title={isCollectionInfo ? <>Collection Info</> : "Badge Info"}
           span={span}
         >
           {!isCollectionInfo && <TableRow label={"Badge ID"} value={`${badgeId}`} labelSpan={12} valueSpan={12} />}
@@ -80,41 +67,10 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                   }) : 'Default'}
                 </>
               }}
-              emptyNode={
-                <>Default</>
-              }
               timeline={collection?.standardsTimeline ?? []}
             />
           } labelSpan={9} valueSpan={15} />}
-
-
-
-
-          {!noBalancesStandard && <TableRow label={"Balances Storage"} value={
-            <>
-              <div className='' style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-                {collection?.balancesType === "Off-Chain - Indexed" ?
-                  <div>
-                    <>
-                      <TimelineFieldWrapper
-                        createNode={(timelineVal: OffChainBalancesMetadataTimeline<bigint>) => {
-                          return <a href={timelineVal?.offChainBalancesMetadata.uri.startsWith('ipfs://') ? `https://bitbadges-ipfs.infura-ipfs.io/ipfs/${timelineVal?.offChainBalancesMetadata.uri.substring(7)}` : timelineVal?.offChainBalancesMetadata.uri
-                          } target='_blank' rel='noreferrer'>Off-Chain</a>
-                        }}
-                        emptyNode={
-                          <>None</>
-                        }
-                        timeline={collection?.offChainBalancesMetadataTimeline ?? []}
-                      />
-                    </>
-                  </div>
-                  : collection?.balancesType}
-                <Tooltip color='black' title={balancesTypeInfoStr}>
-                  <InfoCircleOutlined style={{ marginLeft: 8 }} />
-                </Tooltip>
-              </div>
-            </>} labelSpan={9} valueSpan={15} />
-          }
+          {!noBalancesStandard && <BalancesStorageRow collection={collection} />}
 
           {<TableRow label={"Manager"} value={
             <>
@@ -127,9 +83,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                     addressOrUsername={managerVal.manager}
                   />
                 }}
-                emptyNode={
-                  <>None</>
-                }
                 timeline={collection?.managerTimeline ?? []}
               />
             </>} labelSpan={7} valueSpan={17} />}
@@ -170,9 +123,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                   createNode={(customDataVal: CustomDataTimeline<bigint>) => {
                     return <>{customDataVal.customData || 'None'}</>
                   }}
-                  emptyNode={
-                    <>None</>
-                  }
                   timeline={collection?.customDataTimeline ?? []}
                 />
               </>} labelSpan={9} valueSpan={15} />}
@@ -255,9 +205,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                     }
                   </>
                 }}
-                emptyNode={
-                  <>None</>
-                }
                 timeline={collection?.collectionMetadataTimeline ?? []}
               />
             </>
@@ -293,9 +240,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, showCollectionLin
                     }
                   </>
                 }}
-                emptyNode={
-                  <>None</>
-                }
                 timeline={collection?.badgeMetadataTimeline ?? []}
               />
             </>

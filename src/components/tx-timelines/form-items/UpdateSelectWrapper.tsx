@@ -1,19 +1,18 @@
 import { AuditOutlined, BookOutlined, FormOutlined, MinusOutlined, UndoOutlined, WarningOutlined } from '@ant-design/icons';
 import { Switch } from 'antd';
-import { UsedFlags } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { neverHasManager } from '../../../bitbadges-api/utils/manager';
+import { getDetailsForCollectionPermission } from '../../../bitbadges-api/utils/permissions';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { compareObjects } from '../../../utils/compare';
-import { PermissionDisplay, getPermissionDetails } from '../../collection-page/PermissionsInfo';
+import { PermissionDisplayTable, PermissionNameString } from '../../collection-page/PermissionsInfo';
 import { ErrDisplay } from '../../common/ErrDisplay';
 import IconButton from '../../display/IconButton';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
-import { getCastFunctionsAndUsedFlags } from './BeforeAfterPermission';
-import { JSONSetter } from './CustomJSONSetter';
+import { getPermissionVariablesFromName } from './BeforeAfterPermission';
 import { SwitchForm } from './SwitchForm';
 
 export function UpdateSelectWrapper({
@@ -26,8 +25,6 @@ export function UpdateSelectWrapper({
   nonMintOnly,
   disableJson,
   disableUndo,
-  customValue,
-  customSetValueFunction,
   customRevertFunction,
   onlyShowJson = false,
   err,
@@ -39,13 +36,11 @@ export function UpdateSelectWrapper({
   updateFlag: boolean,
   node: () => JSX.Element,
   jsonPropertyPath: string,
-  permissionName: string,
+  permissionName?: PermissionNameString,
   mintOnly?: boolean,
   disableUndo?: boolean,
   nonMintOnly?: boolean,
   disableJson?: boolean,
-  customValue?: any,
-  customSetValueFunction?: (val: any) => void,
   customRevertFunction?: () => void,
   onlyShowJson?: boolean,
   err: Error | null,
@@ -62,23 +57,19 @@ export function UpdateSelectWrapper({
 
   const [customJson, setCustomJson] = useState<boolean>(onlyShowJson);
   const [showPermission, setShowPermission] = useState<boolean>(false);
-  const [jsonErr, setJsonErr] = useState<Error | null>(null);
 
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
-  const { castFunction, flags, question, validateFunction } = getCastFunctionsAndUsedFlags(permissionName);
+  const { question, validateFunction } = permissionName ? getPermissionVariablesFromName(permissionName) : { question: '', validateFunction: undefined };
+
+
+  const nonStandardUpdateSelect = jsonPropertyPath === "defaultUserIncomingApprovals" || !jsonPropertyPath
 
   const prevPermissions = startingCollection?.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions]
   const noManager = collection ? neverHasManager(collection) : true;
-  const permissionDataSource = jsonPropertyPath === "defaultUserIncomingApprovals" ? undefined : getPermissionDetails(
-    castFunction(prevPermissions ?? []),
-    flags as any,
-    noManager
-  );
-
+  const permissionDataSource = nonStandardUpdateSelect ? undefined : getDetailsForCollectionPermission(startingCollection, permissionName as PermissionNameString); //Cast bc we only use when path is "defaultUserIncomingApprovals"
   const currValue = collection ? collection[jsonPropertyPath as keyof typeof collection] : undefined;
   const startingValue = startingCollection ? startingCollection[jsonPropertyPath as keyof typeof startingCollection] : undefined;
-
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: update select wrapper: ', jsonPropertyPath);
@@ -87,7 +78,6 @@ export function UpdateSelectWrapper({
       validateErr = validateFunction(startingValue, currValue, prevPermissions);
       setErr(validateErr);
     }
-
   }, [currValue, startingValue, prevPermissions, permissionName, jsonPropertyPath, setErr, validateFunction])
 
   useEffect(() => {
@@ -101,7 +91,7 @@ export function UpdateSelectWrapper({
     <>
       <div className='primary-text flex-center flex-column' >
         <div style={{ alignItems: 'center' }} className='flex-center flex-wrap full-width'>
-          {!!existingCollectionId && updateFlag && jsonPropertyPath !== "defaultUserIncomingApprovals" &&
+          {!!existingCollectionId && updateFlag && nonStandardUpdateSelect &&
             <IconButton
               src={showPermission ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
               style={{ cursor: 'pointer' }}
@@ -112,16 +102,6 @@ export function UpdateSelectWrapper({
               }}
             />
           }
-          {/* {updateFlag && !customJson && !disableJson && !onlyShowJson &&
-            <IconButton
-              src={<CodeOutlined style={{ fontSize: 16 }} />}
-              style={{ cursor: 'pointer' }}
-              tooltipMessage={'Custom JSON (Advanced Option)'}
-              text={'JSON'}
-              onClick={() => {
-                setCustomJson(true);
-              }}
-            />} */}
           {updateFlag && !!advancedNode &&
             <IconButton
               src={<FormOutlined style={{ fontSize: 16 }} />}
@@ -185,7 +165,6 @@ export function UpdateSelectWrapper({
             <Switch
               checkedChildren="Update"
               unCheckedChildren="Do not update"
-              style={{  }}
               checked={updateFlag}
               onChange={(e) => {
                 setUpdateFlag(e);
@@ -195,7 +174,7 @@ export function UpdateSelectWrapper({
             <br />
           </div>}
         {(permissionDataSource?.hasForbiddenTimes) && updateFlag && !(err) &&
-          <div className='' style={{ textAlign: 'center' }}>
+          <div className='secondary-text' style={{ textAlign: 'center' }}>
             <br />
             {<>
               <WarningOutlined style={{ color: '#FF5733', fontSize: 16, marginRight: 4 }} />
@@ -215,9 +194,9 @@ export function UpdateSelectWrapper({
               title: 'Do Not Update',
               message: `This value will remain as previously set.
                   ${!existingCollectionId && permissionName != 'canUpdateManager'
-                  && jsonPropertyPath !== "defaultUserIncomingApprovals" ? ' For new collections, this means the value will be empty or unset.' : ''}
+                  && nonStandardUpdateSelect ? ' For new collections, this means the value will be empty or unset.' : ''}
                   ${!existingCollectionId && permissionName == 'canUpdateManager' ? ' For new collections, this means the manager will be set to your address by default.' : ''}
-                  ${existingCollectionId && permissionName == 'defaultUserIncomingApprovals' ? ' This means that users will have to opt-in to all incoming transfers by default.' : ''}
+                  ${existingCollectionId && nonStandardUpdateSelect ? ' This means that users will have to opt-in to all incoming transfers by default.' : ''}
                   `,
               isSelected: true,
             },
@@ -229,11 +208,11 @@ export function UpdateSelectWrapper({
       }
 
       {
-        showPermission && jsonPropertyPath !== "defaultUserIncomingApprovals" ? <>
+        showPermission && nonStandardUpdateSelect ? <>
           <InformationDisplayCard title={question}>
-            <PermissionDisplay
-              permissions={castFunction(prevPermissions ?? [])}
-              usedFlags={flags as UsedFlags}
+            <PermissionDisplayTable
+              permissions={prevPermissions ?? []}
+              permissionName={permissionName as PermissionNameString} //Cast bc we only use when path is "defaultUserIncomingApprovals"
               neverHasManager={noManager}
               mintOnly={mintOnly}
               nonMintOnly={nonMintOnly}
@@ -250,18 +229,6 @@ export function UpdateSelectWrapper({
       {
         updateFlag && !customJson && showAdvanced && <>
           {advancedNode?.()}
-        </>
-      }
-      {
-        updateFlag && customJson && <>
-          <JSONSetter
-            setErr={setJsonErr}
-            jsonPropertyPath={jsonPropertyPath}
-            customValue={customValue}
-            customSetValueFunction={customSetValueFunction}
-          />
-          <br />
-          {jsonErr && <ErrDisplay err={jsonErr} />}
         </>
       }
     </>

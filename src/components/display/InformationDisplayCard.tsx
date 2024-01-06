@@ -19,7 +19,7 @@ export function InformationDisplayCard({
   xxl,
 
 }: {
-  title: string | React.ReactNode
+  title?: string | React.ReactNode
   subtitle?: string | React.ReactNode
   children?: React.ReactNode
   noPadding?: boolean,

@@ -13,7 +13,6 @@ import {
   signatureToWeb3Extension,
 } from "bitbadgesjs-proto"
 import { Numberify, convertToCosmosAddress } from "bitbadgesjs-utils"
-import { PresetUri } from "blockin"
 import { ethers } from "ethers"
 import {
   Dispatch,
@@ -42,13 +41,8 @@ export type EthereumContextType = ChainSpecificContextType & {
 
 export const EthereumContext = createContext<EthereumContextType>({
   address: "",
-  setAddress: () => {},
-  cosmosAddress: "",
-  setCosmosAddress: () => {},
   connect: async () => {},
   disconnect: async () => {},
-  chainId: "Mainnet",
-  setChainId: () => {},
   signChallenge: async () => {
     return { message: "", signature: "" }
   },
@@ -56,8 +50,6 @@ export const EthereumContext = createContext<EthereumContextType>({
     return ""
   },
   signTxn: async () => {},
-  ownedAssetIds: [],
-  displayedResources: [],
   selectedChainInfo: {},
   connected: false,
   setConnected: () => {},
@@ -74,7 +66,6 @@ type Props = {
 }
 
 export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
-  const [chainId, setChainId] = useState<string>("Mainnet")
   const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>()
   const [cookies, setCookies] = useCookies(["blockincookie", "pub_key"])
   const [loggedIn, setLoggedIn] = useState<boolean>(false)
@@ -88,10 +79,6 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const account = useAccount(cosmosAddress)
 
   const selectedChainInfo = {}
-  const displayedResources: PresetUri[] = [] //This can be dynamic based on Chain ID if you want to give different token addresses for different Chain IDs
-
-  //If you would like to support this, you can call this with a useEffect every time connected or address is updated
-  const ownedAssetIds: string[] = []
 
   const connect = async () => {
     await connectAndPopulate(
@@ -246,19 +233,12 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const ethereumContext: EthereumContextType = {
     connected,
     setConnected,
-    chainId,
-    setChainId,
     connect,
     disconnect,
-    ownedAssetIds,
     selectedChainInfo,
-    displayedResources,
     signChallenge,
     signTxn,
-    cosmosAddress,
-    setCosmosAddress: () => {},
     address,
-    setAddress: () => {},
     signer,
     setSigner,
     getPublicKey,

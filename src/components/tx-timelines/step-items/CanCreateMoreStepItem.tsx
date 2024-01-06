@@ -1,33 +1,24 @@
 import { Divider } from "antd"
 import { BalancesActionPermission } from "bitbadgesjs-proto"
-import {
-  BalancesActionPermissionUsedFlags,
-  castBalancesActionPermissionToUniversalPermission,
-} from "bitbadgesjs-utils"
 import { useCallback, useState } from "react"
 
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
 import {
   EmptyStepItem,
   NEW_COLLECTION_ID,
 } from "../../../bitbadges-api/contexts/TxTimelineContext"
 import {
   updateCollection,
-  useCollection,
+  useCollection
 } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
-import { neverHasManager } from "../../../bitbadges-api/utils/manager"
+import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions"
 import { GO_MAX_UINT_64 } from "../../../utils/dates"
 import {
-  PermissionsOverview,
-  getPermissionDetails,
+  PermissionsOverview
 } from "../../collection-page/PermissionsInfo"
 import { DevMode } from "../../common/DevMode"
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper"
 import { SwitchForm } from "../form-items/SwitchForm"
-import {
-  isCompletelyForbidden,
-  isCompletelyNeutralOrCompletelyPermitted,
-} from "./CanUpdateOffChainBalancesStepItem"
 
 const EverythingElsePermanentlyPermittedPermission: BalancesActionPermission<bigint> =
 {
@@ -85,32 +76,10 @@ export function CanCreateMoreStepItem() {
 
   if (!collection) return EmptyStepItem
 
-  const noManager = neverHasManager(collection)
 
-  const permissionDetails = getPermissionDetails(
-    castBalancesActionPermissionToUniversalPermission(
-      collection?.collectionPermissions.canCreateMoreBadges ?? []
-    ),
-    BalancesActionPermissionUsedFlags,
-    noManager
-  )
-
-  const currentlyMintedPermissionDetails = getPermissionDetails(
-    castBalancesActionPermissionToUniversalPermission(
-      collection?.collectionPermissions.canCreateMoreBadges ?? []
-    ),
-    BalancesActionPermissionUsedFlags,
-    noManager,
-    [{ start: 1n, end: maxBadgeId }]
-  )
-  const allUnmintedPermissionDetails = getPermissionDetails(
-    castBalancesActionPermissionToUniversalPermission(
-      collection?.collectionPermissions.canCreateMoreBadges ?? []
-    ),
-    BalancesActionPermissionUsedFlags,
-    noManager,
-    [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }]
-  )
+  const permissionDetails = getDetailsForCollectionPermission(collection, "canCreateMoreBadges")
+  const currentlyMintedPermissionDetails = getDetailsForCollectionPermission(collection, "canCreateMoreBadges", [{ start: 1n, end: maxBadgeId }])
+  const allUnmintedPermissionDetails = getDetailsForCollectionPermission(collection, "canCreateMoreBadges", [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }])
 
   const AdditionalNode = () => {
     return (
@@ -129,17 +98,16 @@ export function CanCreateMoreStepItem() {
     )
   }
 
-  const completelyFrozen = isCompletelyForbidden(permissionDetails)
+  const completelyFrozen = permissionDetails.isAlwaysFrozenAndForbidden
 
-  const selectedIdx = completelyFrozen
-    ? 0
-    : isCompletelyForbidden(currentlyMintedPermissionDetails) &&
-      isCompletelyNeutralOrCompletelyPermitted(allUnmintedPermissionDetails)
+  const selectedIdx = completelyFrozen ? 0
+    : currentlyMintedPermissionDetails.isAlwaysFrozenAndForbidden &&
+      allUnmintedPermissionDetails.isAlwaysPermittedOrNeutral
       ? 1
-      : isCompletelyForbidden(allUnmintedPermissionDetails) &&
-        isCompletelyNeutralOrCompletelyPermitted(currentlyMintedPermissionDetails)
+      : allUnmintedPermissionDetails.isAlwaysFrozenAndForbidden &&
+        currentlyMintedPermissionDetails.isAlwaysPermittedOrNeutral
         ? 2
-        : isCompletelyNeutralOrCompletelyPermitted(permissionDetails)
+        : permissionDetails.isAlwaysPermittedOrNeutral
           ? 3
           : -1
 
@@ -170,10 +138,8 @@ export function CanCreateMoreStepItem() {
                   //all are forbidden explicitly for the currently minted badges
                   isSelected:
                     !completelyFrozen &&
-                    isCompletelyForbidden(currentlyMintedPermissionDetails) &&
-                    isCompletelyNeutralOrCompletelyPermitted(
-                      allUnmintedPermissionDetails
-                    ),
+                    currentlyMintedPermissionDetails.isAlwaysFrozenAndForbidden &&
+                    allUnmintedPermissionDetails.isAlwaysPermittedOrNeutral,
                   additionalNode: () => <AdditionalNode />,
                 },
                 {
@@ -182,17 +148,15 @@ export function CanCreateMoreStepItem() {
                   //all are forbidden explicitly for all future badges
                   isSelected:
                     !completelyFrozen &&
-                    isCompletelyForbidden(allUnmintedPermissionDetails) &&
-                    isCompletelyNeutralOrCompletelyPermitted(
-                      currentlyMintedPermissionDetails
-                    ),
+                    allUnmintedPermissionDetails.isAlwaysFrozenAndForbidden &&
+                    currentlyMintedPermissionDetails.isAlwaysPermittedOrNeutral,
                   additionalNode: () => <AdditionalNode />,
                 },
                 {
                   title: "Any",
                   message: `In the future, new unique badges (i.e. badges with new IDs) can be added, and the supply of existing badges can be increased.`,
                   isSelected:
-                    isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
+                    permissionDetails.isAlwaysPermittedOrNeutral,
                   additionalNode: () => <AdditionalNode />,
                 },
               ]}

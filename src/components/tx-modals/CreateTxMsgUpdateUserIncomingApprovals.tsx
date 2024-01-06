@@ -3,12 +3,12 @@ import { UserIncomingApprovalWithDetails } from 'bitbadgesjs-utils';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
+import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { UserApprovalsTab } from '../collection-page/ApprovalsTab';
-import { TxModal } from './TxModal';
+import { EditableUserApprovalsTab } from '../collection-page/transferability/ApprovalsTab';
 import { UpdateSelectWrapper } from '../tx-timelines/form-items/UpdateSelectWrapper';
-import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { TxModal } from './TxModal';
 
 export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visible, setVisible, children }: {
   collectionId: bigint,
@@ -40,15 +40,13 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
         updateFlag={true}
         setUpdateFlag={() => { }}
         jsonPropertyPath='defaultUserIncomingApprovals'
-        permissionName='canUpdateDefaultUserIncomingApprovals'
         customRevertFunction={() => {
           setNewIncomingApprovals(collection?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.incomingApprovals ?? []);
         }}
         advancedNode={() => <>
           <div className='flex-center flex-wrap' style={{ textAlign: 'center', }}>
-            <UserApprovalsTab
+            <EditableUserApprovalsTab
               collectionId={collectionId}
-              isIncomingApprovalEdit
               advancedMode
               setUserIncomingApprovals={async (newApprovals) => {
                 setNewIncomingApprovals(newApprovals);
@@ -59,10 +57,8 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
         </>}
         node={() => <>
           <div className='flex-center flex-wrap' style={{ textAlign: 'center', }}>
-            <UserApprovalsTab
+            <EditableUserApprovalsTab
               collectionId={collectionId}
-              isIncomingApprovalEdit
-              normalMode
               setUserIncomingApprovals={async (newApprovals) => {
                 setNewIncomingApprovals(newApprovals);
               }}
@@ -71,10 +67,6 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
           </div>
         </>}
       />
-
-
-
-
     },
   ];
 

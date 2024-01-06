@@ -1,7 +1,7 @@
 import { WarningOutlined } from "@ant-design/icons";
 import { Switch } from "antd";
 import { ReactNode } from "react";
-import { BalanceDisplay } from "../../badges/BalanceDisplay";
+import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { TableRow } from "../../display/TableRow";
 import { NumberInput } from "../../inputs/NumberInput";
 import { RequiredApprovalProps } from "../ApprovalSelect";
@@ -37,17 +37,17 @@ export const ApprovalAmounts = ({ label, disabled, type, approvalToAdd, setAppro
     }
   }
 
-  return <> <TableRow labelSpan={16} valueSpan={8} label={label} value={<>
-    <Switch
-      checked={approvedAmount > 0n}
-      onChange={(checked) => {
-        setApprovedAmount(checked ? 1n : 0n);
-      }}
-      disabled={disabled}
-    />
+  return <>
+    <TableRow labelSpan={16} valueSpan={8} label={label} value={<>
+      <Switch
+        checked={approvedAmount > 0n}
+        onChange={(checked) => {
+          setApprovedAmount(checked ? 1n : 0n);
+        }}
+        disabled={disabled}
+      />
 
-  </>
-  } />
+    </>} />
     {approvedAmount > 0n && <div style={{ justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
       <NumberInput
 

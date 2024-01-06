@@ -6,7 +6,6 @@ import { defaultApprovedOption } from '../../components/tx-timelines/step-items/
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressMappings } from '../api';
-import { getMintApprovals, getNonMintApprovals } from '../utils/mintVsNonMint';
 import { useChainContext } from './ChainContext';
 import { fetchAccounts } from './accounts/AccountsContext';
 import { fetchCollectionsWithOptions, setCollection, updateCollection, useCollection } from './collections/CollectionsContext';
@@ -270,10 +269,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: update collection timeline, existing collection changed');
     if (!startingCollection) return [];
 
-    //Slot it right in the middle [existing "Mint", toAdd, non-"Mint"]
-    const existingFromMint = getMintApprovals(startingCollection);
-    const existingNonMint = getNonMintApprovals(startingCollection);
-    const defaultApprovalsToAdd = [...existingFromMint, ...existingNonMint];
+    const defaultApprovalsToAdd = [...deepCopy(startingCollection.collectionApprovals)];
 
     updateCollection({
       collectionId: NEW_COLLECTION_ID,
@@ -319,7 +315,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     resetCollectionApprovals();
   }
 
-  //Initial fetch of the address mapping we are updating if it exists
+  //Initial fetch of the address mapping we are updating an existing one
   useEffect(() => {
     async function getAddressMapping() {
       if (INFINITE_LOOP_MODE) console.log('useEffect: address mapping, initial load');
@@ -442,8 +438,8 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         collectionId: 0n
       }
 
+      //TODO: This infinite loops if connected account is not manager of collection bc createdBy is different
       if (!startingCollection || chain.cosmosAddress != startingCollection.createdBy) {
-        //wait three seconds 
         const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await fetchCollectionsWithOptions(
           [{
             collectionId: existingCollectionId, viewsToFetch: [],
@@ -454,18 +450,14 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         let existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
 
         if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
-
           await fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager), existingCollection.aliasAddress]);
         }
 
         startingCollectionDefault = {
           ...startingCollectionDefault,
-
-          //Existing collection values
           ...existingCollection,
 
-          //Preview / simulated collection values
-          // _legacyId: "0",
+          //Preview / simulated collection value
           collectionId: 0n
         }
 
@@ -483,8 +475,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     //If badgesToCreate change, we need to update the maxSupplys and unminted supplys field
     //All other updates are handled within CollectionContext
     //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
-
-
+    
     const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
     const postSimulatedCollection = { owners: newOwnersArr, collectionId: NEW_COLLECTION_ID };
     updateCollection(postSimulatedCollection);

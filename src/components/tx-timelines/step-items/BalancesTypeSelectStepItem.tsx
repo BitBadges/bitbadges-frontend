@@ -15,15 +15,12 @@ export function BalanceTypeSelectStepItem() {
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
 
-
   if (!collection || existingCollectionId) return EmptyStepItem;
 
   const StandardOption = {
     title: 'On-Chain',
     message: <>
-
       {`Everything will be facilitated in a decentralized manner on the blockchain. Every transfer requires a blockchain transaction that satisifies the approval requirements for the collection, sender, and recipient.`}
-
     </>,
     isSelected: collection?.balancesType === "Standard",
   }
@@ -89,12 +86,8 @@ export function BalanceTypeSelectStepItem() {
           </div>
         </div>
       </div>}
-
     </div>
   }
-
-
-
 
   const options = [
     OffChainBalancesStep,

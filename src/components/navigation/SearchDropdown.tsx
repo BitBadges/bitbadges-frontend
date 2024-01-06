@@ -1,6 +1,6 @@
 
-import { Avatar, Menu, Spin, Typography } from 'antd';
-import { BitBadgesUserInfo, DefaultPlaceholderMetadata, GetSearchRouteSuccessResponse, getAbbreviatedAddress, getMetadataForBadgeId, isAddressValid } from 'bitbadgesjs-utils';
+import { Menu, Spin, Typography } from 'antd';
+import { BitBadgesUserInfo, GetSearchRouteSuccessResponse, getAbbreviatedAddress, getMetadataForBadgeId, isAddressValid } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
 
@@ -9,6 +9,7 @@ import { updateAccounts, useAccount } from '../../bitbadges-api/contexts/account
 import { updateCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { BadgeAvatar } from '../badges/BadgeAvatar';
 
 export function SearchDropdown({
   searchValue,
@@ -54,6 +55,7 @@ export function SearchDropdown({
       });
 
       if (specificCollectionId) {
+        //It returns the requested collection but we just want to display the badges
         result.collections = [];
       }
 
@@ -122,7 +124,6 @@ export function SearchDropdown({
                     addressOrUsername={searchValue}
                     hidePortfolioLink
                     hideTooltip
-                  // fontColor={'black'}
                   />
                 </div>
               </div>
@@ -142,7 +143,6 @@ export function SearchDropdown({
                     addressOrUsername={result.address}
                     hidePortfolioLink
                     hideTooltip
-                  // fontColor={'black'}
                   />
                 </div>
               </div>
@@ -153,6 +153,7 @@ export function SearchDropdown({
       {loading && <Menu.Item className='dropdown-item' disabled style={{ cursor: 'disabled' }}>
         <Spin size={'large'} />
       </Menu.Item>}
+
       {/* Collection Results */}
       {
         !onlyAddresses && !onlyLists && !specificCollectionId && <>
@@ -170,7 +171,7 @@ export function SearchDropdown({
               }}>
                 <div className='flex-between primary-text'>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
-                    <Avatar src={result.cachedCollectionMetadata?.image?.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                    <BadgeAvatar size={35} collectionId={result.collectionId} />
                     {result.cachedCollectionMetadata?.name}
                   </div>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
@@ -205,8 +206,6 @@ export function SearchDropdown({
                   }
 
                   const hasMoreThanThree = idRange.end - idRange.start > 3n;
-
-
                   return <>
 
                     {ids.map((id, idx) => {
@@ -217,7 +216,7 @@ export function SearchDropdown({
                       }}>
                         <div className='flex-between primary-text'>
                           <div className='flex-center' style={{ alignItems: 'center' }}>
-                            <Avatar src={metadata?.image?.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                            <BadgeAvatar size={35} collectionId={collection.collectionId} badgeId={id} />
                             {metadata?.name}
                           </div>
                           <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>
@@ -230,7 +229,7 @@ export function SearchDropdown({
                     })}
                     {hasMoreThanThree &&
                       <>This collection (ID {collection.collectionId.toString()}) has {(idRange.end - idRange.start - 3n).toString()} more badges that match the search criteria...
-                        <hr color='grey' style={{}} />
+                        <hr color='grey' />
                       </>
                     }
                   </>
@@ -263,7 +262,7 @@ export function SearchDropdown({
               }}>
                 <div className='flex-between primary-text'>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
-                    <Avatar src={result.metadata?.image?.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/') ?? DefaultPlaceholderMetadata.image} style={{ marginRight: 8 }} />
+                    <BadgeAvatar size={35} collectionId={0n} metadataOverride={result.metadata} />
                     {result.metadata?.name}
                   </div>
                   <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>

@@ -10,7 +10,7 @@ import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { ErrDisplay } from "../../common/ErrDisplay";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { getBadgesWithUnlockedSupply } from "./CanUpdateMetadata";
+import { getBadgesWithUnlockedSupply } from "../../../bitbadges-api/utils/badges";
 
 const EverythingElsePermanentlyPermittedPermission: CollectionApprovalPermissionWithDetails<bigint> = {
   fromMapping: getReservedAddressMapping("All"),
@@ -130,7 +130,7 @@ export function FreezeSelectStepItem() {
   }
 
   if (!collection) return EmptyStepItem;
-  const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true); //Get badge IDs that will have unlocked supply moving forward
+  const badgesIdsWithUnlockedSupply = getBadgesWithUnlockedSupply(collection, undefined, true, 'always'); //Get badge IDs that will have unlocked supply moving forward
 
   const AdditionalNode = ({ idx }: { idx: number }) => {
     return <>

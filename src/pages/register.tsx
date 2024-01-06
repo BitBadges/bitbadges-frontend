@@ -24,7 +24,6 @@ function RegisterScreen({ message }: { message?: string }) {
       }}
     >
       <div>
-
         <DisconnectedWrapper
           message='Please connect a wallet and sign in to claim your airdrop.'
           requireLogin

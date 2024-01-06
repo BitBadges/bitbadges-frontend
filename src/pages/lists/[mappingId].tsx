@@ -331,7 +331,7 @@ function AddressMappingPage() {
           <Modal
             title={<div className='primary-text inherit-bg'><b>{'Generate URL / QR Code'}</b></div>}
             open={modalIsVisible}
-            style={{}}
+
             footer={null}
             closeIcon={<div className='primary-text inherit-bg'>{<CloseOutlined />}</div>}
             bodyStyle={{

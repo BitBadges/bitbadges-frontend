@@ -30,7 +30,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
   const accountInfo = useAccount(addressOrUsername as string);
 
   const chain = useChainContext();
-  
+
   const [followDetails, setFollowDetails] = useState<GetFollowDetailsRouteSuccessResponse<bigint>>()
 
   const [loading, setLoading] = useState(false);
@@ -105,7 +105,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
       {loading && <Spin size='large' />}
       <div className='flex-center'>
 
-        {!loading && <InformationDisplayCard title={<div className='flex-center'>BitBadges Follow Protocol <BadgeAvatar collectionId={1n} badgeId={15n} /></div>} md={8} xs={24} sm={24} style={{}} subtitle={'Follow users by sending them follow badges.'}>
+        {!loading && <InformationDisplayCard title={<div className='flex-center'>BitBadges Follow Protocol <BadgeAvatar collectionId={1n} badgeId={15n} /></div>} md={8} xs={24} sm={24} subtitle={'Follow users by sending them follow badges.'}>
           <br />
 
           <div className='flex-center'>
@@ -251,9 +251,9 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                       }],
                     }, BigIntify)}
                     isBitBadgesFollowProtocol
-                    // afterTx={async (collectionId: bigint) => {
-                    //   // await updateFollowDetails({ followingCollectionId: collectionId });
-                    // }}
+                  // afterTx={async (collectionId: bigint) => {
+                  //   // await updateFollowDetails({ followingCollectionId: collectionId });
+                  // }}
                   />
                 </>
               </>}

@@ -1,14 +1,12 @@
-import { TimedUpdatePermissionUsedFlags, castTimedUpdatePermissionToUniversalPermission } from "bitbadgesjs-utils";
 import { useState } from "react";
 
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { PermissionsOverview, getPermissionDetails } from "../../collection-page/PermissionsInfo";
+import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
-import { isCompletelyNeutralOrCompletelyPermitted, isCompletelyForbidden } from "./CanUpdateOffChainBalancesStepItem";
-import { neverHasManager } from "../../../bitbadges-api/utils/manager";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 
 export function CanManagerBeTransferredStepItem() {
 
@@ -41,7 +39,7 @@ export function CanManagerBeTransferredStepItem() {
     });
   }
 
-  const permissionDetails = getPermissionDetails(castTimedUpdatePermissionToUniversalPermission(collection?.collectionPermissions.canUpdateManager ?? []), TimedUpdatePermissionUsedFlags, neverHasManager(collection));
+  const permissionDetails = getDetailsForCollectionPermission(collection, "canUpdateManager");
   const AdditionalNode = () => <>
     <div className="flex-center">
       <PermissionsOverview
@@ -71,21 +69,18 @@ export function CanManagerBeTransferredStepItem() {
             {
               title: 'No',
               message: `The role of the manager cannot be transferred to another address.`,
-              isSelected: isCompletelyForbidden(permissionDetails),
+              isSelected: permissionDetails.isAlwaysFrozenAndForbidden,
               additionalNode: AdditionalNode
             },
             {
               title: 'Yes',
               message: `The role of the manager can be transferred to another address.`,
-              isSelected: isCompletelyNeutralOrCompletelyPermitted(permissionDetails),
+              isSelected: permissionDetails.isAlwaysPermittedOrNeutral,
               additionalNode: AdditionalNode,
             },
           ]}
           onSwitchChange={handleSwitchChangeIdxOnly}
         />
-
-        <br />
-        <br />
       </>
       }
     />,

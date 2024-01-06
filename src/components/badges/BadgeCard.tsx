@@ -1,4 +1,4 @@
-import { Card, Tooltip } from "antd"
+import { Card, Tooltip, notification } from "antd"
 import Meta from "antd/lib/card/Meta"
 import {
   DefaultPlaceholderMetadata,
@@ -14,6 +14,7 @@ import { useCollection } from "../../bitbadges-api/contexts/collections/Collecti
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
 import { getTimeRangesString } from "../../utils/dates"
 import { BadgeAvatar } from "./BadgeAvatar"
+import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext"
 
 export function BadgeCard({
   size = 100,
@@ -41,25 +42,21 @@ export function BadgeCard({
   //Calculate total, undistributed, claimable, and distributed supplys
 
   const maxBadgeId = collection ? getMaxBadgeIdForCollection(collection) : 0n
-  const metadata =
-    badgeId > maxBadgeId
-      ? DefaultPlaceholderMetadata
-      : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])
+  const metadata = badgeId > maxBadgeId ? DefaultPlaceholderMetadata
+    : getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])
 
   const collectionMetadata = collection?.cachedCollectionMetadata
-
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n
   const showOwnershipTimesIcon =
     badgeId && balances && showSupplys
       ? balances.some((x) => !isFullUintRanges(x.ownershipTimes))
       : false
 
-  const isMobile = window.innerWidth < 768
 
+  const isMobile = window.innerWidth < 768
   const oneVW = window.innerWidth / 100
   const withinCard = groupedByCollection && isMobile ? 32 : 0
   const maxWidth = isMobile ? (window.innerWidth - 32 - 4 * (oneVW * 4) - withinCard) / 2 : 200
-
 
   return (
     <Card
@@ -73,6 +70,13 @@ export function BadgeCard({
       }}
       hoverable={hoverable ? hoverable : true}
       onClick={() => {
+        if (collectionId == NEW_COLLECTION_ID) {
+          notification.info({
+            message: "Navigating to a preview badge is not supported.",
+            description: 'You will be able to see a preview of the pages on the last step of this form.',
+          })
+          return
+        }
         router.push(`/collections/${collectionId}/${badgeId}`)
       }}
       cover={
@@ -113,6 +117,13 @@ export function BadgeCard({
                     whiteSpace: "normal",
                   }}
                   onClick={(e) => {
+                    if (collectionId == NEW_COLLECTION_ID) {
+                      notification.info({
+                        message: "Navigating to a preview collection is not supported.",
+                        description: 'You will be able to see a preview of the pages on the last step of this form.',
+                      })
+                      return
+                    }
                     router.push(`/collections/${collectionId}`)
                     e.stopPropagation()
                   }}

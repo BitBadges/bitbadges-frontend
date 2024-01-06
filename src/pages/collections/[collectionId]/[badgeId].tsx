@@ -1,5 +1,5 @@
-import { Col, Divider, Layout, Row } from 'antd';
-import { BitBadgesCollection, TransferActivityDoc, getCurrentValuesForCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { Col, Divider, Empty, Layout, Row } from 'antd';
+import { TransferActivityDoc, getCurrentValuesForCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeActivity } from '../../../bitbadges-api/api';
@@ -11,21 +11,22 @@ import { ActionsTab } from '../../../components/collection-page/ActionsTab';
 import { BalanceChecker, SpecificBadgeOwnersTab } from '../../../components/collection-page/OwnersTab';
 import { PermissionsOverview } from '../../../components/collection-page/PermissionsInfo';
 import { ActivityTab } from '../../../components/collection-page/TransferActivityDisplay';
-import { TransferabilityTab } from '../../../components/collection-page/TransferabilityTab';
+import { TransferabilityTab } from '../../../components/collection-page/transferability/TransferabilityTab';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 
 import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { fetchAccounts } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchAndUpdateMetadata, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { OffChainTransferabilityTab } from '../../../components/collection-page/OffChainTransferabilityTab';
+import { OffChainTransferabilityTab } from '../../../components/collection-page/transferability/OffChainTransferabilityTab';
 import { ReportedWrapper } from '../../../components/wrappers/ReportedWrapper';
 
 const { Content } = Layout;
 
-export function BadgePage({ collectionPreview }
+export function BadgePage({ collectionPreview, badgeIdOverride }
   : {
-    collectionPreview?: BitBadgesCollection<bigint>
+    collectionPreview?: boolean
+    badgeIdOverride?: bigint
   }) {
   const router = useRouter()
 
@@ -39,9 +40,9 @@ export function BadgePage({ collectionPreview }
   const isPreview = collectionPreview ? true : false;
 
   const collectionIdNumber = collectionId ? BigInt(collectionId as string) : isPreview ? NEW_COLLECTION_ID : -1n;
-  const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : -1n;
+  const badgeIdNumber = badgeId && !isPreview ? BigInt(badgeId as string) : badgeIdOverride ? badgeIdOverride : -1n;
 
-  const collection = useCollection(isPreview ? undefined : collectionIdNumber);
+  const collection = useCollection(collectionIdNumber);
   const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.cachedBadgeMetadata) : undefined;
   const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
 
@@ -60,7 +61,6 @@ export function BadgePage({ collectionPreview }
     fetchAccounts([collection.createdBy, ...managers]);
   }, [collection, isPreview]);
 
-  // const isOffChainBalances = collection && collection.balancesType == "Off-Chain - Indexed" ? true : false;
   const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
 
   let tabInfo = []
@@ -95,23 +95,27 @@ export function BadgePage({ collectionPreview }
               paddingTop: '20px',
             }}
           >
-
-
             {metadata && <CollectionHeader collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
 
             <Tabs tab={tab} tabInfo={tabInfo} setTab={setTab} theme="dark" fullWidth />
-
+            {isPreview && (tab === 'owners' || tab == 'history' || tab === 'actions' || tab === 'activity' || tab === 'announcements' || tab === 'reputation' || tab == 'approvals') && <Empty
+              className='primary-text'
+              description={
+                "This tab is not supported for previews."
+              }
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />}
             {tab === 'transferability' && (
               <>{collection?.balancesType == 'Off-Chain - Indexed' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
-              </>)}
+              </>)
+            }
 
-            {tab === 'owners' && collection && (<>
+            {tab === 'owners' && !isPreview && collection && (<>
               <SpecificBadgeOwnersTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />
             </>)}
 
             {tab === 'overview' && (<>
               <br />
-
 
               {collection &&
                 <div className='flex-center'>
@@ -163,7 +167,7 @@ export function BadgePage({ collectionPreview }
             </>
             )}
 
-            {tab === 'activity' && collection && (<>
+            {tab === 'activity' && !isPreview && collection && (<>
               <br />
               <ActivityTab
                 activity={activity}
@@ -180,7 +184,7 @@ export function BadgePage({ collectionPreview }
             </>
             )}
 
-            {tab === 'actions' && (<>
+            {tab === 'actions' && !isPreview && (<>
               <ActionsTab collectionId={collectionIdNumber} badgeView />
             </>
             )}

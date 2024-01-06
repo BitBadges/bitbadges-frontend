@@ -1,10 +1,12 @@
 import {
   InfoCircleOutlined
 } from "@ant-design/icons"
-import { Button, Input } from "antd"
+import { Button, Input, Switch } from "antd"
 import { UintRange } from "bitbadgesjs-proto"
 import {
+  checkIfUintRangesOverlap,
   getMaxBadgeIdForCollection,
+  isFullUintRanges,
   removeUintRangeFromUintRange,
   sortUintRangesAndMergeIfNecessary
 } from "bitbadgesjs-utils"
@@ -12,6 +14,51 @@ import { useState } from "react"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay"
+
+
+export const BadgeIDSelectWithSwitch = ({ message, hideBadges, disabled, collectionId, uintRanges, setUintRanges }: { message?: string, hideBadges?: boolean, disabled?: boolean, collectionId: bigint, uintRanges: UintRange<bigint>[], setUintRanges: (uintRanges: UintRange<bigint>[]) => void }) => {
+  return <>
+    <div className="flex-center flex-column full-width" style={{ textAlign: 'center' }}>
+
+      <Switch
+        checked={isFullUintRanges(uintRanges)}
+        disabled={disabled}
+        checkedChildren="All Badges"
+        unCheckedChildren="Custom"
+        onChange={(checked) => {
+          if (checked) {
+            setUintRanges([{ start: 1n, end: GO_MAX_UINT_64 }],
+            );
+          } else {
+            setUintRanges([]);
+          }
+        }}
+      />
+      <br />
+      {isFullUintRanges(uintRanges) &&
+        <div className="secondary-text">
+          <InfoCircleOutlined />{' '}
+          {isFullUintRanges(uintRanges) && "All IDs are selected, even IDs that may have not been created yet."}
+        </div>}
+      <br />
+      <>
+        {isFullUintRanges(uintRanges) ? <></> : <>
+
+          <BadgeIdRangesInput
+            message={message}
+            uintRangeBounds={[{ start: 1n, end: GO_MAX_UINT_64 }]}
+            collectionId={collectionId}
+            uintRanges={uintRanges}
+            setUintRanges={(uintRanges) => {
+              setUintRanges(uintRanges);
+            }}
+            hideDisplay={hideBadges}
+          />
+        </>}</>
+    </div>
+  </>
+}
+
 
 export function BadgeIdRangesInput({
   uintRanges,
@@ -52,41 +99,23 @@ export function BadgeIdRangesInput({
     return self.findIndex((y) => y.start === x.start && y.end === x.end) === idx
   })
 
-  const totalNumberOfBadges = collection
-    ? getMaxBadgeIdForCollection(collection)
-    : 0n
+  const totalNumberOfBadges = collection ? getMaxBadgeIdForCollection(collection) : 0n
 
-  const [sliderValues, setSliderValues] = useState<[bigint, bigint][]>(
-    uintRanges
-      ? uintRanges.map(({ start, end }) => [start, end])
-      : uintRangeBounds
-        ? uintRangeBounds.map(({ start, end }) => [start, end])
-        : [[minimum ?? 1n, maximum ?? 1n]]
-  )
-  const [inputStr, setInputStr] = useState(
-    uintRanges
-      ? uintRanges.map(({ start, end }) => `${start}-${end}`).join(", ")
-      : uintRangeBounds
-        ? uintRangeBounds
-          .map(({ start, end }) => [start, end])
-          .map(([start, end]) => `${start}-${end}`)
-          .join(", ")
-        : `${minimum ?? 1n}-${maximum ?? 1n}`
+  const [inputStr, setInputStr] = useState(uintRanges
+    ? uintRanges.map(({ start, end }) => `${start}-${end}`).join(", ")
+    : uintRangeBounds
+      ? uintRangeBounds
+        .map(({ start, end }) => [start, end])
+        .map(([start, end]) => `${start}-${end}`)
+        .join(", ")
+      : `${minimum ?? 1n}-${maximum ?? 1n}`
   )
 
   if (maximum && maximum <= 0) {
     return null
   }
 
-  const overlaps = sliderValues.some(([start1, end1], i) => {
-    return sliderValues.some(([start2, end2], j) => {
-      if (i === j) {
-        return false
-      }
-      return start1 <= end2 && start2 <= end1
-    })
-  })
-
+  const overlaps = checkIfUintRangesOverlap(uintRanges);
 
   const [remaining] = removeUintRangeFromUintRange(
     uintRangeBounds ?? [],
@@ -98,19 +127,17 @@ export function BadgeIdRangesInput({
     <>
       {!hideDisplay && (
         <>
-          {sliderValues.length == 0 && (
+          {uintRanges.length == 0 && (
             <div className="flex-center" style={{ color: "red" }}>
               None
             </div>
           )}
-          {sliderValues.length > 0 && (
+          {uintRanges.length > 0 && (
             <div className="flex-center full-width">
-              <div style={{}} className="primary-text full-width">
+              <div className="primary-text full-width">
                 <BadgeAvatarDisplay
                   collectionId={collectionId}
-                  badgeIds={sliderValues.map(([start, end]) => ({
-                    start, end,
-                  }))}
+                  badgeIds={uintRanges}
                   showIds={true}
                 />
               </div>
@@ -137,8 +164,7 @@ export function BadgeIdRangesInput({
                 try {
                   let sliderValues: [bigint, bigint][] = []
 
-                  const splitSliderValues = e.target.value
-                    .split(",")
+                  const splitSliderValues = e.target.value.split(",")
                     .map((x) => x.trim())
                     .filter((x) => x !== "")
                   for (const sliderValue of splitSliderValues) {
@@ -176,7 +202,7 @@ export function BadgeIdRangesInput({
                     }
                   }
 
-                  setSliderValues(sliderValues)
+
                   setUintRanges(
                     sliderValues.map(([start, end]) => ({ start, end }))
                   )
@@ -212,22 +238,11 @@ export function BadgeIdRangesInput({
                         className="styled-icon-button"
                         style={{ margin: 4 }}
                         onClick={() => {
-                          const newSliderValues: [bigint, bigint][] = [
-                            ...sliderValues,
-                            [start, end],
-                          ]
-                          setSliderValues(newSliderValues)
-                          setUintRanges(
-                            newSliderValues.map(([start, end]) => ({
-                              start,
-                              end,
-                            }))
-                          )
-                          setInputStr(
-                            newSliderValues
-                              .map(([start, end]) => `${start}-${end}`)
-                              .join(", ")
-                          )
+                          setUintRanges([
+                            ...uintRanges,
+                            { start, end }
+                          ])
+                          setInputStr(uintRanges.concat({ start, end }).map(({ start, end }) => `${start}-${end}`).join(", "))
                         }}
                       >
                         {start.toString()} - {end.toString()}
@@ -256,18 +271,14 @@ export function BadgeIdRangesInput({
                 className="landing-button"
                 onClick={() => {
                   const newUintRanges = sortUintRangesAndMergeIfNecessary(
-                    sliderValues.map(([start, end]) => ({ start, end })),
+                    uintRanges,
                     true
                   )
-                  setSliderValues(
-                    newUintRanges.map(({ start, end }) => [start, end])
-                  )
                   setUintRanges(newUintRanges)
-                  setInputStr(
-                    newUintRanges
-                      .map(({ start, end }) => [start, end])
-                      .map(([start, end]) => `${start}-${end}`)
-                      .join(", ")
+                  setInputStr(newUintRanges
+                    .map(({ start, end }) => [start, end])
+                    .map(([start, end]) => `${start}-${end}`)
+                    .join(", ")
                   )
                 }}
               >

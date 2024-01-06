@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { SupportedChain } from 'bitbadgesjs-utils';
-import { PresetUri, SupportedChainMetadata } from 'blockin';
+import { SupportedChain, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
+import { useCookies } from 'react-cookie';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { useBitcoinContext } from './chains/BitcoinContext';
 import { useCosmosContext } from './chains/CosmosContext';
 import { useEthereumContext } from './chains/EthereumContext';
 import { useSolanaContext } from './chains/SolanaContext';
-import { useBitcoinContext } from './chains/BitcoinContext';
-import { useCookies } from 'react-cookie';
 
 export type SignChallengeResponse = {
   signature: string
@@ -17,14 +17,12 @@ export type SignChallengeResponse = {
 export type ChainContextType = ChainSpecificContextType & {
   chain: SupportedChain,
   setChain: Dispatch<SetStateAction<SupportedChain>>,
+
+  cosmosAddress: string,
 }
 
 export type ChainSpecificContextType = {
   address: string,
-  setAddress: Dispatch<SetStateAction<string>>,
-
-  cosmosAddress: string,
-  setCosmosAddress: Dispatch<SetStateAction<string>>,
 
   loggedIn: boolean,
   setLoggedIn: Dispatch<SetStateAction<boolean>>,
@@ -33,18 +31,13 @@ export type ChainSpecificContextType = {
   connected: boolean,
   setConnected: Dispatch<SetStateAction<boolean>>,
 
-  chainId: string,
-  setChainId: Dispatch<SetStateAction<string>>,
-
   //These are assumed to remain constant, but included because they are chain-specific
   disconnect: () => Promise<any>,
   connect: () => Promise<any>,
   signChallenge: (challenge: string) => Promise<SignChallengeResponse>,
   signTxn: (txn: object, simulate: boolean) => Promise<any>,
   getPublicKey: (cosmosAddress: string) => Promise<string>,
-  displayedResources: PresetUri[],
   selectedChainInfo: (SupportedChainMetadata & { getAddressForName?: (name: string) => Promise<string | undefined>; }) | undefined,
-  ownedAssetIds: string[],
 
   lastSeenActivity: number,
   setLastSeenActivity: Dispatch<SetStateAction<number>>
@@ -52,22 +45,16 @@ export type ChainSpecificContextType = {
 
 const ChainContext = createContext<ChainContextType>({
   address: '',
-  setAddress: () => { },
-  cosmosAddress: '',
-  setCosmosAddress: () => { },
   connected: false,
   setConnected: () => { },
   loggedIn: false,
+  cosmosAddress: '',
   setLoggedIn: () => { },
   connect: async () => { },
   disconnect: async () => { },
-  chainId: '1',
-  setChainId: async () => { },
   signChallenge: async () => { return { message: '', signature: '' } },
   signTxn: async () => { },
   getPublicKey: async () => { return '' },
-  ownedAssetIds: [],
-  displayedResources: [],
   selectedChainInfo: {},
   chain: SupportedChain.ETH,
   setChain: () => { },
@@ -89,14 +76,7 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
   const solanaContext = useSolanaContext();
   const bitcoinContext = useBitcoinContext();
 
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect: chainContext');
-
-    if (chain === 'Ethereum') {
-      ethereumContext.setChainId('eth');
-    }
-  }, [chain, setChain, ethereumContext]);
-
+  //Handle setting chain by default based on last signed in cookie
   useEffect(() => {
     if (cookies.latestChain) {
       setChain(cookies.latestChain);
@@ -124,6 +104,7 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
 
   const chainContext: ChainContextType = {
     ...currentChainContext,
+    cosmosAddress: convertToCosmosAddress(currentChainContext.address),
     chain,
     setChain,
   };

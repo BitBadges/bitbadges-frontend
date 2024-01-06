@@ -1,10 +1,10 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { NumberType, Stringify, UintRange } from 'bitbadgesjs-proto';
 import { AccountViewKey, AddressMappingDoc, AnnouncementDoc, BalanceDoc, BigIntify, BitBadgesUserInfo, BlockinAuthSignatureDoc, ClaimAlertDoc, ListActivityDoc, MINT_ACCOUNT, ReviewDoc, TransferActivityDoc, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useSelector } from 'react-redux';
 import { AccountReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, updateAccountInfo } from '../../api';
 import { deleteAccountsRedux, fetchAccountsRedux, updateAccountsRedux } from './reducer';
+
 export const defaultAccount = convertBitBadgesUserInfo(MINT_ACCOUNT, Stringify)
 
 export function useAccount(_addressOrUsername?: string) {
@@ -34,18 +34,18 @@ export function useAccount(_addressOrUsername?: string) {
 
 export const initialState: AccountReducerState = {
   accounts: {
-    'Mint': MINT_ACCOUNT, 'Total': MINT_ACCOUNT, 'All': {
+    'Mint': MINT_ACCOUNT, 
+    'Total': MINT_ACCOUNT, 
+    'All': {
       ...MINT_ACCOUNT,
       address: 'All',
       cosmosAddress: 'All',
-    }, 'All Other': MINT_ACCOUNT
+    },
   },
   cosmosAddressesByUsernames: {},
-  loading: false,
-  error: undefined,
 };
 
-export const reservedNames = ['Mint', 'Total', 'All', 'All Other'];
+export const reservedNames = ['Mint', 'Total', 'All'];
 
 export const getAccount = (addressOrUsername: string, forcefulRefresh?: boolean) => {
   if (reservedNames.includes(addressOrUsername)) return { ...MINT_ACCOUNT, address: addressOrUsername, cosmosAddress: addressOrUsername };

@@ -14,7 +14,6 @@ import {
   Input,
   InputNumber,
   Progress,
-  Radio,
   Select,
   Space,
   Spin,
@@ -25,9 +24,9 @@ import {
   Upload,
   UploadProps,
   message,
-  notification,
+  notification
 } from "antd"
-import { ReactNode, useState } from "react"
+import { useState } from "react"
 
 import { faMinus, faReplyAll } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -40,6 +39,7 @@ import {
   Numberify,
   batchUpdateBadgeMetadata,
   getMetadataForBadgeId,
+  getTotalNumberOfBadgeIds,
   invertUintRanges,
   removeUintRangeFromUintRange,
   searchUintRangesForId,
@@ -69,54 +69,128 @@ import IconButton from "../../display/IconButton"
 import { InformationDisplayCard } from "../../display/InformationDisplayCard"
 import { BadgeIdRangesInput } from "../../inputs/BadgeIdRangesInput"
 import { DateRangeInput } from "../../inputs/DateRangeInput"
+import { RadioGroup } from "../../inputs/Selects"
 import { MetadataUriSelect } from "./MetadataUriSelect"
 
 const { Text } = Typography
 const { Option } = Select
 
-export const RadioGroup = ({
-  label,
-  value,
-  onChange,
-  options,
+export const MultiViewBadgeDisplay = ({
+  badgeId,
+  badgeIds,
+  setBadgeId
 }: {
-  label?: string | ReactNode
-  value: any
-  onChange: (value: any) => void
-  options: ({
-    label: string | ReactNode
-    value: any
-  } | undefined)[]
+  badgeId: bigint,
+  setBadgeId?: (badgeId: bigint) => void,
+  badgeIds: UintRange<bigint>[]
 }) => {
+  const [uiDisplayMode, setUiDisplayMode] = useState<string>("card")
 
+  return <>
+    {
+      badgeId > 0 && (
+        <div className="primary-text flex-center">
+          <div>
+            <b style={{ fontSize: 18 }}>
+              Metadata for Badge ID{" "}
+            </b>
+          </div>
+          <InputNumber
+            //badgeIds are sorted above
+            min={
+              badgeIds && badgeIds.length > 0
+                ? Numberify(badgeIds[0].start.toString())
+                : 1
+            }
+            max={
+              badgeIds && badgeIds.length > 0
+                ? Numberify(
+                  badgeIds[badgeIds.length - 1].end.toString()
+                )
+                : Number.MAX_SAFE_INTEGER
+            }
+            value={Numberify(badgeId.toString())}
+            onChange={(e) => {
+              if (e && e > 0 && setBadgeId) {
+                const [, found] = searchUintRangesForId(
+                  BigInt(e),
+                  badgeIds
+                )
+                if (found) setBadgeId(BigInt(e))
+              }
+            }}
+            style={{
+              marginLeft: 8,
+            }}
+            className="primary-text inherit-bg"
+          />
+        </div>
+      )}
 
-  return (
-    <div className="flex-center flex-column">
-      <div className="primary-text">{label}</div>
-      <Radio.Group
-        className="primary-text flex-center flex-wrap"
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value)
-        }}
-        buttonStyle="solid"
-        style={{ marginTop: 10 }}
-      >
-        {options.map((option) => {
-          if (!option) return <></>
+    <div className="flex-center flex-column full-width">
+      {(
+        <RadioGroup value={uiDisplayMode} onChange={(value) => {
+          setUiDisplayMode(value)
+        }} options={[
+          { label: 'Card', value: 'card' },
+          { label: 'Image', value: 'image' },
+          { label: 'Collection', value: 'collection' },
+          { label: 'Header', value: 'header' },
+        ]} />
+      )}
 
-          return (
-            <Radio.Button value={option.value} key={option.value}>
-              <div className="primary-text capitalize hover:text-gray-400" style={{ color: value === option.value ? 'white' : undefined }}>
-                {option.label}
-              </div>
-            </Radio.Button>
-          )
-        })}
-      </Radio.Group>
     </div>
-  )
+    <br />
+
+    {
+      uiDisplayMode === 'header' && (
+        <div className="primary-text mx-10">
+          <CollectionHeader
+            collectionId={NEW_COLLECTION_ID}
+            badgeId={badgeId}
+          />
+        </div>
+      )
+    }
+    <div className="flex-center flex-column full-width">
+
+      <div className="flex-center flex-wrap full-width">
+        {
+          badgeId > 0 && (uiDisplayMode === 'card' || uiDisplayMode == 'image') &&
+          (
+            <>
+              <div className="primary-text flex-center">
+                {/* Slight hack here. Instead of putting BadgeCard directly, we use BadgeAvatarDisplay which has support for fetching the metadata from source */}
+                <BadgeAvatarDisplay
+                  collectionId={NEW_COLLECTION_ID}
+                  badgeIds={[{ start: badgeId, end: badgeId }]}
+                  showIds={true}
+                  selectedId={badgeId}
+                  cardView={uiDisplayMode !== 'image'}
+                />
+              </div>
+            </>
+          )}
+
+        {uiDisplayMode === 'collection' &&
+          (
+            <div className="primary-text">
+              <BadgeAvatarDisplay
+                // onClick={(id: bigint) => {
+                //   setBadgeId(id)
+                // }}
+                collectionId={NEW_COLLECTION_ID}
+                badgeIds={badgeIds}
+                showIds={true}
+                selectedId={badgeId}
+              />
+            </div>
+          )}
+      </div>
+    </div>
+  </>
 }
+
 
 //Do not pass an badgeId if this is for the collection metadata
 export function MetadataForm({
@@ -144,7 +218,7 @@ export function MetadataForm({
   const [badgeId, setBadgeId] = useState<bigint>(
     badgeIds.length > 0 ? badgeIds[0].start : 1n
   )
-  const [uiDisplayMode, setUiDisplayMode] = useState<string>("card")
+
   let metadata =
     (isCollectionSelect
       ? collection?.cachedCollectionMetadata
@@ -203,7 +277,6 @@ export function MetadataForm({
     !metadata.validFrom ||
     (metadata.validFrom && metadata.validFrom.length === 0)
   )
-  const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>(badgeIds)
   const [applyingBatchUpdate, setApplyingBatchUpdate] = useState(false)
 
   const sampleImages = [
@@ -309,34 +382,42 @@ export function MetadataForm({
     )
   }
 
-  let numBadgesFetched = 0n
-  const existingCollection = useCollection(existingCollectionId || 0n)
-  for (const metadata of existingCollection?.cachedBadgeMetadata ?? []) {
-    const uintRangesToSearch = uintRanges
-    const [, removed] = removeUintRangeFromUintRange(
-      uintRangesToSearch,
-      metadata.badgeIds
-    )
-    for (const badgeIdRange of removed) {
-      numBadgesFetched += badgeIdRange.end - badgeIdRange.start + 1n
-    }
-  }
 
-  let totalNeedToFetch = 0n
-  for (const range of uintRanges) {
-    totalNeedToFetch += range.end - range.start + 1n
-  }
+  const updatedIds = collection?.cachedBadgeMetadata.filter(x => x.toUpdate).map(x => x.badgeIds).flat() ?? []
+  const nonUpdatedIds = !collection ? [] : invertUintRanges(updatedIds, 1n, getMaxBadgeIdForCollection(collection))
 
-  let percent = Number(numBadgesFetched) / Number(totalNeedToFetch)
 
-  const outOfBoundsIds = invertUintRanges(badgeIds, 1n, GO_MAX_UINT_64)
 
-  const [, removed] = removeUintRangeFromUintRange(outOfBoundsIds, uintRanges)
-  const hasOutOfBoundsids = removed.length > 0
+  const [inRangeBadgeIds] = removeUintRangeFromUintRange([{ start: (!collection ? 0n : getMaxBadgeIdForCollection(collection)) + 1n, end: GO_MAX_UINT_64 }], badgeIds)
+  badgeIds = inRangeBadgeIds
 
   const PopulateComponent = () => {
+    const [uintRanges, setUintRanges] = useState<UintRange<bigint>[]>(badgeIds)
+    const existingCollection = useCollection(existingCollectionId || 0n)
+
+    const totalNeedToFetch = getTotalNumberOfBadgeIds(uintRanges)
+
+    let numBadgesFetched = 0n
+    for (const metadata of existingCollection?.cachedBadgeMetadata ?? []) {
+      const uintRangesToSearch = uintRanges
+      const [, removed] = removeUintRangeFromUintRange(
+        uintRangesToSearch,
+        metadata.badgeIds
+      )
+      for (const badgeIdRange of removed) {
+        numBadgesFetched += badgeIdRange.end - badgeIdRange.start + 1n
+      }
+    }
+    let percent = Number(numBadgesFetched) / Number(totalNeedToFetch)
+
+    const outOfBoundsIds = invertUintRanges(badgeIds, 1n, GO_MAX_UINT_64)
+
+    const [, removed] = removeUintRangeFromUintRange(outOfBoundsIds, uintRanges)
+    const hasOutOfBoundsids = removed.length > 0
+
     let message = badgeId && !isCollectionSelect ? `ID ${badgeId}'s metadata`
       : " the collection metadata"
+
 
     return (
       <div>
@@ -488,12 +569,10 @@ export function MetadataForm({
     )
   }
 
-  const updatedIds = collection?.cachedBadgeMetadata.filter(x => x.toUpdate).map(x => x.badgeIds).flat() ?? []
-  const nonUpdatedIds = !collection ? [] : invertUintRanges(updatedIds, 1n, getMaxBadgeIdForCollection(collection))
 
   return (
     <>
-      <InformationDisplayCard span={24} title="">
+      <InformationDisplayCard span={24} >
         {!isAddressMappingSelect && setAddMethod && (
           <>
             <br />
@@ -597,47 +676,29 @@ export function MetadataForm({
                 </div>
               </div>
             )}
+
+            {!isCollectionSelect && !isAddressMappingSelect && (<>
+              <div className="secondary-text" style={{ textAlign: "center" }}>
+                {nonUpdatedIds.length > 0 &&
+                  <span style={{ color: 'orange' }}>
+                    <WarningOutlined />
+                    You have not updated the metadata for IDs {getBadgeIdsString(nonUpdatedIds)}.
+                    If these are newly created IDs, they will have default placeholder metadata. Or else, they will remain as previously set.
+                  </span>}
+              </div>
+              <br />
+            </>
+            )}
+
+
+
+            {!isCollectionSelect && !isAddressMappingSelect && <>
+              <MultiViewBadgeDisplay badgeId={badgeId} badgeIds={inRangeBadgeIds} setBadgeId={setBadgeId} />
+            </>}
+
+            <br />
             <div className="flex-center flex-wrap">
-              {!isCollectionSelect &&
-                !isAddressMappingSelect &&
-                badgeId > 0 && (
-                  <div className="primary-text flex-center">
-                    <div>
-                      <b style={{ fontSize: 18 }}>
-                        Setting Metadata for Badge ID:{" "}
-                      </b>
-                    </div>
-                    <InputNumber
-                      //badgeIds are sorted above
-                      min={
-                        badgeIds && badgeIds.length > 0
-                          ? Numberify(badgeIds[0].start.toString())
-                          : 1
-                      }
-                      max={
-                        badgeIds && badgeIds.length > 0
-                          ? Numberify(
-                            badgeIds[badgeIds.length - 1].end.toString()
-                          )
-                          : Number.MAX_SAFE_INTEGER
-                      }
-                      value={Numberify(badgeId.toString())}
-                      onChange={(e) => {
-                        if (e && e > 0 && setBadgeId) {
-                          const [, found] = searchUintRangesForId(
-                            BigInt(e),
-                            badgeIds
-                          )
-                          if (found) setBadgeId(BigInt(e))
-                        }
-                      }}
-                      style={{
-                        marginLeft: 8,
-                      }}
-                      className="primary-text inherit-bg"
-                    />
-                  </div>
-                )}
+
               {!isAddressMappingSelect && (
                 <IconButton
                   text="Batch Apply"
@@ -658,89 +719,10 @@ export function MetadataForm({
                 />
               )}
             </div>
-            {!isCollectionSelect && !isAddressMappingSelect && (<>
-              <div className="secondary-text" style={{ textAlign: "center" }}>
-                {nonUpdatedIds.length > 0 &&
-                  <span style={{ color: 'orange' }}>
-                    <WarningOutlined />
-                    You have not updated the metadata for IDs {getBadgeIdsString(nonUpdatedIds)}.
-                    If these are newly created IDs, they will have default placeholder metadata. Or else, they will remain as previously set.
-                  </span>}
-              </div>
-              <br />
-            </>
-            )}
-
-
-            {/* TODO: If I make this react component, it glitches and rerenders every time (prob just need to pass in props correctly). Works as function though */}
-            {PopulateComponent()}
-
-            <div className="flex-center flex-column full-width">
-              {!isCollectionSelect && !isAddressMappingSelect && (
-                <RadioGroup value={uiDisplayMode} onChange={(value) => {
-                  setUiDisplayMode(value)
-                }} options={[
-                  { label: 'Card', value: 'card' },
-                  { label: 'Image', value: 'image' },
-                  { label: 'Collection', value: 'collection' },
-                  { label: 'Header', value: 'header' },
-                ]} />
-              )}
-
-            </div>
             <br />
-
-            {!isCollectionSelect &&
-              !isAddressMappingSelect &&
-              uiDisplayMode === 'header' && (
-                <div className="primary-text mx-10">
-                  <CollectionHeader
-                    collectionId={NEW_COLLECTION_ID}
-                    badgeId={badgeId}
-                  />
-                </div>
-              )}
-            <div className="flex-center flex-column full-width">
-
-              <div className="flex-center flex-wrap full-width">
-                {!isCollectionSelect &&
-                  badgeId > 0 && (uiDisplayMode === 'card' || uiDisplayMode == 'image') &&
-                  !isCollectionSelect &&
-                  !isAddressMappingSelect && (
-                    <>
-                      <div className="primary-text flex-center">
-                        {/* Slight hack here. Instead of putting BadgeCard directly, we use BadgeAvatarDisplay which has support for fetching the metadata from source */}
-                        <BadgeAvatarDisplay
-                          collectionId={NEW_COLLECTION_ID}
-                          badgeIds={[{ start: badgeId, end: badgeId }]}
-                          showIds={true}
-                          selectedId={badgeId}
-                          cardView={uiDisplayMode !== 'image'}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                {!isCollectionSelect &&
-                  !isAddressMappingSelect && uiDisplayMode === 'collection' &&
-                  (
-                    <div className="primary-text">
-                      <BadgeAvatarDisplay
-                        onClick={(id: bigint) => {
-                          setBadgeId(id)
-                        }}
-                        collectionId={NEW_COLLECTION_ID}
-                        badgeIds={badgeIds}
-                        showIds={true}
-                        selectedId={badgeId}
-                      />
-                    </div>
-                  )}
-              </div>
-            </div>
+            <PopulateComponent />
 
 
-            <br />
             <Form.Item
               label={
                 <Text className="primary-text" strong>
@@ -757,7 +739,7 @@ export function MetadataForm({
                     name: e.target.value,
                   })
                 }}
-                style={{}}
+
                 className="primary-text inherit-bg"
               />
             </Form.Item>
@@ -770,7 +752,7 @@ export function MetadataForm({
               }
               required
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <Select
                   className="selector primary-text inherit-bg"
                   value={
@@ -789,7 +771,7 @@ export function MetadataForm({
                       })
                     }
                   }}
-                  style={{}}
+
                   suffixIcon={<DownOutlined className="primary-text" />}
                   dropdownRender={(menu) => (
                     <>
@@ -851,7 +833,7 @@ export function MetadataForm({
                 </Text>
               }
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <Input
                   value={currMetadata.video}
                   onChange={(e) => {
@@ -878,7 +860,7 @@ export function MetadataForm({
                 </Text>
               }
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <MarkdownEditor
                   markdown={currMetadata.description}
                   setMarkdown={(markdown: string) => {
@@ -898,7 +880,7 @@ export function MetadataForm({
               }
             // required={type === 0}
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <Select
                   className="selector primary-text inherit-bg"
                   value={currMetadata.category}
@@ -909,7 +891,7 @@ export function MetadataForm({
                       category: e,
                     })
                   }}
-                  style={{}}
+
                   suffixIcon={<DownOutlined className="primary-text" />}
                   dropdownRender={(menu) => (
                     <>
@@ -960,7 +942,7 @@ export function MetadataForm({
                 </Text>
               }
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <Input
                   value={currMetadata.externalUrl}
                   onChange={(e) => {
@@ -969,7 +951,7 @@ export function MetadataForm({
                       externalUrl: e.target.value,
                     })
                   }}
-                  style={{}}
+
                   className="primary-text inherit-bg"
                 />
               </div>
@@ -995,7 +977,7 @@ export function MetadataForm({
                 </Text>
               }
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <div className="primary-text inherit-bg full-width">
                   <div className="primary-text">
                     Always Valid?
@@ -1064,7 +1046,7 @@ export function MetadataForm({
                 </Text>
               }
             >
-              <div className="flex-between" style={{}}>
+              <div className="flex-between">
                 <Input
                   value={currMetadata.tags}
                   onChange={(e) => {
@@ -1080,7 +1062,7 @@ export function MetadataForm({
                       tags: e.target.value.split(","),
                     })
                   }}
-                  style={{}}
+
                   className="primary-text inherit-bg"
                 />
               </div>

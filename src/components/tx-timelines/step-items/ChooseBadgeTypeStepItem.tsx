@@ -8,7 +8,6 @@ import { SwitchForm } from "../form-items/SwitchForm";
 export enum MintType {
   AddressList = 'Address List',
   BitBadge = 'BitBadge',
-  Attestation = 'Attestation',
 }
 
 export function ChooseBadgeTypeStepItem() {

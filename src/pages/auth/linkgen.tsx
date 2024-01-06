@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { addMetadataToIpfs, fetchMetadataDirectly } from '../../bitbadges-api/api';
 import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
-import { BalanceInput } from '../../components/inputs/BalanceInput';
+import { BalanceInput } from '../../components/balances/BalanceInput';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { CodeGenQueryParams } from './codegen';
@@ -44,7 +44,7 @@ function BlockinCodesScreen() {
       setErrorMessage('Please provide a name and description');
     } else if (!codeGenParams.challengeParams.domain || !codeGenParams.challengeParams.statement) {
       setErrorMessage('Please provide a domain and statement');
-    }  else if (!codeGenParams.image) {
+    } else if (!codeGenParams.image) {
       setErrorMessage('Please provide an image');
     } else {
       setErrorMessage('');
@@ -226,7 +226,7 @@ function BlockinCodesScreen() {
                   }
                   required
                 >
-                  <div className='flex-between' style={{}}>
+                  <div className='flex-between'>
                     <Select
                       className="selector primary-text inherit-bg"
                       value={images.find((item: any) => item.value === codeGenParams.image)?.label}
@@ -351,7 +351,7 @@ function BlockinCodesScreen() {
                     </Text>
                   }
                 >
-                  <div className='flex-between' style={{}}>
+                  <div className='flex-between'>
                     <div className='primary-text inherit-bg full-width'>
                       <div className='primary-text' style={{ float: 'left' }}>
                         None?
@@ -410,7 +410,7 @@ function BlockinCodesScreen() {
                     </Text>
                   }
                 >
-                  <div className='flex-between' style={{}}>
+                  <div className='flex-between'>
                     <div className='primary-text inherit-bg full-width'>
                       <div className='primary-text' style={{ float: 'left' }}>
                         None?

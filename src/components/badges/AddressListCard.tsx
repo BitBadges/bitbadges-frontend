@@ -23,11 +23,11 @@ export function AddressListCard({
       style={{
         margin: 6,
         textAlign: 'center',
-        
+        minWidth: 200,
       }}
       hoverable={true}
       onClick={() => {
-        router.push(`/addresses/${addressMapping.mappingId}`);
+        router.push(`/lists/${addressMapping.mappingId}`);
       }}
       cover={<>
         <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
@@ -62,24 +62,6 @@ export function AddressListCard({
         </Typography.Text>
         : <></>}
       <br />
-      {/* {addressMapping.createdBy && <>
-          <br />
-          <br />
-          <b>Created By</b>
-
-          <AddressDisplay
-            addressOrUsername={addressMapping.createdBy}
-            fontSize={13}
-          />
-        </>
-        } */}
-      {/* {addressMapping.updateHistory.length > 0 && <>
-          <br />
-          <b>Last Updated</b>
-          <br />
-          {new Date(Number(addressMapping.updateHistory.sort((a, b) => b.blockTimestamp - a.blockTimestamp > 0 ? 1 : -1)[0].blockTimestamp)).toLocaleString()}
-        </>
-        } */}
     </Card>
 
   );

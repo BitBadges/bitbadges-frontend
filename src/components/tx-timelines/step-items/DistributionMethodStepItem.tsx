@@ -3,7 +3,7 @@ import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../..
 
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getMintApprovals, getNonMintApprovals } from "../../../bitbadges-api/utils/mintVsNonMint";
-import { TransferabilityTab } from "../../collection-page/TransferabilityTab";
+import { TransferabilityTab } from "../../collection-page/transferability/TransferabilityTab";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export function DistributionMethodStepItem() {

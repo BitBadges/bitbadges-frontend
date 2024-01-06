@@ -3,12 +3,12 @@ import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } 
 import { useState } from 'react';
 
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { CodesDisplay } from '../claims/CodesPasswordsDisplay';
+import { CodesDisplay } from './CodesPasswordsDisplay';
 import { DevMode } from '../common/DevMode';
 import { Pagination } from '../common/Pagination';
-import { TransferabilityRow } from './TransferabilityRow';
+import { TransferabilityDisplay } from '../collection-page/transferability/TransferabilityDisplay';
 
-export function ClaimsTab({ collectionId, codesAndPasswords, badgeId, approvalId }: {
+export function CodesPasswordsTab({ collectionId, codesAndPasswords, badgeId, approvalId }: {
   collectionId: bigint;
   codesAndPasswords?: CodesAndPasswords[]
   badgeId?: bigint;
@@ -22,6 +22,7 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId, approvalId
   const approvalsForClaims: CollectionApprovalWithDetails<bigint>[] = [];
   const approvals = collection?.collectionApprovals ?? [];
 
+  //Filter nonMint, non-matching IDs, and empty codes/passwords
   const normalizedCodesAndPasswords = [];
   for (let i = 0; i < approvals.length; i++) {
     const approval = approvals[i];
@@ -53,7 +54,8 @@ export function ClaimsTab({ collectionId, codesAndPasswords, badgeId, approvalId
       {numActiveClaims > 1 && <>
         <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
         {approvalItem &&
-          <TransferabilityRow collectionId={collectionId} transfer={approvalItem} hideActions allTransfers={collection?.collectionApprovals ?? []}
+          <TransferabilityDisplay collectionId={collectionId}
+            approval={approvalItem} hideActions allApprovals={collection?.collectionApprovals ?? []}
             address={address} setAddress={setAddress} />}
         <Divider />
       </>}

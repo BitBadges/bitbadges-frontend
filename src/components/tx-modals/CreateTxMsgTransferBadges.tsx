@@ -15,14 +15,14 @@ import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
 
 
-export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, fromTransferabilityRow }: {
+export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, fromTransferabilityDisplay }: {
   collectionId: bigint,
   visible: boolean,
   setVisible: (visible: boolean) => void,
   children?: React.ReactNode
   defaultAddress?: string
   approval?: CollectionApprovalWithDetails<bigint>,
-  fromTransferabilityRow?: boolean
+  fromTransferabilityDisplay?: boolean
 }) {
   const chain = useChainContext();
 
@@ -31,20 +31,12 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   const leavesDetails = approval?.details?.challengeDetails?.leavesDetails;
   const treeOptions = approval?.details?.challengeDetails?.treeOptions;
 
-
-
-  const [tree, setTree] = useState<MerkleTree | null>(merkleChallenge ?
-    new MerkleTree(leavesDetails?.leaves.map(x => leavesDetails?.isHashed ? x : SHA256(x)) ?? [], SHA256, treeOptions) : null);
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect:  tree');
-    if (merkleChallenge) {
-      const tree = new MerkleTree(approval?.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
-        return approval?.details?.challengeDetails?.leavesDetails?.isHashed ? x : SHA256(x);
-      }) ?? [], SHA256, approval?.details?.challengeDetails?.treeOptions);
-      setTree(tree);
-    }
-  }, [approval, merkleChallenge]);
+  const tree = useMemo(() => {
+    if (INFINITE_LOOP_MODE) console.log('useMemo:  tree');
+    if (!visible) return null;
+    if (!merkleChallenge) return null;
+    return new MerkleTree(leavesDetails?.leaves.map(x => leavesDetails?.isHashed ? x : SHA256(x)) ?? [], SHA256, treeOptions);
+  }, [merkleChallenge, leavesDetails, treeOptions, visible]);
 
 
   const collection = useCollection(collectionId);
@@ -59,14 +51,11 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   const senderAccount = useAccount(sender);
   const senderBalance = collection?.owners.find(x => x.cosmosAddress === senderAccount?.cosmosAddress)?.balances ?? [];
 
-
   const DELAY_MS = 500;
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: sender balance ');
     async function getSenderBalance() {
-
       await fetchAccounts([sender]);
-
       await fetchBalanceForUser(collectionId, sender);
     }
 
@@ -81,10 +70,6 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
     if (INFINITE_LOOP_MODE) console.log('useEffect:  fetch accounts');
     fetchAccounts(transfers.map(x => x.toAddresses).flat());
   }, [transfers]);
-
-
-
-
 
   const items = [
     approval?.fromMapping.addresses.length === 1 && approval.fromMapping.includeAddresses ? undefined :
@@ -109,7 +94,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
               onUserSelect={setSender}
               allowMintSearch
             />
-            {!fromTransferabilityRow && sender === 'Mint' && <>
+            {!fromTransferabilityDisplay && sender === 'Mint' && <>
               <Divider />
               <Typography.Text style={{ color: '#FF5733' }} >
                 <WarningOutlined /> {"Certain features for minting may not be supported using this modal. This could cause your transaction to fail. Please use the Transferability tab to transfer badges from the Mint address."}

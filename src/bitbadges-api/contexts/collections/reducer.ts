@@ -1,10 +1,10 @@
-import { BigIntify, CollectionPermissions, NumberType, UintRange, convertUintRange, deepCopy } from "bitbadgesjs-proto";
-import { BadgeMetadataDetails, BitBadgesCollection, CollectionViewKey, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, batchUpdateBadgeMetadata, convertBitBadgesCollection, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, getUrisForMetadataIds, removeUintRangeFromUintRange, sortUintRangesAndMergeIfNecessary, updateBadgeMetadata } from "bitbadgesjs-utils";
+import { BigIntify, CollectionPermissions, UintRange, deepCopy } from "bitbadgesjs-proto";
+import { BadgeMetadataDetails, BitBadgesCollection, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, batchUpdateBadgeMetadata, convertBitBadgesCollection, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, pruneMetadataToFetch, removeUintRangeFromUintRange, updateBadgeMetadata } from "bitbadgesjs-utils";
 import Joi from "joi";
 import { ThunkAction } from "redux-thunk";
 import { AppDispatch, CollectionReducerState, GlobalReduxState } from "../../../pages/_app";
 import { compareObjects } from "../../../utils/compare";
-import { fetchMetadataDirectly, getCollections, DesiredNumberType } from "../../api";
+import { DesiredNumberType, fetchMetadataDirectly, getCollections } from "../../api";
 import { getCurrentMetadata } from "../../utils/metadata";
 import { NEW_COLLECTION_ID } from "../TxTimelineContext";
 import { initialState } from "./CollectionsContext";
@@ -100,124 +100,6 @@ export const fetchCollectionsStart = (fetching: CollectionRequestParams[]): Fetc
   payload: fetching,
 });
 
-const fetchCollectionsFailure = (error: string): FetchCollectionsFailureAction => ({
-  type: FETCH_COLLECTIONS_FAILURE,
-  payload: error,
-});
-
-export const pruneMetadataToFetch = (cachedCollection: BitBadgesCollection<bigint>, metadataFetchReq?: MetadataFetchOptions) => {
-  if (!cachedCollection) throw new Error('Collection does not exist');
-
-  const metadataToFetch: MetadataFetchOptions = {
-    doNotFetchCollectionMetadata: cachedCollection.cachedCollectionMetadata !== undefined || metadataFetchReq?.doNotFetchCollectionMetadata,
-  };
-
-  if (metadataFetchReq) {
-    //See if we already have the metadata corresponding to the uris
-    if (metadataFetchReq.uris) {
-      for (const uri of metadataFetchReq.uris) {
-        if (cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri) === undefined) {
-          metadataToFetch.uris = metadataToFetch.uris || [];
-          metadataToFetch.uris.push(uri);
-        }
-      }
-    }
-
-    //See if we already have the metadata corresponding to the metadataIds
-    if (metadataFetchReq.metadataIds) {
-      for (const metadataId of metadataFetchReq.metadataIds) {
-        const metadataIdCastedAsUintRange = metadataId as UintRange<NumberType>;
-        const metadataIdCastedAsNumber = metadataId as NumberType;
-
-
-        if (typeof metadataIdCastedAsNumber === 'object' && metadataIdCastedAsUintRange.start && metadataIdCastedAsUintRange.end) {
-          //Is a UintRange
-          const uintRange = convertUintRange(metadataIdCastedAsUintRange, BigIntify);
-          for (let i = uintRange.start; i <= uintRange.end; i++) {
-            const existingMetadata = cachedCollection.cachedBadgeMetadata.find(x => x.metadataId === i);
-            if (!existingMetadata) {
-              metadataToFetch.uris = metadataToFetch.uris || [];
-              const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
-
-              const uris = getUrisForMetadataIds([BigInt(i)], collectionMetadata?.uri || '', badgeMetadata);
-              if (!uris[0]) throw new Error('Metadata does not have a uri'); //Shouldn't happen but just in case and for TS
-              metadataToFetch.uris.push(uris[0]);
-            }
-          }
-        } else {
-          const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
-          const uris = getUrisForMetadataIds([BigInt(metadataIdCastedAsNumber)], collectionMetadata?.uri || '', badgeMetadata);
-          for (const uri of uris) {
-            const existingMetadata = cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
-            if (!existingMetadata) {
-              if (cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri) === undefined) {
-                metadataToFetch.uris = metadataToFetch.uris || [];
-                metadataToFetch.uris.push(uri);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    //Check if we have all metadata corresponding to the badgeIds
-    if (metadataFetchReq.badgeIds) {
-      for (const badgeId of metadataFetchReq.badgeIds) {
-        const badgeIdCastedAsUintRange = badgeId as UintRange<DesiredNumberType>;
-        const badgeIdCastedAsNumber = badgeId as DesiredNumberType;
-        if (typeof badgeIdCastedAsNumber === 'object' && badgeIdCastedAsUintRange.start && badgeIdCastedAsUintRange.end) {
-          let badgeIdsLeft = [convertUintRange(badgeIdCastedAsUintRange, BigIntify)]
-
-
-          //Intutition: check singular, starting badge ID. If it is same as others, handle all together. Else, just handle that and continue
-          while (badgeIdsLeft.length > 0) {
-            const currBadgeUintRange = badgeIdsLeft[0];
-
-            const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
-
-            const metadataId = getMetadataIdForBadgeId(BigInt(currBadgeUintRange.start), badgeMetadata);
-            if (metadataId === -1) break
-
-            const uris = getUrisForMetadataIds([BigInt(metadataId)], collectionMetadata?.uri || '', badgeMetadata);
-            for (const uri of uris) {
-              const existingMetadata = cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
-              if (!existingMetadata) {
-                metadataToFetch.uris = metadataToFetch.uris || [];
-                metadataToFetch.uris.push(uri);
-              }
-            }
-
-            //Remove other badgeIds that map to the same metadataId and add any remaining back to the queue
-            const otherMatchingBadgeUintRanges = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
-            const [remaining,] = removeUintRangeFromUintRange(otherMatchingBadgeUintRanges, badgeIdsLeft);
-            badgeIdsLeft = remaining
-            badgeIdsLeft = sortUintRangesAndMergeIfNecessary(badgeIdsLeft, true)
-          }
-        } else {
-          //Is a singular badgeId
-          const { collectionMetadata, badgeMetadata } = getCurrentMetadata(cachedCollection);
-          const metadataId = getMetadataIdForBadgeId(BigInt(badgeIdCastedAsNumber), badgeMetadata);
-          if (metadataId === -1) break
-
-          const uris = getUrisForMetadataIds([BigInt(metadataId)], collectionMetadata?.uri || '', badgeMetadata);
-          for (const uri of uris) {
-            const existingMetadata = cachedCollection.cachedBadgeMetadata.find(x => x.uri === uri && x.metadataId === metadataId);
-            if (!existingMetadata) {
-              metadataToFetch.uris = metadataToFetch.uris || [];
-              metadataToFetch.uris.push(uri);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return {
-    ...metadataToFetch,
-    uris: metadataToFetch.uris ?? [],
-  };
-}
-
 const updateCollection = (state = initialState, newCollection: BitBadgesCollection<DesiredNumberType>, isUpdate: boolean) => {
   const collections = state.collections;
   const currCollectionState = collections[`${newCollection.collectionId}`];
@@ -228,8 +110,6 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
   const cachedCollectionCopy = deepCopy(cachedCollection);
 
   if (cachedCollection) {
-
-
     //TODO: No idea why the deep copy is necessary but it breaks the timeline batch updates for existing collections if not
     //      One place to look: somehow, I think that the indivudal elements in .badgeIds are the same object (cached[0].badgeIds === new[0].badgeIds)
     //      I think the cachedCollection deepCopy is the important one, but I'm not sure
@@ -244,8 +124,11 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
     if (newCollection.views) {
       for (const [key, val] of Object.entries(newCollection.views)) {
         if (!val) continue;
+        const oldVal = cachedCollection?.views[key];
+        const newVal = val;
+
         newViews[key] = {
-          ids: [...(newViews[key]?.ids || []), ...(val?.ids || [])].filter((val, index, self) => self.findIndex(x => x === val) === index),
+          ids: [...(oldVal?.ids || []), ...(newVal?.ids || [])].filter((val, index, self) => self.findIndex(x => x === val) === index),
           pagination: {
             ...val.pagination,
             total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
@@ -339,7 +222,7 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
     };
 
     if (cachedCollection.collectionId === NEW_COLLECTION_ID) {
-      //Filter out fetchedAt and fetchedAtBlock 
+      //Filter out fetchedAt and fetchedAtBlock for preview collections
       delete cachedCollection.cachedCollectionMetadata?.fetchedAt;
       delete cachedCollection.cachedCollectionMetadata?.fetchedAtBlock;
       for (const metadataDetails of cachedCollection.cachedBadgeMetadata) {
@@ -382,10 +265,7 @@ export const fetchAndUpdateMetadataRedux = (collectionId: DesiredNumberType, met
   dispatch: AppDispatch,
   getState: () => GlobalReduxState
 ) => {
-
     const state = getState().collections;
-
-
 
     if (!fetchDirectly) {
       //IMPORTANT: These are just the fetchedCollections so potentially have incomplete cachedCollectionMetadata or cachedBadgeMetadata
@@ -420,15 +300,17 @@ export const fetchAndUpdateMetadataDirectlyFromCollectionRedux = (collectionId: 
     if (!updatedCollection) throw new Error('Collection does not exist');
 
     //Check if we have all metadata corresponding to the badgeIds. If not, fetch directly.
-    const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(updatedCollection, metadataToFetch);
+    const prunedMetadataToFetch = pruneMetadataToFetch(updatedCollection, metadataToFetch);
     const fetchingNothing = !prunedMetadataToFetch.uris || prunedMetadataToFetch.uris.length === 0 && prunedMetadataToFetch.doNotFetchCollectionMetadata;
     if (fetchingNothing) {
       return [updatedCollection];
     }
 
-    //Fetch collection metadata if we don't have it
+    const { collectionMetadata, badgeMetadata } = getCurrentMetadata(updatedCollection);
+
+
+    //Fetch collection metadata directly if we don't have it
     if (!prunedMetadataToFetch.doNotFetchCollectionMetadata) {
-      const { collectionMetadata } = getCurrentMetadata(updatedCollection);
       const collectionUri = collectionMetadata?.uri || '';
       if (Joi.string().uri().validate(collectionUri).error) {
         updatedCollection.cachedCollectionMetadata = ErrorMetadata;
@@ -439,39 +321,22 @@ export const fetchAndUpdateMetadataDirectlyFromCollectionRedux = (collectionId: 
     }
 
     if (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) {
-
       const hasInvalidUris = prunedMetadataToFetch.uris?.some(x => Joi.string().uri().validate(x).error);
-      if (hasInvalidUris) {
-        for (const uri of prunedMetadataToFetch.uris || []) {
+      const metadataResponses = hasInvalidUris ? undefined : await fetchMetadataDirectly({ uris: prunedMetadataToFetch.uris || [] });
 
-          const { badgeMetadata } = getCurrentMetadata(updatedCollection);
-          const metadataRes = ErrorMetadata;
-          const metadataIds = getMetadataIdsForUri(uri, badgeMetadata);
-
-          for (const metadataId of metadataIds) {
-            const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
-            updatedCollection.cachedBadgeMetadata = updateBadgeMetadata(updatedCollection.cachedBadgeMetadata, { uri: uri, metadata: metadataRes, metadataId: metadataId, badgeIds: badgeIds });
-          }
+      for (let i = 0; i < prunedMetadataToFetch.uris?.length; i++) {
+        const uri = prunedMetadataToFetch.uris[i];
+        let metadataRes;
+        if (hasInvalidUris) {
+          metadataRes = ErrorMetadata;
+        } else {
+          metadataRes = metadataResponses?.metadata[i] || ErrorMetadata;
         }
-      } else {
-        const metadataResponses = await fetchMetadataDirectly({ uris: prunedMetadataToFetch.uris || [] });
 
-        let i = 0;
-        for (const uri of prunedMetadataToFetch.uris || []) {
-
-          const { badgeMetadata } = getCurrentMetadata(updatedCollection);
-
-          const isValidUri = !Joi.string().uri().validate(uri).error;
-          // const badgeMetadataRes = await fetchMetadataDirectly({ uris: [uri] });
-          const metadataRes = isValidUri ? metadataResponses.metadata[i] : ErrorMetadata;
-          const metadataIds = getMetadataIdsForUri(uri, badgeMetadata);
-
-          for (const metadataId of metadataIds) {
-            const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
-            updatedCollection.cachedBadgeMetadata = updateBadgeMetadata(updatedCollection.cachedBadgeMetadata, { uri: uri, metadata: metadataRes, metadataId: metadataId, badgeIds: badgeIds });
-          }
-
-          i++;
+        const metadataIds = getMetadataIdsForUri(uri, badgeMetadata);
+        for (const metadataId of metadataIds) {
+          const badgeIds = getBadgeIdsForMetadataId(BigInt(metadataId), badgeMetadata);
+          updatedCollection.cachedBadgeMetadata = updateBadgeMetadata(updatedCollection.cachedBadgeMetadata, { uri: uri, metadata: metadataRes, metadataId: metadataId, badgeIds: badgeIds });
         }
       }
     }
@@ -495,10 +360,13 @@ export const fetchMetadataForPreviewRedux = (existingCollectionId: DesiredNumber
     if (!currPreviewCollection) throw new Error('Collection does not exist');
 
     if (!existingCollectionId || badgeIdsToDisplay.length === 0) return [];
+    const { badgeMetadata } = getCurrentMetadata(currPreviewCollection);
 
-    //We don't want to overwrite any edited metadata
+    //We don't want to overwrite any previously edited metadata
+    //Ignore anything we already have in the cachedBadgeMetadata of thte preview collection (0n)
     //Should prob do this via a range implementation but badgeIdsToDisplay should only be max len of pageSize
     let badgeIdsToFetch = deepCopy(badgeIdsToDisplay);
+    const metadataIdsToFetch: bigint[] = [];
     for (const badgeIdRange of badgeIdsToDisplay) {
       for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
         const badgeId = i;
@@ -509,64 +377,56 @@ export const fetchMetadataForPreviewRedux = (existingCollectionId: DesiredNumber
           //Remove badgeId from badgeIdsToFetch
           const [remaining,] = removeUintRangeFromUintRange([{ start: badgeId, end: badgeId }], badgeIdsToFetch);
           badgeIdsToFetch = remaining;
+        } else {
+          const metadataId = getMetadataIdForBadgeId(badgeId, badgeMetadata)
+          if (metadataId >= 0n) {
+            metadataIdsToFetch.push(BigInt(metadataId));
+          }
         }
       }
     }
 
-    let badgeMetadataToReturn: BadgeMetadataDetails<bigint>[] = [];
-    if (badgeIdsToFetch.length > 0) {
-      if (existingCollectionId) {
 
-        const prevMetadata = currPreviewCollection.cachedBadgeMetadata;
+    const badgeMetadataToReturn: BadgeMetadataDetails<bigint>[] = [];
+    const prevMetadata = currPreviewCollection.cachedBadgeMetadata;
 
-        while (badgeIdsToFetch.length > 0) {
-          let next250Badges: UintRange<bigint>[] = [];
-          for (let i = 0; i < 250; i++) {
-            if (badgeIdsToFetch.length === 0) break;
+    while (metadataIdsToFetch.length > 0) {
 
-            const badgeIdRange = badgeIdsToFetch.shift();
-            if (badgeIdRange) {
-              const badgeId = badgeIdRange.start;
-              next250Badges.push({ start: badgeId, end: badgeId });
-              next250Badges = sortUintRangesAndMergeIfNecessary(next250Badges, true);
+      let next250MetadataIds: bigint[] = [];
+      for (let i = 0; i < 250; i++) {
+        if (metadataIdsToFetch.length === 0) break;
+        next250MetadataIds.push(metadataIdsToFetch.shift() || 0n);
+      }
 
-              if (badgeIdRange.start != badgeIdRange.end) {
-                badgeIdsToFetch = [{ start: badgeId + 1n, end: badgeIdRange.end }, ...badgeIdsToFetch];
-              }
-            }
-          }
+      await dispatch(fetchAndUpdateMetadataRedux(existingCollectionId, { metadataIds: next250MetadataIds }));
 
-          await dispatch(fetchAndUpdateMetadataRedux(existingCollectionId, { badgeIds: next250Badges }));
+      const res = getCollection(getState().collections, existingCollectionId);
+      if (!res) throw new Error('Collection does not exist');
 
-          const res = getCollection(getState().collections, existingCollectionId);
-          if (!res) throw new Error('Collection does not exist');
+      //Just a note for the future: I had a lot of trouble with synchronizing existing and preview metadata
+      //especially since sometimes we prune and do not even fetch all the metadata so the backend fetch didn't
+      //have all metadata in the cachedBadgeMetadata response. 
+      //Within fetchAndUpdateMetadata, I appenda any prev metadata cached with any newly fetched to create the resMetadata, but if there is an error, 
+      //check this first w/ synchronization issues.
+      let resMetadata = deepCopy(res.cachedBadgeMetadata);
 
 
-
-          //Just a note for the future: I had a lot of trouble with synchronizing existing and preview metadata
-          //especially since sometimes we prune and do not even fetch all the metadata so the backend fetch didn't
-          //have all metadata in the cachedBadgeMetadata response. 
-          //Within fetchAndUpdateMetadata, I appenda any prev metadata cached with any newly fetched to create the resMetadata, but if there is an error, 
-          //check this first w/ synchronization issues.
-          let resMetadata = deepCopy(res.cachedBadgeMetadata);
-
-
-          if (resMetadata && !compareObjects(resMetadata, prevMetadata)) {
-            for (const metadata of resMetadata) {
-              const [, removed] = removeUintRangeFromUintRange(next250Badges, metadata.badgeIds);
-              metadata.badgeIds = removed;
-            }
-            resMetadata = resMetadata.filter(metadata => metadata.badgeIds.length > 0);
-            badgeMetadataToReturn.push(...deepCopy(resMetadata));
-          }
+      if (resMetadata && !compareObjects(resMetadata, prevMetadata)) {
+        //This step is important: only set for the badges we needed to fetch
+        //We do not want to overwrite any previously edited metadata
+        for (const metadata of resMetadata) {
+          const [, removed] = removeUintRangeFromUintRange(badgeIdsToFetch, metadata.badgeIds);
+          metadata.badgeIds = removed;
         }
+        resMetadata = resMetadata.filter(metadata => metadata.badgeIds.length > 0);
+        badgeMetadataToReturn.push(...deepCopy(resMetadata));
+      }
 
-        if (currPreviewCollection && performUpdate) {
-          dispatch(updateCollectionsRedux({
-            ...currPreviewCollection,
-            cachedBadgeMetadata: badgeMetadataToReturn
-          }, true));
-        }
+      if (currPreviewCollection && performUpdate) {
+        dispatch(updateCollectionsRedux({
+          ...currPreviewCollection,
+          cachedBadgeMetadata: badgeMetadataToReturn
+        }, true));
       }
     }
 
@@ -585,9 +445,7 @@ export const fetchCollectionsRedux = (
   dispatch: AppDispatch,
   getState: () => GlobalReduxState
 ) => {
-    const forcefulRefresh = false;
     const state = getState().collections;
-    // const accountsState = getState().accounts;
 
     try {
       const collections = state.collections;
@@ -595,50 +453,27 @@ export const fetchCollectionsRedux = (
         throw new Error('Cannot fetch preview collection ID === 0');
       }
 
-
       //Check cache for collections. If non existent, fetch with all parameters
       //If existent, fetch with only the parameters that are missing / we do not have yet
-      //metadata, activity, announcements, reviews, owners, claims
       //If we already have everything, don't fetch and return cached value
 
-      const batchRequestBody: GetCollectionBatchRouteRequestBody = {
-        collectionsToFetch: []
-      };
-
-
-      // const accountsToFetch = []
-
+      const batchRequestBody: GetCollectionBatchRouteRequestBody = { collectionsToFetch: [] };
 
       for (const collectionToFetch of collectionsToFetch) {
-        if (forcefulRefresh) {
-          collections[`${collectionToFetch.collectionId}`] = undefined;
-        }
-
         const cachedCollection = collections[`${collectionToFetch.collectionId}`];
         //If we don't have the collection, add it to the batch request. Fetch requested details
         if (cachedCollection === undefined) {
-          batchRequestBody.collectionsToFetch.push({
-            collectionId: collectionToFetch.collectionId,
-            metadataToFetch: collectionToFetch.metadataToFetch,
-            viewsToFetch: collectionToFetch.viewsToFetch,
-            fetchTotalAndMintBalances: collectionToFetch.fetchTotalAndMintBalances,
-            merkleChallengeIdsToFetch: collectionToFetch.merkleChallengeIdsToFetch,
-            approvalsTrackerIdsToFetch: collectionToFetch.approvalsTrackerIdsToFetch,
-            handleAllAndAppendDefaults: collectionToFetch.handleAllAndAppendDefaults,
-          });
+          batchRequestBody.collectionsToFetch.push(collectionToFetch);
         } else {
           const prunedMetadataToFetch: MetadataFetchOptions = pruneMetadataToFetch(convertBitBadgesCollection(cachedCollection, BigIntify), collectionToFetch.metadataToFetch);
-
           const shouldFetchMetadata = (prunedMetadataToFetch.uris && prunedMetadataToFetch.uris.length > 0) || !prunedMetadataToFetch.doNotFetchCollectionMetadata;
-          const viewsToFetch: { viewId: string, viewType: CollectionViewKey, bookmark: string }[] = collectionToFetch.viewsToFetch || [];
-          const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total") && collectionToFetch.fetchTotalAndMintBalances;
+          const viewsToFetch = collectionToFetch.viewsToFetch || [];
+          const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total");
           const shouldFetchTotalAndMint = !hasTotalAndMint && collectionToFetch.fetchTotalAndMintBalances;
           const shouldFetchMerkleChallengeIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.merkleChallengeIdsToFetch ?? []).find(x => {
             const match = cachedCollection.merkleChallenges.find(y => y.challengeId === x.challengeId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && x.challengeLevel === y.challengeLevel)
             return !match;
           }) !== undefined;
-
-
           const shouldFetchAmountTrackerIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.approvalsTrackerIdsToFetch ?? []).find(x => {
             const match = cachedCollection.approvalsTrackers.find(y => y.amountTrackerId === x.amountTrackerId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
             return !match;
@@ -646,44 +481,27 @@ export const fetchCollectionsRedux = (
 
           if (shouldFetchMetadata || viewsToFetch.length > 0 || shouldFetchTotalAndMint || shouldFetchMerkleChallengeIds || shouldFetchAmountTrackerIds) {
             batchRequestBody.collectionsToFetch.push({
-              collectionId: collectionToFetch.collectionId,
+              ...collectionToFetch,
               metadataToFetch: prunedMetadataToFetch,
-              viewsToFetch,
-              fetchTotalAndMintBalances: collectionToFetch.fetchTotalAndMintBalances,
-              merkleChallengeIdsToFetch: collectionToFetch.merkleChallengeIdsToFetch,
-              approvalsTrackerIdsToFetch: collectionToFetch.approvalsTrackerIdsToFetch,
-              handleAllAndAppendDefaults: collectionToFetch.handleAllAndAppendDefaults,
             });
           } else {
-            //We already have everything we need from the collection side, but we may still have to check the accounts
-            // accountsToFetch.push({ address: cachedCollection.createdBy, viewsToFetch: [] });
-            // accountsToFetch.push(...cachedCollection.managerTimeline.map(x => { return { address: x.manager, viewsToFetch: [] } }));
+            //We already have everything we need from the collection
           }
         }
       }
 
       if (batchRequestBody.collectionsToFetch.length === 0) {
-        // dispatch(fetchAccountsRedux(accountsToFetch));
         return;
       }
 
       const res = await getCollections(batchRequestBody);
-      // console.log("COLLECTIONS RES", res);
 
       //Update collections map
       for (let i = 0; i < res.collections.length; i++) {
         dispatch(updateCollectionsRedux(res.collections[i], true));
       }
-
-      // accountsToFetch.push(
-      //   ...res.collections.map(x => { return { address: x.createdBy, viewsToFetch: [] } }),
-      //   ...res.collections.map(x => x.managerTimeline.map(y => y.manager)).flat().map(x => { return { address: x, viewsToFetch: [] } })
-      // );
-
-      // dispatch(fetchAccountsRedux(accountsToFetch));
     } catch (err: any) {
       console.error(err);
-      dispatch(fetchCollectionsFailure(err.message));
     }
   }
 
@@ -719,20 +537,6 @@ export const collectionReducer = (state = initialState, action: { type: string; 
         return updateCollection(state, newCollection, true);
       }
       throw new Error("Collection not found and onlyUpdateProvidedFields is true");
-    case 'FETCH_COLLECTIONS_REQUEST':
-      return { ...state, loading: false, error: '', queue: [...state.queue, ...action.payload] };
-    case 'FETCH_COLLECTIONS_START':
-    // return {
-    //   ...state, loading: false, error: '',
-    //   queue: state.queue.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))),
-    //   fetching: [...state.fetching, ...action.payload]
-    // }
-    case 'FETCH_COLLECTIONS_FAILURE':
-    // return { ...state, loading: false, error: action.payload };
-    case 'FETCH_COLLECTIONS_SUCCESS':
-    // return state;
-    // console.log('new fetching', state.fetching, state.fetching.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))));
-    // return { ...state, loading: false, error: '', fetching: state.fetching.filter(x => !action.payload.find((y: any) => JSON.stringify(x) === JSON.stringify(y))) };
     default:
       return state;
   }

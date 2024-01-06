@@ -13,12 +13,13 @@ import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/co
 import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
-import { BalanceDisplay } from '../badges/BalanceDisplay';
+import { BalanceDisplay } from '../balances/BalanceDisplay';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
-import { PredeterminedCard } from '../collection-page/TransferabilityRow';
 import { ErrDisplay } from '../common/ErrDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TxModal } from './TxModal';
+import { applyIncrementsToBalances } from '../../bitbadges-api/utils/balances';
+import { PredeterminedCard } from '../collection-page/transferability/PredeterminedCard';
 
 
 //Claim badge is exclusively used for predetermined balances
@@ -66,20 +67,12 @@ export function CreateTxMsgClaimBadgeModal(
 
   const recipientAccount = useAccount(recipient);
 
-
-  const [tree, setTree] = useState<MerkleTree | null>(merkleChallenge ?
-    new MerkleTree(leavesDetails?.leaves.map(x => leavesDetails?.isHashed ? x : SHA256(x)) ?? [], SHA256, treeOptions) : null);
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('useEffect:  tree');
-    if (!visible) return;
-    if (merkleChallenge) {
-      const tree = new MerkleTree(approval.details?.challengeDetails?.leavesDetails?.leaves.map(x => {
-        return approval.details?.challengeDetails?.leavesDetails?.isHashed ? x : SHA256(x);
-      }) ?? [], SHA256, approval.details?.challengeDetails?.treeOptions);
-      setTree(tree);
-    }
-  }, [approval, merkleChallenge, visible]);
+  const tree = useMemo(() => {
+    if (INFINITE_LOOP_MODE) console.log('useMemo:  tree');
+    if (!visible) return null;
+    if (!merkleChallenge) return null;
+    return new MerkleTree(leavesDetails?.leaves.map(x => leavesDetails?.isHashed ? x : SHA256(x)) ?? [], SHA256, treeOptions);
+  }, [merkleChallenge, leavesDetails, treeOptions, visible]);
 
 
   //auto populate if navigated to page with a URL query (e.g. QR code)
@@ -188,6 +181,15 @@ export function CreateTxMsgClaimBadgeModal(
   const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(passwordCodeToSubmit).toString();
   const proofObj = tree?.getProof(leaf, leafIndex !== undefined && leafIndex >= 0 ? leafIndex : undefined);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
+  const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0))
+  const reservedAddress = claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0);
+
+  const reservedBalances = applyIncrementsToBalances(
+    approvalCriteria?.predeterminedBalances?.incrementedBalances?.startBalances ?? [],
+    approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n,
+    approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n,
+    BigInt(leafIndex)
+  );
 
   const txsInfo = useMemo(() => {
     const txCosmosMsg: MsgTransferBadges<bigint> = {
@@ -246,29 +248,6 @@ export function CreateTxMsgClaimBadgeModal(
   if (!collection || !visible) return <></>;
 
 
-
-  const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0))
-  const reservedAddress = claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0);
-
-  const reservedBalances = approvalCriteria?.predeterminedBalances?.incrementedBalances?.startBalances.map(x => {
-    return {
-      ...x,
-      badgeIds: x.badgeIds.map(y => {
-        return {
-          ...y,
-          start: y.start + (approvalCriteria.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n) * BigInt(leafIndex),
-          end: y.end + (approvalCriteria.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n) * BigInt(leafIndex),
-        }
-      }),
-      ownershipTimes: x.ownershipTimes.map(y => {
-        return {
-          ...y,
-          start: y.start + (approvalCriteria.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n) * BigInt(leafIndex),
-          end: y.end + (approvalCriteria.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n) * BigInt(leafIndex),
-        }
-      })
-    }
-  }) ?? [];
 
   const items = [
     {
