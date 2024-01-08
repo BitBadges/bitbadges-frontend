@@ -1,7 +1,6 @@
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { Button, Carousel, Col } from 'antd';
-import React, { ReactNode, useEffect } from 'react';
-import { getPageDetails } from '../../utils/pagination';
+import { Button, Col } from 'antd';
+import React, { ReactNode, useEffect, useMemo } from 'react';
 
 interface CustomCarouselProps {
   title: string | ReactNode
@@ -14,15 +13,18 @@ interface CustomCarouselProps {
 }
 
 const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, setPage, total, showTotalMobile, numPerPage }) => {
-  const [currPage, setCurrPage] = React.useState(page ?? 1);
+  const [currPage, setCurrPage] = React.useState(page ?? 0);
   const [isMobile, setIsMobile] = React.useState(false);
 
-  const pageDetails = getPageDetails(currPage, numPerPage, 0, items.length);
-  const idxsToDisplay = [];
-  for (let i = pageDetails.start; i <= pageDetails.end; i++) {
-    idxsToDisplay.push(i);
-  }
 
+  //group the items into pages of size numPerPage
+  const groupedItems: ReactNode[][] = useMemo(() => {
+    const grouped: ReactNode[][] = [];
+    for (let i = 0; i < items.length; i += numPerPage) {
+      grouped.push(items.slice(i, i + numPerPage));
+    }
+    return grouped;
+  }, [items, numPerPage]);
 
   useEffect(() => {
     setCurrPage(0);
@@ -39,6 +41,16 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const itemsToDisplay = groupedItems.map((items, index) => {
+    if (index !== currPage) return null;
+
+    return items.map((item) => {
+      const x = crypto.randomUUID();
+      console.log(x);
+      return item;
+    });
+  }).filter(x => x).flat();
+
   return (
     <div className="primary-text">
 
@@ -54,8 +66,8 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
             icon={<LeftOutlined />}
             onClick={() => {
               if (currPage === 0) {
-                if (setPage) setPage((total ? total - 1 : items.length - 1));
-                setCurrPage((total ? total - 1 : items.length - 1));
+                if (setPage) setPage((total ? total - 1 : groupedItems.length - 1));
+                setCurrPage((total ? total - 1 : groupedItems.length - 1));
               } else {
                 if (setPage) setPage(currPage - 1);
                 setCurrPage(currPage - 1);
@@ -69,7 +81,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
             style={{ margin: 4 }}
             icon={<RightOutlined />}
             onClick={() => {
-              if (currPage === (total ? total - 1 : items.length - 1)) {
+              if (currPage === (total ? total - 1 : groupedItems.length - 1)) {
                 if (setPage) setPage(0);
                 setCurrPage(0);
               } else {
@@ -80,53 +92,31 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
           />
           <div className='secondary-text' style={{ marginLeft: '1rem', fontSize: 18, fontWeight: 'bolder' }}>
 
-            {page ?? currPage + 1}/{total ?? items.length}
+            {page ?? currPage + 1}/{total ?? groupedItems.length}
           </div>
         </div>
       </div>}
       {isMobile && <>
-        <div className='flex-center'>
+        <div className='flex'>
           {title}
-          {showTotalMobile && <div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder', marginLeft: 4 }}>({total ?? items.length})</div>}
+          {showTotalMobile && <div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder', marginLeft: 4 }}>({total ?? groupedItems.length})</div>}
         </div>
       </>}
 
 
 
       <Col md={24} xs={0}>
-        <Carousel
-          dots={false}
-          swipeToSlide={true}
-          swipe={true}
-          onSwipe={(direction) => {
-            if (direction === 'left') {
-              if (currPage === (total ? total - 1 : items.length - 1)) {
-                if (setPage) setPage(0);
-                setCurrPage(0);
-              } else {
-                if (setPage) setPage(currPage + 1);
-                setCurrPage(currPage + 1);
-              }
-            } else {
-              if (currPage === 0) {
-                if (setPage) setPage((total ? total - 1 : items.length - 1));
-                setCurrPage((total ? total - 1 : items.length - 1));
-              } else {
-                if (setPage) setPage(currPage - 1);
-                setCurrPage(currPage - 1);
-              }
-            }
-          }}
-        >
-          {idxsToDisplay.map(x => {
-            return items[x]
+        <div className='flex full-width'>
+          {itemsToDisplay.map((item) => {
+            return item;
           })}
-        </Carousel>
+        </div>
       </Col>
       <Col md={0} xs={24}>
 
         <div className='flex snap-x snap-mandatory scroll-auto' style={{ width: '100%', overflowX: 'scroll' }}>
           {items.map((item, index) => {
+
             return (
               <div key={index} className='snap-normal snap-center' style={{ minWidth: '100%' }}>
                 {item}

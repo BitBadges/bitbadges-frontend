@@ -1,6 +1,6 @@
 import { Spin, Empty } from "antd"
 import { Numberify } from "bitbadgesjs-proto"
-import { removeUintRangeFromUintRange } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection, removeUintRangeFromUintRange } from "bitbadgesjs-utils"
 import { useState, useMemo } from "react"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { getCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"

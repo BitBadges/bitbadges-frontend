@@ -38,6 +38,7 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
     </div>
   </>
 
+  const showViewLink = multiDisplay && hideCollectionLink;
 
   const CollectionLink = <>
     <div className='flex-center-if-mobile'>
@@ -52,18 +53,20 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
           }
           router.push(`/collections/${collectionId}`)
         }}>
-          {multiDisplay ? 'View' : collectionMetadata?.name}</a>
+          {collectionMetadata?.name}</a>
       </Text>
+
     </div>
   </>
 
   const Title = <>
-    <div className='flex-center-if-mobile flex-column'>
-      <Text strong className='primary-text' style={{ fontSize: 30 }}>
-        {metadata?.name}
-        {/* {"kljdgfsjhdsjhfhj jdfshg fgjhklsdgjh dfsjhlkgfgjk ds jghdfskdgfjh gfdjkh fdsjhkldfsgkhgk hsfdg df hg"} */}
-      </Text>
-      {!hideCollectionLink && <>
+    <div className='flex-center-if-mobile flex-column my-2'>
+      {!showViewLink &&
+        <Text strong className='primary-text' style={{ fontSize: 30 }}>
+          {metadata?.name}
+          {/* {"kljdgfsjhdsjhfhj jdfshg fgjhklsdgjh dfsjhlkgfgjk ds jghdfskdgfjh gfdjkh fdsjhkldfsgkhgk hsfdg df hg"} */}
+        </Text>}
+      {(!hideCollectionLink || showViewLink) && <>
         {CollectionLink}
       </>}
     </div>

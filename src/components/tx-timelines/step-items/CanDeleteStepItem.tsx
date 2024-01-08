@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
+import { GenericCollectionPermissionWithDetails, getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { PermissionNameString, PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
@@ -15,7 +15,7 @@ export const handleSwitchChangeIdxOnly = (idx: number, permissionName: Permissio
 }
 
 export const handleSwitchChange = (idx: number, permissionName: PermissionNameString, frozen?: boolean) => {
-  const permissions = idx === 0 ? [{
+  let permissions: GenericCollectionPermissionWithDetails[] = idx === 0 ? [{
     permittedTimes: [],
     forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   }] : idx == 1 && !frozen ? [] : [{
@@ -24,13 +24,15 @@ export const handleSwitchChange = (idx: number, permissionName: PermissionNameSt
   }];
 
   if (permissionName !== 'canDeleteCollection') {
-    permissions.map(x => {
+    permissions = permissions.map(x => {
       return {
         ...x,
         timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }]
       }
     })
   }
+
+  console.log(permissionName, permissions);
 
   updateCollection({
     collectionId: NEW_COLLECTION_ID,

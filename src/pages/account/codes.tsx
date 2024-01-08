@@ -164,8 +164,8 @@ export function AuthCodes() {
   }, [signedInAccount]);
 
   const getItems = (codes: BlockinAuthSignatureDoc<bigint>[], saved?: boolean) => {
-    return codes.map((x) => {
-      if (!x) return <></>;
+    return codes.map((authCode) => {
+      if (!authCode) return <></>;
       return <div className='full-width' key={authCode.signature}>
         <AuthCode authCode={authCode} storeLocally={!saved} />
         <Divider />

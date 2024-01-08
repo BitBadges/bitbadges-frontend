@@ -10,11 +10,12 @@ import { fetchCollectionsWithOptions, useCollection } from '../../bitbadges-api/
 import { getBadgesWithFrozenMetadata, getBadgesWithFrozenTransferability, getBadgesWithLockedSupply } from '../../bitbadges-api/utils/badges';
 import { BatchBadgeDetails } from '../../bitbadges-api/utils/batches';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { BadgeInfiniteScroll, BatchBadgeDetailsTag, CollectionsFilterSearchBar } from '../../pages/account/[addressOrUsername]';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { Divider } from '../display/Divider';
 import { CheckboxSelect, SelectWithOptions } from '../inputs/Selects';
+import { BadgeInfiniteScroll } from '../badges/BadgeInfiniteScroll';
+import { CollectionsFilterSearchBar, BatchBadgeDetailsTag } from '../badges/DisplayFilters';
 
 const { Text } = Typography;
 

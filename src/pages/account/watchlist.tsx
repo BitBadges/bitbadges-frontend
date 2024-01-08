@@ -28,17 +28,12 @@ import IconButton from "../../components/display/IconButton"
 import { Tabs } from "../../components/navigation/Tabs"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
-import {
-  BatchBadgeDetailsTag,
-  BadgeInfiniteScroll,
-  CustomizeAddRemoveBadgeFromPage,
-  CustomizeAddRemoveListFromPage,
-  ListInfiniteScroll,
-  NewPageInputForm,
-  OptionsSelects,
-} from "./[addressOrUsername]"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
 import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "../../bitbadges-api/utils/batches"
+import { BadgeInfiniteScroll } from "../../components/badges/BadgeInfiniteScroll"
+import { OptionsSelects, BatchBadgeDetailsTag } from "../../components/badges/DisplayFilters"
+import { ListInfiniteScroll } from "../../components/badges/ListInfiniteScroll"
+import { CustomizeAddRemoveBadgeFromPage, NewPageInputForm, CustomizeAddRemoveListFromPage } from "../../components/display/CustomPages"
 
 const { Content } = Layout
 

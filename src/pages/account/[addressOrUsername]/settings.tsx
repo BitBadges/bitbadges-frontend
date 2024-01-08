@@ -63,7 +63,7 @@ export const MarkdownEditor = ({ markdown, setMarkdown, placeholder }: { markdow
   </div>
 }
 
-export const MarkdownDisplay = ({ markdown, showMoreHeight = 200 }: { markdown: string, showMoreHeight?: number }) => {
+export const MarkdownDisplay = ({ markdown, showMoreHeight = 300 }: { markdown: string, showMoreHeight?: number }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
@@ -73,13 +73,13 @@ export const MarkdownDisplay = ({ markdown, showMoreHeight = 200 }: { markdown: 
   useLayoutEffect(() => {
     // Calculate the height of the content inside the description div
     const descriptionElement = document.getElementById('description' + id);
+    console.log(descriptionElement);
 
     const height = descriptionElement?.clientHeight ?? 0;
+    console.log(height);
     setContentHeight(height);
 
-  }, []);
-
-
+  }, [id]);
 
   useEffect(() => {
     // Check if dark mode is enabled in local storage
@@ -89,8 +89,13 @@ export const MarkdownDisplay = ({ markdown, showMoreHeight = 200 }: { markdown: 
 
   const mode = darkMode ? 'dark' : 'light';
 
-  return <div className='primary-text' style={{ textAlign: 'start', maxHeight: showMore ? undefined : showMoreHeight, whiteSpace: 'normal', }} id={'description2' + id}>
-    <div data-color-mode={mode}>
+  return <div className='primary-text my-1'>
+    <div data-color-mode={mode} style={{
+      textAlign: 'start',
+      overflow: !showMore ? 'hidden' : undefined,
+
+      maxHeight: showMore ? undefined : showMoreHeight, whiteSpace: 'normal',
+    }} id={'description' + id}>
       <EditerMarkdown source={markdown} style={{ whiteSpace: 'pre-wrap' }} />
     </div>
     {contentHeight >= showMoreHeight && (

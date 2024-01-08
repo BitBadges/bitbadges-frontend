@@ -61,10 +61,10 @@ function BrowsePage() {
         for (let i = badgeIdRange.start; i <= badgeIdRange.end; i++) {
           const badgeId = BigInt(i)
           const metadata = getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? []);
-          allItems.push(<InformationDisplayCard title='' key={collection.collectionId + "" + idx} md={8} xs={24} sm={24}>
+          allItems.push(<InformationDisplayCard title='' key={collection.collectionId + i + "" + idx} md={8} xs={24} sm={24}>
             <CollectionHeader collectionId={collection.collectionId} badgeId={badgeId} multiDisplay />
             <br />
-            <MarkdownDisplay markdown={metadata?.description ?? ''} />
+            <MarkdownDisplay markdown={metadata?.description ?? ''} showMoreHeight={100} />
           </InformationDisplayCard>);
 
         }
@@ -74,8 +74,7 @@ function BrowsePage() {
     return allItems;
   }, [browseInfo, badgesTab]);
 
-  const badgeItemWidth = 350; // Set the width of each carousel item (adjust as needed)
-  const badgeNumItemsPerPage = Math.floor(containerWidth / badgeItemWidth) ? Math.floor(containerWidth / badgeItemWidth) : 1;
+  const badgeNumItemsPerPage = 3;
 
   const collectionItems = useMemo(() => {
     const allItems: ReactElement[] = [];
@@ -126,7 +125,7 @@ function BrowsePage() {
     }
 
     return allItems;
-  }, [browseInfo, collectionsTab, cardView]);
+  }, [browseInfo, listsTab]);
 
 
   const profileItemWidth = 330; // Set the width of each carousel item (adjust as needed)
@@ -158,7 +157,7 @@ function BrowsePage() {
     }
 
     return allItems;
-  }, [browseInfo, collectionsTab, cardView]);
+  }, [browseInfo, tab, router]);
 
   return (
     <Content
