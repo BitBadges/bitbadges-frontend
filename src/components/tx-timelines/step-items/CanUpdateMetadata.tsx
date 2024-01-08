@@ -24,6 +24,7 @@ import {
 } from "../../collection-page/PermissionsInfo"
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper"
 import { SwitchForm } from "../form-items/SwitchForm"
+import { handleSwitchChange as handleSwitchChangeImported } from "./CanDeleteStepItem"
 
 
 export function UpdatableMetadataSelectStepItem(
@@ -114,40 +115,7 @@ export function UpdatableMetadataSelectStepItem(
 
   const handleSwitchChange = (idx: number, frozen?: boolean) => {
     if (collectionMetadataUpdate) {
-      if (idx == 1 && !frozen) {
-        updateCollection({
-          collectionId: NEW_COLLECTION_ID,
-          collectionPermissions: {
-            canUpdateCollectionMetadata: [],
-          },
-        })
-      } else if (idx == 1 && frozen) {
-        updateCollection({
-          collectionId: NEW_COLLECTION_ID,
-          collectionPermissions: {
-            canUpdateCollectionMetadata: [
-              {
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                forbiddenTimes: [],
-              },
-            ],
-          },
-        })
-      } else {
-        updateCollection({
-          collectionId: NEW_COLLECTION_ID,
-          collectionPermissions: {
-            canUpdateCollectionMetadata: [
-              {
-                timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              },
-            ],
-          },
-        })
-      }
+      handleSwitchChangeImported(idx, "canUpdateCollectionMetadata", frozen);
     } else {
       if (idx == 1 && !frozen) {
         updateCollection({

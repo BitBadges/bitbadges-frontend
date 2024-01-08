@@ -91,11 +91,6 @@ function BlockinCodesScreen() {
     blockinParams.nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
   }
 
-
-
-
-
-
   const handleSignChallenge = async (challenge: string) => {
     const response = await signChallenge(challenge);
     return response;
@@ -176,7 +171,6 @@ function BlockinCodesScreen() {
               </div>
             }
             {
-
               address && blockinParams.address && blockinParams.address !== address && !allowAddressSelect ?
                 <div style={{
                   marginLeft: '3vw',

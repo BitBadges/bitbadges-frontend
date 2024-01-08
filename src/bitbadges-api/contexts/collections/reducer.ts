@@ -1,11 +1,12 @@
 import { BigIntify, CollectionPermissions, UintRange, deepCopy } from "bitbadgesjs-proto";
-import { BadgeMetadataDetails, BitBadgesCollection, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, batchUpdateBadgeMetadata, convertBitBadgesCollection, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, pruneMetadataToFetch, removeUintRangeFromUintRange, updateBadgeMetadata } from "bitbadgesjs-utils";
+import { BadgeMetadataDetails, BitBadgesCollection, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, convertBitBadgesCollection, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, pruneMetadataToFetch, removeUintRangeFromUintRange, updateBadgeMetadata } from "bitbadgesjs-utils";
 import Joi from "joi";
 import { ThunkAction } from "redux-thunk";
 import { AppDispatch, CollectionReducerState, GlobalReduxState } from "../../../pages/_app";
 import { compareObjects } from "../../../utils/compare";
 import { DesiredNumberType, fetchMetadataDirectly, getCollections } from "../../api";
 import { getCurrentMetadata } from "../../utils/metadata";
+import { updateCollectionWithResponse } from "../../utils/requests";
 import { NEW_COLLECTION_ID } from "../TxTimelineContext";
 import { initialState } from "./CollectionsContext";
 
@@ -109,128 +110,8 @@ const updateCollection = (state = initialState, newCollection: BitBadgesCollecti
 
   const cachedCollectionCopy = deepCopy(cachedCollection);
 
-  if (cachedCollection) {
-    //TODO: No idea why the deep copy is necessary but it breaks the timeline batch updates for existing collections if not
-    //      One place to look: somehow, I think that the indivudal elements in .badgeIds are the same object (cached[0].badgeIds === new[0].badgeIds)
-    //      I think the cachedCollection deepCopy is the important one, but I'm not sure
-
-    let newBadgeMetadata = newCollection.cachedBadgeMetadata
-      ? !isUpdate ? deepCopy(newCollection.cachedBadgeMetadata) : batchUpdateBadgeMetadata(cachedCollection.cachedBadgeMetadata, deepCopy(newCollection.cachedBadgeMetadata))
-      : cachedCollection.cachedBadgeMetadata;
-
-
-    const newViews = cachedCollection?.views || {};
-
-    if (newCollection.views) {
-      for (const [key, val] of Object.entries(newCollection.views)) {
-        if (!val) continue;
-        const oldVal = cachedCollection?.views[key];
-        const newVal = val;
-
-        newViews[key] = {
-          ids: [...(oldVal?.ids || []), ...(newVal?.ids || [])].filter((val, index, self) => self.findIndex(x => x === val) === index),
-          pagination: {
-            ...val.pagination,
-            total: val.pagination?.total || newViews[key]?.pagination?.total || undefined,
-          },
-          type: val.type
-        }
-      }
-    }
-
-
-    const reviews = cachedCollection.reviews || [];
-    for (const newReview of newCollection.reviews || []) {
-      //If we already have the review, replace it (we want newer data)
-      const existingReview = reviews.findIndex(x => x._legacyId === newReview._legacyId);
-      if (existingReview !== -1) {
-        reviews[existingReview] = newReview;
-      } else {
-        reviews.push(newReview);
-      }
-    }
-
-    const announcements = cachedCollection.announcements || [];
-    for (const newAnnouncement of newCollection.announcements || []) {
-      //If we already have the announcement, replace it (we want newer data)
-      const existingAnnouncement = announcements.findIndex(x => x._legacyId === newAnnouncement._legacyId);
-      if (existingAnnouncement !== -1) {
-        announcements[existingAnnouncement] = newAnnouncement;
-      } else {
-        announcements.push(newAnnouncement);
-      }
-    }
-
-    const activity = cachedCollection.activity || [];
-    for (const newActivity of newCollection.activity || []) {
-      //If we already have the activity, replace it (we want newer data)
-      const existingActivity = activity.findIndex(x => x._legacyId === newActivity._legacyId);
-      if (existingActivity !== -1) {
-        activity[existingActivity] = newActivity;
-      } else {
-        activity.push(newActivity);
-      }
-    }
-
-    const owners = cachedCollection.owners || [];
-    for (const newOwner of newCollection.owners || []) {
-      //If we already have the owner, replace it (we want newer data)
-      const existingOwner = owners.findIndex(x => x._legacyId === newOwner._legacyId);
-      if (existingOwner !== -1) {
-        owners[existingOwner] = newOwner;
-      } else {
-        owners.push(newOwner);
-      }
-    }
-
-    const merkleChallenges = cachedCollection.merkleChallenges || [];
-    for (const newMerkleChallenge of newCollection.merkleChallenges || []) {
-      //If we already have the merkleChallenge, replace it (we want newer data)
-      const existingMerkleChallenge = merkleChallenges.findIndex(x => x._legacyId === newMerkleChallenge._legacyId);
-      if (existingMerkleChallenge !== -1) {
-        merkleChallenges[existingMerkleChallenge] = newMerkleChallenge;
-      } else {
-        merkleChallenges.push(newMerkleChallenge);
-      }
-    }
-
-    const approvalsTrackers = cachedCollection.approvalsTrackers || [];
-    for (const newApprovalsTracker of newCollection.approvalsTrackers || []) {
-      //If we already have the approvalsTracker, replace it (we want newer data)
-      const existingApprovalsTracker = approvalsTrackers.findIndex(x => x._legacyId === newApprovalsTracker._legacyId);
-      if (existingApprovalsTracker !== -1) {
-        approvalsTrackers[existingApprovalsTracker] = newApprovalsTracker;
-      } else {
-        approvalsTrackers.push(newApprovalsTracker);
-      }
-    }
-
-
-    //Update details accordingly. Note that there are certain fields which are always returned like collectionId, collectionUri, badgeUris, etc. We just ...spread these from the new response.
-    cachedCollection = {
-      ...cachedCollection,
-      ...newCollection,
-      cachedCollectionMetadata: !isUpdate ? newCollection.cachedCollectionMetadata : newCollection.cachedCollectionMetadata || cachedCollection?.cachedCollectionMetadata,
-      cachedBadgeMetadata: newBadgeMetadata,
-      reviews,
-      announcements,
-      activity,
-      owners,
-      merkleChallenges,
-      approvalsTrackers,
-      views: newViews,
-    };
-
-    if (cachedCollection.collectionId === NEW_COLLECTION_ID) {
-      //Filter out fetchedAt and fetchedAtBlock for preview collections
-      delete cachedCollection.cachedCollectionMetadata?.fetchedAt;
-      delete cachedCollection.cachedCollectionMetadata?.fetchedAtBlock;
-      for (const metadataDetails of cachedCollection.cachedBadgeMetadata) {
-        delete metadataDetails.metadata?.fetchedAt;
-        delete metadataDetails.metadata?.fetchedAtBlock;
-      }
-    }
-
+  if (cachedCollection && isUpdate) {
+    cachedCollection = updateCollectionWithResponse(cachedCollection, newCollection);
 
     //Only update if anything has changed
     if (!compareObjects(cachedCollectionCopy, cachedCollection)) {

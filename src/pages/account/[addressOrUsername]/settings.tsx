@@ -1,10 +1,10 @@
-import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { FullscreenExitOutlined, FullscreenOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { BLANK_USER_INFO, BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
 
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
@@ -18,6 +18,7 @@ import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
 import rehypeSanitize from "rehype-sanitize";
+import crypto from 'crypto'
 
 
 const MDEditor = dynamic(
@@ -62,8 +63,23 @@ export const MarkdownEditor = ({ markdown, setMarkdown, placeholder }: { markdow
   </div>
 }
 
-export const MarkdownDisplay = ({ markdown }: { markdown: string }) => {
+export const MarkdownDisplay = ({ markdown, showMoreHeight = 200 }: { markdown: string, showMoreHeight?: number }) => {
   const [darkMode, setDarkMode] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  const id = useRef(crypto.randomBytes(32).toString());
+
+  useLayoutEffect(() => {
+    // Calculate the height of the content inside the description div
+    const descriptionElement = document.getElementById('description' + id);
+
+    const height = descriptionElement?.clientHeight ?? 0;
+    setContentHeight(height);
+
+  }, []);
+
+
 
   useEffect(() => {
     // Check if dark mode is enabled in local storage
@@ -73,10 +89,20 @@ export const MarkdownDisplay = ({ markdown }: { markdown: string }) => {
 
   const mode = darkMode ? 'dark' : 'light';
 
-  return <div className='' style={{ textAlign: 'start' }}>
+  return <div className='primary-text' style={{ textAlign: 'start', maxHeight: showMore ? undefined : showMoreHeight, whiteSpace: 'normal', }} id={'description2' + id}>
     <div data-color-mode={mode}>
       <EditerMarkdown source={markdown} style={{ whiteSpace: 'pre-wrap' }} />
     </div>
+    {contentHeight >= showMoreHeight && (
+      <div className='flex-between flex-wrap' style={{ marginTop: '10px' }}>
+        <div></div>
+        <div>
+          <a onClick={() => { setShowMore(!showMore) }}>
+            {showMore ? <FullscreenOutlined /> : <FullscreenExitOutlined />} {showMore ? 'Show Less' : 'Show More'}
+          </a>
+        </div>
+      </div>
+    )}
   </div>
 }
 

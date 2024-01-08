@@ -2,13 +2,12 @@ import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { useState } from "react";
 
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { neverHasManager } from "../../../bitbadges-api/utils/manager";
 import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { AdditionalPermissionSelectNode, handleSwitchChangeIdxOnly } from "./CanDeleteStepItem";
 
 
 export function CanUpdateBalancesStepItem() {
@@ -21,30 +20,8 @@ export function CanUpdateBalancesStepItem() {
 
   if (!collection) return EmptyStepItem;
 
-  const handleSwitchChangeIdxOnly = (idx: number) => {
-    handleSwitchChange(idx);
-  }
-
-  const handleSwitchChange = (idx: number, frozen?: boolean) => {
-    //TODO:  Handle weird edge cases where it is updated behind the scenes by the user (not via form) and we can't actually update BB hosted -> IPFS if selected (or other weird edge cases)
-    //Currently it is caught by simulation
-
-    updateCollection({
-      collectionId: NEW_COLLECTION_ID,
-      collectionPermissions: {
-
-        canUpdateOffChainBalancesMetadata: idx === 0 ? [{
-          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          permittedTimes: [],
-          forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        }] : idx == 1 && !frozen ? [] : [{
-          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          forbiddenTimes: [],
-        }]
-      }
-    });
-  }
+  //TODO:  Handle weird edge cases where it is updated behind the scenes by the user (not via form) and we can't actually update BB hosted -> IPFS if selected (or other weird edge cases)
+  //Currently it is caught by simulation
 
   const noManager = neverHasManager(collection);
   const permissionDetails = getDetailsForCollectionPermission(collection, "canUpdateOffChainBalancesMetadata");
@@ -74,16 +51,7 @@ export function CanUpdateBalancesStepItem() {
                 The URL for the balances will be set to non-updatable, and we will store using IPFS, a permanent and decentralized file storage solution.`,
               isSelected: permissionDetails.isAlwaysFrozenAndForbidden,
               additionalNode: addMethod === MetadataAddMethod.UploadUrl || collection.balancesType === "Off-Chain - Non-Indexed" ?
-                () => <div className="flex-center">
-                  <PermissionsOverview
-                    span={24}
-                    collectionId={collection.collectionId}
-                    permissionName="canUpdateOffChainBalancesMetadata"
-                    onFreezePermitted={(frozen: boolean) => {
-                      handleSwitchChange(1, frozen);
-                    }}
-                  />
-                </div>
+                () => <AdditionalPermissionSelectNode permissionName="canUpdateOffChainBalancesMetadata" />
                 : undefined
             },
             {
@@ -102,20 +70,11 @@ export function CanUpdateBalancesStepItem() {
               isSelected: permissionDetails.isAlwaysPermittedOrNeutral,
               disabled: noManager,
               additionalNode: addMethod === MetadataAddMethod.UploadUrl || collection.balancesType === "Off-Chain - Non-Indexed" ?
-                () => <div className="flex-center">
-                  <PermissionsOverview
-                    span={24}
-                    collectionId={collection.collectionId}
-                    permissionName="canUpdateOffChainBalancesMetadata"
-                    onFreezePermitted={(frozen: boolean) => {
-                      handleSwitchChange(1, frozen);
-                    }}
-                  />
-                </div>
+                () => <AdditionalPermissionSelectNode permissionName="canUpdateOffChainBalancesMetadata" />
                 : undefined
             },
           ]}
-          onSwitchChange={handleSwitchChangeIdxOnly}
+          onSwitchChange={(idx) => { handleSwitchChangeIdxOnly(idx, "canUpdateOffChainBalancesMetadata") }}
         />
       </>
       }

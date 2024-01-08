@@ -43,34 +43,33 @@ export function CanCreateMoreStepItem() {
 
   const maxBadgeId = collection ? getMaxBadgeIdForCollection(collection) : 0n
 
-  const handleSwitchChange = useCallback(
-    (idx: number, locked: boolean) => {
-      const permissions =
-        idx >= 0 && idx <= 2
-          ? [
-            {
-              ...AlwaysLockedPermission,
-              badgeIds:
-                idx == 0
-                  ? AlwaysLockedPermission.badgeIds
-                  : idx == 1
-                    ? [{ start: 1n, end: maxBadgeId }]
-                    : [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
-            },
-          ]
-          : []
+  const handleSwitchChange = useCallback((idx: number, locked: boolean) => {
+    const permissions =
+      idx >= 0 && idx <= 2
+        ? [
+          {
+            ...AlwaysLockedPermission,
+            badgeIds:
+              idx == 0
+                ? AlwaysLockedPermission.badgeIds
+                : idx == 1
+                  ? [{ start: 1n, end: maxBadgeId }]
+                  : [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
+          },
+        ]
+        : []
 
-      if (locked) {
-        permissions.push(EverythingElsePermanentlyPermittedPermission)
-      }
+    if (locked) {
+      permissions.push(EverythingElsePermanentlyPermittedPermission)
+    }
 
-      updateCollection({
-        collectionId: NEW_COLLECTION_ID,
-        collectionPermissions: {
-          canCreateMoreBadges: permissions,
-        },
-      })
-    },
+    updateCollection({
+      collectionId: NEW_COLLECTION_ID,
+      collectionPermissions: {
+        canCreateMoreBadges: permissions,
+      },
+    })
+  },
     [maxBadgeId]
   )
 

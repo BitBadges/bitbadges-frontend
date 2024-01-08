@@ -158,8 +158,7 @@ function BlockinCodesScreen() {
     }, AUTO_CLEAR_MS)
 
     return () => clearTimeout(delayDebounceFn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputtedQrCode])
+  }, [inputtedQrCode, AUTO_CLEAR_MS])
 
   return (
 
@@ -365,7 +364,6 @@ function BlockinCodesScreen() {
         </div>}
       </InformationDisplayCard>
     </div>
-
   );
 }
 

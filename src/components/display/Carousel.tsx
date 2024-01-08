@@ -1,6 +1,7 @@
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { Button, Carousel, Col } from 'antd';
 import React, { ReactNode, useEffect } from 'react';
+import { getPageDetails } from '../../utils/pagination';
 
 interface CustomCarouselProps {
   title: string | ReactNode
@@ -9,15 +10,22 @@ interface CustomCarouselProps {
   total?: number;
   items: ReactNode[];
   showTotalMobile?: boolean;
+  numPerPage: number
 }
 
-const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, setPage, total, showTotalMobile }) => {
-  const [currPage, setCurrPage] = React.useState(page ?? 0);
+const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, setPage, total, showTotalMobile, numPerPage }) => {
+  const [currPage, setCurrPage] = React.useState(page ?? 1);
   const [isMobile, setIsMobile] = React.useState(false);
+
+  const pageDetails = getPageDetails(currPage, numPerPage, 0, items.length);
+  const idxsToDisplay = [];
+  for (let i = pageDetails.start; i <= pageDetails.end; i++) {
+    idxsToDisplay.push(i);
+  }
+
 
   useEffect(() => {
     setCurrPage(0);
-
   }, [items])
 
   useEffect(() => {
@@ -110,16 +118,15 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
             }
           }}
         >
-
-          {items[currPage]}
+          {idxsToDisplay.map(x => {
+            return items[x]
+          })}
         </Carousel>
       </Col>
       <Col md={0} xs={24}>
 
         <div className='flex snap-x snap-mandatory scroll-auto' style={{ width: '100%', overflowX: 'scroll' }}>
           {items.map((item, index) => {
-
-
             return (
               <div key={index} className='snap-normal snap-center' style={{ minWidth: '100%' }}>
                 {item}

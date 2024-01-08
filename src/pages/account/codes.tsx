@@ -46,17 +46,17 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
     })();
   }, [authCode.signature, loaded]);
 
-  const x = authCode;
+
   const validFrom = [{
-    start: x.params.notBefore ? BigInt(new Date(x.params.notBefore).getTime()) : BigInt(x.createdAt),
-    end: x.params.expirationDate ? BigInt(new Date(x.params.expirationDate).getTime()) : GO_MAX_UINT_64
+    start: authCode.params.notBefore ? BigInt(new Date(authCode.params.notBefore).getTime()) : BigInt(authCode.createdAt),
+    end: authCode.params.expirationDate ? BigInt(new Date(authCode.params.expirationDate).getTime()) : GO_MAX_UINT_64
   }]
 
   return <div className='flex-center flex-column full-width'>
     <CollectionHeader
-      collectionId={1n} //dummy value
+      collectionId={0n} //dummy value
       metadataOverride={{
-        ...x,
+        ...authCode,
       }}
       hideCollectionLink
       multiDisplay
@@ -64,13 +64,13 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
     />
     <div className='flex-center flex-column'>
       <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
-        {x.description}
+        {authCode.description}
       </div>
       <QrCodeDisplay
-        label={x.name}
-        value={x.signature}
+        label={authCode.name}
+        value={authCode.signature}
         storeLocally={storeLocally}
-        authCode={x}
+        authCode={authCode}
         helperDisplay={<div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
           <WarningOutlined style={{ color: 'orange', marginRight: 8 }} /> Anyone with this QR code can authenticate as you. Keep it safe and secret.
           <br />
@@ -82,7 +82,7 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
       />
     </div>
     <Divider />
-    {x.signature &&
+    {authCode.signature &&
       <InformationDisplayCard span={24} title='Current Status' inheritBg noBorder>
         <div className='secondary-text' style={{ fontSize: 16, textAlign: 'center', alignItems: 'center' }}>
           {currStatus.success ?
@@ -96,21 +96,21 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
 
       <InformationDisplayCard span={24} title='Details' inheritBg noBorder>
         {/* const paramKeyOrder = [ 'statement', 'nonce', 'signature', 'description']; */}
-        {x.signature && <TableRow label={'ID'} value={<Tooltip title={x.signature}><div style={{ float: 'right' }}>{getAbbreviatedAddress(x.signature)}</div></Tooltip>} labelSpan={8} valueSpan={16} />}
-        <TableRow label={'Address'} value={<div style={{ float: 'right' }}><AddressDisplay addressOrUsername={x.params.address} /></div>} labelSpan={8} valueSpan={16} />
-        <TableRow label={'Domain'} value={<a href={x.params.domain} target='_blank' rel="noreferrer">{x.params.domain}</a>} labelSpan={8} valueSpan={16} />
-        {x.params.uri !== x.params.domain && <TableRow label={'URI'} value={<a href={x.params.uri} target='_blank' rel="noreferrer">{x.params.uri}</a>} labelSpan={8} valueSpan={16} />}
-        <TableRow label={'Statement'} value={x.params.statement} labelSpan={8} valueSpan={16} />
-        <TableRow label={'Issued At'} value={new Date(Number(x.createdAt)).toLocaleString()} labelSpan={8} valueSpan={16} />
+        {authCode.signature && <TableRow label={'ID'} value={<Tooltip title={authCode.signature}><div style={{ float: 'right' }}>{getAbbreviatedAddress(authCode.signature)}</div></Tooltip>} labelSpan={8} valueSpan={16} />}
+        <TableRow label={'Address'} value={<div style={{ float: 'right' }}><AddressDisplay addressOrUsername={authCode.params.address} /></div>} labelSpan={8} valueSpan={16} />
+        <TableRow label={'Domain'} value={<a href={authCode.params.domain} target='_blank' rel="noreferrer">{authCode.params.domain}</a>} labelSpan={8} valueSpan={16} />
+        {authCode.params.uri !== authCode.params.domain && <TableRow label={'URI'} value={<a href={authCode.params.uri} target='_blank' rel="noreferrer">{authCode.params.uri}</a>} labelSpan={8} valueSpan={16} />}
+        <TableRow label={'Statement'} value={authCode.params.statement} labelSpan={8} valueSpan={16} />
+        <TableRow label={'Issued At'} value={new Date(Number(authCode.createdAt)).toLocaleString()} labelSpan={8} valueSpan={16} />
         <TableRow label={'Valid From'} value={<>{getTimeRangesElement(validFrom)}
           {BigInt(Date.now()) < validFrom[0].start || BigInt(Date.now()) > validFrom[0].end ? <CloseCircleFilled style={{ color: 'red', marginLeft: 8 }} /> : <CheckCircleFilled style={{ color: 'green', marginLeft: 8 }} />}
         </>} labelSpan={8} valueSpan={16} />
 
-        <TableRow label={'Nonce'} value={x.params.nonce} labelSpan={8} valueSpan={16} />
-        {x.params.chainId && <TableRow label={'Chain ID'} value={x.params.chainId} labelSpan={8} valueSpan={16} />}
-        {x.params.version && <TableRow label={'Version'} value={x.params.version} labelSpan={8} valueSpan={16} />}
-        {x.params.resources && !!x.params.resources.length ? <TableRow label={'Resources'} value={x.params.resources.join(', ')} labelSpan={8} valueSpan={16} /> : <></>}
-        {x.params.assets && !!x.params.assets.length ? <TableRow label={'Ownership Requirements'} value={x.params.assets.map((asset, i) => {
+        <TableRow label={'Nonce'} value={authCode.params.nonce} labelSpan={8} valueSpan={16} />
+        {authCode.params.chainId && <TableRow label={'Chain ID'} value={authCode.params.chainId} labelSpan={8} valueSpan={16} />}
+        {authCode.params.version && <TableRow label={'Version'} value={authCode.params.version} labelSpan={8} valueSpan={16} />}
+        {authCode.params.resources && !!authCode.params.resources.length ? <TableRow label={'Resources'} value={authCode.params.resources.join(', ')} labelSpan={8} valueSpan={16} /> : <></>}
+        {authCode.params.assets && !!authCode.params.assets.length ? <TableRow label={'Ownership Requirements'} value={authCode.params.assets.map((asset, i) => {
           const chainName = asset.chain;
 
           return <div key={i}>
@@ -144,25 +144,6 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
               }).join(', ') : 'at the time of sign-in'} to be approved.
           </div>
 
-
-          // return <div key={i}>
-          //   {asset.chain === 'BitBadges' ? <>
-          //     <BalanceDisplay
-          //       collectionId={BigInt(asset.collectionId)}
-          //       isMustOwnBadgesInput
-          //       mustOwnBadges={[{
-          //         amountRange: asset.mustOwnAmounts,
-          //         badgeIds: asset.assetIds.map(x => typeof x === 'string' ? { start: BigInt(x), end: BigInt(x) } : x),
-          //         collectionId: BigInt(asset.collectionId),
-          //         ownershipTimes: asset.ownershipTimes ?? [],
-          //         overrideWithCurrentTime: false,
-          //         mustOwnAll: false,
-          //       }]}
-          //       balances={[]}
-          //     />
-          //   </> : <></>
-          //   }
-          // </div>
         })} labelSpan={8} valueSpan={16} /> : <></>}
       </InformationDisplayCard>
 
@@ -185,8 +166,8 @@ export function AuthCodes() {
   const getItems = (codes: BlockinAuthSignatureDoc<bigint>[], saved?: boolean) => {
     return codes.map((x) => {
       if (!x) return <></>;
-      return <div className='full-width' key={x.signature}>
-        <AuthCode authCode={x} storeLocally={!saved} />
+      return <div className='full-width' key={authCode.signature}>
+        <AuthCode authCode={authCode} storeLocally={!saved} />
         <Divider />
         <IconButton
           src={<DeleteOutlined />}
@@ -198,14 +179,14 @@ export function AuthCodes() {
 
               setLoading(true);
               if (confirm('Are you sure you want to delete this QR code?')) {
-                await deleteAuthCode({ signature: x.signature });
+                await deleteAuthCode({ signature: authCode.signature });
                 window.location.reload();
               }
               setLoading(false);
             } else {
               const existingAuthCodes = localStorage.getItem('savedAuthCodes');
               const authCodes = existingAuthCodes ? JSON.parse(existingAuthCodes) : [];
-              const newAuthCodes = authCodes.filter((y: any) => y.signature !== x.signature);
+              const newAuthCodes = authCodes.filter((y: any) => y.signature !== authCode.signature);
               localStorage.setItem('savedAuthCodes', JSON.stringify(newAuthCodes));
               window.location.reload();
             }
@@ -229,7 +210,6 @@ export function AuthCodes() {
 
   const items = getItems(authCodes);
   const savedItems = getItems(savedAuthCodes, true);
-
 
   return (<>
     <Content
@@ -269,6 +249,7 @@ export function AuthCodes() {
               <CustomCarousel
                 title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
                 items={items}
+                numPerPage={1}
                 showTotalMobile
               />
             </InformationDisplayCard>}
@@ -283,7 +264,6 @@ export function AuthCodes() {
       {tab == 'saved' && <>
         <>
           <br />
-
           <div className='flex-center'>
             {savedAuthCodes.length > 0 && <InformationDisplayCard md={12} xs={24} sm={24} title='' >
 
@@ -291,6 +271,7 @@ export function AuthCodes() {
                 title={<div className='primary-text' style={{ fontSize: 20, textAlign: 'center', fontWeight: 'bolder' }}>My QR  Codes</div>}
                 items={savedItems}
                 showTotalMobile
+                numPerPage={1}
               />
             </InformationDisplayCard>}
           </div>

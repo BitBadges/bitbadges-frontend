@@ -1,16 +1,15 @@
-import { DownOutlined, InfoCircleOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Checkbox, DatePicker, Form, Input, Select, Space, Tooltip, Typography, Upload, UploadProps, message } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Checkbox, DatePicker, Form, Input, Tooltip, Typography } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { addMetadataToIpfs, fetchMetadataDirectly } from '../../bitbadges-api/api';
+import { BalanceInput } from '../../components/balances/BalanceInput';
 import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
-import { BalanceInput } from '../../components/balances/BalanceInput';
+import { ImageSelect } from '../../components/tx-timelines/form-items/MetadataForm';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { CodeGenQueryParams } from './codegen';
 const { Text } = Typography;
-
 
 function BlockinCodesScreen() {
   const [codeGenParams, setCodeGenParams] = useState<Required<CodeGenQueryParams>>({
@@ -64,81 +63,6 @@ function BlockinCodesScreen() {
         url = url.concat(`${key}=${value}&`);
       }
     }
-  }
-
-  const sampleImages = [
-    {
-      value: 'ipfs://QmbG3PyyQyZTzdTBANxb3sA8zC37VgXndJhndXSBf7Sr4o',
-      label: 'BitBadges Logo',
-    },
-  ]
-
-
-  const images = [
-    ...sampleImages,
-    codeGenParams.image && !sampleImages.find(x => x.value === codeGenParams.image)
-      ? {
-        value: codeGenParams.image,
-        label: 'Custom Image',
-      } : undefined
-  ].filter(x => !!x);
-
-  const [imageIsUploading, setImageIsUploading] = useState(false);
-
-  const dummyRequest = ({ onSuccess }: any) => {
-    setTimeout(() => {
-      onSuccess("ok");
-    }, 0);
-  };
-
-
-  const props: UploadProps = {
-    showUploadList: false,
-    name: 'file',
-    multiple: true,
-    customRequest: dummyRequest,
-    async onChange(info) {
-      if (info.file.status !== 'uploading') {
-        console.log(info.file, info.fileList);
-      } else {
-        if (!imageIsUploading) {
-          message.info(`${info.file.name} file is uploading.`);
-          setImageIsUploading(true);
-        }
-      }
-
-      if (info.file.status === 'done') {
-        await file2Base64(info.file.originFileObj as File).then(async (base64) => {
-          //TODO: optimize
-          const res = await addMetadataToIpfs({ collectionMetadata: { name: '', description: '', image: base64 } });
-          const imageRes = res?.collectionMetadataResult?.cid;
-          const getRes = await fetchMetadataDirectly({ uris: ['ipfs://' + imageRes] });
-          const metadata = getRes.metadata[0];
-          const image = metadata?.image;
-          if (!image) {
-            message.error(`${info.file.name} file upload failed.`);
-            return;
-          }
-
-          setCodeGenParams({ ...codeGenParams, image: image });
-          setImageIsUploading(false);
-          message.success(`${info.file.name} file uploaded successfully.`);
-        })
-      } else if (info.file.status === 'error') {
-        message.error(`${info.file.name} file upload failed.`);
-      } else {
-
-      }
-    },
-  };
-
-  const file2Base64 = (file: File): Promise<string> => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result?.toString() || '');
-      reader.onerror = error => reject(error);
-    })
   }
 
 
@@ -215,82 +139,9 @@ function BlockinCodesScreen() {
                   />
                 </Form.Item>
 
-                <Form.Item
-                  label={
-                    <Text
-                      className='primary-text'
-                      strong
-                    >
-                      Image
-                    </Text>
-                  }
-                  required
-                >
-                  <div className='flex-between'>
-                    <Select
-                      className="selector primary-text inherit-bg"
-                      value={images.find((item: any) => item.value === codeGenParams.image)?.label}
-                      onChange={(e) => {
-                        const newImage = images.find((item: any) => e === item.label)?.value;
-                        if (newImage) {
-                          setCodeGenParams({ ...codeGenParams, image: newImage });
-                        }
-                      }}
-                      style={{
-                      }}
-                      suffixIcon={
-                        <DownOutlined
-                          className='primary-text'
-                        />
-                      }
-                      dropdownRender={(menu) => (
-                        <>
-                          {menu}
-                          <Divider />
-                          <Space
-                            align="center"
-                            style={{ padding: '0 8px 4px' }}
-                          >
-                            <Upload {...props}>
-                              <Button icon={<UploadOutlined />}>Click to Upload New Image(s)</Button>
-                            </Upload>
-                            or Enter URL
-                            <Input
-                              style={{ color: 'black' }}
-                              value={codeGenParams.image}
-                              onChange={(e) => {
-                                setCodeGenParams({ ...codeGenParams, image: e.target.value });
-                              }}
-                              placeholder="Enter URL"
-                            />
-                          </Space>
-                        </>
-                      )}
-                    >
-                      {images.map((item: any) => (
-                        <Select.Option
-                          key={item.label}
-                          value={item.label}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <img
-                              src={item.value.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/')}
-
-                              style={{ paddingRight: 10, height: 20 }}
-                              alt="Label"
-                            />
-                            <div>{item.label}</div>
-                          </div>
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </div>
-                </Form.Item>
+                <ImageSelect image={codeGenParams.image} setImage={(image: string) => {
+                  setCodeGenParams({ ...codeGenParams, image: image });
+                }} />
 
                 <Form.Item
                   label={
@@ -363,11 +214,8 @@ function BlockinCodesScreen() {
                               setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, notBefore: '' } });
                             } else {
                               const maxDate = new Date();
-
                               setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, notBefore: maxDate.toISOString() } });
-
                             }
-
                           }}
                         />
 

@@ -1,12 +1,11 @@
 import { useState } from "react";
 
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+import { AdditionalPermissionSelectNode, handleSwitchChangeIdxOnly } from "./CanDeleteStepItem";
 
 export function CanManagerBeTransferredStepItem() {
 
@@ -16,41 +15,10 @@ export function CanManagerBeTransferredStepItem() {
   const [err, setErr] = useState<Error | null>(null);
   if (!collection) return EmptyStepItem;
 
-  const handleSwitchChangeIdxOnly = (idx: number) => {
-    handleSwitchChange(idx);
-  }
-
-  const handleSwitchChange = (idx: number, frozen?: boolean) => {
-
-    updateCollection({
-      collectionId: NEW_COLLECTION_ID,
-      collectionPermissions: {
-        canUpdateManager: idx === 0 ? [{
-          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          permittedTimes: [],
-          forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        }] : idx == 1 && !frozen ? []
-          : [{
-            timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            forbiddenTimes: [],
-          }]
-      }
-    });
-  }
 
   const permissionDetails = getDetailsForCollectionPermission(collection, "canUpdateManager");
   const AdditionalNode = () => <>
-    <div className="flex-center">
-      <PermissionsOverview
-        span={24}
-        collectionId={collection.collectionId}
-        permissionName="canUpdateManager"
-        onFreezePermitted={(frozen: boolean) => {
-          handleSwitchChange(1, frozen);
-        }}
-      />
-    </div>
+    <AdditionalPermissionSelectNode permissionName="canUpdateManager" />
   </>
 
   return {
@@ -79,7 +47,7 @@ export function CanManagerBeTransferredStepItem() {
               additionalNode: AdditionalNode,
             },
           ]}
-          onSwitchChange={handleSwitchChangeIdxOnly}
+          onSwitchChange={(idx) => { handleSwitchChangeIdxOnly(idx, "canUpdateManager") }}
         />
       </>
       }

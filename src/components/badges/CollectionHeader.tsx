@@ -5,11 +5,9 @@ import { Metadata, getMetadataDetailsForBadgeId } from 'bitbadgesjs-utils';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from './BadgeAvatar';
 
-import { FullscreenExitOutlined, FullscreenOutlined } from '@ant-design/icons';
-import { useLayoutEffect, useState } from 'react';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 import { BadgeButtonDisplay } from '../button-displays/BadgePageButtonDisplay';
-import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
 const { Text } = Typography;
 
@@ -21,23 +19,10 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
   multiDisplay?: boolean,
   mappingId?: string
 }) {
-  const [showMore, setShowMore] = useState(false);
-  const [contentHeight, setContentHeight] = useState(0);
-
   const router = useRouter();
   const collection = useCollection(collectionId)
   const metadata = metadataOverride ? metadataOverride : badgeId ? getMetadataDetailsForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])?.metadata : collection?.cachedCollectionMetadata;
   const collectionMetadata = collection?.cachedCollectionMetadata;
-
-  useLayoutEffect(() => {
-    // Calculate the height of the content inside the description div
-    const descriptionElement = document.getElementById('description' + badgeId + collectionId + mappingId);
-    const descriptionElement2 = document.getElementById('description2' + badgeId + collectionId + mappingId);
-
-    const height = descriptionElement?.clientHeight ?? 0;
-    const height2 = descriptionElement2?.clientHeight ?? 0;
-    setContentHeight(Math.max(height, height2));
-  }, [badgeId, collectionId, metadata?.description, mappingId]);
 
   const Avatar = <>
     <div>
@@ -66,7 +51,8 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
             return
           }
           router.push(`/collections/${collectionId}`)
-        }}>{collectionMetadata?.name}</a>
+        }}>
+          {multiDisplay ? 'View' : collectionMetadata?.name}</a>
       </Text>
     </div>
   </>
@@ -108,7 +94,7 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
   </>
 
   const About = metadata?.description && <>
-    <div className='primary-text' id={'description2' + badgeId + collectionId + mappingId} style={{ whiteSpace: 'normal', maxHeight: showMore ? undefined : '300px' }}>
+    <div className='primary-text' id={'description2' + badgeId + collectionId + mappingId} style={{ whiteSpace: 'normal' }}>
       <MarkdownDisplay markdown={metadata?.description ?? ''} />
     </div>
 
@@ -166,16 +152,6 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
               {About}
             </Col>}
 
-          {contentHeight >= 300 && (
-            <div className='flex-between flex-wrap' style={{ marginTop: '10px' }}>
-              <div></div>
-              <div>
-                <a onClick={() => { setShowMore(!showMore) }}>
-                  {showMore ? <FullscreenOutlined /> : <FullscreenExitOutlined />} {showMore ? 'Show Less' : 'Show More'}
-                </a>
-              </div>
-            </div>
-          )}
         </Col>
         <br />
       </>}

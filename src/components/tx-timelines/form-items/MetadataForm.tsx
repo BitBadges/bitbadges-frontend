@@ -191,6 +191,151 @@ export const MultiViewBadgeDisplay = ({
   </>
 }
 
+export function ImageSelect({
+  image,
+  setImage
+}: {
+  image: string,
+  setImage: (image: string) => void
+}) {
+  const sampleImages = [
+    {
+      value: "ipfs://QmbG3PyyQyZTzdTBANxb3sA8zC37VgXndJhndXSBf7Sr4o",
+      label: "BitBadges Logo",
+    },
+  ]
+
+  const images = [
+    ...sampleImages,
+    image &&
+      !sampleImages.find((x) => x.value === image)
+      ? {
+        value: image,
+        label: "Custom Image",
+      }
+      : undefined,
+  ].filter((x) => !!x)
+
+  const [imageIsUploading, setImageIsUploading] = useState(false)
+  const dummyRequest = ({ onSuccess }: any) => {
+    setTimeout(() => {
+      onSuccess("ok")
+    }, 0)
+  }
+
+  const props: UploadProps = {
+    showUploadList: false,
+    name: "file",
+    multiple: true,
+    customRequest: dummyRequest,
+    async onChange(info) {
+      if (info.file.status !== "uploading") {
+        console.log(info.file, info.fileList)
+      } else {
+        if (!imageIsUploading) {
+          message.info(`${info.file.name} file is uploading.`)
+          setImageIsUploading(true)
+        }
+      }
+
+      if (info.file.status === "done") {
+        await file2Base64(info.file.originFileObj as File).then((base64) => {
+          setImage(base64)
+          setImageIsUploading(false)
+          message.success(`${info.file.name} file uploaded successfully.`)
+        })
+      } else if (info.file.status === "error") {
+        message.error(`${info.file.name} file upload failed.`)
+      } else {
+      }
+    },
+  }
+
+  const file2Base64 = (file: File): Promise<string> => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result?.toString() || "")
+      reader.onerror = (error) => reject(error)
+    })
+  }
+
+  return <Form.Item
+    label={
+      <Text className="primary-text" strong>
+        Image
+      </Text>
+    }
+    required
+  >
+    <div className="flex-between">
+      <Select
+        className="selector primary-text inherit-bg"
+        value={
+          images.find(
+            (item: any) => item.value === image
+          )?.label
+        }
+        onChange={(e) => {
+          const newImage = images.find(
+            (item: any) => e === item.label
+          )?.value
+          if (newImage) {
+            setImage(newImage)
+          }
+        }}
+
+        suffixIcon={<DownOutlined className="primary-text" />}
+        dropdownRender={(menu) => (
+          <>
+            {menu}
+            <Divider style={{ margin: "8px 0" }} />
+            <Space
+              align="center"
+              style={{ padding: "0 8px 4px", width: "100%" }}
+            >
+              <Upload {...props}>
+                <Button icon={<UploadOutlined />}>
+                  Click to Upload New Image(s)
+                </Button>
+              </Upload>
+              or Enter URL
+              <Input
+                style={{ color: "black" }}
+                value={image}
+                onChange={(e) => {
+                  setImage(e.target.value)
+                }}
+                placeholder="Enter URL"
+              />
+            </Space>
+          </>
+        )}
+      >
+        {images.map((item: any) => (
+          <Option key={item.label} value={item.label}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <img
+                src={item.value.replace(
+                  "ipfs://",
+                  "https://bitbadges-ipfs.infura-ipfs.io/ipfs/"
+                )}
+                style={{ paddingRight: 10, height: 20 }}
+                alt="Label"
+              />
+              <div>{item.label}</div>
+            </div>
+          </Option>
+        ))}
+      </Select>
+    </div>
+  </Form.Item>
+}
 
 //Do not pass an badgeId if this is for the collection metadata
 export function MetadataForm({
@@ -279,25 +424,7 @@ export function MetadataForm({
   )
   const [applyingBatchUpdate, setApplyingBatchUpdate] = useState(false)
 
-  const sampleImages = [
-    {
-      value: "ipfs://QmbG3PyyQyZTzdTBANxb3sA8zC37VgXndJhndXSBf7Sr4o",
-      label: "BitBadges Logo",
-    },
-  ]
 
-  const images = [
-    ...sampleImages,
-    currMetadata.image &&
-      !sampleImages.find((x) => x.value === currMetadata.image)
-      ? {
-        value: currMetadata.image,
-        label: "Custom Image",
-      }
-      : undefined,
-  ].filter((x) => !!x)
-
-  const [imageIsUploading, setImageIsUploading] = useState(false)
 
   const [populateIsOpen, setPopulateIsOpen] = useState(false)
   const [fieldNames, setFieldNames] = useState<string[]>([])
@@ -312,51 +439,7 @@ export function MetadataForm({
     setName(event.target.value)
   }
 
-  const dummyRequest = ({ onSuccess }: any) => {
-    setTimeout(() => {
-      onSuccess("ok")
-    }, 0)
-  }
 
-  const props: UploadProps = {
-    showUploadList: false,
-    name: "file",
-    multiple: true,
-    customRequest: dummyRequest,
-    async onChange(info) {
-      if (info.file.status !== "uploading") {
-        console.log(info.file, info.fileList)
-      } else {
-        if (!imageIsUploading) {
-          message.info(`${info.file.name} file is uploading.`)
-          setImageIsUploading(true)
-        }
-      }
-
-      if (info.file.status === "done") {
-        await file2Base64(info.file.originFileObj as File).then((base64) => {
-          setMetadata({
-            ...currMetadata,
-            image: base64,
-          })
-          setImageIsUploading(false)
-          message.success(`${info.file.name} file uploaded successfully.`)
-        })
-      } else if (info.file.status === "error") {
-        message.error(`${info.file.name} file upload failed.`)
-      } else {
-      }
-    },
-  }
-
-  const file2Base64 = (file: File): Promise<string> => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result?.toString() || "")
-      reader.onerror = (error) => reject(error)
-    })
-  }
 
   const FieldCheckbox = ({
     fieldName,
@@ -744,87 +827,12 @@ export function MetadataForm({
               />
             </Form.Item>
 
-            <Form.Item
-              label={
-                <Text className="primary-text" strong>
-                  Image
-                </Text>
-              }
-              required
-            >
-              <div className="flex-between">
-                <Select
-                  className="selector primary-text inherit-bg"
-                  value={
-                    images.find(
-                      (item: any) => item.value === currMetadata.image
-                    )?.label
-                  }
-                  onChange={(e) => {
-                    const newImage = images.find(
-                      (item: any) => e === item.label
-                    )?.value
-                    if (newImage) {
-                      setMetadata({
-                        ...currMetadata,
-                        image: newImage,
-                      })
-                    }
-                  }}
-
-                  suffixIcon={<DownOutlined className="primary-text" />}
-                  dropdownRender={(menu) => (
-                    <>
-                      {menu}
-                      <Divider style={{ margin: "8px 0" }} />
-                      <Space
-                        align="center"
-                        style={{ padding: "0 8px 4px", width: "100%" }}
-                      >
-                        <Upload {...props}>
-                          <Button icon={<UploadOutlined />}>
-                            Click to Upload New Image(s)
-                          </Button>
-                        </Upload>
-                        or Enter URL
-                        <Input
-                          style={{ color: "black" }}
-                          value={currMetadata.image}
-                          onChange={(e) => {
-                            setMetadata({
-                              ...currMetadata,
-                              image: e.target.value,
-                            })
-                          }}
-                          placeholder="Enter URL"
-                        />
-                      </Space>
-                    </>
-                  )}
-                >
-                  {images.map((item: any) => (
-                    <Option key={item.label} value={item.label}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        <img
-                          src={item.value.replace(
-                            "ipfs://",
-                            "https://bitbadges-ipfs.infura-ipfs.io/ipfs/"
-                          )}
-                          style={{ paddingRight: 10, height: 20 }}
-                          alt="Label"
-                        />
-                        <div>{item.label}</div>
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-            </Form.Item>
+            <ImageSelect image={currMetadata.image} setImage={(image: string) => {
+              setMetadata({
+                ...currMetadata,
+                image: image
+              })
+            }} />
 
             <Form.Item
               label={

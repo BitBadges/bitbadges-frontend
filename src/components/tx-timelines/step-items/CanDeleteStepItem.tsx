@@ -4,48 +4,71 @@ import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/context
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { PermissionsOverview } from "../../collection-page/PermissionsInfo";
+import { PermissionNameString, PermissionsOverview } from "../../collection-page/PermissionsInfo";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
+
+//These currently only support ActionPermission and TimedUpdatePermissions
+
+export const handleSwitchChangeIdxOnly = (idx: number, permissionName: PermissionNameString) => {
+  handleSwitchChange(idx, permissionName);
+}
+
+export const handleSwitchChange = (idx: number, permissionName: PermissionNameString, frozen?: boolean) => {
+  const permissions = idx === 0 ? [{
+    permittedTimes: [],
+    forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  }] : idx == 1 && !frozen ? [] : [{
+    permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    forbiddenTimes: [],
+  }];
+
+  if (permissionName !== 'canDeleteCollection') {
+    permissions.map(x => {
+      return {
+        ...x,
+        timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }]
+      }
+    })
+  }
+
+  updateCollection({
+    collectionId: NEW_COLLECTION_ID,
+    collectionPermissions: {
+      [`${permissionName}`]: permissions
+    }
+  });
+}
+
+export const AdditionalPermissionSelectNode = ({
+  permissionName
+}: {
+  permissionName: PermissionNameString
+}) => {
+  return <div className="flex-center">
+    <PermissionsOverview
+      span={24}
+      collectionId={NEW_COLLECTION_ID}
+      permissionName={permissionName}
+      onFreezePermitted={(frozen: boolean) => {
+        handleSwitchChange(1, permissionName, frozen);
+      }}
+    />
+  </div>
+
+}
 
 export function CanDeleteStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID);
   const [checked, setChecked] = useState<boolean>(true);
-
   const [err, setErr] = useState<Error | null>(null);
+
   if (!collection) return EmptyStepItem;
 
   const permissionDetails = getDetailsForCollectionPermission(collection, "canDeleteCollection");
-  
-  const handleSwitchChangeIdxOnly = (idx: number) => {
-    handleSwitchChange(idx);
-  }
 
-  const handleSwitchChange = (idx: number, frozen?: boolean) => {
-    updateCollection({
-      collectionId: NEW_COLLECTION_ID,
-      collectionPermissions: {
-        canDeleteCollection: idx === 0 ? [{
-          permittedTimes: [],
-          forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        }] : idx == 1 && !frozen ? [] : [{
-          permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-          forbiddenTimes: [],
-        }]
-      }
-    });
-  }
   const AdditionalNode = () => <>
-    <div className="flex-center">
-      <PermissionsOverview
-        span={24}
-        collectionId={collection.collectionId}
-        permissionName="canDeleteCollection"
-        onFreezePermitted={(frozen: boolean) => {
-          handleSwitchChange(1, frozen);
-        }}
-      />
-    </div>
+    <AdditionalPermissionSelectNode permissionName="canDeleteCollection" />
   </>;
 
   return {
@@ -75,7 +98,7 @@ export function CanDeleteStepItem() {
               additionalNode: AdditionalNode
             },
           ]}
-          onSwitchChange={handleSwitchChangeIdxOnly}
+          onSwitchChange={(idx: number) => { handleSwitchChangeIdxOnly(idx, "canDeleteCollection") }}
         />
         <br />
         <br />

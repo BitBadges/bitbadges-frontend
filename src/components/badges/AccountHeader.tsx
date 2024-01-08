@@ -2,14 +2,12 @@
 import { Avatar, Col } from 'antd';
 
 
-import { FullscreenExitOutlined, FullscreenOutlined } from '@ant-design/icons';
-import { useLayoutEffect, useState } from 'react';
+import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BlockiesAvatar } from '../address/Blockies';
 import { AccountButtonDisplay } from '../button-displays/AccountButtonDisplay';
-import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
-import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 
 export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDisplay, profilePic }: {
   addressOrUsername: string;
@@ -17,25 +15,12 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
   accountInfoOverride?: BitBadgesUserInfo<bigint>
   profilePic?: string
 }) {
-  const [showMore, setShowMore] = useState(false);
-  const [contentHeight, setContentHeight] = useState(0);
   const currAccount = useAccount(addressOrUsername);
   const accountInfo = accountInfoOverride ?? currAccount;
   const address = accountInfo?.address;
   const avatar = accountInfo?.avatar;
 
   const profilePicSrc = profilePic || accountInfo?.profilePicUrl || accountInfo?.avatar || <BlockiesAvatar avatar={avatar} address={address?.toLowerCase() ?? ''} fontSize={300} />
-
-  useLayoutEffect(() => {
-    // Calculate the height of the content inside the description div
-    const descriptionElement = document.getElementById('description' + addressOrUsername);
-    const descriptionElement2 = document.getElementById('description2' + addressOrUsername);
-
-    const height = descriptionElement?.clientHeight ?? 0;
-    const height2 = descriptionElement2?.clientHeight ?? 0;
-    setContentHeight(Math.max(height, height2));
-
-  }, [addressOrUsername, accountInfo?.readme]);
 
 
   if (multiDisplay) {
@@ -60,7 +45,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
   }
 
   const Bio = <>
-    <div className='primary-text' id={'description2' + addressOrUsername} style={{ whiteSpace: 'normal', maxHeight: showMore ? undefined : '300px' }}>
+    <div className='primary-text' style={{ whiteSpace: 'normal' }}>
       <MarkdownDisplay markdown={accountInfo?.readme ?? ''} />
     </div>
   </>
@@ -114,16 +99,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
               {Bio}
             </div>
           </Col>
-          {contentHeight >= 300 && (
-            <div className='flex-between flex-wrap' style={{ marginTop: '10px' }}>
-              <div></div>
-              <div>
-                <a onClick={() => { setShowMore(!showMore) }}>
-                  {showMore ? <FullscreenOutlined /> : <FullscreenExitOutlined />} {showMore ? 'Show Less' : 'Show More'}
-                </a>
-              </div>
-            </div>
-          )}
+
         </Col>
         <br />
       </div>
