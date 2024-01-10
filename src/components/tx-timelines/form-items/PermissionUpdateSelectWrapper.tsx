@@ -10,7 +10,6 @@ import { PermissionNameString, PermissionsOverview } from '../../collection-page
 import { ErrDisplay } from '../../common/ErrDisplay';
 import IconButton from '../../display/IconButton';
 import { BeforeAfterPermission, getPermissionVariablesFromName } from './BeforeAfterPermission';
-import { JSONSetter } from './CustomJSONSetter';
 import { SwitchForm } from './SwitchForm';
 import { PermissionSelect } from '../../inputs/UniversalPermissionSelect';
 
@@ -39,8 +38,6 @@ export function PermissionUpdateSelectWrapper({
 
   const collection = useCollection(NEW_COLLECTION_ID);
   const [showBeforeAndAfter, setShowBeforeAndAfter] = useState(false);
-  const [customJson, setCustomJson] = useState<boolean>(false);
-  const [jsonErr, setJsonErr] = useState<Error | null>(null)
   const [formView, setFormView] = useState<boolean>(true);
 
   const isMint = !existingCollectionId;
@@ -75,15 +72,6 @@ export function PermissionUpdateSelectWrapper({
               tooltipMessage={showBeforeAndAfter ? 'Hide before and after' : 'Show before and after'}
               onClick={() => {
                 setShowBeforeAndAfter(!showBeforeAndAfter);
-              }}
-            />}
-          {checked && customJson &&
-            <IconButton
-              src={<FormOutlined style={{ fontSize: 16 }} />}
-              text={'Form'}
-              tooltipMessage='Normal Form'
-              onClick={() => {
-                setCustomJson(false);
               }}
             />}
           {checked &&
@@ -181,23 +169,13 @@ export function PermissionUpdateSelectWrapper({
           </div>
         </>}
 
-      {checked && customJson && <>
-        <JSONSetter
-          setErr={setJsonErr}
-          jsonPropertyPath={permissionName}
-          isPermissionUpdate
-        />
-
-        {jsonErr && <ErrDisplay err={jsonErr} />}
-        <br />
-        <Divider />
-      </>}
+      
       {checked && flags && showBeforeAndAfter && <>
         <BeforeAfterPermission
           permissionName={permissionName}
         />
       </>}
-      {checked && !customJson && <>
+      {checked && <>
         {err &&
           <><br />
             <div style={{ color: 'red', textAlign: 'center' }}>
