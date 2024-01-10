@@ -1,5 +1,5 @@
 import { AuditOutlined, BookOutlined, FormOutlined, MinusOutlined, UndoOutlined } from '@ant-design/icons';
-import { Divider, Switch } from 'antd';
+import { Switch } from 'antd';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
@@ -9,9 +9,9 @@ import { compareObjects } from '../../../utils/compare';
 import { PermissionNameString, PermissionsOverview } from '../../collection-page/PermissionsInfo';
 import { ErrDisplay } from '../../common/ErrDisplay';
 import IconButton from '../../display/IconButton';
+import { PermissionSelect } from '../../inputs/UniversalPermissionSelect';
 import { BeforeAfterPermission, getPermissionVariablesFromName } from './BeforeAfterPermission';
 import { SwitchForm } from './SwitchForm';
-import { PermissionSelect } from '../../inputs/UniversalPermissionSelect';
 
 
 export function PermissionUpdateSelectWrapper({
