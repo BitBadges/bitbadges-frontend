@@ -1,5 +1,5 @@
-import { NumberType, Stringify, UintRange } from 'bitbadgesjs-proto';
-import { AccountViewKey, AddressMappingDoc, AnnouncementDoc, BalanceDoc, BigIntify, BitBadgesUserInfo, BlockinAuthSignatureDoc, ClaimAlertDoc, ListActivityDoc, MINT_ACCOUNT, ReviewDoc, TransferActivityDoc, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
+import { Stringify, UintRange } from 'bitbadgesjs-proto';
+import { AccountFetchDetails, AccountViewKey, AddressListDoc, AnnouncementDoc, BalanceDoc, BigIntify, BitBadgesUserInfo, BlockinAuthSignatureDoc, ClaimAlertDoc, ListActivityDoc, MINT_ACCOUNT, ReviewDoc, TransferActivityDoc, UpdateAccountInfoRouteRequestBody, convertBitBadgesUserInfo, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-utils';
 import { useSelector } from 'react-redux';
 import { AccountReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, updateAccountInfo } from '../../api';
@@ -34,8 +34,8 @@ export function useAccount(_addressOrUsername?: string) {
 
 export const initialState: AccountReducerState = {
   accounts: {
-    'Mint': MINT_ACCOUNT, 
-    'Total': MINT_ACCOUNT, 
+    'Mint': MINT_ACCOUNT,
+    'Total': MINT_ACCOUNT,
     'All': {
       ...MINT_ACCOUNT,
       address: 'All',
@@ -104,23 +104,7 @@ export const fetchAccounts = async (addressesOrUsernames: string[], forcefulRefr
   }), forcefulRefresh);
 }
 
-export const fetchAccountsWithOptions = async (accountsToFetch: {
-  address?: string,
-  username?: string,
-  fetchSequence?: boolean,
-  fetchBalance?: boolean,
-  viewsToFetch?: {
-    viewId: string,
-    viewType: AccountViewKey,
-    filteredLists?: string[],
-    filteredCollections?: {
-      badgeIds: UintRange<NumberType>[];
-      collectionId: NumberType;
-    }[];
-    bookmark: string
-  }[],
-  noExternalCalls?: boolean,
-}[], forcefulRefresh?: boolean) => {
+export const fetchAccountsWithOptions = async (accountsToFetch: AccountFetchDetails[], forcefulRefresh?: boolean) => {
   if (accountsToFetch.length === 0) return;
 
   if (forcefulRefresh) {
@@ -172,7 +156,7 @@ export function getAuthCodesView(account: BitBadgesUserInfo<bigint> | undefined,
   if (!account) return [];
 
   return (account.views[viewId]?.ids.map(x => {
-    return account.authCodes.find(y => y._legacyId === x);
+    return account.authCodes.find(y => y._docId === x);
   }) ?? []) as BlockinAuthSignatureDoc<bigint>[];
 }
 
@@ -181,7 +165,7 @@ export function getAccountActivityView(account: BitBadgesUserInfo<bigint> | unde
   if (!account) return [];
 
   return (account.views[viewId]?.ids.map(x => {
-    return account.activity.find(y => y._legacyId === x);
+    return account.activity.find(y => y._docId === x);
   }) ?? []) as TransferActivityDoc<bigint>[];
 }
 
@@ -189,7 +173,7 @@ export function getAccountListsActivityView(account: BitBadgesUserInfo<bigint> |
   if (!account) return [];
 
   return (account.views[viewId]?.ids.map(x => {
-    return account.listsActivity.find(y => y._legacyId === x);
+    return account.listsActivity.find(y => y._docId === x);
   }) ?? []) as ListActivityDoc<bigint>[];
 }
 
@@ -198,7 +182,7 @@ export function getAccountReviewsView(account: BitBadgesUserInfo<bigint> | undef
   if (!account) return [];
 
   return (account.views[viewId]?.ids.map(x => {
-    return account.reviews.find(y => y._legacyId === x);
+    return account.reviews.find(y => y._docId === x);
   }) ?? []) as ReviewDoc<bigint>[];
 }
 
@@ -206,7 +190,7 @@ export function getAccountAnnouncementsView(account: BitBadgesUserInfo<bigint> |
   if (!account) return [];
 
   return (account.views[viewId]?.ids.map(x => {
-    return account.announcements.find(y => y._legacyId === x);
+    return account.announcements.find(y => y._docId === x);
   }) ?? []) as AnnouncementDoc<bigint>[];
 }
 
@@ -214,23 +198,23 @@ export function getAccountBalancesView(account: BitBadgesUserInfo<bigint> | unde
   if (!account) return [];
 
   return (account.views[viewId]?.ids.map(x => {
-    return account.collected.find(y => y._legacyId === x)
+    return account.collected.find(y => y._docId === x)
   }) ?? []) as BalanceDoc<bigint>[];
 }
 
-export function getAccountAddressMappingsView(account: BitBadgesUserInfo<bigint> | undefined, viewId: string) {
+export function getAccountAddressListsView(account: BitBadgesUserInfo<bigint> | undefined, viewId: string) {
   if (!account) return [];
 
   return (account.views[viewId]?.ids.map(x => {
-    return account.addressMappings.find(y => y.mappingId === x);
-  }) ?? []) as AddressMappingDoc<bigint>[];
+    return account.addressLists.find(y => y.listId === x);
+  }) ?? []) as AddressListDoc<bigint>[];
 }
 
 export function getAccountClaimAlertsView(account: BitBadgesUserInfo<bigint> | undefined, viewId: string) {
   if (!account) return [];
 
   return (account.views[viewId]?.ids.map(x => {
-    return account.claimAlerts.find(y => y._legacyId === x);
+    return account.claimAlerts.find(y => y._docId === x);
   }) ?? []) as ClaimAlertDoc<bigint>[];
 }
 

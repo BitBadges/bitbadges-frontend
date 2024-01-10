@@ -3,7 +3,7 @@ import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
-import { castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getCurrentValuesForCollection, getReservedAddressMapping, isInAddressMapping, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getCurrentValuesForCollection, getReservedAddressList, isInAddressList, removeUintRangesFromUintRanges } from 'bitbadgesjs-utils';
 
 import { useState } from "react";
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
@@ -124,19 +124,19 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
     }
 
     {
-      y.fromMapping && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+      y.fromList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
-          users={y.fromMapping.addresses}
-          allExcept={!y.fromMapping.includeAddresses}
+          users={y.fromList.addresses}
+          allExcept={!y.fromList.allowlist}
 
         />
       </td>
     }
     {
-      y.toMapping && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+      y.toList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
-          users={y.toMapping.addresses}
-          allExcept={!y.toMapping.includeAddresses}
+          users={y.toList.addresses}
+          allExcept={!y.toList.allowlist}
           filterMint
         />
       </td>
@@ -144,10 +144,10 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
 
 
     {
-      y.initiatedByMapping && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+      y.initiatedByList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
-          users={y.initiatedByMapping.addresses}
-          allExcept={!y.initiatedByMapping.includeAddresses}
+          users={y.initiatedByList.addresses}
+          allExcept={!y.initiatedByList.allowlist}
           filterMint
         />
       </td>
@@ -159,10 +159,10 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
 
 
     {
-      y.amountTrackerIdMapping && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+      y.amountTrackerIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
-          users={y.amountTrackerIdMapping.addresses}
-          allExcept={!y.amountTrackerIdMapping.includeAddresses}
+          users={y.amountTrackerIdList.addresses}
+          allExcept={!y.amountTrackerIdList.allowlist}
           filterMint
           trackerIdList
         />
@@ -170,10 +170,10 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
     }
 
     {
-      y.challengeTrackerIdMapping && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+      y.challengeTrackerIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
-          users={y.challengeTrackerIdMapping.addresses}
-          allExcept={!y.challengeTrackerIdMapping.includeAddresses}
+          users={y.challengeTrackerIdList.addresses}
+          allExcept={!y.challengeTrackerIdList.allowlist}
           filterMint
           trackerIdList
         />
@@ -273,20 +273,20 @@ export const PermissionDisplayTable = (
                         }
                       }
 
-                      if ((mintOnly && (!y.fromMapping || !isInAddressMapping(y.fromMapping, "Mint")))) {
+                      if ((mintOnly && (!y.fromList || !isInAddressList(y.fromList, "Mint")))) {
                         return null;
                       }
 
-                      if (nonMintOnly && (compareObjects(y.fromMapping?.addresses, ["Mint"] && y.fromMapping?.includeAddresses))) {
+                      if (nonMintOnly && (compareObjects(y.fromList?.addresses, ["Mint"] && y.fromList?.allowlist))) {
                         return null;
                       }
 
                       if (mintOnly) {
-                        y.fromMapping = getReservedAddressMapping("Mint")
+                        y.fromList = getReservedAddressList("Mint")
                       }
 
                       if (badgeIds) {
-                        const [, removed] = removeUintRangeFromUintRange(badgeIds, y.badgeIds ?? []);
+                        const [, removed] = removeUintRangesFromUintRanges(badgeIds, y.badgeIds ?? []);
                         y.badgeIds = removed;
                       }
 
@@ -328,7 +328,7 @@ export const PermissionDisplayTable = (
 
 
       {
-        columns.find(x => x.key === 'amountTrackerIdMapping' || x.key === 'challengeTrackerIdMapping') &&
+        columns.find(x => x.key === 'amountTrackerIdList' || x.key === 'challengeTrackerIdList') &&
         <>
           <br />
           <div className="full-width secondary-text">
@@ -364,7 +364,7 @@ export const PermissionIcon = ({ permissions, permissionName, neverHasManager, b
   permissionName: PermissionNameString,
   permissions: GenericCollectionPermissionWithDetails[], neverHasManager: boolean, badgeIds?: UintRange<bigint>[]
 }) => {
-  const { hasPermittedTimes, hasNeutralTimes, hasForbiddenTimes } = getDetailsForPermission(permissions, permissionName, badgeIds);
+  const { hasPermanentlyPermittedTimes, hasNeutralTimes, hasPermanentlyForbiddenTimes } = getDetailsForPermission(permissions, permissionName, badgeIds);
 
   return <>
     <Popover color='black' className="primary-text inherit-bg" content={<>
@@ -373,24 +373,24 @@ export const PermissionIcon = ({ permissions, permissionName, neverHasManager, b
       </div>
     </>}>
 
-      {!(hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)
-        && !(hasPermittedTimes && !hasNeutralTimes && !hasForbiddenTimes) &&
+      {!(hasPermanentlyForbiddenTimes && !hasNeutralTimes && !hasPermanentlyPermittedTimes)
+        && !(hasPermanentlyPermittedTimes && !hasNeutralTimes && !hasPermanentlyForbiddenTimes) &&
         !neverHasManager &&
         <>
           <CheckCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'green' }} />
-          {hasForbiddenTimes && <CloseCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'red' }} />}
+          {hasPermanentlyForbiddenTimes && <CloseCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'red' }} />}
           <ClockCircleFilled style={{ marginLeft: 4, fontSize: 18, }} />
 
         </>
       }
       {
-        (neverHasManager || (hasForbiddenTimes && !hasNeutralTimes && !hasPermittedTimes)) && <>
+        (neverHasManager || (hasPermanentlyForbiddenTimes && !hasNeutralTimes && !hasPermanentlyPermittedTimes)) && <>
           <CloseCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'red' }} />
           <FontAwesomeIcon icon={faSnowflake} style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} />
         </>
       }
       {
-        hasPermittedTimes && !hasNeutralTimes && !hasForbiddenTimes &&
+        hasPermanentlyPermittedTimes && !hasNeutralTimes && !hasPermanentlyForbiddenTimes &&
         !neverHasManager && <>
           <CheckCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'green' }} />
           <FontAwesomeIcon icon={faSnowflake} style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} />

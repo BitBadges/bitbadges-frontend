@@ -7,33 +7,29 @@ export async function fetchDefaultViews(address: string, loggedIn: boolean) {
     viewId: 'badgesCollected',
     bookmark: '',
   }, {
-    viewType: 'latestActivity',
-    viewId: 'latestActivity',
+    viewType: 'transferActivity',
+    viewId: 'transferActivity',
     bookmark: '',
   }, {
     viewType: 'listsActivity',
     viewId: 'listsActivity',
     bookmark: '',
   }, {
-    viewType: 'latestAnnouncements',
-    viewId: 'latestAnnouncements',
+    viewType: 'reviews',
+    viewId: 'reviews',
     bookmark: '',
   }, {
-    viewType: 'latestReviews',
-    viewId: 'latestReviews',
+    viewType: 'addressLists',
+    viewId: 'addressLists',
     bookmark: '',
   }, {
-    viewType: 'addressMappings',
-    viewId: 'addressMappings',
-    bookmark: '',
-  }, {
-    viewType: 'explicitlyIncludedAddressMappings',
-    viewId: 'explicitlyIncludedAddressMappings',
+    viewType: 'explicitlyIncludedAddressLists',
+    viewId: 'explicitlyIncludedAddressLists',
     bookmark: ''
   },
   {
-    viewType: 'explicitlyExcludedAddressMappings',
-    viewId: 'explicitlyExcludedAddressMappings',
+    viewType: 'explicitlyExcludedAddressLists',
+    viewId: 'explicitlyExcludedAddressLists',
     bookmark: ''
   }]
   const viewsToFetch = DefaultViewsToFetch.slice();
@@ -44,8 +40,8 @@ export async function fetchDefaultViews(address: string, loggedIn: boolean) {
       viewId: 'latestClaimAlerts',
       bookmark: '',
     }, {
-      viewType: 'latestAddressMappings',
-      viewId: 'latestAddressMappings',
+      viewType: 'latestAddressLists',
+      viewId: 'latestAddressLists',
       bookmark: ''
     },
       {

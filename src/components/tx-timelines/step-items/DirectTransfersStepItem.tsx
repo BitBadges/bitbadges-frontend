@@ -2,7 +2,7 @@ import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../..
 
 import { MessageGenerated, MsgTransferBadges, MsgUniversalUpdateCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, createProtoMsg, createTransactionPayload } from "bitbadgesjs-proto";
 import { MsgTransferBadges as ProtoMsgTransferBadges, MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection } from 'bitbadgesjs-proto/dist/proto/badges/tx_pb';
-import { convertToCosmosAddress, generatePostBodyBroadcast, getTransfersFromTransfersWithIncrements, isInAddressMapping } from "bitbadgesjs-utils";
+import { convertToCosmosAddress, generatePostBodyBroadcast, getTransfersFromTransfersWithIncrements, isInAddressList } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { simulateTx } from "../../../bitbadges-api/api";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
@@ -168,7 +168,7 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
   if (collection.owners.find(owner => owner.cosmosAddress === 'Mint')?.balances.length === 0) return <></>;
 
   const hasManagerApproval = collection.collectionApprovals.some(x =>
-    isInAddressMapping(x.fromMapping, 'Mint') && isInAddressMapping(x.initiatedByMapping, chain.cosmosAddress)
+    isInAddressList(x.fromList, 'Mint') && isInAddressList(x.initiatedByList, chain.cosmosAddress)
     && x.transferTimes.some(y => y.start <= BigInt(Date.now()) && y.end >= BigInt(Date.now()))
   );
 

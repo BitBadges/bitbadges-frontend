@@ -109,7 +109,7 @@ export function Address({
                         This is a reserved alias account for{" "}
                         {userInfo.alias.collectionId
                           ? `collection ${userInfo.alias.collectionId.toString()}`
-                          : `address list ${userInfo.alias.mappingId?.toString()}`}
+                          : `address list ${userInfo.alias.listId?.toString()}`}
                         . It is not a real account and cannot initiate
                         transactions. However, it has a portfolio and can
                         receive badges.

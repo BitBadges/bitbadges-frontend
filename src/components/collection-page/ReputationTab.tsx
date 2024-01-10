@@ -45,9 +45,9 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
     <>
       {(collectionId || addressOrUsername) && (collectionId ? true : currAccount?.cosmosAddress && currAccount.cosmosAddress !== chain.cosmosAddress) && (<>
         <div className='flex flex-wrap'>
-          <InformationDisplayCard 
+          <InformationDisplayCard
             subtitle=''
-            title='' inheritBg noBorder md={24} sm={24} xs={24} 
+            title='' inheritBg noBorder md={24} sm={24} xs={24}
             style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}
           >
             <ReactStars
@@ -83,7 +83,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                     } else if (addressOrUsername) {
                       await addReviewForUser(addressOrUsername, { review: newReview, stars });
                       await fetchAccounts([addressOrUsername], true);
-                      await fetchNextForAccountViews(addressOrUsername, 'latestReviews', 'latestReviews');
+                      await fetchNextForAccountViews(addressOrUsername, 'reviews', 'reviews');
                     }
                     setNewReview('');
                     setLoading(false);
@@ -110,7 +110,7 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
           <br />
           <Spin size={'large'} />
           <br />
-                    <br />
+          <br />
         </div>}
         scrollThreshold="200px"
         endMessage={null}
@@ -151,12 +151,12 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                         if (loading) return;
 
                         setLoading(true);
-                        await deleteReview(review._legacyId);
+                        await deleteReview(review._docId);
                         if (collectionId) {
                           await fetchCollections([collectionId], true);
                         } else if (addressOrUsername) {
                           await fetchAccounts([addressOrUsername], true);
-                          await fetchNextForAccountViews(addressOrUsername, 'latestReviews', 'latestReviews');
+                          await fetchNextForAccountViews(addressOrUsername, 'reviews', 'reviews');
                         }
                         setLoading(false);
                       }}

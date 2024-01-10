@@ -1,5 +1,5 @@
 import { deepCopy } from "bitbadgesjs-proto";
-import { CollectionApprovalWithDetails, getReservedAddressMapping, isFullUintRanges } from "bitbadgesjs-utils";
+import { CollectionApprovalWithDetails, getReservedAddressList, isFullUintRanges } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
@@ -12,12 +12,12 @@ import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 export const transferableApproval = {
-  fromMappingId: '!Mint',
-  fromMapping: getReservedAddressMapping("!Mint"),
-  toMappingId: "All",
-  toMapping: getReservedAddressMapping("All"),
-  initiatedByMappingId: "All",
-  initiatedByMapping: getReservedAddressMapping("All"),
+  fromListId: '!Mint',
+  fromList: getReservedAddressList("!Mint"),
+  toListId: "All",
+  toList: getReservedAddressList("All"),
+  initiatedByListId: "All",
+  initiatedByList: getReservedAddressList("All"),
   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -99,9 +99,9 @@ export function TransferabilitySelectStepItem() {
                   isFullUintRanges(x.badgeIds) &&
                   isFullUintRanges(x.transferTimes) &&
                   isFullUintRanges(x.ownershipTimes) &&
-                  x.fromMappingId === '!Mint' &&
-                  x.toMappingId === 'All' &&
-                  x.initiatedByMappingId === 'All'
+                  x.fromListId === '!Mint' &&
+                  x.toListId === 'All' &&
+                  x.initiatedByListId === 'All'
                 )
             },
           ]}

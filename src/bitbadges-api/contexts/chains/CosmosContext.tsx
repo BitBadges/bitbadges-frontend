@@ -15,6 +15,7 @@ import { checkIfSignedIn } from "../../api";
 import { ChainSpecificContextType } from '../ChainContext';
 import { useAccount } from "../accounts/AccountsContext";
 import { fetchDefaultViews } from "./helpers";
+
 declare global {
   interface Window extends KeplrWindow { }
 }

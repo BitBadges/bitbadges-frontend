@@ -1,7 +1,7 @@
 
 import { WarningOutlined } from '@ant-design/icons';
 import { Col, Input, Row, Typography } from 'antd';
-import { getReservedAddressMapping } from 'bitbadgesjs-utils';
+import { getReservedAddressList } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
@@ -87,14 +87,14 @@ export function JSONSetter({
 
         for (const el of val) {
           //TODO: Make this dynamic and ensure that the options are valid based on permission type
-          if (el.fromMappingId && typeof el.fromMappingId !== 'string') throw new Error('fromMappingId must be a string');
-          if (el.initiatedByMappingId && typeof el.initiatedByMappingId !== 'string') throw new Error('initiatedByMappingId must be a string');
-          if (el.toMappingId && typeof el.toMappingId !== 'string') throw new Error('toMappingId must be a string');
+          if (el.fromListId && typeof el.fromListId !== 'string') throw new Error('fromListId must be a string');
+          if (el.initiatedByListId && typeof el.initiatedByListId !== 'string') throw new Error('initiatedByListId must be a string');
+          if (el.toListId && typeof el.toListId !== 'string') throw new Error('toListId must be a string');
           if (el.badgeIds && !validateUintRangeArr(el.badgeIds)) throw new Error('badgeIds must be an array of UintRange');
           if (el.ownershipTimes && !validateUintRangeArr(el.ownershipTimes)) throw new Error('ownershipTimes must be an array of UintRange');
           if (el.transferTimes && !validateUintRangeArr(el.transferTimes)) throw new Error('transferTimes must be an array of UintRange');
-          if (el.permittedTimes && !validateUintRangeArr(el.permittedTimes)) throw new Error('permittedTimes must be an array of UintRange');
-          if (el.forbiddenTimes && !validateUintRangeArr(el.forbiddenTimes)) throw new Error('forbiddenTimes must be an array of UintRange');
+          if (el.permanentlyPermittedTimes && !validateUintRangeArr(el.permanentlyPermittedTimes)) throw new Error('permanentlyPermittedTimes must be an array of UintRange');
+          if (el.permanentlyForbiddenTimes && !validateUintRangeArr(el.permanentlyForbiddenTimes)) throw new Error('permanentlyForbiddenTimes must be an array of UintRange');
           if (el.timelineTimes && !validateUintRangeArr(el.timelineTimes)) throw new Error('timelineTimes must be an array of UintRange');
         }
       } else {
@@ -145,10 +145,10 @@ export function JSONSetter({
               if (!approval.badgeIds || !validateUintRangeArr(approval.badgeIds)) throw new Error('approval.badgeIds must be an array of UintRange');
               if (!approval.ownershipTimes || !validateUintRangeArr(approval.ownershipTimes)) throw new Error('approval.ownershipTimes must be an array of UintRange');
               if (!approval.transferTimes || !validateUintRangeArr(approval.transferTimes)) throw new Error('approval.transferTimes must be an array of UintRange');
-              if (!approval.fromMappingId || typeof approval.fromMappingId !== 'string') throw new Error('approval.fromMappingId must be a string');
-              if (!approval.initiatedByMappingId || typeof approval.initiatedByMappingId !== 'string') throw new Error('approval.initiatedByMappingId must be a string');
+              if (!approval.fromListId || typeof approval.fromListId !== 'string') throw new Error('approval.fromListId must be a string');
+              if (!approval.initiatedByListId || typeof approval.initiatedByListId !== 'string') throw new Error('approval.initiatedByListId must be a string');
 
-              if (!approval.toMappingId || typeof approval.toMappingId !== 'string') throw new Error('approval.toMappingId must be a string');
+              if (!approval.toListId || typeof approval.toListId !== 'string') throw new Error('approval.toListId must be a string');
 
               if (!approval.allowedCombinations || !Array.isArray(approval.allowedCombinations)) throw new Error('approval.allowedCombinations must be an array');
               for (const combo of approval.allowedCombinations) {
@@ -160,25 +160,25 @@ export function JSONSetter({
 
               if (!approval.approvalCriteria || !Array.isArray(approval.approvalCriteria)) throw new Error('approval.approvalCriteria must be an array');
               //TODO: Add approval details validation
-              const fromMapping = getReservedAddressMapping(approval.fromMappingId);
-              const initiatedByMapping = getReservedAddressMapping(approval.initiatedByMappingId);
-              const toMapping = getReservedAddressMapping(approval.toMappingId);
+              const fromList = getReservedAddressList(approval.fromListId);
+              const initiatedByList = getReservedAddressList(approval.initiatedByListId);
+              const toList = getReservedAddressList(approval.toListId);
 
-              if (!approval.fromMapping && !fromMapping) {
-                throw new Error('We currently do not support custom mapping IDs. Please enter it manually via fromMapping.');
+              if (!approval.fromList && !fromList) {
+                throw new Error('We currently do not support custom list IDs. Please enter it manually via fromList.');
               }
 
-              if (!approval.initiatedByMapping && !initiatedByMapping) {
-                throw new Error('We currently do not support custom mapping IDs. Please enter it manually via initiatedByMapping.');
+              if (!approval.initiatedByList && !initiatedByList) {
+                throw new Error('We currently do not support custom list IDs. Please enter it manually via initiatedByList.');
               }
 
-              if (!approval.toMapping && !toMapping) {
-                throw new Error('We currently do not support custom mapping IDs. Please enter it manually via toMapping.');
+              if (!approval.toList && !toList) {
+                throw new Error('We currently do not support custom list IDs. Please enter it manually via toList.');
               }
 
-              approval.fromMapping = approval.fromMapping || fromMapping;
-              approval.initiatedByMapping = approval.initiatedByMapping || initiatedByMapping;
-              approval.toMapping = approval.toMapping || toMapping;
+              approval.fromList = approval.fromList || fromList;
+              approval.initiatedByList = approval.initiatedByList || initiatedByList;
+              approval.toList = approval.toList || toList;
             }
           }
         }

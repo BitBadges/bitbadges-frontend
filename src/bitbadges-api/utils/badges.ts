@@ -1,5 +1,5 @@
 import { UintRange } from "bitbadgesjs-proto"
-import { BitBadgesCollection, invertUintRanges, removeUintRangeFromUintRange, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils"
+import { BitBadgesCollection, invertUintRanges, removeUintRangesFromUintRanges, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils"
 
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { getDetailsForCollectionPermission } from "./permissions"
@@ -26,7 +26,7 @@ const getForbiddenBadgeIds = (details: ReturnType<typeof getDetailsForCollection
   //always forbidden badge IDs are those that are forbidden in all cases (i.e. have no neutral or permitted times for any criteria)
 
   //remove the permitted ones from the forbidden ones....what is left over is always forbidden
-  const [remaining, _removed] = removeUintRangeFromUintRange(permittedBadgeIds, forbiddenBadgeIds)
+  const [remaining, _removed] = removeUintRangesFromUintRanges(permittedBadgeIds, forbiddenBadgeIds)
   const alwaysForbiddenBadgeIds = remaining
   return alwaysForbiddenBadgeIds
 }

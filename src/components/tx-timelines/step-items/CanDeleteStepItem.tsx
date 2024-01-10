@@ -16,11 +16,11 @@ export const handleSwitchChangeIdxOnly = (idx: number, permissionName: Permissio
 
 export const handleSwitchChange = (idx: number, permissionName: PermissionNameString, frozen?: boolean) => {
   let permissions: GenericCollectionPermissionWithDetails[] = idx === 0 ? [{
-    permittedTimes: [],
-    forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    permanentlyPermittedTimes: [],
+    permanentlyForbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   }] : idx == 1 && !frozen ? [] : [{
-    permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    forbiddenTimes: [],
+    permanentlyPermittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    permanentlyForbiddenTimes: [],
   }];
 
   if (permissionName !== 'canDeleteCollection') {

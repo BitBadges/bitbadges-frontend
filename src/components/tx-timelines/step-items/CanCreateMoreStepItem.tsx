@@ -24,15 +24,15 @@ const EverythingElsePermanentlyPermittedPermission: BalancesActionPermission<big
 {
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  forbiddenTimes: [],
+  permanentlyPermittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  permanentlyForbiddenTimes: [],
 }
 
 const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  permittedTimes: [],
-  forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  permanentlyPermittedTimes: [],
+  permanentlyForbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
 }
 
 export function CanCreateMoreStepItem() {

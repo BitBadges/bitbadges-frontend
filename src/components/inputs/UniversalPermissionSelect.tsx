@@ -3,11 +3,11 @@ import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Divider, Switch } from "antd";
 import { UintRange } from "bitbadgesjs-proto";
-import { UniversalPermission, getReservedAddressMapping, isAddressMappingEmpty } from "bitbadgesjs-utils";
+import { UniversalPermission, getReservedAddressList, isAddressListEmpty } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { GenericCollectionPermissionWithDetails } from "../../bitbadges-api/utils/permissions";
 import { GO_MAX_UINT_64 } from "../../utils/dates";
-import { AddressMappingSelect } from "../address/AddressMappingSelect";
+import { AddressListSelect } from "../address/AddressListsSelect";
 import { PermissionDisplayTable, PermissionNameString } from "../collection-page/PermissionsInfo";
 import IconButton from "../display/IconButton";
 import { InformationDisplayCard } from "../display/InformationDisplayCard";
@@ -39,13 +39,13 @@ export function PermissionSelect({
     timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
     transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    toMapping: getReservedAddressMapping("All"),
-    fromMapping: getReservedAddressMapping("All"),
-    initiatedByMapping: getReservedAddressMapping("All"),
-    amountTrackerIdMapping: getReservedAddressMapping("All"),
-    challengeTrackerIdMapping: getReservedAddressMapping("All"),
+    permanentlyPermittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    permanentlyForbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    toList: getReservedAddressList("All"),
+    fromList: getReservedAddressList("All"),
+    initiatedByList: getReservedAddressList("All"),
+    amountTrackerIdList: getReservedAddressList("All"),
+    challengeTrackerIdList: getReservedAddressList("All"),
     arbitraryValue: undefined,
   });
 
@@ -142,57 +142,57 @@ export function PermissionSelect({
             })
           }} />
         </InformationDisplayCard>}
-        {usedFlags.usesToMapping && <InformationDisplayCard title={'To'} md={12} xs={24} sm={24} subtitle={'Which recipients does this permission apply to?'}>
+        {usedFlags.usesToList && <InformationDisplayCard title={'To'} md={12} xs={24} sm={24} subtitle={'Which recipients does this permission apply to?'}>
           <br />
           <div className='flex-center'>
-            <AddressMappingSelect
-              addressMapping={newPermissionToAdd.toMapping} setAddressMapping={(x) => {
+            <AddressListSelect
+              addressList={newPermissionToAdd.toList} setAddressList={(x) => {
                 setNewPermissionToAdd({
                   ...newPermissionToAdd,
-                  toMapping: x
+                  toList: x
                 })
               }} />
           </div>
         </InformationDisplayCard>}
-        {usedFlags.usesFromMapping && <InformationDisplayCard title={'From'} md={12} xs={24} sm={24} subtitle={'Which senders does this permission apply to?'}>
+        {usedFlags.usesFromList && <InformationDisplayCard title={'From'} md={12} xs={24} sm={24} subtitle={'Which senders does this permission apply to?'}>
           <br /><div className='flex-center'>
-            <AddressMappingSelect
-              addressMapping={newPermissionToAdd.fromMapping} setAddressMapping={(x) => {
+            <AddressListSelect
+              addressList={newPermissionToAdd.fromList} setAddressList={(x) => {
                 setNewPermissionToAdd({
                   ...newPermissionToAdd,
-                  fromMapping: x
+                  fromList: x
                 })
               }} /></div>
         </InformationDisplayCard>}
-        {usedFlags.usesInitiatedByMapping && <InformationDisplayCard title={'Approved'} md={12} xs={24} sm={24} subtitle={'Which approved users does this permission apply to?'}>
+        {usedFlags.usesInitiatedByList && <InformationDisplayCard title={'Approved'} md={12} xs={24} sm={24} subtitle={'Which approved users does this permission apply to?'}>
           <br /> <div className='flex-center'>
-            <AddressMappingSelect addressMapping={newPermissionToAdd.initiatedByMapping} setAddressMapping={(x) => {
+            <AddressListSelect addressList={newPermissionToAdd.initiatedByList} setAddressList={(x) => {
               setNewPermissionToAdd({
                 ...newPermissionToAdd,
-                initiatedByMapping: x
+                initiatedByList: x
               })
             }} /></div>
         </InformationDisplayCard>}
 
-        {usedFlags.usesAmountTrackerIdMapping && <InformationDisplayCard title={'Amount Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which amount tracker IDs does this permission apply to?'}>
+        {usedFlags.usesAmountTrackerIdList && <InformationDisplayCard title={'Amount Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which amount tracker IDs does this permission apply to?'}>
           <br /><div className='flex-center'>
-            <AddressMappingSelect
+            <AddressListSelect
               isIdSelect
-              addressMapping={newPermissionToAdd.amountTrackerIdMapping} setAddressMapping={(x) => {
+              addressList={newPermissionToAdd.amountTrackerIdList} setAddressList={(x) => {
                 setNewPermissionToAdd({
                   ...newPermissionToAdd,
-                  amountTrackerIdMapping: x
+                  amountTrackerIdList: x
                 })
               }} /></div>
         </InformationDisplayCard>}
-        {usedFlags.usesChallengeTrackerIdMapping && <InformationDisplayCard title={'Challenge Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which challenge tracker IDs does this permission apply to?'}>
+        {usedFlags.usesChallengeTrackerIdList && <InformationDisplayCard title={'Challenge Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which challenge tracker IDs does this permission apply to?'}>
           <br /><div className='flex-center'>
-            <AddressMappingSelect
+            <AddressListSelect
               isIdSelect
-              addressMapping={newPermissionToAdd.challengeTrackerIdMapping} setAddressMapping={(x) => {
+              addressList={newPermissionToAdd.challengeTrackerIdList} setAddressList={(x) => {
                 setNewPermissionToAdd({
                   ...newPermissionToAdd,
-                  challengeTrackerIdMapping: x
+                  challengeTrackerIdList: x
                 })
               }} /></div>
         </InformationDisplayCard>}
@@ -205,11 +205,11 @@ export function PermissionSelect({
           (usedFlags.usesTimelineTimes && (!newPermissionToAdd.timelineTimes || newPermissionToAdd.timelineTimes.length === 0)) ||
           (usedFlags.usesOwnershipTimes && (!newPermissionToAdd.ownershipTimes || newPermissionToAdd.ownershipTimes.length === 0)) ||
           (usedFlags.usesTransferTimes && (!newPermissionToAdd.transferTimes || newPermissionToAdd.transferTimes.length === 0)) ||
-          (usedFlags.usesToMapping && (!newPermissionToAdd.toMapping || isAddressMappingEmpty(newPermissionToAdd.toMapping))) ||
-          (usedFlags.usesFromMapping && (!newPermissionToAdd.fromMapping || isAddressMappingEmpty(newPermissionToAdd.fromMapping))) ||
-          (usedFlags.usesInitiatedByMapping && (!newPermissionToAdd.initiatedByMapping || isAddressMappingEmpty(newPermissionToAdd.initiatedByMapping))) ||
-          (usedFlags.usesAmountTrackerIdMapping && (!newPermissionToAdd.amountTrackerIdMapping || isAddressMappingEmpty(newPermissionToAdd.amountTrackerIdMapping))) ||
-          (usedFlags.usesChallengeTrackerIdMapping && (!newPermissionToAdd.challengeTrackerIdMapping || isAddressMappingEmpty(newPermissionToAdd.challengeTrackerIdMapping))) ||
+          (usedFlags.usesToList && (!newPermissionToAdd.toList || isAddressListEmpty(newPermissionToAdd.toList))) ||
+          (usedFlags.usesFromList && (!newPermissionToAdd.fromList || isAddressListEmpty(newPermissionToAdd.fromList))) ||
+          (usedFlags.usesInitiatedByList && (!newPermissionToAdd.initiatedByList || isAddressListEmpty(newPermissionToAdd.initiatedByList))) ||
+          (usedFlags.usesAmountTrackerIdList && (!newPermissionToAdd.amountTrackerIdList || isAddressListEmpty(newPermissionToAdd.amountTrackerIdList))) ||
+          (usedFlags.usesChallengeTrackerIdList && (!newPermissionToAdd.challengeTrackerIdList || isAddressListEmpty(newPermissionToAdd.challengeTrackerIdList))) ||
           selectedTimes.length == 0
         }
         onClick={() => {
@@ -219,19 +219,19 @@ export function PermissionSelect({
             ownershipTimes: usedFlags.usesOwnershipTimes ? newPermissionToAdd.ownershipTimes : undefined,
             transferTimes: usedFlags.usesTransferTimes ? newPermissionToAdd.transferTimes : undefined,
 
-            toMappingId: usedFlags.usesToMapping ? newPermissionToAdd.toMapping.mappingId : undefined,
-            fromMappingId: usedFlags.usesFromMapping ? newPermissionToAdd.fromMapping.mappingId : undefined,
-            initiatedByMappingId: usedFlags.usesInitiatedByMapping ? newPermissionToAdd.initiatedByMapping.mappingId : undefined,
-            amountTrackerId: usedFlags.usesAmountTrackerIdMapping ? newPermissionToAdd.amountTrackerIdMapping.mappingId : undefined,
-            challengeTrackerId: usedFlags.usesChallengeTrackerIdMapping ? newPermissionToAdd.challengeTrackerIdMapping.mappingId : undefined,
+            toListId: usedFlags.usesToList ? newPermissionToAdd.toList.listId : undefined,
+            fromListId: usedFlags.usesFromList ? newPermissionToAdd.fromList.listId : undefined,
+            initiatedByListId: usedFlags.usesInitiatedByList ? newPermissionToAdd.initiatedByList.listId : undefined,
+            amountTrackerId: usedFlags.usesAmountTrackerIdList ? newPermissionToAdd.amountTrackerIdList.listId : undefined,
+            challengeTrackerId: usedFlags.usesChallengeTrackerIdList ? newPermissionToAdd.challengeTrackerIdList.listId : undefined,
 
-            toMapping: usedFlags.usesToMapping ? newPermissionToAdd.toMapping : undefined,
-            fromMapping: usedFlags.usesFromMapping ? newPermissionToAdd.fromMapping : undefined,
-            initiatedByMapping: usedFlags.usesInitiatedByMapping ? newPermissionToAdd.initiatedByMapping : undefined,
-            amountTrackerIdMapping: usedFlags.usesAmountTrackerIdMapping ? newPermissionToAdd.amountTrackerIdMapping : undefined,
-            challengeTrackerIdMapping: usedFlags.usesChallengeTrackerIdMapping ? newPermissionToAdd.challengeTrackerIdMapping : undefined,
-            permittedTimes: allowed ? selectedTimes : [],
-            forbiddenTimes: allowed ? [] : selectedTimes,
+            toList: usedFlags.usesToList ? newPermissionToAdd.toList : undefined,
+            fromList: usedFlags.usesFromList ? newPermissionToAdd.fromList : undefined,
+            initiatedByList: usedFlags.usesInitiatedByList ? newPermissionToAdd.initiatedByList : undefined,
+            amountTrackerIdList: usedFlags.usesAmountTrackerIdList ? newPermissionToAdd.amountTrackerIdList : undefined,
+            challengeTrackerIdList: usedFlags.usesChallengeTrackerIdList ? newPermissionToAdd.challengeTrackerIdList : undefined,
+            permanentlyPermittedTimes: allowed ? selectedTimes : [],
+            permanentlyForbiddenTimes: allowed ? [] : selectedTimes,
           } as GenericCollectionPermissionWithDetails, ...value]);
           setAddIsVisible(false);
         }}>Add</button>

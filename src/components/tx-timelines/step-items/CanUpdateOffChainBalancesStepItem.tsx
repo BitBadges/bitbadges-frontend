@@ -80,6 +80,6 @@ export function CanUpdateBalancesStepItem() {
       }
     />,
     disabled: !!err || addMethod === MetadataAddMethod.UploadUrl || collection.balancesType === "Off-Chain - Non-Indexed" ? false :
-      (noManager && (permissionDetails.hasNeutralTimes && !permissionDetails.hasPermittedTimes && !permissionDetails.hasForbiddenTimes) || (!permissionDetails.hasNeutralTimes && !permissionDetails.hasForbiddenTimes)),
+      (noManager && (permissionDetails.hasNeutralTimes && !permissionDetails.hasPermanentlyPermittedTimes && !permissionDetails.hasPermanentlyForbiddenTimes) || (!permissionDetails.hasNeutralTimes && !permissionDetails.hasPermanentlyForbiddenTimes)),
   }
 }

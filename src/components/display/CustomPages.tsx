@@ -1,8 +1,8 @@
 import { Col, Input, Dropdown } from "antd"
-import { AddressMappingWithMetadata } from "bitbadgesjs-utils"
+import { AddressListWithMetadata } from "bitbadgesjs-utils"
 import { useState, useEffect } from "react"
-import { getAddressMappings } from "../../bitbadges-api/api"
-import { BatchBadgeDetails } from "../../bitbadges-api/utils/batches"
+import { getAddressLists } from "../../bitbadges-api/api"
+import { BatchBadgeDetails } from "bitbadgesjs-utils"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { AddressListCard } from "../badges/AddressListCard"
 import { InformationDisplayCard } from "./InformationDisplayCard"
@@ -91,29 +91,29 @@ export const CustomizeAddRemoveListFromPage = ({
   onRemove,
 }: {
   addressOrUsername: string
-  onAdd: (mappingId: string) => Promise<void>
-  onRemove: (mappingId: string) => Promise<void>
+  onAdd: (listId: string) => Promise<void>
+  onRemove: (listId: string) => Promise<void>
 }) => {
   const accountInfo = useAccount(addressOrUsername)
 
   const [customizeSearchListValue, setCustomizeSearchListValue] =
     useState<string>("")
   const [selectedList, setSelectedList] = useState<string>("")
-  const [selectedListMapping, setSelectedListMapping] =
-    useState<AddressMappingWithMetadata<bigint> | null>(null)
+  const [selectedListList, setSelectedListList] =
+    useState<AddressListWithMetadata<bigint> | null>(null)
 
   useEffect(() => {
     if (!selectedList) return
-    async function fetchAddressMapping() {
-      const mappingRes = await getAddressMappings({
-        mappingIds: [selectedList],
+    async function fetchAddressList() {
+      const listRes = await getAddressLists({
+        listIds: [selectedList],
       })
-      if (mappingRes.addressMappings.length > 0) {
-        setSelectedListMapping(mappingRes.addressMappings[0])
+      if (listRes.addressLists.length > 0) {
+        setSelectedListList(listRes.addressLists[0])
       }
     }
 
-    fetchAddressMapping()
+    fetchAddressList()
   }, [selectedList])
 
   const CustomizeListSearchBar = (
@@ -176,12 +176,12 @@ export const CustomizeAddRemoveListFromPage = ({
     >
       <div className="flex">{CustomizeSearchListDropdown}</div>
 
-      {selectedList && selectedListMapping && (
+      {selectedList && selectedListList && (
         <>
           <br />
           <div className="flex-center">
             <AddressListCard
-              addressMapping={selectedListMapping}
+              addressList={selectedListList}
               addressOrUsername={accountInfo.address}
             />
           </div>
@@ -226,10 +226,10 @@ export const CustomizeAddRemoveBadgeFromPage = ({
   onAdd,
   onRemove,
 }: {
-  onAdd: (badgeIdObj: BatchBadgeDetails) => Promise<void>
-  onRemove: (badgeIdObj: BatchBadgeDetails) => Promise<void>
+  onAdd: (badgeIdObj: BatchBadgeDetails<bigint>) => Promise<void>
+  onRemove: (badgeIdObj: BatchBadgeDetails<bigint>) => Promise<void>
 }) => {
-  const [selectedBadge, setSelectedBadge] = useState<BatchBadgeDetails | null>(
+  const [selectedBadge, setSelectedBadge] = useState<BatchBadgeDetails<bigint> | null>(
     null
   )
   const [customizeSearchValue, setCustomizeSearchValue] = useState<string>("")

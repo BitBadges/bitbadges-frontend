@@ -68,12 +68,12 @@ export const TransferabilityInfoDisplay = (props: TransferabilityInfoProps) => {
   const { approval, allApprovals, onDelete, editable } = props;
 
   const toAddresses = useMemo(() => {
-    return approval.toMapping.addresses.filter(x => x !== 'Mint');
-  }, [approval.toMapping.addresses]);
+    return approval.toList.addresses.filter(x => x !== 'Mint');
+  }, [approval.toList.addresses]);
 
   const initiatedByAddresses = useMemo(() => {
-    return approval.initiatedByMapping.addresses.filter(x => x !== 'Mint');
-  }, [approval.initiatedByMapping.addresses]);
+    return approval.initiatedByList.addresses.filter(x => x !== 'Mint');
+  }, [approval.initiatedByList.addresses]);
 
   //Only show the duplicate warning on edit for edge cases
   const hasApprovalAmounts = approvalHasApprovalAmounts(approval.approvalCriteria?.approvalAmounts);
@@ -155,22 +155,22 @@ const RowContentDetails = ({
 }: TransferabilityInfoDisplayProps & { mobile?: boolean }) => {
 
   const FromValue = <AddressDisplayList
-    users={approval.fromMapping.addresses}
-    allExcept={!approval.fromMapping.includeAddresses}
+    users={approval.fromList.addresses}
+    allExcept={!approval.fromList.allowlist}
     fontSize={16}
     filterMint={filterFromMint}
   />
 
   const ToValue = <AddressDisplayList
     users={toAddresses}
-    allExcept={!approval.toMapping.includeAddresses}
+    allExcept={!approval.toList.allowlist}
     filterMint
     fontSize={16}
   />
 
   const InitiatedByValue = <AddressDisplayList
     users={initiatedByAddresses}
-    allExcept={!approval.initiatedByMapping.includeAddresses}
+    allExcept={!approval.initiatedByList.allowlist}
     filterMint
     fontSize={16}
   />
@@ -180,7 +180,7 @@ const RowContentDetails = ({
   const TransferTimesValue = <> {getTimeRangesElement(approval.transferTimes, '', true)}</>
 
   const isExisting = startingApprovals?.find(x => x.approvalId === approval.approvalId);
-  const isReservedApproval = approval.approvalId === 'default-outgoing' || approval.approvalId === 'default-incoming';
+  const isReservedApproval = approval.approvalId === 'self-initiated-outgoing' || approval.approvalId === 'self-initiated-incoming';
 
   const TagsValue = <> {!disapproved &&
     <div style={{ alignItems: 'center', height: '100%', }} className='flex-center flex-wrap flex-column'>
@@ -214,7 +214,7 @@ const RowContentDetails = ({
         style={{ margin: 4, backgroundColor: '#1890ff' }}
         color='#1890ff'
         className='primary-text'
-      >Whitelist</Tag>}
+      >Allowlist</Tag>}
       {approval.approvalCriteria?.merkleChallenge?.root && !approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
         !approval.details?.challengeDetails.hasPassword &&
         <Tag
@@ -230,7 +230,7 @@ const RowContentDetails = ({
           color='#1890ff'
           className='primary-text'
         >Password</Tag>}
-      {approval.approvalCriteria?.overridesFromOutgoingApprovals && approval.fromMappingId !== 'Mint' && <Tag
+      {approval.approvalCriteria?.overridesFromOutgoingApprovals && approval.fromListId !== 'Mint' && <Tag
         style={{ margin: 4, backgroundColor: '#FF5733' }}
         color='#1890ff'
         className='primary-text'

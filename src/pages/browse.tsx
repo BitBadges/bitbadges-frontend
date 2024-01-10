@@ -117,10 +117,10 @@ function BrowsePage() {
   const addressListsNumItemsPerPage = Math.floor(containerWidth / addressListsItemWidth) ? Math.floor(containerWidth / addressListsItemWidth) : 1;
   const addressListsItems = useMemo(() => {
     const allItems: ReactElement[] = [];
-    for (const addressMapping of browseInfo?.addressMappings[listsTab] ?? []) {
+    for (const addressList of browseInfo?.addressLists[listsTab] ?? []) {
       allItems.push(<AddressListCard
-        addressMapping={addressMapping}
-        key={addressMapping.mappingId}
+        addressList={addressList}
+        key={addressList.listId}
       />)
     }
 
@@ -227,7 +227,7 @@ function BrowsePage() {
               <Tabs
                 style={{ margin: 6 }}
                 theme='dark'
-                tabInfo={getTabInfos(browseInfo?.addressMappings)}
+                tabInfo={getTabInfos(browseInfo?.addressLists)}
                 setTab={setListsTab}
                 tab={listsTab}
               />

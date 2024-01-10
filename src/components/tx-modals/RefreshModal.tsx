@@ -34,7 +34,10 @@ export function RefreshModal({ visible, setVisible, collectionId, }: {
       if (!collectionId) return;
 
       await triggerMetadataRefresh(collectionId);
-      notification.success({ message: "Added to the refresh queue! It may take awhile for the refresh to be processed. Please check back later." });
+      notification.success({
+        message: "Added to the refresh queue!",
+        description: "It may take awhile for the refresh to be processed. Please check back later."
+      });
     } catch (e) {
       console.error(e);
       notification.error({ message: "Oops! Something went wrong. Please try again later." });
@@ -86,7 +89,7 @@ export function RefreshModal({ visible, setVisible, collectionId, }: {
             {errorDocs.map((errorDoc, i) => {
               return <div key={i}>
                 <br />
-                <div><b>{errorDoc._legacyId.includes('balance') ? 'Balances' : 'Metadata'} Error</b></div>
+                <div><b>{errorDoc._docId.includes('balance') ? 'Balances' : 'Metadata'} Error</b></div>
                 <div><b>Attempted {errorDoc.numRetries.toString()} Times</b></div>
                 <div>Next Retry Time: {new Date(Number(errorDoc.nextFetchTime)).toLocaleString()}</div>
                 <div>{'Error: '}

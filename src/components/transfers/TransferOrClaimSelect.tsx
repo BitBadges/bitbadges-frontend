@@ -1,7 +1,7 @@
 import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Col, Empty, Row, StepProps, Steps, Tooltip } from 'antd';
 import { Balance, BigIntify, convertBalance } from 'bitbadgesjs-proto';
-import { TransferMethod, TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
+import { TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
@@ -294,11 +294,10 @@ export function TransferSelect({
                     activity={transfers.map(x => {
 
                       return {
-                        _legacyId: `collection-${collectionId}-${x.from}-${x.toAddresses.join('-')}`,
+                        _docId: `collection-${collectionId}-${x.from}-${x.toAddresses.join('-')}`,
                         from: x.from,
                         balances: x.balances,
                         collectionId: collectionId,
-                        method: 'Transfer' as TransferMethod,
                         to: x.toAddresses,
                         initiatedBy: chain.address,
                         timestamp: BigInt(Date.now()),

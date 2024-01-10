@@ -1,11 +1,11 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { Col, Collapse, Row, Spin } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { AddressMappingWithMetadata, ListActivityDoc } from 'bitbadgesjs-utils';
+import { AddressListWithMetadata, ListActivityDoc } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { DesiredNumberType, getAddressMappings } from '../../bitbadges-api/api';
+import { DesiredNumberType, getAddressLists } from '../../bitbadges-api/api';
 
 
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -19,12 +19,12 @@ import { PanelHeaderAddresses } from './TransferActivityDisplay';
 
 
 
-function PanelHeader({ addressMappings, mappingId, activity, onDelete, idx }: {
-  addressMappings: AddressMappingWithMetadata<bigint>[],
-  idx: number, mappingId: string, activity: ListActivityDoc<DesiredNumberType>, onDelete?: (idx: number) => void
+function PanelHeader({ addressLists, listId, activity, onDelete, idx }: {
+  addressLists: AddressListWithMetadata<bigint>[],
+  idx: number, listId: string, activity: ListActivityDoc<DesiredNumberType>, onDelete?: (idx: number) => void
 }) {
   const router = useRouter();
-  const mapping = addressMappings.find(x => x.mappingId === mappingId);
+  const list = addressLists.find(x => x.listId === listId);
 
   return <>
     <div className='flex' style={{ width: '100%' }}>
@@ -51,16 +51,16 @@ function PanelHeader({ addressMappings, mappingId, activity, onDelete, idx }: {
 
         >
           <a style={{ fontWeight: 'bolder' }} onClick={(e) => {
-            router.push(`/lists/${activity.mappingId}`);
+            router.push(`/lists/${activity.listId}`);
             e.stopPropagation();
           }}>
-            {mapping?.metadata?.name ?? ''}
+            {list?.metadata?.name ?? ''}
           </a>
           {' - '}
           {
-            activity.onList ? `Added to ${mapping?.includeAddresses ? 'whitelist' : 'blacklist'}`
-              : activity.onList === false ? `Removed from ${mapping?.includeAddresses ? 'whitelist' : 'blacklist'}`
-                : activity.onList === undefined ? 'No change to whitelist/blacklist'
+            activity.addedToList ? `Added to ${list?.allowlist ? 'allowlist' : 'blocklist'}`
+              : activity.addedToList === false ? `Removed from ${list?.allowlist ? 'allowlist' : 'blocklist'}`
+                : activity.addedToList === undefined ? 'No change to allowlist/blocklist'
                   : 'Unknown'
           } at {new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()}
 
@@ -76,9 +76,9 @@ function PanelHeader({ addressMappings, mappingId, activity, onDelete, idx }: {
 }
 
 
-function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, hasMore, addressMappings }: {
+function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, hasMore, addressLists }: {
   activity: ListActivityDoc<DesiredNumberType>[],
-  addressMappings: AddressMappingWithMetadata<bigint>[],
+  addressLists: AddressListWithMetadata<bigint>[],
   onDelete?: (idx: number) => void
   paginated?: boolean
   hasMore: boolean
@@ -104,13 +104,13 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
             if (idx >= numShown) return <></>;
           }
 
-          const mapping = addressMappings.find(x => x.mappingId === activity.mappingId);
+          const list = addressLists.find(x => x.listId === activity.listId);
 
           return <CollapsePanel
             key={idx}
             className='full-width card-bg'
             header={<>
-              <PanelHeader activity={activity} onDelete={onDelete} idx={idx} mappingId={activity.mappingId} addressMappings={addressMappings} />
+              <PanelHeader activity={activity} onDelete={onDelete} idx={idx} listId={activity.listId} addressLists={addressLists} />
             </>
             }
           >
@@ -121,7 +121,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                   <div key={idx} className='primary-text'>
                     <Row>
                       <Col span={24}>
-                        {mapping && <AddressListCard addressMapping={mapping} />}
+                        {list && <AddressListCard addressList={list} />}
 
                         <br />
                         {activity.txHash &&
@@ -153,7 +153,7 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
   const [numShown, setNumShown] = useState(10);
   const [currPage, setCurrPage] = useState(1);
 
-  const [addressMappings, setAddressMappings] = useState<AddressMappingWithMetadata<bigint>[]>([]);
+  const [addressLists, setAddressLists] = useState<AddressListWithMetadata<bigint>[]>([]);
 
   //Shows 10 at a time even if we have like length 1000 activity
   //Only fetches more from source when we have run out of +10s
@@ -185,10 +185,10 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
       //We only fetch accounts for the panel headers, so if not displayed we don't fetch
       const accountsToFetch = [...new Set(currActivityToDisplay.map(a => { return [...new Set([...a.addresses ?? []])].filter(a => a !== 'Mint') }).flat())];
 
-      const mappingsToFetch = currActivityToDisplay.map(a => a.mappingId).filter(x => x);
-      const mappingsRes = await getAddressMappings({ mappingIds: mappingsToFetch });
-      setAddressMappings((curr) => {
-        return [...curr, ...mappingsRes.addressMappings].filter((x, idx, self) => self.findIndex(y => y.mappingId === x.mappingId) === idx)
+      const listsToFetch = currActivityToDisplay.map(a => a.listId).filter(x => x);
+      const listsRes = await getAddressLists({ listIds: listsToFetch });
+      setAddressLists((curr) => {
+        return [...curr, ...listsRes.addressLists].filter((x, idx, self) => self.findIndex(y => y.listId === x.listId) === idx)
       });
       await fetchAccounts(accountsToFetch);
     }
@@ -219,7 +219,7 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
             style={{ overflow: 'hidden' }}
           >
             <CollapseComponent
-              addressMappings={addressMappings}
+              addressLists={addressLists}
               activity={activity} onDelete={onDelete} paginated={paginated} hasMore={hasMore} currPage={currPage} numShown={numShown} />
           </InfiniteScroll>
           : <>
@@ -227,7 +227,7 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
               <Pagination currPage={currPage} onChange={setCurrPage} total={activity.length} pageSize={10} showPageJumper />
               <br />
               <CollapseComponent
-                addressMappings={addressMappings}
+                addressLists={addressLists}
                 activity={activity} onDelete={onDelete} paginated={paginated} hasMore={hasMore} currPage={currPage} numShown={numShown} />
             </div>
           </>}

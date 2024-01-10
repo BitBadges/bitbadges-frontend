@@ -5,7 +5,7 @@ import {
   BitBadgesUserInfo,
   getBadgesToDisplay,
   getBalancesForId,
-  removeUintRangeFromUintRange
+  removeUintRangesFromUintRanges
 } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 
@@ -28,7 +28,7 @@ import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay"
 import { BadgeCard } from "./BadgeCard"
 import { CollectionHeader } from "./CollectionHeader"
 import { CustomizeButtons } from "./MultiCollectionCustomizeButtons"
-import { BatchBadgeDetails } from "../../bitbadges-api/utils/batches"
+import { BatchBadgeDetails } from "bitbadgesjs-utils"
 import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext"
 
 export function CollectionDisplayWithBadges({
@@ -41,7 +41,7 @@ export function CollectionDisplayWithBadges({
   span,
   sortBy
 }: {
-  badgeObj: BatchBadgeDetails
+  badgeObj: BatchBadgeDetails<bigint>
   accountInfo?: BitBadgesUserInfo<bigint>
   hideAddress?: boolean
   cardView?: boolean
@@ -61,7 +61,7 @@ export function CollectionDisplayWithBadges({
   //and wnat to display all badges in the collection, we do 1-MAXUINT64 and
   //here, we filter out once we get the collection to only include in range badge IDs
   if (collection) {
-    const [remaining] = removeUintRangeFromUintRange([{ start: getMaxBadgeIdForCollection(collection) + 1n, end: GO_MAX_UINT_64 }], badgeObj.badgeIds);
+    const [remaining] = removeUintRangesFromUintRanges([{ start: getMaxBadgeIdForCollection(collection) + 1n, end: GO_MAX_UINT_64 }], badgeObj.badgeIds);
     badgeObj = { ...badgeObj, badgeIds: remaining }
   }
 
@@ -135,7 +135,7 @@ export function MultiCollectionBadgeDisplay({
   hidePagination?: boolean
   hideAddress?: boolean
   showCustomizeButtons?: boolean
-  customPageBadges?: BatchBadgeDetails[]
+  customPageBadges?: BatchBadgeDetails<bigint>[]
   isWatchlist?: boolean
   span?: number
   sortBy?: "oldest" | "newest" | undefined
@@ -148,13 +148,13 @@ export function MultiCollectionBadgeDisplay({
 
   const badgesToShow = getAccountBalancesView(
     accountInfo,
-    showCustomizeButtons ? "badgesCollectedWithHidden" : "badgesCollected"
+    "badgesCollected"
   ) as BalanceDoc<bigint>[]
 
-  const allBadgesToDisplay: BatchBadgeDetails[] = useMemo(() => {
+  const allBadgesToDisplay: BatchBadgeDetails<bigint>[] = useMemo(() => {
     //If we are using this as a collection display (i.e. we want to display all badges in the collection)
     //We need to fetch the collection first
-    const allBadges: BatchBadgeDetails[] = []
+    const allBadges: BatchBadgeDetails<bigint>[] = []
 
     //If we have an account to show balances for, show that accounts balances
     //Or if we have custom pages to show, show those.
@@ -239,6 +239,8 @@ export function MultiCollectionBadgeDisplay({
     )
     fetchAndUpdate()
   }, [collectionIds, groupByCollection, allBadgesToDisplay, defaultPageSize, txTimelineContext.existingCollectionId])
+
+  console.log(badgesToShow);
 
   if (groupByCollection) {
     ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file

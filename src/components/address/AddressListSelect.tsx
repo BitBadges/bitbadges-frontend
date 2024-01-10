@@ -9,7 +9,7 @@ import { AddressSelect, EnterMethod } from "./AddressSelect";
 import { BLANK_USER_INFO, convertToCosmosAddress, getChainForAddress } from "bitbadgesjs-utils";
 import { getAccount, updateAccounts } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 
-export function AddressListSelect({
+export function BatchAddressSelect({
   users,
   setUsers,
   invalidUsers,

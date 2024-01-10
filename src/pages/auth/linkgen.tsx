@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Checkbox, DatePicker, Form, Input, Tooltip, Typography } from 'antd';
+import { Checkbox, DatePicker, Form, Input, Tooltip, Typography, message } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { BalanceInput } from '../../components/balances/BalanceInput';
@@ -9,9 +9,11 @@ import { ImageSelect } from '../../components/tx-timelines/form-items/MetadataFo
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { CodeGenQueryParams } from './codegen';
+import { addMetadataToIpfs, fetchMetadataDirectly } from '../../bitbadges-api/api';
 const { Text } = Typography;
 
 function BlockinCodesScreen() {
+  const [image, setImage] = useState<string>('');
   const [codeGenParams, setCodeGenParams] = useState<Required<CodeGenQueryParams>>({
     name: "",
     description: "",
@@ -64,6 +66,27 @@ function BlockinCodesScreen() {
       }
     }
   }
+
+  useEffect(() => {
+    async function uploadImage() {
+      if (!image) return;
+
+      const res = await addMetadataToIpfs({ collectionMetadata: { name: '', description: '', image: image } });
+      const imageRes = res?.collectionMetadataResult?.cid;
+      const getRes = await fetchMetadataDirectly({ uris: ['ipfs://' + imageRes] });
+      const metadata = getRes.metadata[0];
+      const imageToSet = metadata?.image;
+      if (!imageToSet) {
+        message.error(`Image upload failed.`);
+        return;
+      }
+
+      setCodeGenParams({ ...codeGenParams, image: imageToSet });
+    }
+
+    uploadImage();
+
+  }, [image]);
 
 
   return (
@@ -139,8 +162,8 @@ function BlockinCodesScreen() {
                   />
                 </Form.Item>
 
-                <ImageSelect image={codeGenParams.image} setImage={(image: string) => {
-                  setCodeGenParams({ ...codeGenParams, image: image });
+                <ImageSelect image={image} setImage={(image: string) => {
+                  setImage(image);
                 }} />
 
                 <Form.Item

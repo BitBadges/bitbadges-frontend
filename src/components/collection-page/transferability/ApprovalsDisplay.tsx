@@ -1,6 +1,6 @@
 import { CloseOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Divider, Switch } from 'antd';
-import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, getReservedAddressMapping, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressMapping, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, getReservedAddressList, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressList, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { FC, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
@@ -77,15 +77,15 @@ export const ApprovalSelectWrapper: FC<{
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(DistributionMethod.None);
 
   return <ApprovalSelect
-    fromMappingLocked={isOutgoingDisplay || isMintDisplay}
-    toMappingLocked={isIncomingDisplay}
+    fromListLocked={isOutgoingDisplay || isMintDisplay}
+    toListLocked={isIncomingDisplay}
 
-    defaultToMapping={isIncomingDisplay ? getReservedAddressMapping(approverAddress) : getReservedAddressMapping("All")}
-    defaultFromMapping={isMintDisplay ? getReservedAddressMapping("Mint") : isOutgoingDisplay ?
-      getReservedAddressMapping(approverAddress)
-      : isPostMintDisplay ? getReservedAddressMapping("!Mint") : getReservedAddressMapping("All")
+    defaultToList={isIncomingDisplay ? getReservedAddressList(approverAddress) : getReservedAddressList("All")}
+    defaultFromList={isMintDisplay ? getReservedAddressList("Mint") : isOutgoingDisplay ?
+      getReservedAddressList(approverAddress)
+      : isPostMintDisplay ? getReservedAddressList("!Mint") : getReservedAddressList("All")
     }
-    defaultInitiatedByMapping={getReservedAddressMapping(chain.cosmosAddress)}
+    defaultInitiatedByList={getReservedAddressList(chain.cosmosAddress)}
     defaultApproval={defaultApproval}
     collectionId={collection.collectionId}
     hideTransferDisplay={true}
@@ -192,7 +192,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
   const deletedApprovals = startingApprovals?.filter(x => !approvals.find(y => compareObjects(x, y)));
 
   //Initial cleansing
-  approvals = approvals.filter((x, i) => approvals.findIndex(y => y.approvalId === x.approvalId) === i); //filter approvals to only take first time an approvalId is seen (used for duplicates "default-incoming" and "default-outgoing")
+  approvals = approvals.filter((x, i) => approvals.findIndex(y => y.approvalId === x.approvalId) === i); //filter approvals to only take first time an approvalId is seen (used for duplicates "self-initiated-incoming" and "self-initiated-outgoing")
   startingApprovals = !txTimelineContext.existingCollectionId || txTimelineContext.existingCollectionId == 0n ? [] : startingApprovals;  //To get rid of saying that the default 24 hour manager approval is "Existing"
 
   let disapproved = showHidden ? approvalLevel === "incoming" ? getUnhandledUserIncomingApprovals(approvals, approverAddress, true)
@@ -200,21 +200,21 @@ const FullApprovalsDisplay: FC<FullProps> = ({
       : getUnhandledCollectionApprovals(approvals, true, true) : [];
 
   if (onlyShowFromMint) {
-    approvals = approvals.filter(x => isInAddressMapping(x.fromMapping, 'Mint'))
+    approvals = approvals.filter(x => isInAddressList(x.fromList, 'Mint'))
     approvals = approvals.map(x => {
       return {
         ...x,
-        fromMapping: getReservedAddressMapping('Mint'),
-        fromMappingId: 'Mint',
+        fromList: getReservedAddressList('Mint'),
+        fromListId: 'Mint',
       }
     })
 
-    disapproved = disapproved.filter(x => isInAddressMapping(x.fromMapping, 'Mint'))
+    disapproved = disapproved.filter(x => isInAddressList(x.fromList, 'Mint'))
     disapproved = disapproved.map(x => {
       return {
         ...x,
-        fromMapping: getReservedAddressMapping('Mint'),
-        fromMappingId: 'Mint',
+        fromList: getReservedAddressList('Mint'),
+        fromListId: 'Mint',
       }
     })
   }

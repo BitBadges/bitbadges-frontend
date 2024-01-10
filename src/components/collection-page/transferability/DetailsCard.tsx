@@ -1,7 +1,6 @@
 import { WarningOutlined } from "@ant-design/icons";
-import { Button, Statistic } from "antd";
+import { Statistic } from "antd";
 import { CollectionApprovalWithDetails } from "bitbadgesjs-utils";
-import { useState } from "react";
 import { useAccount } from "../../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { approvalCriteriaHasNoAmountRestrictions, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from "../../../bitbadges-api/utils/claims";
@@ -19,9 +18,6 @@ export const DetailsCard = ({ allApprovals, approval, isOutgoingDisplay, isIncom
   isEdit?: boolean
 
 }) => {
-
-  const [whitelistIsVisible, setWhitelistIsVisible] = useState(false);
-
   const hasApprovalAmounts = approvalHasApprovalAmounts(approval.approvalCriteria?.approvalAmounts);
 
   const hasMaxNumTransfers = approvalHasMaxNumTransfers(approval.approvalCriteria?.maxNumTransfers);
@@ -54,14 +50,14 @@ export const DetailsCard = ({ allApprovals, approval, isOutgoingDisplay, isIncom
         <li>{"To address must equal approver's address"}</li>
       )}
       {!isOutgoingDisplay && <>
-        {approval.fromMappingId !== "Mint" && approval.approvalCriteria?.overridesFromOutgoingApprovals ? (
+        {approval.fromListId !== "Mint" && approval.approvalCriteria?.overridesFromOutgoingApprovals ? (
           <li>
             <WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} />
             {"Does not check the sender's outgoing approvals"}</li>
         ) : (
-          approval.fromMappingId !== "Mint" && <li>{"Must satisfy the sender's outgoing approvals"}</li>
+          approval.fromListId !== "Mint" && <li>{"Must satisfy the sender's outgoing approvals"}</li>
         )}</>}
-      {approval.fromMappingId === "Mint" && !approval.approvalCriteria?.overridesFromOutgoingApprovals && (
+      {approval.fromListId === "Mint" && !approval.approvalCriteria?.overridesFromOutgoingApprovals && (
         <>
           <li>
             {"Must satisfy outgoing approvals for Mint address (Not possible so this will never work)"}
@@ -84,14 +80,11 @@ export const DetailsCard = ({ allApprovals, approval, isOutgoingDisplay, isIncom
       {approval.approvalCriteria?.merkleChallenge?.root && (
         <>
           {approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? (<>
-            <li>{"Must be on whitelist"}</li>
+            <li>{"Must be on allowlist"}</li>
             {approval.approvalCriteria.merkleChallenge.maxUsesPerLeaf > 0n ? <li>{`Max ${approval.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per address`}</li> : <></>}
             {(approval.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0n && <div className='flex-center flex-column'>
               <br />
-              <Button className="styled-button" onClick={() => setWhitelistIsVisible(!whitelistIsVisible)}>{whitelistIsVisible ? 'Hide Whitelist' : 'Show Full Whitelist'}</Button>
-
-              <br />
-              {whitelistIsVisible && <>
+              {<>
 
                 <AddressDisplayList
                   users={approval.details?.challengeDetails?.leavesDetails.leaves ?? []}
@@ -175,7 +168,7 @@ export const DetailsCard = ({ allApprovals, approval, isOutgoingDisplay, isIncom
       {hasSameChallengeTrackerId && (
         <>
           <WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} /> There are multiple approvals using the same challenge tracker ID.
-          {approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? ' The whitelists' : ' The codes / passwords'} of these approvals are linked and will be used up whenever either approval is used.
+          {approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? ' The allowlists' : ' The codes / passwords'} of these approvals are linked and will be used up whenever either approval is used.
         </>
       )}
     </div>
@@ -225,7 +218,7 @@ const MaxNumTransfersComponent = ({ approval, type, componentType, showUntracked
   if (!(approval.approvalCriteria?.maxNumTransfers && approval.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] > 0) && !trackedBehindTheScenes) return null;
   const limit = approval.approvalCriteria?.maxNumTransfers[maxNumTransfersKey] ?? 0n;
 
-  const numUsed = collection?.approvalsTrackers.find(y => y.amountTrackerId === approval.amountTrackerId && y.trackerType === type
+  const numUsed = collection?.approvalTrackers.find(y => y.amountTrackerId === approval.amountTrackerId && y.trackerType === type
     && y.approvedAddress === (type === "overall" ? "" : account?.cosmosAddress ?? ''))?.numTransfers ?? 0n;
 
 
@@ -304,7 +297,7 @@ const ApprovalAmountsComponent = ({
 
   if (!(approval.approvalCriteria?.approvalAmounts && approval.approvalCriteria?.approvalAmounts[approvalAmountsKey] > 0)) return null;
 
-  const approvedAmounts = collection?.approvalsTrackers.find(y => y.amountTrackerId === approval.amountTrackerId && y.trackerType === type
+  const approvedAmounts = collection?.approvalTrackers.find(y => y.amountTrackerId === approval.amountTrackerId && y.trackerType === type
     && y.approvedAddress === (type === "overall" ? "" : account?.cosmosAddress ?? ''))?.amounts ?? [{
       amount: 0n,
       badgeIds: approval.badgeIds,

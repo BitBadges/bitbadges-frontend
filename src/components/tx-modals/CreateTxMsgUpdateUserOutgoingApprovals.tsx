@@ -54,7 +54,7 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
       updateIncomingApprovals: false,
       updateOutgoingApprovals: true,
       incomingApprovals: [],
-      outgoingApprovals: newOutgoingApprovals.filter(x => x.approvalId !== 'default-incoming' && x.approvalId !== 'default-outgoing'),
+      outgoingApprovals: newOutgoingApprovals.filter(x => x.approvalId !== 'self-initiated-incoming' && x.approvalId !== 'self-initiated-outgoing'),
       autoApproveSelfInitiatedIncomingTransfers: false,
       autoApproveSelfInitiatedOutgoingTransfers: false,
       updateAutoApproveSelfInitiatedIncomingTransfers: false,

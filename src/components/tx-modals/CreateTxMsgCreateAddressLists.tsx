@@ -1,5 +1,5 @@
 import { notification } from 'antd';
-import { MsgCreateAddressMappings } from 'bitbadgesjs-proto';
+import { MsgCreateAddressLists } from 'bitbadgesjs-proto';
 import { convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import React, { useCallback, useMemo } from 'react';
@@ -10,7 +10,7 @@ import { MsgUniversalUpdateCollectionProps, NEW_COLLECTION_ID } from '../../bitb
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { TxModal } from './TxModal';
 
-export function CreateTxMsgCreateAddressMappingModal(
+export function CreateTxMsgCreateAddressListModal(
   { visible, setVisible, children, inheritedTxState }
     : {
       visible: boolean,
@@ -25,11 +25,11 @@ export function CreateTxMsgCreateAddressMappingModal(
   const updateIPFSUris = useCallback(async (simulate: boolean) => {
 
     if (!inheritedTxState || !collection) return;
-    const msg: MsgCreateAddressMappings = {
+    const msg: MsgCreateAddressLists = {
       creator: chain.cosmosAddress,
-      addressMappings: inheritedTxState?.addressMapping ? [{
-        ...inheritedTxState.addressMapping,
-        addresses: inheritedTxState.addressMapping.addresses.map(x => convertToCosmosAddress(x))
+      addressLists: inheritedTxState?.addressList ? [{
+        ...inheritedTxState.addressList,
+        addresses: inheritedTxState.addressList.addresses.map(x => convertToCosmosAddress(x))
       }] : []
     }
     let uri = '';
@@ -44,11 +44,11 @@ export function CreateTxMsgCreateAddressMappingModal(
       uri = 'ipfs://' + res.collectionMetadataResult?.cid;
     }
 
-    const MsgUniversalUpdateCollection: MsgCreateAddressMappings = {
+    const MsgUniversalUpdateCollection: MsgCreateAddressLists = {
       ...msg,
       creator: chain.cosmosAddress,
-      addressMappings: [{
-        ...msg.addressMappings[0],
+      addressLists: [{
+        ...msg.addressLists[0],
         createdBy: undefined,
         uri
       }]
@@ -64,15 +64,15 @@ export function CreateTxMsgCreateAddressMappingModal(
   const txsInfo = useMemo(() => {
     const msg = {
       creator: chain.cosmosAddress,
-      addressMappings: inheritedTxState?.addressMapping ? [{
-        ...inheritedTxState.addressMapping,
-        addresses: inheritedTxState.addressMapping.addresses.map(x => convertToCosmosAddress(x))
+      addressLists: inheritedTxState?.addressList ? [{
+        ...inheritedTxState.addressList,
+        addresses: inheritedTxState.addressList.addresses.map(x => convertToCosmosAddress(x))
       }] : []
     }
 
     return [
       {
-        type: 'MsgCreateAddressMappings',
+        type: 'MsgCreateAddressLists',
         msg: msg,
         beforeTx: async (simulate: boolean) => {
           const newMsg = await updateIPFSUris(simulate);
@@ -80,11 +80,11 @@ export function CreateTxMsgCreateAddressMappingModal(
         },
         afterTx: async () => {
           notification.success({ message: 'Created successfully!' });
-          await router.push(`/lists/${inheritedTxState?.addressMapping.mappingId}`);
+          await router.push(`/lists/${inheritedTxState?.addressList.listId}`);
         }
       }
     ]
-  }, [inheritedTxState?.addressMapping, chain.cosmosAddress, router, updateIPFSUris]);
+  }, [inheritedTxState?.addressList, chain.cosmosAddress, router, updateIPFSUris]);
 
   return (
     <TxModal

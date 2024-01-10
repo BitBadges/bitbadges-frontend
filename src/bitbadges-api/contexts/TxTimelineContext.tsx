@@ -1,11 +1,11 @@
-import { AddressMapping, Balance, deepCopy } from 'bitbadgesjs-proto';
-import { AddressMappingEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
+import { AddressList, Balance, deepCopy } from 'bitbadgesjs-proto';
+import { AddressListEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances } from 'bitbadgesjs-utils';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { defaultApprovedOption } from '../../components/tx-timelines/step-items/DefaultToApprovedSelectStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { getAddressMappings } from '../api';
+import { getAddressLists } from '../api';
 import { useChainContext } from './ChainContext';
 import { fetchAccounts } from './accounts/AccountsContext';
 import { fetchCollectionsWithOptions, setCollection, updateCollection, useCollection } from './collections/CollectionsContext';
@@ -53,17 +53,17 @@ export interface CreateAndDistributeMsg<T extends NumberType> {
   setCustomCollection: (customCollection: boolean) => void
 }
 
-export interface CreateAddressMappingMsg<T extends NumberType> {
-  addressMapping: (AddressMapping & {
+export interface CreateAddressListMsg<T extends NumberType> {
+  addressList: (AddressList & {
     private?: boolean;
 
-    editKeys?: AddressMappingEditKey<T>[];
+    editKeys?: AddressListEditKey<T>[];
   })
-  setAddressMapping: (addressMapping: AddressMapping & {
+  setAddressList: (addressList: AddressList & {
     private?: boolean;
-    editKeys?: AddressMappingEditKey<T>[];
+    editKeys?: AddressListEditKey<T>[];
   }) => void
-  isUpdateAddressMapping?: boolean
+  isUpdateAddressList?: boolean
 }
 
 export interface UpdateMetadataMsg {
@@ -100,7 +100,7 @@ export interface UpdateFlags {
   setUpdateIsArchivedTimeline: (value: boolean) => void;
 }
 
-export type MsgUniversalUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressMappingMsg<bigint> & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
+export type MsgUniversalUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressListMsg<bigint> & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
 
 export interface BaseTxTimelineProps {
   txType: 'UpdateCollection'
@@ -113,13 +113,13 @@ export interface BaseTxTimelineProps {
   initialLoad: boolean
   setInitialLoad: (initialLoad: boolean) => void
 
-  existingAddressMappingId: string
-  setExistingAddressMappingId: (addressMappingId: string) => void
+  existingAddressListId: string
+  setExistingAddressListId: (addressListId: string) => void
 
   formStepNum: number
   setFormStepNum: (formStepNum: number) => void
 
-  resetState: (collectionId?: bigint, addressMappingId?: string) => void
+  resetState: (collectionId?: bigint, addressListId?: string) => void
 
   completeControl: boolean
   setCompleteControl: (completeControl: boolean) => void
@@ -140,8 +140,8 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   startingCollection: undefined,
   setStartingCollection: () => { },
 
-  existingAddressMappingId: '',
-  setExistingAddressMappingId: () => { },
+  existingAddressListId: '',
+  setExistingAddressListId: () => { },
 
   transfers: [],
   setTransfers: () => { },
@@ -174,16 +174,16 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   mintType: MintType.BitBadge,
   setMintType: () => { },
 
-  addressMapping: {
-    mappingId: '',
+  addressList: {
+    listId: '',
     addresses: [],
-    includeAddresses: true,
+    allowlist: true,
     uri: '',
     customData: '',
 
     createdBy: '',
   },
-  setAddressMapping: () => { },
+  setAddressList: () => { },
 
   collectionAddMethod: MetadataAddMethod.None,
   setCollectionAddMethod: () => { },
@@ -217,7 +217,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const txType = 'UpdateCollection';
 
   const [existingCollectionId, setExistingCollectionIdState] = useState<bigint>();
-  const [existingAddressMappingId, setExistingAddressMappingId] = useState<string>('');
+  const [existingAddressListId, setExistingAddressListId] = useState<string>('');
   const [formStepNum, setFormStepNum] = useState(1);
 
   const setExistingCollectionId = (existingCollectionId: bigint | undefined) => {
@@ -235,10 +235,10 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
   const [mintType, setMintType] = useState<MintType>(MintType.BitBadge);
 
-  const [addressMapping, setAddressMapping] = useState<AddressMapping>({
-    mappingId: '',
+  const [addressList, setAddressList] = useState<AddressList>({
+    listId: '',
     addresses: [],
-    includeAddresses: true,
+    allowlist: true,
     uri: '',
     customData: '',
     createdBy: chain.address
@@ -282,19 +282,19 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   }
 
 
-  function resetState(existingCollectionId?: bigint, addressMappingId?: string) {
+  function resetState(existingCollectionId?: bigint, addressListId?: string) {
     setExistingCollectionIdState(existingCollectionId);
     setStartingCollection(undefined);
-    setExistingAddressMappingId(addressMappingId ?? '');
+    setExistingAddressListId(addressListId ?? '');
     setFormStepNum(1);
     setBadgesToCreate([]);
     setCollectionAddMethod(MetadataAddMethod.Manual);
     setTransfers([]);
     setMintType(MintType.BitBadge);
-    setAddressMapping({
-      mappingId: '',
+    setAddressList({
+      listId: '',
       addresses: [],
-      includeAddresses: true,
+      allowlist: true,
       uri: '',
       customData: '',
       createdBy: chain.address
@@ -315,19 +315,19 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     resetCollectionApprovals();
   }
 
-  //Initial fetch of the address mapping we are updating an existing one
+  //Initial fetch of the address list we are updating an existing one
   useEffect(() => {
-    async function getAddressMapping() {
-      if (INFINITE_LOOP_MODE) console.log('useEffect: address mapping, initial load');
-      if (!existingAddressMappingId) return;
+    async function getAddressList() {
+      if (INFINITE_LOOP_MODE) console.log('useEffect: address list, initial load');
+      if (!existingAddressListId) return;
       setMintType(MintType.AddressList);
-      const res = await getAddressMappings({ mappingIds: [existingAddressMappingId] });
+      const res = await getAddressLists({ listIds: [existingAddressListId] });
       if (res) {
-        setAddressMapping(res.addressMappings[0]);
+        setAddressList(res.addressLists[0]);
       }
     }
-    getAddressMapping();
-  }, [existingAddressMappingId]);
+    getAddressList();
+  }, [existingAddressListId]);
 
   const initialLoad = !!startingCollection;
 
@@ -343,7 +343,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         //Default values for a new collection
         //If existing, they are overriden further below via the spread
         merkleChallenges: [],
-        approvalsTrackers: [],
+        approvalTrackers: [],
         updateHistory: [],
         aliasAddress: '',
         managerTimeline: [{
@@ -356,7 +356,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         announcements: [],
         reviews: [],
         owners: [{
-          _legacyId: "0:Total",
+          _docId: "0:Total",
           collectionId: 0n,
           onChain: true,
           cosmosAddress: 'Total',
@@ -373,7 +373,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           autoApproveSelfInitiatedOutgoingTransfers: true,
           updateHistory: [],
         }, {
-          _legacyId: "0:Mint",
+          _docId: "0:Mint",
           cosmosAddress: 'Mint',
           onChain: true,
           collectionId: 0n,
@@ -434,7 +434,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         createdTimestamp: 0n,
 
         //Preview / simulated collection values
-        // _legacyId: "0",
+        // _docId: "0",
         collectionId: 0n
       }
 
@@ -475,7 +475,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     //If badgesToCreate change, we need to update the maxSupplys and unminted supplys field
     //All other updates are handled within CollectionContext
     //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
-    
+
     const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
     const postSimulatedCollection = { owners: newOwnersArr, collectionId: NEW_COLLECTION_ID };
     updateCollection(postSimulatedCollection);
@@ -575,17 +575,17 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateStandardsTimeline,
     updateIsArchivedTimeline,
     setUpdateIsArchivedTimeline,
-    isUpdateAddressMapping: existingAddressMappingId ? true : false,
+    isUpdateAddressList: existingAddressListId ? true : false,
 
     mintType,
     setMintType,
     customCollection,
     setCustomCollection,
-    addressMapping,
-    setAddressMapping,
+    addressList,
+    setAddressList,
 
-    existingAddressMappingId,
-    setExistingAddressMappingId,
+    existingAddressListId,
+    setExistingAddressListId,
 
     setExistingCollectionId: setExistingCollectionId,
     initialLoad,

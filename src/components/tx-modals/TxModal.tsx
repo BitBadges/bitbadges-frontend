@@ -1,13 +1,16 @@
 import { CloseOutlined, CodeOutlined, InfoCircleOutlined, MinusOutlined, ZoomInOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
 import {
-  MsgCreateAddressMappings,
+  MsgCreateAddressLists,
   MsgCreateCollection,
   MsgCreateProtocol,
   MsgDeleteCollection,
+  MsgExecuteContractCompat,
   MsgDeleteProtocol,
+  MsgInstantiateContractCompat,
   MsgSend,
   MsgSetCollectionForProtocol,
+  MsgStoreCodeCompat,
   MsgTransferBadges,
   MsgUniversalUpdateCollection,
   MsgUnsetCollectionForProtocol,
@@ -23,7 +26,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
 import {
-  MsgCreateAddressMappings as ProtoMsgCreateAddressMappings,
+  MsgCreateAddressLists as ProtoMsgCreateAddressLists,
   MsgCreateCollection as ProtoMsgCreateCollection,
   MsgDeleteCollection as ProtoMsgDeleteCollection,
   MsgTransferBadges as ProtoMsgTransferBadges,
@@ -31,6 +34,13 @@ import {
   MsgUpdateCollection as ProtoMsgUpdateCollection,
   MsgUpdateUserApprovals as ProtoMsgUpdateUserApprovals,
 } from 'bitbadgesjs-proto/dist/proto/badges/tx_pb';
+
+import {
+  MsgExecuteContractCompat as ProtoMsgExecuteContractCompat,
+  MsgInstantiateContractCompat as ProtoMsgInstantiateContractCompat,
+  MsgStoreCodeCompat as ProtoMsgStoreCodeCompat,
+
+} from 'bitbadgesjs-proto/dist/proto/wasmx/tx_pb';
 
 import {
   MsgCreateProtocol as ProtoMsgCreateProtocol,
@@ -139,9 +149,9 @@ export function TxModal(
             return new ProtoMsgUniversalUpdateCollection(convertMsgUniversalUpdateCollection(msg, String))
           }
           break;
-        case 'MsgCreateAddressMappings':
-          createFunction = (msg: MsgCreateAddressMappings) => {
-            return new ProtoMsgCreateAddressMappings(msg)
+        case 'MsgCreateAddressLists':
+          createFunction = (msg: MsgCreateAddressLists) => {
+            return new ProtoMsgCreateAddressLists(msg)
           }
           break;
         case 'MsgCreateCollection':
@@ -200,12 +210,38 @@ export function TxModal(
         case 'MsgSend':
           createFunction = (params: MsgSend<bigint>) => {
             return new ProtoMsgSend({
-              fromAddress: chain.cosmosAddress,
-              toAddress: params.destinationAddress,
-              amount: [{
-                denom: params.denom,
-                amount: params.amount.toString(),
-              }],
+              fromAddress: params.fromAddress,
+              toAddress: params.toAddress,
+              amount: params.amount.map((coin) => {
+                return {
+                  amount: coin.amount.toString(),
+                  denom: coin.denom,
+                }
+              })
+            })
+          }
+          break;
+        case 'MsgStoreCodeCompat':
+          createFunction = (params: MsgStoreCodeCompat) => {
+            return new ProtoMsgStoreCodeCompat({
+              sender: chain.cosmosAddress,
+              hexWasmByteCode: `${params.hexWasmByteCode}`,
+            })
+          }
+          break;
+        case 'MsgInstantiateContractCompat':
+          createFunction = (params: MsgInstantiateContractCompat) => {
+            return new ProtoMsgInstantiateContractCompat({
+              ...params,
+              sender: chain.cosmosAddress,
+            })
+          }
+          break;
+        case 'MsgExecuteContractCompat':
+          createFunction = (params: MsgExecuteContractCompat) => {
+            return new ProtoMsgExecuteContractCompat({
+              ...params,
+              sender: chain.cosmosAddress,
             })
           }
           break;
@@ -431,6 +467,35 @@ export function TxModal(
         description: `We are now waiting for the transaction to be included on the blockchain and our servers to process that block.`,
       });
 
+      const codeIdAttr = msgResponse.tx_response.events.find(x => x.attributes.find(y => y.key === "code_id"))
+      let codeId = 0;
+      if (codeIdAttr) {
+        codeId = Number(codeIdAttr.attributes.find(y => y.key === "code_id")?.value);
+
+
+      }
+
+      let contractAddr = '';
+      const contractAddrAttr = msgResponse.tx_response.events.find(x => x.attributes.find(y => y.key === "_contract_address"))
+      if (contractAddrAttr) {
+        contractAddr = contractAddrAttr.attributes.find(y => y.key === "_contract_address")?.value ?? '';
+
+      }
+
+      if (codeId && !contractAddr) {
+        notification.info({
+          message: 'Code ID',
+          description: `Your contract's code ID is ${codeId}.`,
+          duration: 0,
+        });
+      } else if (contractAddr) {
+        notification.info({
+          message: 'Contract Address',
+          description: `Your contract's address is ${contractAddr}.`,
+          duration: 0,
+        });
+      }
+
       //Wait for transaction to be included in block and indexer to process that block
       let currIndexerHeight = 0n;
       let maxTries = 60;
@@ -533,6 +598,8 @@ export function TxModal(
         if (afterTx) {
           await afterTx(collectionId ?? 0n);
         }
+
+
       }
 
       await txTimelineContext.resetState();

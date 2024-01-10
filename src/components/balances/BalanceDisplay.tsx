@@ -7,7 +7,7 @@ import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates"
 import { Pagination } from "../common/Pagination"
 import { BalanceDisplayEditRow } from "./BalanceDisplayEditRow"
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay"
-import { applyIncrementsToBalances } from "../../bitbadges-api/utils/balances"
+import { applyIncrementsToBalances } from "bitbadgesjs-utils"
 import { getAllBadgeIdsToBeTransferred } from "bitbadgesjs-utils"
 
 

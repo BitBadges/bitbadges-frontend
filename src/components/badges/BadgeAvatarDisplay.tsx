@@ -1,5 +1,5 @@
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto"
-import { getBadgesToDisplay, getBalancesForId, getTotalNumberOfBadgeIds, removeUintRangeFromUintRange } from "bitbadgesjs-utils"
+import { getBadgesToDisplay, getBalancesForId, getTotalNumberOfBadgeIds, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext"
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
@@ -56,7 +56,7 @@ export function BadgeAvatarDisplay({
   const txTimelineContext = useTxTimelineContext()
   const collection = useCollection(collectionId)
   const maxId = collection ? getMaxBadgeIdForCollection(collection) : 0n
-  const [remaining, removed] = removeUintRangeFromUintRange([{ start: maxId + 1n, end: GO_MAX_UINT_64 }], badgeIds)
+  const [remaining, removed] = removeUintRangesFromUintRanges([{ start: maxId + 1n, end: GO_MAX_UINT_64 }], badgeIds)
   const inRangeBadgeIds = filterGreaterThanMax ? remaining : badgeIds
   const userBalance = balance
   const [currPage, setCurrPage] = useState<number>(1)

@@ -41,7 +41,7 @@ import {
   getMetadataForBadgeId,
   getTotalNumberOfBadgeIds,
   invertUintRanges,
-  removeUintRangeFromUintRange,
+  removeUintRangesFromUintRanges,
   searchUintRangesForId,
   setMetadataPropertyForSpecificBadgeIds,
   sortUintRangesAndMergeIfNecessary,
@@ -342,14 +342,14 @@ export function MetadataForm({
   isCollectionSelect,
   badgeIds,
   toBeFrozen,
-  isAddressMappingSelect,
+  isAddressListSelect,
   addMethod,
   setAddMethod,
 }: {
   isCollectionSelect?: boolean
   badgeIds: UintRange<bigint>[]
   toBeFrozen?: boolean
-  isAddressMappingSelect?: boolean
+  isAddressListSelect?: boolean
   addMethod?: MetadataAddMethod
   setAddMethod?: (addMethod: MetadataAddMethod) => void
 }) {
@@ -471,7 +471,7 @@ export function MetadataForm({
 
 
 
-  const [inRangeBadgeIds] = removeUintRangeFromUintRange([{ start: (!collection ? 0n : getMaxBadgeIdForCollection(collection)) + 1n, end: GO_MAX_UINT_64 }], badgeIds)
+  const [inRangeBadgeIds] = removeUintRangesFromUintRanges([{ start: (!collection ? 0n : getMaxBadgeIdForCollection(collection)) + 1n, end: GO_MAX_UINT_64 }], badgeIds)
   badgeIds = inRangeBadgeIds
 
   const PopulateComponent = () => {
@@ -483,7 +483,7 @@ export function MetadataForm({
     let numBadgesFetched = 0n
     for (const metadata of existingCollection?.cachedBadgeMetadata ?? []) {
       const uintRangesToSearch = uintRanges
-      const [, removed] = removeUintRangeFromUintRange(
+      const [, removed] = removeUintRangesFromUintRanges(
         uintRangesToSearch,
         metadata.badgeIds
       )
@@ -495,7 +495,7 @@ export function MetadataForm({
 
     const outOfBoundsIds = invertUintRanges(badgeIds, 1n, GO_MAX_UINT_64)
 
-    const [, removed] = removeUintRangeFromUintRange(outOfBoundsIds, uintRanges)
+    const [, removed] = removeUintRangesFromUintRanges(outOfBoundsIds, uintRanges)
     const hasOutOfBoundsids = removed.length > 0
 
     let message = badgeId && !isCollectionSelect ? `ID ${badgeId}'s metadata`
@@ -545,7 +545,7 @@ export function MetadataForm({
                 </Col>
               </div>
               <br />
-              {isCollectionSelect && !isAddressMappingSelect && (
+              {isCollectionSelect && !isAddressListSelect && (
                 <div className="secondary-text" style={{ textAlign: "center" }}>
                   <InfoCircleOutlined style={{ marginRight: 4 }} /> The updated
                   badge metadata will be visible on the next step.
@@ -553,7 +553,7 @@ export function MetadataForm({
                   <br />
                 </div>
               )}
-              {!isAddressMappingSelect &&
+              {!isAddressListSelect &&
                 !!existingCollectionId &&
                 numBadgesFetched < totalNeedToFetch && (
                   <>
@@ -656,7 +656,7 @@ export function MetadataForm({
   return (
     <>
       <InformationDisplayCard span={24} >
-        {!isAddressMappingSelect && setAddMethod && (
+        {!isAddressListSelect && setAddMethod && (
           <>
             <br />
             <div className="flex-center flex-column">
@@ -739,9 +739,9 @@ export function MetadataForm({
               startId={1n}
               endId={collection ? getMaxBadgeIdForCollection(collection) : 1n}
               hideCollectionSelect={
-                !isAddressMappingSelect && !isCollectionSelect
+                !isAddressListSelect && !isCollectionSelect
               }
-              hideBadgeSelect={!isAddressMappingSelect && isCollectionSelect}
+              hideBadgeSelect={!isAddressListSelect && isCollectionSelect}
             />
           </>
         )}
@@ -760,7 +760,7 @@ export function MetadataForm({
               </div>
             )}
 
-            {!isCollectionSelect && !isAddressMappingSelect && (<>
+            {!isCollectionSelect && !isAddressListSelect && (<>
               <div className="secondary-text" style={{ textAlign: "center" }}>
                 {nonUpdatedIds.length > 0 &&
                   <span style={{ color: 'orange' }}>
@@ -775,14 +775,14 @@ export function MetadataForm({
 
 
 
-            {!isCollectionSelect && !isAddressMappingSelect && <>
+            {!isCollectionSelect && !isAddressListSelect && <>
               <MultiViewBadgeDisplay badgeId={badgeId} badgeIds={inRangeBadgeIds} setBadgeId={setBadgeId} />
             </>}
 
             <br />
             <div className="flex-center flex-wrap">
 
-              {!isAddressMappingSelect && (
+              {!isAddressListSelect && (
                 <IconButton
                   text="Batch Apply"
                   tooltipMessage="Populate the metadata of other badges with the metadata of this badge."

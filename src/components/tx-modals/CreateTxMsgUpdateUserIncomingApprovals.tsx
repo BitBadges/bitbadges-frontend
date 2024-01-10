@@ -83,7 +83,7 @@ export function CreateTxMsgUpdateUserIncomingApprovalsModal({ collectionId, visi
       },
       updateIncomingApprovals: true,
       updateOutgoingApprovals: false,
-      incomingApprovals: newIncomingApprovals.filter(x => x.approvalId !== 'default-incoming' && x.approvalId !== 'default-outgoing'),
+      incomingApprovals: newIncomingApprovals.filter(x => x.approvalId !== 'self-initiated-incoming' && x.approvalId !== 'self-initiated-outgoing'),
       outgoingApprovals: [],
       updateAutoApproveSelfInitiatedIncomingTransfers: false,
       updateAutoApproveSelfInitiatedOutgoingTransfers: false,

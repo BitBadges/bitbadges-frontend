@@ -1,5 +1,5 @@
 import {
-  isInAddressMapping
+  isInAddressList
 } from "bitbadgesjs-utils"
 import {
   EmptyStepItem,
@@ -12,7 +12,7 @@ import { useCollection } from "../../bitbadges-api/contexts/collections/Collecti
 import { neverHasManager } from "../../bitbadges-api/utils/manager"
 import { getDetailsForCollectionPermission, getDetailsForPermission } from "../../bitbadges-api/utils/permissions"
 import { FormTimeline, TimelineItem } from "../navigation/FormTimeline"
-import { AddressMappingSelectStepItem } from "./step-items/AddressMappingSelectStepItem"
+import { AddressListSelectStepItem } from "./step-items/AddressListSelectStepItem"
 import { IsArchivedSelectStepItem } from "./step-items/ArchivedSelectStepItem"
 import { BadgeSupplySelectStepItem } from "./step-items/BadgeSupplySelectStepItem"
 import { BalanceTypeSelectStepItem } from "./step-items/BalancesTypeSelectStepItem"
@@ -31,7 +31,7 @@ import {
 import { CodesViewStepItem } from "./step-items/CodesViewStepItem"
 import { ChooseControlTypeStepItem } from "./step-items/CompleteControlStepItem"
 import { ConfirmManagerStepItem } from "./step-items/ConfirmManagerStepItem"
-import { CreateAddressMappingStepItem } from "./step-items/CreateAddressMappingStepItem"
+import { CreateAddressListStepItem } from "./step-items/CreateAddressListStepItem"
 import { CreateCollectionStepItem } from "./step-items/CreateCollectionStepItem"
 import { CollectionTypeSelect } from "./step-items/CustomVsPresetCollection"
 import { DefaultToApprovedSelectStepItem } from "./step-items/DefaultToApprovedSelectStepItem"
@@ -39,7 +39,7 @@ import { DirectTransfersStepItem } from "./step-items/DirectTransfersStepItem"
 import { DistributionMethodStepItem } from "./step-items/DistributionMethodStepItem"
 import { OffChainBalancesStorageSelectStepItem } from "./step-items/OffChainBalancesStepItem"
 import { PreviewBadgePagesStepItem, PreviewCollectionStepItem } from "./step-items/PreviewCollectionStepItem"
-import { SetAddressMappingMetadataStepItem } from "./step-items/SetAddressMappingMetadataStepItem"
+import { SetAddressListMetadataStepItem } from "./step-items/SetAddressListMetadataStepItem"
 import { SetBadgeMetadataStepItem } from "./step-items/SetBadgeMetadata"
 import { SetCollectionMetadataStepItem } from "./step-items/SetCollectionMetadataStepItem"
 import { StandardsSelectStepItem } from "./step-items/StandardsSelectStepItem"
@@ -52,7 +52,7 @@ export function UpdateCollectionTimeline() {
   const existingCollectionId = txTimelineContext.existingCollectionId
   const collection = useCollection(NEW_COLLECTION_ID)
   const mintType = txTimelineContext.mintType
-  const isUpdateAddressMapping = txTimelineContext.isUpdateAddressMapping
+  const isUpdateAddressList = txTimelineContext.isUpdateAddressList
   const formStepNum = txTimelineContext.formStepNum
   const setFormStepNum = txTimelineContext.setFormStepNum
   const completeControl = txTimelineContext.completeControl
@@ -66,7 +66,7 @@ export function UpdateCollectionTimeline() {
   const CanManagerBeTransferredStep = CanManagerBeTransferredStepItem()
   const UpdatableMetadataSelectStep = UpdatableMetadataSelectStepItem(true)
   const UpdatableBadgeMetadataSelectStep = UpdatableMetadataSelectStepItem(false)
-  const SetAddressMappingMetadataStep = SetAddressMappingMetadataStepItem()
+  const SetAddressListMetadataStep = SetAddressListMetadataStepItem()
   const SetCollectionMetadataStep = SetCollectionMetadataStepItem()
   const SetBadgeMetadataStep = SetBadgeMetadataStepItem()
   const DistributionMethodStep = DistributionMethodStepItem()
@@ -85,8 +85,8 @@ export function UpdateCollectionTimeline() {
   const StandardsSelectStep = StandardsSelectStepItem()
   const CanUpdateStandardsSelectStep = CanUpdateStandardsStepItem()
 
-  const AddressMappingSelectItem = AddressMappingSelectStepItem()
-  const CreateAddressMappingStep = CreateAddressMappingStepItem()
+  const AddressListSelectItem = AddressListSelectStepItem()
+  const CreateAddressListStep = CreateAddressListStepItem()
   const BalanceTypeSelect = BalanceTypeSelectStepItem()
   const CodesViewStep = CodesViewStepItem()
 
@@ -97,7 +97,7 @@ export function UpdateCollectionTimeline() {
 
   const items: TimelineItem[] = [
     (existingCollectionId && existingCollectionId > 0n) ||
-      isUpdateAddressMapping
+      isUpdateAddressList
       ? EmptyStepItem
       : ChooseBadgeType,
   ]
@@ -162,7 +162,7 @@ export function UpdateCollectionTimeline() {
         startingCollection.collectionPermissions.canUpdateCollectionApprovals ??
         []
       ).filter(
-        (x) => x.fromMapping && isInAddressMapping(x.fromMapping, "Mint")
+        (x) => x.fromList && isInAddressList(x.fromList, "Mint")
       ),
       "canUpdateCollectionApprovals"
     )
@@ -174,9 +174,9 @@ export function UpdateCollectionTimeline() {
       ).filter(
         (x) =>
           !(
-            x.fromMapping.includeAddresses &&
-            x.fromMapping.addresses.length == 1 &&
-            x.fromMapping.addresses[0] === "Mint"
+            x.fromList.allowlist &&
+            x.fromList.addresses.length == 1 &&
+            x.fromList.addresses[0] === "Mint"
           )
       ),
       "canUpdateCollectionApprovals"
@@ -296,9 +296,9 @@ export function UpdateCollectionTimeline() {
     }
   } else {
     items.push(
-      AddressMappingSelectItem,
-      SetAddressMappingMetadataStep,
-      CreateAddressMappingStep
+      AddressListSelectItem,
+      SetAddressListMetadataStep,
+      CreateAddressListStep
     )
   }
 

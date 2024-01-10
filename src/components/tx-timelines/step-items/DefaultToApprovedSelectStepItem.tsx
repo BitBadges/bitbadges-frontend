@@ -1,4 +1,4 @@
-import { appendDefaultForIncoming, castIncomingTransfersToCollectionTransfers, getReservedAddressMapping } from "bitbadgesjs-utils";
+import { appendSelfInitiatedIncomingApproval, castIncomingTransfersToCollectionTransfers, getReservedAddressList } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
@@ -13,10 +13,10 @@ import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 import { EditableApprovalsDisplay } from "../../collection-page/transferability/ApprovalsDisplay";
 
 export const defaultApprovedOption = [{
-  fromMappingId: "All",
-  fromMapping: getReservedAddressMapping("All"),
-  initiatedByMapping: getReservedAddressMapping("All"),
-  initiatedByMappingId: "All",
+  fromListId: "All",
+  fromList: getReservedAddressList("All"),
+  initiatedByList: getReservedAddressList("All"),
+  initiatedByListId: "All",
   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -135,7 +135,7 @@ export function DefaultToApprovedSelectStepItem() {
               castIncomingTransfersToCollectionTransfers(
                 collection.defaultBalances.incomingApprovals.length > 0 ?
                   collection.defaultBalances.incomingApprovals :
-                  appendDefaultForIncoming([], chain.address), chain.address)}
+                  appendSelfInitiatedIncomingApproval([], chain.address), chain.address)}
             collection={collection}
             approvalLevel='incoming'
 

@@ -9,12 +9,12 @@ import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 
 const { Text } = Typography;
 
-export function ReportModal({ visible, setVisible, collectionId, addressOrUsername, mappingId }: {
+export function ReportModal({ visible, setVisible, collectionId, addressOrUsername, listId }: {
   visible: boolean,
   setVisible: (visible: boolean) => void,
   collectionId?: bigint,
   addressOrUsername?: string,
-  mappingId?: string
+  listId?: string
 }) {
   const [reason, setReason] = useState('');
 
@@ -81,7 +81,7 @@ export function ReportModal({ visible, setVisible, collectionId, addressOrUserna
                     await axios.post(`${BACKEND_URL}/api/v0/report`, {
                       collectionId: Number(collectionId),
                       addressOrUsername: addressOrUsername,
-                      mappingId: mappingId,
+                      listId: listId,
                       reason: reason,
                     }, {
                       withCredentials: true,

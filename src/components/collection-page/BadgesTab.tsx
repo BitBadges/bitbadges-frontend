@@ -2,13 +2,13 @@ import { Form, Input, Spin, Tag, Tooltip, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { FullscreenExitOutlined, FullscreenOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { PaginationInfo, getMaxBadgeIdForCollection, getUintRangesForAllBadgeIdsInCollection, invertUintRanges, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { PaginationInfo, getMaxBadgeIdForCollection, getUintRangesForAllBadgeIdsInCollection, invertUintRanges, removeUintRangesFromUintRanges } from 'bitbadgesjs-utils';
 
 import { BigIntify, UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
 import { filterBadgesInCollection } from '../../bitbadges-api/api';
 import { fetchCollectionsWithOptions, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getBadgesWithFrozenMetadata, getBadgesWithFrozenTransferability, getBadgesWithLockedSupply } from '../../bitbadges-api/utils/badges';
-import { BatchBadgeDetails } from '../../bitbadges-api/utils/batches';
+import { BatchBadgeDetails } from 'bitbadgesjs-utils';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
@@ -19,12 +19,9 @@ import { CollectionsFilterSearchBar, BatchBadgeDetailsTag } from '../badges/Disp
 
 const { Text } = Typography;
 
-
-
-
 export function BadgesTab({ collectionId }: { collectionId: bigint }) {
   const [cardView, setCardView] = useState(true);
-  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails[]>([]);
+  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails<bigint>[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const collection = useCollection(collectionId)
   const [loading, setLoading] = useState(false);
@@ -85,34 +82,34 @@ export function BadgesTab({ collectionId }: { collectionId: bigint }) {
     }
 
     if (hasCirculatingSupplyFilter === true) {
-      const [remaining] = removeUintRangeFromUintRange(badgesWithoutCirculatingSupply, badgeIds);
+      const [remaining] = removeUintRangesFromUintRanges(badgesWithoutCirculatingSupply, badgeIds);
       badgeIds = remaining;
     } else if (hasCirculatingSupplyFilter === false) {
-      const [remaining] = removeUintRangeFromUintRange(badgesWithCirculatingSupply, badgeIds);
+      const [remaining] = removeUintRangesFromUintRanges(badgesWithCirculatingSupply, badgeIds);
       badgeIds = remaining;
     }
 
     if (canUpdateMetadataFilter === true) {
-      const [remaining] = removeUintRangeFromUintRange(badgesWithoutFrozenMetadata, badgeIds);
+      const [remaining] = removeUintRangesFromUintRanges(badgesWithoutFrozenMetadata, badgeIds);
       badgeIds = remaining;
     } else if (canUpdateMetadataFilter === false) {
-      const [remaining] = removeUintRangeFromUintRange(badgesWithFrozenMetadata, badgeIds);
+      const [remaining] = removeUintRangesFromUintRanges(badgesWithFrozenMetadata, badgeIds);
       badgeIds = remaining;
     }
 
     if (canCreateMoreFilter === true) {
-      const [remaining] = removeUintRangeFromUintRange(badgesWithoutLockedSupply, badgeIds);
+      const [remaining] = removeUintRangesFromUintRanges(badgesWithoutLockedSupply, badgeIds);
       badgeIds = remaining;
     } else if (canCreateMoreFilter === false) {
-      const [remaining] = removeUintRangeFromUintRange(badgesWithLockedSupply, badgeIds);
+      const [remaining] = removeUintRangesFromUintRanges(badgesWithLockedSupply, badgeIds);
       badgeIds = remaining;
     }
 
     if (canUpdateTransferabilityFilter === true) {
-      const [remaining] = removeUintRangeFromUintRange(badgesWithoutFrozenTransferability, badgeIds);
+      const [remaining] = removeUintRangesFromUintRanges(badgesWithoutFrozenTransferability, badgeIds);
       badgeIds = remaining;
     } else if (canUpdateTransferabilityFilter === false) {
-      const [remaining] = removeUintRangeFromUintRange(badgesWithFrozenTransferability, badgeIds);
+      const [remaining] = removeUintRangesFromUintRanges(badgesWithFrozenTransferability, badgeIds);
       badgeIds = remaining;
     }
 
@@ -131,12 +128,11 @@ export function BadgesTab({ collectionId }: { collectionId: bigint }) {
       const filterRes = await filterBadgesInCollection({
         collectionId,
         mostViewed: 'allTime',
-
       });
 
       const badgeIdsRes = filterRes.badgeIds.map(x => convertUintRange(x, BigIntify))
 
-      const [allOtherBadgeIdsWithZeroViews] = removeUintRangeFromUintRange(deepCopy(badgeIdsRes), [{ start: 1n, end: GO_MAX_UINT_64 }]);
+      const [allOtherBadgeIdsWithZeroViews] = removeUintRangesFromUintRanges(deepCopy(badgeIdsRes), [{ start: 1n, end: GO_MAX_UINT_64 }]);
 
 
       setCustomView([...badgeIdsRes, ...allOtherBadgeIdsWithZeroViews.map(x => convertUintRange(x, BigIntify))]);

@@ -1,16 +1,16 @@
 import { Card, Typography } from 'antd';
-import { AddressMappingWithMetadata } from 'bitbadgesjs-utils';
+import { AddressListWithMetadata } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { BadgeAvatar } from './BadgeAvatar';
 
 export function AddressListCard({
-  addressMapping,
+  addressList,
   addressOrUsername,
   hideInclusionDisplay,
 }: {
-  addressMapping: AddressMappingWithMetadata<bigint>
+  addressList: AddressListWithMetadata<bigint>
   addressOrUsername?: string
   hideInclusionDisplay?: boolean
 }) {
@@ -27,32 +27,32 @@ export function AddressListCard({
       }}
       hoverable={true}
       onClick={() => {
-        router.push(`/lists/${addressMapping.mappingId}`);
+        router.push(`/lists/${addressList.listId}`);
       }}
       cover={<>
         <div className='flex-center full-width primary-text' style={{ marginTop: '1rem' }}>
           <BadgeAvatar
             collectionId={0n}
-            metadataOverride={addressMapping.metadata}
+            metadataOverride={addressList.metadata}
             size={75}
           />
         </div>
       </>}
     >
       <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-        {addressMapping.metadata?.name}
+        {addressList.metadata?.name}
       </Typography.Text>
       <br />
       <Typography.Text strong className='secondary-text'>
-        {addressMapping.includeAddresses ? 'Whitelist' : 'Blacklist'}
+        {addressList.allowlist ? 'Allowlist' : 'Blocklist'}
         <br />
-        {addressMapping.addresses.length} address{addressMapping.addresses.length === 1 ? '' : 'es'}
+        {addressList.addresses.length} address{addressList.addresses.length === 1 ? '' : 'es'}
       </Typography.Text>
       {accountInfo && !hideInclusionDisplay && <>
         <br />
         <br />
       </>}
-      {accountInfo && !hideInclusionDisplay ? addressMapping.includeAddresses ?
+      {accountInfo && !hideInclusionDisplay ? addressList.allowlist ?
         <Typography.Text strong style={{ color: 'green' }}>
           INCLUDED
         </Typography.Text>

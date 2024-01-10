@@ -1,0 +1,6 @@
+{
+  "sender": "cosmos1uqxan5ch2ulhkjrgmre90rr923932w38tn33gu",
+  "contract": "cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr",
+  "msg": "{\"deleteCollectionMsg\": {\"collectionId\": \"1\"}}",
+  "funds": "1badge"
+}

@@ -1,17 +1,17 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Divider, Typography } from "antd";
-import { AddressMapping } from "bitbadgesjs-proto";
-import { invertUintRanges, isInAddressMapping } from "bitbadgesjs-utils";
+import { AddressList } from "bitbadgesjs-proto";
+import { invertUintRanges, isInAddressList } from "bitbadgesjs-utils";
 
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { AddressMappingSelect } from "../../address/AddressMappingSelect";
+import { AddressListSelect } from "../../address/AddressListsSelect";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { RequiredApprovalProps } from "../ApprovalSelect";
 import { getBadgesWithLockedSupply } from "../../../bitbadges-api/utils/badges";
 
-export const AddressMappingSelectComponent = ({
+export const AddressListSelectComponent = ({
   approvalToAdd, setApprovalToAdd,
   type, disabled,
   collectionId,
@@ -22,16 +22,16 @@ export const AddressMappingSelectComponent = ({
   collectionId: bigint
   nonMintOnlyApproval?: boolean
 }) => {
-  const key = type === 'to' ? 'toMapping' : type === 'initiatedBy' ? 'initiatedByMapping' : 'fromMapping';
-  const idKey = type === 'to' ? 'toMappingId' : type === 'initiatedBy' ? 'initiatedByMappingId' : 'fromMappingId';
+  const key = type === 'to' ? 'toList' : type === 'initiatedBy' ? 'initiatedByList' : 'fromList';
+  const idKey = type === 'to' ? 'toListId' : type === 'initiatedBy' ? 'initiatedByListId' : 'fromListId';
 
-  const mapping = approvalToAdd[key];
-  const setMapping = (mapping: AddressMapping) => {
+  const list = approvalToAdd[key];
+  const setList = (list: AddressList) => {
 
     setApprovalToAdd({
       ...approvalToAdd,
-      [key]: mapping,
-      [idKey]: mapping.mappingId,
+      [key]: list,
+      [idKey]: list.listId,
     });
   }
 
@@ -41,23 +41,23 @@ export const AddressMappingSelectComponent = ({
   const lockedBadgeIds = getBadgesWithLockedSupply(collection, undefined, undefined, 'always');
   const unlockedBadgeIds = invertUintRanges(lockedBadgeIds, 1n, GO_MAX_UINT_64);
 
-  const isLockedFromMapping = key === 'fromMapping' && approvalToAdd.fromMapping?.includeAddresses && approvalToAdd.fromMapping?.addresses?.length == 1 && disabled;
-  const firstAddress = approvalToAdd.fromMapping?.addresses?.[0];
+  const isLockedFromList = key === 'fromList' && approvalToAdd.fromList?.allowlist && approvalToAdd.fromList?.addresses?.length == 1 && disabled;
+  const firstAddress = approvalToAdd.fromList?.addresses?.[0];
 
   return <>
-    <AddressMappingSelect
-      addressMapping={mapping}
-      setAddressMapping={setMapping}
+    <AddressListSelect
+      addressList={list}
+      setAddressList={setList}
       disabled={disabled}
       showErrorOnEmpty
       allowMintSearch={type === 'from'}
     />
     {!disabled && <>
       <div className='secondary-text'>
-        <InfoCircleOutlined /> Each added address increases your transaction fee{type === 'initiatedBy' && mapping.includeAddresses ? ' if stored on-chain' : ''}.
+        <InfoCircleOutlined /> Each added address increases your transaction fee{type === 'initiatedBy' && list.allowlist ? ' if stored on-chain' : ''}.
       </div> </>}
 
-    {isLockedFromMapping && <>
+    {isLockedFromList && <>
       <div className='primary-text flex-center flex-column'>
         <BalanceDisplay
           collectionId={collectionId}
@@ -75,7 +75,7 @@ export const AddressMappingSelectComponent = ({
       </Typography.Text>
     </>
     }
-    {key === 'fromMapping' && nonMintOnlyApproval && isInAddressMapping(mapping, 'Mint') && <>
+    {key === 'fromList' && nonMintOnlyApproval && isInAddressList(list, 'Mint') && <>
       <div style={{ color: 'red' }}>
         <WarningOutlined /> Please remove the Mint address from the list of possible senders.
       </div>

@@ -1,14 +1,20 @@
 import { notification } from 'antd';
 import {
-  AddAddressToSurveyRouteRequestBody, AddAddressToSurveyRouteSuccessResponse, AddAnnouncementRouteRequestBody, AddAnnouncementRouteSuccessResponse, AddApprovalDetailsToOffChainStorageRouteRequestBody, AddApprovalDetailsToOffChainStorageRouteSuccessResponse, AddBalancesToOffChainStorageRouteRequestBody, AddBalancesToOffChainStorageRouteSuccessResponse, AddMetadataToIpfsRouteRequestBody, AddMetadataToIpfsRouteSuccessResponse, AddReviewForCollectionRouteRequestBody, AddReviewForCollectionRouteSuccessResponse, AddReviewForUserRouteRequestBody, AddReviewForUserRouteSuccessResponse, BigIntify, BitBadgesAPI, BroadcastTxRouteRequestBody, BroadcastTxRouteSuccessResponse, CheckSignInStatusRequestBody, CheckSignInStatusRequestSuccessResponse, CreateBlockinAuthCodeRouteRequestBody, CreateBlockinAuthCodeRouteSuccessResponse, DeleteAddressMappingsRouteRequestBody, DeleteAddressMappingsRouteSuccessResponse, DeleteAnnouncementRouteRequestBody, DeleteAnnouncementRouteSuccessResponse, DeleteBlockinAuthCodeRouteRequestBody, DeleteBlockinAuthCodeRouteSuccessResponse, DeleteReviewRouteRequestBody, DeleteReviewRouteSuccessResponse, ErrorResponse, FetchMetadataDirectlyRouteRequestBody, FetchMetadataDirectlyRouteSuccessResponse, GetAccountRouteRequestBody, GetAccountRouteSuccessResponse, GetAccountsRouteRequestBody, GetAccountsRouteSuccessResponse, GetAddressMappingsRouteRequestBody, GetAddressMappingsRouteSuccessResponse, GetAllCodesAndPasswordsRouteRequestBody, GetAllCodesAndPasswordsRouteSuccessResponse, GetApprovalsRouteRequestBody, GetApprovalsRouteSuccessResponse, GetBadgeActivityRouteRequestBody, GetBadgeActivityRouteSuccessResponse, GetBadgeBalanceByAddressRouteRequestBody, GetBadgeBalanceByAddressRouteSuccessResponse, GetBlockinAuthCodeRouteRequestBody, GetBlockinAuthCodeRouteSuccessResponse, GetBrowseCollectionsRouteRequestBody, GetBrowseCollectionsRouteSuccessResponse, GetChallengeTrackersRouteRequestBody, GetChallengeTrackersRouteSuccessResponse,
+  AddAddressToSurveyRouteRequestBody, AddAddressToSurveyRouteSuccessResponse,
+  AddApprovalDetailsToOffChainStorageRouteRequestBody, AddApprovalDetailsToOffChainStorageRouteSuccessResponse, AddBalancesToOffChainStorageRouteRequestBody, AddBalancesToOffChainStorageRouteSuccessResponse, AddMetadataToIpfsRouteRequestBody, AddMetadataToIpfsRouteSuccessResponse, AddReviewForCollectionRouteRequestBody, AddReviewForCollectionRouteSuccessResponse, AddReviewForUserRouteRequestBody, AddReviewForUserRouteSuccessResponse, BigIntify, BitBadgesAPI, BroadcastTxRouteRequestBody, BroadcastTxRouteSuccessResponse, CheckSignInStatusRequestBody, CheckSignInStatusRequestSuccessResponse, CreateBlockinAuthCodeRouteRequestBody, CreateBlockinAuthCodeRouteSuccessResponse, DeleteAddressListsRouteRequestBody, DeleteAddressListsRouteSuccessResponse,
+  DeleteBlockinAuthCodeRouteRequestBody, DeleteBlockinAuthCodeRouteSuccessResponse, DeleteReviewRouteRequestBody, DeleteReviewRouteSuccessResponse, ErrorResponse, FetchMetadataDirectlyRouteRequestBody, FetchMetadataDirectlyRouteSuccessResponse,
+  FilterBadgesInCollectionRequestBody, FilterBadgesInCollectionSuccessResponse,
+  GetAccountsRouteRequestBody, GetAccountsRouteSuccessResponse, GetAddressListsRouteRequestBody, GetAddressListsRouteSuccessResponse, GetAllCodesAndPasswordsRouteRequestBody, GetAllCodesAndPasswordsRouteSuccessResponse,
+  GetBadgeActivityRouteRequestBody, GetBadgeActivityRouteSuccessResponse, GetBadgeBalanceByAddressRouteRequestBody, GetBadgeBalanceByAddressRouteSuccessResponse, GetBlockinAuthCodeRouteRequestBody, GetBlockinAuthCodeRouteSuccessResponse, GetBrowseCollectionsRouteRequestBody, GetBrowseCollectionsRouteSuccessResponse,
   GetClaimAlertsForCollectionRouteRequestBody, GetClaimAlertsForCollectionRouteSuccessResponse,
-  GetCodeForPasswordRouteRequestBody, GetCodeForPasswordRouteSuccessResponse, GetCollectionBatchRouteRequestBody, GetCollectionBatchRouteSuccessResponse, GetCollectionByIdRouteRequestBody, GetCollectionForProtocolRouteRequestBody, GetCollectionForProtocolRouteSuccessResponse, GetCollectionRouteSuccessResponse,
+  GetCodeForPasswordRouteRequestBody, GetCodeForPasswordRouteSuccessResponse, GetCollectionBatchRouteRequestBody, GetCollectionBatchRouteSuccessResponse,
+  GetCollectionForProtocolRouteRequestBody, GetCollectionForProtocolRouteSuccessResponse,
   GetFollowDetailsRouteRequestBody, GetFollowDetailsRouteSuccessResponse,
-  GetMetadataForCollectionRouteRequestBody, GetMetadataForCollectionRouteSuccessResponse, GetOwnersForBadgeRouteRequestBody, GetOwnersForBadgeRouteSuccessResponse, GetProtocolsRouteRequestBody, GetProtocolsRouteSuccessResponse, GetSearchRouteRequestBody, GetSearchRouteSuccessResponse, GetSignInChallengeRouteRequestBody, GetSignInChallengeRouteSuccessResponse, GetStatusRouteRequestBody, GetStatusRouteSuccessResponse, GetTokensFromFaucetRouteRequestBody, GetTokensFromFaucetRouteSuccessResponse, NumberType, RefreshMetadataRouteRequestBody, RefreshMetadataRouteSuccessResponse,
+  GetOwnersForBadgeRouteRequestBody, GetOwnersForBadgeRouteSuccessResponse, GetProtocolsRouteRequestBody, GetProtocolsRouteSuccessResponse, GetSearchRouteRequestBody, GetSearchRouteSuccessResponse, GetSignInChallengeRouteRequestBody, GetSignInChallengeRouteSuccessResponse,
+  GetStatusRouteSuccessResponse, GetTokensFromFaucetRouteRequestBody, GetTokensFromFaucetRouteSuccessResponse, NumberType, RefreshMetadataRouteRequestBody, RefreshMetadataRouteSuccessResponse,
   RefreshStatusRouteSuccessResponse,
-  SendClaimAlertsRouteRequestBody, SendClaimAlertsRouteSuccessResponse, SignOutRequestBody, SignOutSuccessResponse, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, UpdateAddressMappingsRouteRequestBody, UpdateAddressMappingsRouteSuccessResponse,
-  VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse,
-  FilterBadgesInCollectionRequestBody, FilterBadgesInCollectionSuccessResponse
+  SendClaimAlertsRouteRequestBody, SendClaimAlertsRouteSuccessResponse, SignOutRequestBody, SignOutSuccessResponse, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, UpdateAddressListsRouteRequestBody, UpdateAddressListsRouteSuccessResponse,
+  VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse
 } from 'bitbadgesjs-utils';
 import Joi from 'joi';
 import { BACKEND_URL } from '../constants';
@@ -56,9 +62,9 @@ function assertPositiveInteger(num: NumberType) {
   }
 }
 
-export async function getStatus(requestBody?: GetStatusRouteRequestBody): Promise<GetStatusRouteSuccessResponse<DesiredNumberType>> {
+export async function getStatus(): Promise<GetStatusRouteSuccessResponse<DesiredNumberType>> {
   try {
-    return (await BitBadgesApi.getStatus(requestBody));
+    return (await BitBadgesApi.getStatus());
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
@@ -83,33 +89,12 @@ export async function getCollections(requestBody: GetCollectionBatchRouteRequest
   }
 }
 
-export async function getCollectionById(collectionId: NumberType, requestBody: GetCollectionByIdRouteRequestBody, fetchAllMetadata = false): Promise<GetCollectionRouteSuccessResponse<DesiredNumberType>> {
-  try {
-    const responseData = await BitBadgesApi.getCollectionById(collectionId, requestBody, fetchAllMetadata);
-    return responseData;
-  } catch (error) {
-    await handleApiError(error);
-    return Promise.reject(error);
-  }
-}
-
 export async function getOwnersForBadge(collectionId: NumberType, badgeId: NumberType, requestBody: GetOwnersForBadgeRouteRequestBody): Promise<GetOwnersForBadgeRouteSuccessResponse<DesiredNumberType>> {
   try {
     assertPositiveInteger(collectionId);
     assertPositiveInteger(badgeId);
 
     return (await BitBadgesApi.getOwnersForBadge(collectionId, badgeId, requestBody));
-  } catch (error) {
-    await handleApiError(error);
-    return Promise.reject(error);
-  }
-}
-
-export async function getMetadataForCollection(collectionId: NumberType, requestBody: GetMetadataForCollectionRouteRequestBody): Promise<GetMetadataForCollectionRouteSuccessResponse<DesiredNumberType>> {
-  try {
-    assertPositiveInteger(collectionId);
-
-    return (await BitBadgesApi.getMetadataForCollection(collectionId, requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
@@ -171,29 +156,9 @@ export async function getCodeForPassword(collectionId: NumberType, cid: string, 
   }
 }
 
-export async function addAnnouncement(collectionId: NumberType, requestBody: AddAnnouncementRouteRequestBody): Promise<AddAnnouncementRouteSuccessResponse<DesiredNumberType>> {
-  try {
-    assertPositiveInteger(collectionId);
-
-    return (await BitBadgesApi.addAnnouncement(collectionId, requestBody));
-  } catch (error) {
-    await handleApiError(error);
-    return Promise.reject(error);
-  }
-}
-
 export async function deleteReview(reviewId: string, requestBody?: DeleteReviewRouteRequestBody): Promise<DeleteReviewRouteSuccessResponse<DesiredNumberType>> {
   try {
     return (await BitBadgesApi.deleteReview(reviewId, requestBody));
-  } catch (error) {
-    await handleApiError(error);
-    return Promise.reject(error);
-  }
-}
-
-export async function deleteAnnouncement(announcementId: string, requestBody?: DeleteAnnouncementRouteRequestBody): Promise<DeleteAnnouncementRouteSuccessResponse<DesiredNumberType>> {
-  try {
-    return (await BitBadgesApi.deleteAnnouncement(announcementId, requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
@@ -216,15 +181,6 @@ export async function getAccounts(requestBody: GetAccountsRouteRequestBody): Pro
     const res = await BitBadgesApi.getAccounts(requestBody);
 
     return res;
-  } catch (error) {
-    await handleApiError(error);
-    return Promise.reject(error);
-  }
-}
-
-export async function getAccountApi(addressOrUsername: string, requestBody: GetAccountRouteRequestBody): Promise<GetAccountRouteSuccessResponse<DesiredNumberType>> {
-  try {
-    return (await BitBadgesApi.getAccount(addressOrUsername, requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
@@ -362,45 +318,27 @@ export async function getTokensFromFaucet(requestBody?: GetTokensFromFaucetRoute
   }
 }
 
-export async function updateAddressMappings(requestBody?: UpdateAddressMappingsRouteRequestBody<DesiredNumberType>): Promise<UpdateAddressMappingsRouteSuccessResponse<DesiredNumberType>> {
+export async function updateAddressLists(requestBody?: UpdateAddressListsRouteRequestBody<DesiredNumberType>): Promise<UpdateAddressListsRouteSuccessResponse<DesiredNumberType>> {
   try {
-    return (await BitBadgesApi.updateAddressMappings(requestBody));
+    return (await BitBadgesApi.updateAddressLists(requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
   }
 }
 
-export async function getAddressMappings(requestBody?: GetAddressMappingsRouteRequestBody): Promise<GetAddressMappingsRouteSuccessResponse<DesiredNumberType>> {
+export async function getAddressLists(requestBody?: GetAddressListsRouteRequestBody): Promise<GetAddressListsRouteSuccessResponse<DesiredNumberType>> {
   try {
-    return (await BitBadgesApi.getAddressMappings(requestBody));
+    return (await BitBadgesApi.getAddressLists(requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
   }
 }
 
-export async function deleteAddressMappings(requestBody?: DeleteAddressMappingsRouteRequestBody): Promise<DeleteAddressMappingsRouteSuccessResponse<DesiredNumberType>> {
+export async function deleteAddressLists(requestBody?: DeleteAddressListsRouteRequestBody): Promise<DeleteAddressListsRouteSuccessResponse<DesiredNumberType>> {
   try {
-    return (await BitBadgesApi.deleteAddressMappings(requestBody));
-  } catch (error) {
-    await handleApiError(error);
-    return Promise.reject(error);
-  }
-}
-
-export async function getApprovalTrackers(requestBody?: GetApprovalsRouteRequestBody): Promise<GetApprovalsRouteSuccessResponse<DesiredNumberType>> {
-  try {
-    return (await BitBadgesApi.getApprovalTrackers(requestBody));
-  } catch (error) {
-    await handleApiError(error);
-    return Promise.reject(error);
-  }
-}
-
-export async function getChallengeTrackers(requestBody?: GetChallengeTrackersRouteRequestBody): Promise<GetChallengeTrackersRouteSuccessResponse<DesiredNumberType>> {
-  try {
-    return (await BitBadgesApi.getChallengeTrackers(requestBody));
+    return (await BitBadgesApi.deleteAddressLists(requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);
@@ -442,9 +380,9 @@ export async function verifySignInGeneric(requestBody: VerifySignInRouteRequestB
     return Promise.reject(error);
   }
 }
-export async function addAddressToSurvey(mappingId: string, requestBody: AddAddressToSurveyRouteRequestBody): Promise<AddAddressToSurveyRouteSuccessResponse> {
+export async function addAddressToSurvey(listId: string, requestBody: AddAddressToSurveyRouteRequestBody): Promise<AddAddressToSurveyRouteSuccessResponse> {
   try {
-    return (await BitBadgesApi.addAddressToSurvey(mappingId, requestBody));
+    return (await BitBadgesApi.addAddressToSurvey(listId, requestBody));
   } catch (error) {
     await handleApiError(error);
     return Promise.reject(error);

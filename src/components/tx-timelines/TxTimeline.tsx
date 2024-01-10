@@ -6,19 +6,19 @@ import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
 
 export function TxTimeline({
   collectionId,
-  addressMappingId,
+  addressListId,
 }: {
   collectionId?: bigint,
   onFinish?: ((props: MsgUniversalUpdateCollectionProps) => void),
-  addressMappingId?: string,
+  addressListId?: string,
 }) {
   const txTimelineContext = useTxTimelineContext();
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: tx timeline, collectionId changed ');
     if (!txTimelineContext) return;
-    txTimelineContext.resetState(collectionId, addressMappingId);
-  }, [collectionId, addressMappingId]);
+    txTimelineContext.resetState(collectionId, addressListId);
+  }, [collectionId, addressListId]);
 
   if (!txTimelineContext.initialLoad) return <div className='primary-text inherit-bg' style={{ minHeight: '100vh' }} >
     <Spin size='large' />

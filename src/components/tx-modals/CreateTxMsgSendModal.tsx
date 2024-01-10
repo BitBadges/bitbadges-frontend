@@ -24,11 +24,14 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
 
   const msgSend: MsgSend<bigint> = useMemo(() => {
     return {
-      destinationAddress: currSelectedAccount?.cosmosAddress ?? '',
-      amount: BigInt(sendAmount),
-      denom: 'badge'
+      fromAddress: chain.cosmosAddress,
+      toAddress: currSelectedAccount?.cosmosAddress ?? '',
+      amount: [{
+        amount: BigInt(sendAmount),
+        denom: 'badge'
+      }]
     }
-  }, [currSelectedAccount, sendAmount]);
+  }, [currSelectedAccount, sendAmount, chain.cosmosAddress]);
 
   const msgSteps = [
     {

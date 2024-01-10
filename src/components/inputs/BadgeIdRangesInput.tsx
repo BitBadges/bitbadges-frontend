@@ -7,7 +7,7 @@ import {
   checkIfUintRangesOverlap,
   getMaxBadgeIdForCollection,
   isFullUintRanges,
-  removeUintRangeFromUintRange,
+  removeUintRangesFromUintRanges,
   sortUintRangesAndMergeIfNecessary
 } from "bitbadgesjs-utils"
 import { useState } from "react"
@@ -117,7 +117,7 @@ export function BadgeIdRangesInput({
 
   const overlaps = checkIfUintRangesOverlap(uintRanges);
 
-  const [remaining] = removeUintRangeFromUintRange(
+  const [remaining] = removeUintRangesFromUintRanges(
     uintRangeBounds ?? [],
     uintRanges ?? []
   )

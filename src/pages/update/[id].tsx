@@ -39,7 +39,7 @@ function Update() {
                 }}
               >
                 <TxTimeline
-                  addressMappingId={
+                  addressListId={
                     (id as string).indexOf("_") >= 0 ? id as string : undefined
                   }
                   collectionId={

@@ -82,16 +82,16 @@ export function TransferabilityDisplay({
 
   //Doesn't make sense to transfer to mint or have mint intiate so we remove these
   const toAddresses = useMemo(() => {
-    return approval.toMapping.addresses.filter(x => x !== 'Mint');
-  }, [approval.toMapping.addresses]);
+    return approval.toList.addresses.filter(x => x !== 'Mint');
+  }, [approval.toList.addresses]);
 
   const initiatedByAddresses = useMemo(() => {
-    return approval.initiatedByMapping.addresses.filter(x => x !== 'Mint');
-  }, [approval.initiatedByMapping.addresses]);
+    return approval.initiatedByList.addresses.filter(x => x !== 'Mint');
+  }, [approval.initiatedByList.addresses]);
 
   const fromAddresses = useMemo(() => {
-    return filterFromMint ? approval.fromMapping.addresses.filter(x => x !== 'Mint') : approval.fromMapping.addresses;
-  }, [approval.fromMapping.addresses, filterFromMint]);
+    return filterFromMint ? approval.fromList.addresses.filter(x => x !== 'Mint') : approval.fromList.addresses;
+  }, [approval.fromList.addresses, filterFromMint]);
 
 
   const approvalCriteria = approval.approvalCriteria;
@@ -139,13 +139,13 @@ export function TransferabilityDisplay({
       await fetchCollectionsWithOptions([{
         collectionId,
         viewsToFetch: [],
-        merkleChallengeIdsToFetch: [{
+        challengeTrackersToFetch: [{
           collectionId,
           challengeId: challengeTrackerId ?? '',
           challengeLevel: approvalLevel,
           approverAddress: convertToCosmosAddress(approverAddress ?? '') ?? '',
         }],
-        approvalsTrackerIdsToFetch: approvalsIdsToFetch,
+        approvalTrackersToFetch: approvalsIdsToFetch,
         handleAllAndAppendDefaults: true,
         forcefulFetchTrackers: true,
       }]);
@@ -190,7 +190,7 @@ export function TransferabilityDisplay({
   }, [query.approvalId, approval.approvalId, hideActions, disapproved, populated, editable, onDelete]);
 
   //Only show rows that have at least one address (after filtration)
-  if ((toAddresses.length == 0 && approval.toMapping.includeAddresses) || (initiatedByAddresses.length == 0 && approval.initiatedByMapping.includeAddresses) || (fromAddresses.length == 0 && approval.fromMapping.includeAddresses)) {
+  if ((toAddresses.length == 0 && approval.toList.allowlist) || (initiatedByAddresses.length == 0 && approval.initiatedByList.allowlist) || (fromAddresses.length == 0 && approval.fromList.allowlist)) {
     return null;
   }
 
@@ -203,7 +203,7 @@ export function TransferabilityDisplay({
     hideActions = true;
   }
 
-  const isMint = approval.fromMappingId === 'Mint'
+  const isMint = approval.fromListId === 'Mint'
 
   const OnRestoreValue = onRestore && <td>
     {!disapproved &&
@@ -215,13 +215,13 @@ export function TransferabilityDisplay({
           onClick={() => onRestore(approval.approvalId)}
           text='Restore'
           size={40}
-          disabled={approval.approvalId === 'default-outgoing' || approval.approvalId === 'default-incoming'}
+          disabled={approval.approvalId === 'self-initiated-outgoing' || approval.approvalId === 'self-initiated-incoming'}
         />
       </div>}
   </td>
 
   const isExisting = startingApprovals?.find(x => x.approvalId === approval.approvalId);
-  const isReserved = approval.approvalId === 'default-outgoing' || approval.approvalId === 'default-incoming';
+  const isReserved = approval.approvalId === 'self-initiated-outgoing' || approval.approvalId === 'self-initiated-incoming';
   const EditableValue = editable && <td>
 
 
@@ -237,7 +237,7 @@ export function TransferabilityDisplay({
           }}
           text={editIsVisible ? 'Cancel Edit' : 'Edit'}
           size={40}
-          disabled={approval.approvalId === 'default-outgoing' || approval.approvalId === 'default-incoming'}
+          disabled={approval.approvalId === 'self-initiated-outgoing' || approval.approvalId === 'self-initiated-incoming'}
         />
       </div>}
 
@@ -253,7 +253,7 @@ export function TransferabilityDisplay({
           onClick={() => onDelete(approval.approvalId)}
           size={40}
           text='Delete'
-          disabled={approval.approvalId === 'default-outgoing' || approval.approvalId === 'default-incoming'}
+          disabled={approval.approvalId === 'self-initiated-outgoing' || approval.approvalId === 'self-initiated-incoming'}
         />
 
       </div>}
@@ -315,7 +315,7 @@ export function TransferabilityDisplay({
                       secondary
                       src={<DatabaseOutlined size={40} />}
                       onClick={() => setFetchCodesModalIsVisible(true)}
-                      text={'Codes'}
+                      text={approval.details?.hasPassword ? 'Password' : 'Codes'}
                       tooltipMessage={'Since you are the manager of this collection, you can view the codes / password for this claim.'}
                       size={40}
                     />

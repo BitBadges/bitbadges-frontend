@@ -25,19 +25,19 @@ export function Notifications() {
   //Anything after that, we don't show and will assume that they see the next time they refresh the page
   //This is to avoid the race conditions where we somehow fetch or add an activity at time T in some other manner (claiming a badge, sending an announcement, etc)
   //We don't want to mark all notifications as read if we haven't yet loaded notifications from last seen to T
-  const transferActivity = (getAccountActivityView(signedInAccount, 'latestActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
+  const transferActivity = (getAccountActivityView(signedInAccount, 'transferActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
   const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'latestClaimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
 
   const listsActivity = (getAccountListsActivityView(signedInAccount, 'listsActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
-  const listsTab = 'latestAddressMappings';
-  const hasMoreAddressMappings = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
+  const listsTab = 'latestAddressLists';
+  const hasMoreAddressLists = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
 
   const [prevSeenActivity, setPrevSeenActivity] = useState<number | undefined>(Number(signedInAccount?.seenActivity) ?? 0n);
 
   const [seenAnnouncements, setSeenAnnouncements] = useState<boolean>(false);
   const [seenClaimAlerts, setSeenClaimAlerts] = useState<boolean>(false);
   const [seenTransferActivity, setSeenTransferActivity] = useState<boolean>(false);
-  const [seenAddressMappings, setSeenAddressMappings] = useState<boolean>(false);
+  const [seenAddressLists, setSeenAddressLists] = useState<boolean>(false);
 
   const fetchMore = useCallback(async (address: string, viewType: AccountViewKey) => {
     await fetchNextForAccountViews(address, viewType, viewType); //no custom IDs so pass in same
@@ -57,8 +57,8 @@ export function Notifications() {
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: notifications page, fetch accounts');
-    if (hasMoreAddressMappings) fetchMore(chain.address, listsTab);
-  }, [hasMoreAddressMappings, fetchMore, chain.address, listsTab]);
+    if (hasMoreAddressLists) fetchMore(chain.address, listsTab);
+  }, [hasMoreAddressLists, fetchMore, chain.address, listsTab]);
 
 
   // const unseenAnnouncementsCount = announcements.filter((announcement) => announcement.timestamp > (prevSeenActivity ?? 0)).length;
@@ -83,16 +83,16 @@ export function Notifications() {
       setTimeout(() => {
         setSeenTransferActivity(true);
       }, 5000);
-    } else if (tab === 'latestAddressMappings') {
-      if (seenAddressMappings) return
+    } else if (tab === 'latestAddressLists') {
+      if (seenAddressLists) return
       setTimeout(() => {
-        setSeenAddressMappings(true);
+        setSeenAddressLists(true);
       }, 5000);
     }
-  }, [tab, seenAnnouncements, seenClaimAlerts, seenTransferActivity, seenAddressMappings]);
+  }, [tab, seenAnnouncements, seenClaimAlerts, seenTransferActivity, seenAddressLists]);
 
   const TabComponent = ({ title, count }: { title: string, count: number }) => {
-    const toShow = (title === 'Announcements' && !seenAnnouncements) || (title === 'Claim Alerts' && !seenClaimAlerts) || (title === 'Transfer Activity' && !seenTransferActivity) || (title === 'Lists' && !seenAddressMappings);
+    const toShow = (title === 'Announcements' && !seenAnnouncements) || (title === 'Claim Alerts' && !seenClaimAlerts) || (title === 'Transfer Activity' && !seenTransferActivity) || (title === 'Lists' && !seenAddressLists);
 
     return <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
       {title}
@@ -142,7 +142,7 @@ export function Notifications() {
                       disabled: false
                     },
                     {
-                      key: 'latestAddressMappings',
+                      key: 'latestAddressLists',
                       content: <TabComponent title={'List Activity'} count={unseenListsActivityCount} />,
                       disabled: false
                     },
@@ -158,8 +158,8 @@ export function Notifications() {
                   {tab === 'transferActivity' && <>
                     <br /><ActivityTab
                       activity={transferActivity ?? []}
-                      fetchMore={async () => fetchMore(chain.address, 'latestActivity')}
-                      hasMore={signedInAccount?.views.latestActivity?.pagination.hasMore ?? true}
+                      fetchMore={async () => fetchMore(chain.address, 'transferActivity')}
+                      hasMore={signedInAccount?.views.transferActivity?.pagination.hasMore ?? true}
                     />
                   </>}
                   {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
@@ -169,7 +169,7 @@ export function Notifications() {
                   />
                   </>}
 
-                  {tab === 'latestAddressMappings' && <><br />
+                  {tab === 'latestAddressLists' && <><br />
                     <ListActivityTab
                       activity={listsActivity ?? []}
                       fetchMore={async () => fetchMore(chain.address, 'listsActivity')}

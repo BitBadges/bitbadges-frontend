@@ -1,10 +1,10 @@
 import { Spin, Empty } from "antd"
 import { Numberify } from "bitbadgesjs-proto"
-import { getMaxBadgeIdForCollection, removeUintRangeFromUintRange } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
 import { useState, useMemo } from "react"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { getCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { BatchBadgeDetails } from "../../bitbadges-api/utils/batches"
+import { BatchBadgeDetails } from "bitbadgesjs-utils"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { MultiCollectionBadgeDisplay } from "./MultiCollectionBadgeDisplay"
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
@@ -21,7 +21,7 @@ export const BadgeInfiniteScroll = ({
   sortBy,
 }: {
   addressOrUsername: string
-  badgesToShow: BatchBadgeDetails[]
+  badgesToShow: BatchBadgeDetails<bigint>[]
   cardView: boolean
   editMode: boolean
   hasMore: boolean
@@ -48,7 +48,7 @@ export const BadgeInfiniteScroll = ({
       //Filter out > max badge ID
       const maxBadgeId = getMaxBadgeIdForCollection(collection)
 
-      const [remaining, _] = removeUintRangeFromUintRange(
+      const [remaining, _] = removeUintRangesFromUintRanges(
         [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
         obj.badgeIds
       )

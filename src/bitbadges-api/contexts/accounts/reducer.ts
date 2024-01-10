@@ -19,7 +19,7 @@ import {
 import { compareObjects } from '../../../utils/compare';
 import { DesiredNumberType, getAccounts } from '../../api';
 import { initialState, reservedNames } from './AccountsContext';
-import { updateAccountWithResponse } from '../../utils/requests';
+import { updateAccountWithResponse } from 'bitbadgesjs-utils';
 
 interface UpdateAccountsReduxAction {
   type: typeof UPDATE_ACCOUNTS;

@@ -1,12 +1,12 @@
 import { BigIntify, CollectionPermissions, UintRange, deepCopy } from "bitbadgesjs-proto";
-import { BadgeMetadataDetails, BitBadgesCollection, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, convertBitBadgesCollection, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, pruneMetadataToFetch, removeUintRangeFromUintRange, updateBadgeMetadata } from "bitbadgesjs-utils";
+import { BadgeMetadataDetails, BitBadgesCollection, ErrorMetadata, GetAdditionalCollectionDetailsRequestBody, GetCollectionBatchRouteRequestBody, GetMetadataForCollectionRequestBody, MetadataFetchOptions, convertBitBadgesCollection, getBadgeIdsForMetadataId, getMetadataDetailsForBadgeId, getMetadataIdForBadgeId, getMetadataIdsForUri, pruneMetadataToFetch, removeUintRangesFromUintRanges, updateBadgeMetadata } from "bitbadgesjs-utils";
 import Joi from "joi";
 import { ThunkAction } from "redux-thunk";
 import { AppDispatch, CollectionReducerState, GlobalReduxState } from "../../../pages/_app";
 import { compareObjects } from "../../../utils/compare";
 import { DesiredNumberType, fetchMetadataDirectly, getCollections } from "../../api";
 import { getCurrentMetadata } from "../../utils/metadata";
-import { updateCollectionWithResponse } from "../../utils/requests";
+import { updateCollectionWithResponse } from "bitbadgesjs-utils";
 import { NEW_COLLECTION_ID } from "../TxTimelineContext";
 import { initialState } from "./CollectionsContext";
 
@@ -256,7 +256,7 @@ export const fetchMetadataForPreviewRedux = (existingCollectionId: DesiredNumber
         if (currMetadata) {
           //We have edited this badge and it is not a placeholder (bc it would have "Placeholder" as URI)
           //Remove badgeId from badgeIdsToFetch
-          const [remaining,] = removeUintRangeFromUintRange([{ start: badgeId, end: badgeId }], badgeIdsToFetch);
+          const [remaining,] = removeUintRangesFromUintRanges([{ start: badgeId, end: badgeId }], badgeIdsToFetch);
           badgeIdsToFetch = remaining;
         } else {
           const metadataId = getMetadataIdForBadgeId(badgeId, badgeMetadata)
@@ -296,7 +296,7 @@ export const fetchMetadataForPreviewRedux = (existingCollectionId: DesiredNumber
         //This step is important: only set for the badges we needed to fetch
         //We do not want to overwrite any previously edited metadata
         for (const metadata of resMetadata) {
-          const [, removed] = removeUintRangeFromUintRange(badgeIdsToFetch, metadata.badgeIds);
+          const [, removed] = removeUintRangesFromUintRanges(badgeIdsToFetch, metadata.badgeIds);
           metadata.badgeIds = removed;
         }
         resMetadata = resMetadata.filter(metadata => metadata.badgeIds.length > 0);
@@ -351,12 +351,12 @@ export const fetchCollectionsRedux = (
           const viewsToFetch = collectionToFetch.viewsToFetch || [];
           const hasTotalAndMint = cachedCollection.owners.find(x => x.cosmosAddress === "Mint") && cachedCollection.owners.find(x => x.cosmosAddress === "Total");
           const shouldFetchTotalAndMint = !hasTotalAndMint && collectionToFetch.fetchTotalAndMintBalances;
-          const shouldFetchMerkleChallengeIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.merkleChallengeIdsToFetch ?? []).find(x => {
+          const shouldFetchMerkleChallengeIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.challengeTrackersToFetch ?? []).find(x => {
             const match = cachedCollection.merkleChallenges.find(y => y.challengeId === x.challengeId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && x.challengeLevel === y.challengeLevel)
             return !match;
           }) !== undefined;
-          const shouldFetchAmountTrackerIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.approvalsTrackerIdsToFetch ?? []).find(x => {
-            const match = cachedCollection.approvalsTrackers.find(y => y.amountTrackerId === x.amountTrackerId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
+          const shouldFetchAmountTrackerIds = collectionToFetch.forcefulFetchTrackers || (collectionToFetch.approvalTrackersToFetch ?? []).find(x => {
+            const match = cachedCollection.approvalTrackers.find(y => y.amountTrackerId === x.amountTrackerId && x.approverAddress === y.approverAddress && x.collectionId === y.collectionId && y.approvedAddress === x.approvedAddress && y.trackerType === x.trackerType)
             return !match;
           }) !== undefined;
 

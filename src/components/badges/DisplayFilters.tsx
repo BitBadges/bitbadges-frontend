@@ -12,7 +12,7 @@ import {
   getMetadataForBadgeId,
   isFullUintRanges
 } from "bitbadgesjs-utils"
-import { getAddressMappings } from "../../bitbadges-api/api"
+import { getAddressLists } from "../../bitbadges-api/api"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
 import {
   updateAccount,
@@ -21,7 +21,7 @@ import {
 import {
   getCollection
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { BatchBadgeDetails } from "../../bitbadges-api/utils/batches"
+import { BatchBadgeDetails } from "bitbadgesjs-utils"
 import { BadgeAvatar } from "./BadgeAvatar"
 import { SelectWithOptions } from "../inputs/Selects"
 import { SearchDropdown } from "../navigation/SearchDropdown"
@@ -139,7 +139,7 @@ export const BatchBadgeDetailsTag = ({
   badgeIdObj,
   onClose,
 }: {
-  badgeIdObj: BatchBadgeDetails
+  badgeIdObj: BatchBadgeDetails<bigint>
   onClose?: () => void
 }) => {
   const collection = getCollection(badgeIdObj.collectionId)
@@ -246,8 +246,8 @@ export const OptionsSelects = ({
   isListsSelect?: boolean
   searchValue: string
   setSearchValue: (searchValue: string) => void
-  filteredCollections: BatchBadgeDetails[]
-  setFilteredCollections: (filteredCollections: BatchBadgeDetails[]) => void
+  filteredCollections: BatchBadgeDetails<bigint>[]
+  setFilteredCollections: (filteredCollections: BatchBadgeDetails<bigint>[]) => void
   filteredLists: string[]
   setFilteredLists: (filteredLists: string[]) => void
 }) => {
@@ -318,15 +318,15 @@ export const OptionsSelects = ({
           setFilteredLists([...filteredLists, searchValue])
           setSearchValue("")
           //TODO: Roundabout way without context
-          const mappingRes = await getAddressMappings({
-            mappingIds: [searchValue],
+          const listRes = await getAddressLists({
+            listIds: [searchValue],
           })
 
           updateAccount({
             ...accountInfo,
-            addressMappings: [
-              ...accountInfo.addressMappings,
-              ...mappingRes.addressMappings,
+            addressLists: [
+              ...accountInfo.addressLists,
+              ...listRes.addressLists,
             ],
           })
         }

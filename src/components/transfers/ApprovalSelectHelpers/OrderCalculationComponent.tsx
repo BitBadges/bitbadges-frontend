@@ -29,26 +29,22 @@ export const OrderCalculationMethod = ({ approvalToAdd,
   }) => {
   const checked = approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod?.[keyId] || false;
   const setChecked = (checked: boolean) => {
-    let key = '' as keyof typeof approvalToAdd.approvalCriteria.maxNumTransfers;
-    if (keyId === 'useMerkleChallengeLeafIndex' || keyId === 'useOverallNumTransfers') {
-      key = 'overallMaxNumTransfers';
-    } else if (keyId === 'usePerFromAddressNumTransfers') {
-      key = 'perFromAddressMaxNumTransfers';
-    } else if (keyId === 'usePerInitiatedByAddressNumTransfers') {
-      key = 'perInitiatedByAddressMaxNumTransfers';
-    } else if (keyId === 'usePerToAddressNumTransfers') {
-      key = 'perToAddressMaxNumTransfers';
-    }
+    // let key = '' as keyof typeof approvalToAdd.approvalCriteria.maxNumTransfers;
+    // if (keyId === 'useMerkleChallengeLeafIndex' || keyId === 'useOverallNumTransfers') {
+    //   key = 'overallMaxNumTransfers';
+    // } else if (keyId === 'usePerFromAddressNumTransfers') {
+    //   key = 'perFromAddressMaxNumTransfers';
+    // } else if (keyId === 'usePerInitiatedByAddressNumTransfers') {
+    //   key = 'perInitiatedByAddressMaxNumTransfers';
+    // } else if (keyId === 'usePerToAddressNumTransfers') {
+    //   key = 'perToAddressMaxNumTransfers';
+    // }
 
 
     setApprovalToAdd({
       ...approvalToAdd,
       approvalCriteria: {
         ...approvalToAdd.approvalCriteria,
-        maxNumTransfers: {
-          ...approvalToAdd.approvalCriteria.maxNumTransfers,
-          [key]: checked ? expectedPartitions : 0n,
-        },
         predeterminedBalances: {
           ...approvalToAdd.approvalCriteria.predeterminedBalances,
           orderCalculationMethod: {
@@ -90,7 +86,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
 
   return <><TableRow labelSpan={16} valueSpan={8} label={label} value={<>
     <Switch
-      disabled={keyId === 'useMerkleChallengeLeafIndex' && distributionMethod !== DistributionMethod.Codes && distributionMethod !== DistributionMethod.Whitelist}
+      disabled={keyId === 'useMerkleChallengeLeafIndex' && distributionMethod !== DistributionMethod.Codes && distributionMethod !== DistributionMethod.Allowlist}
       checked={checked}
       onChange={(checked) => {
         setChecked(checked);
@@ -107,7 +103,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
           {keyId == 'usePerInitiatedByAddressNumTransfers' ? ' Each unique approver will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on. Each partition will be approved more than once (if there are multiple approved addresses).' : ''}
           {keyId == 'usePerToAddressNumTransfers' ? ' Each unique recipient will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on. Each partition will be approved more than once (if there are multiple recipients).' : ''}
           {keyId == 'useMerkleChallengeLeafIndex' ?
-            distributionMethod === DistributionMethod.Whitelist ? ' Reserve specific partitions for specific whitelisted users.' :
+            distributionMethod === DistributionMethod.Allowlist ? ' Reserve specific partitions for specific allowlisted users.' :
               distributionMethod === DistributionMethod.Codes ? codeType === CodeType.Unique ?
                 ' Reserve specific partitions for specific codes.' :
                 ' Reserve specific partitions for specific passwords.' :
@@ -117,7 +113,8 @@ export const OrderCalculationMethod = ({ approvalToAdd,
     }
     {checked && <>
       <hr />
-      <b style={{ fontSize: 16 }}> Number of Partitions</b>
+      <br />
+      <b style={{ fontSize: 16 }}>2) Number of Partitions</b>
       <br /><br />
 
       {<div>
@@ -150,7 +147,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
 
       {maxIncrementsApplied > 0n && !maxUsesErrorMessage && <>
         <hr />
-        <b style={{ fontSize: 16 }}> Amounts and IDs per Partition</b>
+        <b style={{ fontSize: 16 }}>3) Amounts and IDs per Partition</b>
         <br />
         {(increment ? increment : 0) > 0 && <div style={{ textAlign: 'center', margin: 10 }}>
           {<div>

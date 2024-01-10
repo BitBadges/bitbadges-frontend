@@ -291,8 +291,8 @@ export function BadgeSupplySelectStepItem() {
                                   ownershipTimes: [
                                     { start: 1n, end: GO_MAX_UINT_64 },
                                   ],
-                                  permittedTimes: [],
-                                  forbiddenTimes: [
+                                  permanentlyPermittedTimes: [],
+                                  permanentlyForbiddenTimes: [
                                     { start: 1n, end: GO_MAX_UINT_64 },
                                   ],
                                 },

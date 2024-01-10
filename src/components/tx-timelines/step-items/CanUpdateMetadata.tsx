@@ -132,8 +132,8 @@ export function UpdatableMetadataSelectStepItem(
               {
                 badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
                 timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                forbiddenTimes: [],
+                permanentlyPermittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                permanentlyForbiddenTimes: [],
               },
             ],
           },
@@ -146,8 +146,8 @@ export function UpdatableMetadataSelectStepItem(
               {
                 badgeIds: badgeIdsToLockMetadata,
                 timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                permittedTimes: [],
-                forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                permanentlyPermittedTimes: [],
+                permanentlyForbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               },
             ],
           },

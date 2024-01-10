@@ -172,9 +172,9 @@ function CollectionPage({
                   reviews={collection.reviews}
                   collectionId={collectionIdNumber}
                   fetchMore={async () => {
-                    await fetchNextForCollectionViews(collectionIdNumber, 'latestReviews', 'latestReviews');
+                    await fetchNextForCollectionViews(collectionIdNumber, 'reviews', 'reviews');
                   }}
-                  hasMore={getCollection(collectionIdNumber)?.views.latestReviews?.pagination.hasMore ?? true}
+                  hasMore={getCollection(collectionIdNumber)?.views.reviews?.pagination.hasMore ?? true}
                 />
               )}
 
@@ -186,11 +186,11 @@ function CollectionPage({
 
               {tab === 'activity' && !isPreview && collection && (
                 <ActivityTab
-                  activity={getCollectionActivityView(collection, 'latestActivity') ?? []}
+                  activity={getCollectionActivityView(collection, 'transferActivity') ?? []}
                   fetchMore={async () => {
-                    await fetchNextForCollectionViews(collectionIdNumber, 'latestActivity', 'latestActivity');
+                    await fetchNextForCollectionViews(collectionIdNumber, 'transferActivity', 'transferActivity');
                   }}
-                  hasMore={getCollection(collectionIdNumber)?.views.latestActivity?.pagination.hasMore ?? true}
+                  hasMore={getCollection(collectionIdNumber)?.views.transferActivity?.pagination.hasMore ?? true}
                 />
               )}
 

@@ -33,7 +33,7 @@ export function SearchDropdown({
 
   const accountsResults = searchResponse?.accounts || [];
   const collectionsResults = searchResponse?.collections || [];
-  const addressMappingsResults = searchResponse?.addressMappings || [];
+  const addressListsResults = searchResponse?.addressLists || [];
   const badgeResults = searchResponse?.badges || [];
   const mintAccount = useAccount('Mint');
 
@@ -49,7 +49,7 @@ export function SearchDropdown({
       const result = await getSearchResults(searchValue, {
         noCollections: onlyAddresses || onlyLists,
         noAccounts: onlyCollections || onlyLists,
-        noAddressMappings: onlyAddresses || onlyCollections,
+        noAddressLists: onlyAddresses || onlyCollections,
         noBadges: onlyAddresses || onlyLists,
         specificCollectionId
       });
@@ -73,7 +73,7 @@ export function SearchDropdown({
 
       if (onlyLists) {
         for (const account of result.accounts) {
-          account.addressMappings = [...account.addressMappings, ...result.addressMappings];
+          account.addressLists = [...account.addressLists, ...result.addressLists];
         }
       }
 
@@ -248,17 +248,17 @@ export function SearchDropdown({
 
           <Typography.Text className='primary-text' strong style={{ fontSize: 20 }}>Lists</Typography.Text>
           <div className='primary-text inherit-bg' style={{ overflowY: 'auto', maxHeight: 250 }}>
-            {addressMappingsResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
+            {addressListsResults.length === 0 && <Menu.Item disabled style={{ cursor: 'disabled' }}>
               <div className='primary-text'>
                 None
               </div>
             </Menu.Item>}
-            {addressMappingsResults.map((result,) => {
-              const mappingId = result.mappingId.indexOf("_") >= 0 ? result.mappingId.split("_")[1] : result.mappingId;
-              const isOffChain = result.mappingId.indexOf("_") >= 0;
+            {addressListsResults.map((result,) => {
+              const listId = result.listId.indexOf("_") >= 0 ? result.listId.split("_")[1] : result.listId;
+              const isOffChain = result.listId.indexOf("_") >= 0;
 
-              return <Menu.Item key={'' + result.mappingId} className='dropdown-item' onClick={() => {
-                onSearch(`${result.mappingId}`, false, false);
+              return <Menu.Item key={'' + result.listId} className='dropdown-item' onClick={() => {
+                onSearch(`${result.listId}`, false, false);
               }}>
                 <div className='flex-between primary-text'>
                   <div className='flex-center' style={{ alignItems: 'center' }}>
@@ -266,7 +266,7 @@ export function SearchDropdown({
                     {result.metadata?.name}
                   </div>
                   <div className='flex-center' style={{ alignItems: 'center', textAlign: 'right' }}>
-                    ID: {`${getAbbreviatedAddress(mappingId)}`} {isOffChain && '(Off-Chain)'}
+                    ID: {`${getAbbreviatedAddress(listId)}`} {isOffChain && '(Off-Chain)'}
                   </div>
                 </div>
               </Menu.Item>

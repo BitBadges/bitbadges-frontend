@@ -1,14 +1,14 @@
 import { DatePicker, Divider, Input, Switch, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { addMetadataToIpfs, updateAddressMappings } from '../../../bitbadges-api/api';
+import { addMetadataToIpfs, updateAddressLists } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { CreateTxMsgCreateAddressMappingModal } from '../../tx-modals/CreateTxMsgCreateAddressMapping';
+import { CreateTxMsgCreateAddressListModal } from '../../tx-modals/CreateTxMsgCreateAddressLists';
 
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { AddressMappingEditKey } from 'bitbadgesjs-utils';
+import { AddressListEditKey } from 'bitbadgesjs-utils';
 import moment from 'moment';
 import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { GO_MAX_UINT_64 } from '../../../utils/dates';
@@ -17,12 +17,12 @@ import { TableRow } from '../../display/TableRow';
 import { SwitchForm } from './SwitchForm';
 const crypto = require('crypto');
 
-export function SubmitMsgCreateAddressMapping() {
+export function SubmitMsgCreateAddressList() {
   const chain = useChainContext();
   const txState = useTxTimelineContext();
-  const addressMapping = txState.addressMapping;
-  const setAddressMapping = txState.setAddressMapping;
-  const isUpdateAddressMapping = txState.isUpdateAddressMapping;
+  const addressList = txState.addressList;
+  const setAddressList = txState.setAddressList;
+  const isUpdateAddressList = txState.isUpdateAddressList;
 
   const [loading, setLoading] = useState<boolean>(false);
   const [visible, setVisible] = useState<boolean>(false);
@@ -30,18 +30,18 @@ export function SubmitMsgCreateAddressMapping() {
   const router = useRouter();
 
   const [onChainStorage, setOnChainStorage] = useState<boolean>(false);
-  const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressMapping);
+  const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressList);
 
   const collection = useCollection(NEW_COLLECTION_ID);
 
   const [privateMode, setPrivateMode] = useState<boolean>(false);
-  const [editKeys, setEditKeys] = useState<AddressMappingEditKey<bigint>[]>(addressMapping.editKeys ?? []);
+  const [editKeys, setEditKeys] = useState<AddressListEditKey<bigint>[]>(addressList.editKeys ?? []);
 
   useEffect(() => {
-    if (!isUpdateAddressMapping) {
-      setAddressMapping({
-        ...addressMapping,
-        mappingId: '',
+    if (!isUpdateAddressList) {
+      setAddressList({
+        ...addressList,
+        listId: '',
       });
     }
   }, [])
@@ -50,14 +50,14 @@ export function SubmitMsgCreateAddressMapping() {
     <Typography.Text strong style={{ fontSize: 18 }} className='primary-text'>List ID</Typography.Text>
   </div>
     <Input
-      defaultValue={addressMapping.mappingId}
+      defaultValue={addressList.listId}
       placeholder="Enter a unique identifier for your list."
-      value={addressMapping.mappingId}
+      value={addressList.listId}
       onChange={async (e) => {
 
-        setAddressMapping({
-          ...addressMapping,
-          mappingId: e.target.value,
+        setAddressList({
+          ...addressList,
+          listId: e.target.value,
         });
       }}
       className='form-input'
@@ -68,7 +68,7 @@ export function SubmitMsgCreateAddressMapping() {
 
   return <div className='full-width'
     style={{ marginTop: 20, }} >
-    {!isUpdateAddressMapping && <>
+    {!isUpdateAddressList && <>
       <SwitchForm
         options={[
 
@@ -81,7 +81,7 @@ export function SubmitMsgCreateAddressMapping() {
               <>{ListIDInput()}</>
               {<>
                 {clicked && !onChainStorage &&
-                  <>{!isUpdateAddressMapping && <Divider />}
+                  <>{!isUpdateAddressList && <Divider />}
                     <div className='flex-center full-width'>
                       <InformationDisplayCard md={24} xs={24} sm={24} title='Additional Options' subtitle='These options are only applicable to off-chain lists.'>
                         <TableRow label='Public?' value={<Switch
@@ -218,7 +218,7 @@ export function SubmitMsgCreateAddressMapping() {
     < br />
     <button
       className='landing-button'
-      disabled={loading || !clicked || !addressMapping.mappingId}
+      disabled={loading || !clicked || !addressList.listId}
       style={{ width: '100%' }}
       onClick={async () => {
         if (!collection) return;
@@ -232,18 +232,18 @@ export function SubmitMsgCreateAddressMapping() {
           });
 
           const metadataUrl = metadataRes.collectionMetadataResult?.cid ? 'ipfs://' + metadataRes.collectionMetadataResult?.cid : '';
-          const mappingId = onChainStorage ? addressMapping.mappingId : chain.cosmosAddress + "_" + addressMapping.mappingId;
+          const listId = onChainStorage ? addressList.listId : chain.cosmosAddress + "_" + addressList.listId;
 
-          await updateAddressMappings({
-            addressMappings: [{
-              ...addressMapping,
-              mappingId: !isUpdateAddressMapping ? mappingId : addressMapping.mappingId,
+          await updateAddressLists({
+            addressLists: [{
+              ...addressList,
+              listId: !isUpdateAddressList ? listId : addressList.listId,
               uri: metadataUrl,
               editKeys: editKeys,
               private: privateMode,
             }],
           });
-          router.push(`/lists/${!isUpdateAddressMapping ? mappingId : addressMapping.mappingId}`);
+          router.push(`/lists/${!isUpdateAddressList ? listId : addressList.listId}`);
 
         }
         setLoading(false);
@@ -252,9 +252,9 @@ export function SubmitMsgCreateAddressMapping() {
       Submit
     </button>
     <div className='flex-center' style={{ color: 'red' }}>
-      {addressMapping.mappingId === '' && clicked && 'Please enter a list ID.'}
+      {addressList.listId === '' && clicked && 'Please enter a list ID.'}
     </div>
-    <CreateTxMsgCreateAddressMappingModal
+    <CreateTxMsgCreateAddressListModal
       visible={visible}
       setVisible={setVisible}
       inheritedTxState={txState}

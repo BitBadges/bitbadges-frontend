@@ -13,19 +13,19 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { updateAccountInfo } from '../../bitbadges-api/api';
 import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { addToBatchArray } from '../../bitbadges-api/utils/batches';
+import { addToBatchArray } from 'bitbadgesjs-utils';
 
 export function BadgeButtonDisplay({
   website,
   collectionId,
-  mappingId,
+  listId,
   badgeId,
   socials,
 }: {
   website?: string,
   collectionId?: bigint,
   badgeId?: bigint,
-  mappingId?: string,
+  listId?: string,
   socials?: {
     [key: string]: string
   }
@@ -39,7 +39,7 @@ export function BadgeButtonDisplay({
   const githubLink = 'https://github.com/' + socials?.github;
   const discordLink = 'https://discord.com/invite/' + socials?.discord;
 
-  const isPreview = collectionId === NEW_COLLECTION_ID && !mappingId
+  const isPreview = collectionId === NEW_COLLECTION_ID && !listId
   return (
     <div>
 
@@ -120,20 +120,20 @@ export function BadgeButtonDisplay({
           </a>
         )}
 
-        {signedInAccount && chain.address && chain.loggedIn && !mappingId && !!collectionId && !!badgeId && <a
+        {signedInAccount && chain.address && chain.loggedIn && !listId && !!collectionId && !!badgeId && <a
           onClick={isPreview ? undefined : async () => {
 
-            const mainWatchlistPage = signedInAccount?.watchedBadgePages?.find(x => x.title === 'Main') ?? { title: 'Main', description: '', badges: [] };
+            const mainWatchlistPage = signedInAccount?.watchlists?.badges.find(x => x.title === 'Main') ?? { title: 'Main', description: '', items: [] };
 
-            const newBadges = addToBatchArray(mainWatchlistPage.badges, [{
+            const newBadges = addToBatchArray(mainWatchlistPage.items, [{
               collectionId: collectionId,
               badgeIds: [{ start: badgeId, end: badgeId }],
             }]);
 
             //Update or append
             let newPages;
-            if (signedInAccount?.watchedBadgePages?.find(x => x.title === 'Main')) {
-              newPages = signedInAccount?.watchedBadgePages?.map(x => {
+            if (signedInAccount?.watchlists?.badges.find(x => x.title === 'Main')) {
+              newPages = signedInAccount?.watchlists?.badges.map(x => {
                 if (x.title === 'Main') {
                   return {
                     ...x,
@@ -148,19 +148,25 @@ export function BadgeButtonDisplay({
                 {
                   title: 'Main',
                   description: '',
-                  badges: newBadges
+                  items: newBadges
                 },
-                ...signedInAccount?.watchedBadgePages ?? [],
+                ...signedInAccount?.watchlists?.badges ?? []
               ]
             }
             await updateAccountInfo({
               ...signedInAccount,
-              watchedBadgePages: newPages
+              watchlists: {
+                badges: newPages,
+                lists: signedInAccount?.watchlists?.lists ?? []
+              }
             });
 
             updateAccount({
               ...signedInAccount,
-              watchedBadgePages: newPages
+              watchlists: {
+                badges: newPages,
+                lists: signedInAccount?.watchlists?.lists ?? []
+              }
             });
 
             notification.success({
@@ -179,21 +185,21 @@ export function BadgeButtonDisplay({
           </Tooltip>
         </a>}
 
-        {signedInAccount && chain.address && chain.loggedIn && mappingId && <a
+        {signedInAccount && chain.address && chain.loggedIn && listId && <a
           onClick={isPreview ? undefined : async () => {
 
-            const mainWatchlistPage = signedInAccount?.watchedListPages?.find(x => x.title === 'Main') ?? { title: 'Main', description: '', mappingIds: [] };
+            const mainWatchlistPage = signedInAccount?.watchlists?.lists?.find(x => x.title === 'Main') ?? { title: 'Main', description: '', items: [] };
 
-            const newMappingIds = [...new Set([...mainWatchlistPage.mappingIds, mappingId])];
+            const newListIds = [...new Set([...mainWatchlistPage.items, listId])];
 
             let newPages;
             //Update or append
-            if (signedInAccount?.watchedListPages?.find(x => x.title === 'Main')) {
-              newPages = signedInAccount?.watchedListPages?.map(x => {
+            if (signedInAccount?.watchlists?.lists?.find(x => x.title === 'Main')) {
+              newPages = signedInAccount?.watchlists?.lists?.map(x => {
                 if (x.title === 'Main') {
                   return {
                     ...x,
-                    mappingIds: newMappingIds
+                    listIds: newListIds
                   }
                 }
                 return x;
@@ -205,18 +211,24 @@ export function BadgeButtonDisplay({
                 {
                   title: 'Main',
                   description: '',
-                  mappingIds: newMappingIds
+                  items: newListIds
                 },
-                ...signedInAccount?.watchedListPages ?? []
+                ...signedInAccount?.watchlists?.lists ?? []
               ]
             }
             await updateAccountInfo({
               ...signedInAccount,
-              watchedListPages: newPages
+              watchlists: {
+                badges: signedInAccount?.watchlists?.badges ?? [],
+                lists: newPages
+              }
             });
             updateAccount({
               ...signedInAccount,
-              watchedListPages: newPages
+              watchlists: {
+                badges: signedInAccount?.watchlists?.badges ?? [],
+                lists: newPages
+              }
             });
 
             notification.success({
@@ -321,7 +333,7 @@ export function BadgeButtonDisplay({
             visible={reportIsVisible}
             setVisible={setReportIsVisible}
             collectionId={collectionId}
-            mappingId={mappingId}
+            listId={listId}
           />
         </Tooltip>
       </div>

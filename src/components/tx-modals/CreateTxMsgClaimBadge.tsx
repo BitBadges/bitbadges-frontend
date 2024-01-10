@@ -1,7 +1,7 @@
 import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
 import { Input, Typography } from 'antd';
 import { MsgTransferBadges } from 'bitbadgesjs-proto';
-import { CollectionApprovalWithDetails, convertToCosmosAddress, isInAddressMapping, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { CollectionApprovalWithDetails, convertToCosmosAddress, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import { useRouter } from 'next/router';
@@ -18,7 +18,7 @@ import { BlockinDisplay } from '../blockin/BlockinDisplay';
 import { ErrDisplay } from '../common/ErrDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TxModal } from './TxModal';
-import { applyIncrementsToBalances } from '../../bitbadges-api/utils/balances';
+import { applyIncrementsToBalances } from 'bitbadgesjs-utils';
 import { PredeterminedCard } from '../collection-page/transferability/PredeterminedCard';
 
 
@@ -47,7 +47,7 @@ export function CreateTxMsgClaimBadgeModal(
   const claimItem = approval.approvalCriteria?.merkleChallenge?.root ? approval.approvalCriteria?.merkleChallenge : undefined;
   const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approval.challengeTrackerId);
   const requiresProof = !!approvalCriteria?.merkleChallenge?.root;
-  const isWhitelist = claimItem?.useCreatorAddressAsLeaf ?? false;
+  const isAllowlist = claimItem?.useCreatorAddressAsLeaf ?? false;
   const details = approval.details;
   const merkleChallenge = approval.approvalCriteria && approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
   const claim = merkleChallenge
@@ -126,7 +126,7 @@ export function CreateTxMsgClaimBadgeModal(
     errorMessage = 'This claim is not currently active! Invalid time.';
   } else if (claim && claim.root && claim.useCreatorAddressAsLeaf && !details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))) {
     cantClaim = true;
-    errorMessage = 'You are not on the whitelist for this claim!';
+    errorMessage = 'You are not on the allowlist for this claim!';
   } else if (code && !hasPassword && challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
     cantClaim = true;
     errorMessage = 'The entered code has already been used!';
@@ -139,15 +139,15 @@ export function CreateTxMsgClaimBadgeModal(
   } else if (claim && claim.root && !claim.useCreatorAddressAsLeaf && !code) {
     cantClaim = true;
     errorMessage = 'No code / password has been entered.';
-  } else if (approval && !(isInAddressMapping(approval.initiatedByMapping, chain.cosmosAddress) || isInAddressMapping(approval.initiatedByMapping, chain.address))) {
+  } else if (approval && !(isInAddressList(approval.initiatedByList, chain.cosmosAddress) || isInAddressList(approval.initiatedByList, chain.address))) {
     cantClaim = true;
     errorMessage = 'You are excluded from the list of approved addresses.';
-  } else if (approval && !(isInAddressMapping(approval.toMapping, recipientAccount?.cosmosAddress ?? '') || isInAddressMapping(approval.toMapping, recipientAccount?.cosmosAddress ?? ''))) {
+  } else if (approval && !(isInAddressList(approval.toList, recipientAccount?.cosmosAddress ?? '') || isInAddressList(approval.toList, recipientAccount?.cosmosAddress ?? ''))) {
     cantClaim = true;
     errorMessage = 'The recipient is excluded from the list of addresses that can receive.';
   }
 
-  const isMint = approval.fromMappingId === 'Mint'
+  const isMint = approval.fromListId === 'Mint'
 
   useEffect(() => {
     if (claimItem && approval.details?.hasPassword) {
@@ -178,7 +178,7 @@ export function CreateTxMsgClaimBadgeModal(
     }
   }
 
-  const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(passwordCodeToSubmit).toString();
+  const leaf = isAllowlist ? SHA256(chain.cosmosAddress).toString() : SHA256(passwordCodeToSubmit).toString();
   const proofObj = tree?.getProof(leaf, leafIndex !== undefined && leafIndex >= 0 ? leafIndex : undefined);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
   const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0))
@@ -211,7 +211,7 @@ export function CreateTxMsgClaimBadgeModal(
               onRight: proof.position === 'right'
             }
           }) : [],
-          leaf: isWhitelist ? '' : passwordCodeToSubmit,
+          leaf: isAllowlist ? '' : passwordCodeToSubmit,
         }] : [],
         memo: '',
         prioritizedApprovals: hasPredetermined ? [{
@@ -242,7 +242,7 @@ export function CreateTxMsgClaimBadgeModal(
         }
       }
     ]
-  }, [collectionId, chain.cosmosAddress, recipient, precalculationId, hasPredetermined, requiresProof, proofObj, isWhitelist, passwordCodeToSubmit]);
+  }, [collectionId, chain.cosmosAddress, recipient, precalculationId, hasPredetermined, requiresProof, proofObj, isAllowlist, passwordCodeToSubmit]);
 
 
   if (!collection || !visible) return <></>;
@@ -295,9 +295,10 @@ export function CreateTxMsgClaimBadgeModal(
                               {details?.hasPassword && <>
                                 <br />
                                 <br />
-                                <div className='flex-center'>
-                                  <button className='landing-button' disabled={!!passwordCodeToSubmit} onClick={fetchCodeForPassword} style={{ width: '100%' }}>Check</button>
-                                </div>
+                                {!passwordCodeToSubmit &&
+                                  <div className='flex-center'>
+                                    <button className='landing-button' disabled={!!passwordCodeToSubmit} onClick={fetchCodeForPassword} style={{ width: '100%' }}>Check</button>
+                                  </div>}
                                 {!passwordCodeToSubmit && <>
                                   <div className='secondary-text'>
                                     <InfoCircleOutlined /> {`If correct, this will count as a use of the password (1 per address, ${details?.challengeDetails?.leavesDetails?.leaves.length - (leafIndex + 1)} total).`}
@@ -312,6 +313,13 @@ export function CreateTxMsgClaimBadgeModal(
                                 </>}
 
                               </>}
+                              {code && leafIndex >= 0 && !errorMessage && !details?.hasPassword && <>
+
+                                <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
+                                  {`The code is valid`} <CheckCircleFilled style={{ color: '#00FF00' }} />
+                                </Typography.Text>
+                              </>}
+
                             </>
                           }
                           {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0) ? <></> : <>

@@ -7,13 +7,13 @@ import { Divider, Layout, Tag, Typography, notification } from "antd"
 import { UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
   AccountViewKey,
-  AddressMappingWithMetadata,
-  removeUintRangeFromUintRange,
+  AddressListWithMetadata,
+  removeUintRangesFromUintRanges,
 } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
 
-import { getAddressMappings } from "../../bitbadges-api/api"
+import { getAddressLists } from "../../bitbadges-api/api"
 import {
   updateProfileInfo,
   useAccount,
@@ -29,7 +29,7 @@ import { Tabs } from "../../components/navigation/Tabs"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
-import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "../../bitbadges-api/utils/batches"
+import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "bitbadgesjs-utils"
 import { BadgeInfiniteScroll } from "../../components/badges/BadgeInfiniteScroll"
 import { OptionsSelects, BatchBadgeDetailsTag } from "../../components/badges/DisplayFilters"
 import { ListInfiniteScroll } from "../../components/badges/ListInfiniteScroll"
@@ -61,8 +61,8 @@ function WatchlistPage() {
   }, [accountInfo, chain, warned])
 
   const [badgeTab, setBadgeTab] = useState(
-    accountInfo?.watchedBadgePages && accountInfo?.watchedBadgePages?.length > 0
-      ? accountInfo?.watchedBadgePages[0].title
+    accountInfo?.watchlists?.badges && accountInfo?.watchlists?.badges?.length > 0
+      ? accountInfo?.watchlists?.badges[0].title
       : ""
   )
 
@@ -73,13 +73,13 @@ function WatchlistPage() {
   }, [badgeTab])
 
   const [cardView, setCardView] = useState(true)
-  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails[]>([])
+  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails<bigint>[]>([])
   const [groupByCollection, setGroupByCollection] = useState(false)
 
   const [editMode, setEditMode] = useState(false)
   const [listsTab, setListsTab] = useState<string>(
-    accountInfo?.watchedListPages && accountInfo?.watchedListPages?.length > 0
-      ? accountInfo?.watchedListPages[0].title
+    accountInfo?.watchlists?.lists && accountInfo?.watchlists?.lists?.length > 0
+      ? accountInfo?.watchlists?.lists[0].title
       : ""
   )
   const [searchValue, setSearchValue] = useState<string>("")
@@ -91,16 +91,16 @@ function WatchlistPage() {
     setTabSetInitial(true)
     if (!listsTab)
       setListsTab(
-        accountInfo?.watchedListPages &&
-          accountInfo?.watchedListPages?.length > 0
-          ? accountInfo?.watchedListPages[0].title
+        accountInfo?.watchlists?.lists &&
+          accountInfo?.watchlists?.lists?.length > 0
+          ? accountInfo?.watchlists?.lists[0].title
           : ""
       )
     if (!badgeTab)
       setBadgeTab(
-        accountInfo?.watchedBadgePages &&
-          accountInfo?.watchedBadgePages?.length > 0
-          ? accountInfo?.watchedBadgePages[0].title
+        accountInfo?.watchlists?.badges &&
+          accountInfo?.watchlists?.badges?.length > 0
+          ? accountInfo?.watchlists?.badges[0].title
           : ""
       )
   }, [accountInfo, badgeTab, listsTab, tabSetInitial])
@@ -119,8 +119,8 @@ function WatchlistPage() {
 
   const badgePageTabInfo = []
 
-  if (accountInfo?.watchedBadgePages) {
-    for (const customPage of accountInfo?.watchedBadgePages) {
+  if (accountInfo?.watchlists?.badges) {
+    for (const customPage of accountInfo?.watchlists?.badges) {
       badgePageTabInfo.push({
         key: customPage.title,
         content: customPage.title,
@@ -144,8 +144,8 @@ function WatchlistPage() {
     }[] = []
     allBadgeIds.push(
       ...deepCopy(
-        accountInfo?.watchedBadgePages?.find((x) => x.title === badgeTab)
-          ?.badges ?? []
+        accountInfo?.watchlists?.badges?.find((x) => x.title === badgeTab)
+          ?.items ?? []
       )
     )
 
@@ -155,7 +155,7 @@ function WatchlistPage() {
         for (const filteredCollection of filteredCollections) {
           const collectionId = filteredCollection.collectionId
           if (badgeIdObj.collectionId === collectionId) {
-            const [_, removed] = removeUintRangeFromUintRange(
+            const [_, removed] = removeUintRangesFromUintRanges(
               badgeIdObj.badgeIds,
               filteredCollection.badgeIds
             )
@@ -172,7 +172,7 @@ function WatchlistPage() {
       const collection = getCollection(badgeIdObj.collectionId)
       if (!collection) continue
       const maxBadgeId = getMaxBadgeIdForCollection(collection)
-      const [remaining] = removeUintRangeFromUintRange(
+      const [remaining] = removeUintRangesFromUintRanges(
         [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
         badgeIdObj.badgeIds
       )
@@ -183,7 +183,7 @@ function WatchlistPage() {
   }, [accountInfo, badgeTab, filteredCollections])
 
   const [customView, setCustomView] = useState<
-    AddressMappingWithMetadata<bigint>[]
+    AddressListWithMetadata<bigint>[]
   >([])
   const [filteredLists, setFilteredLists] = useState<string[]>([])
 
@@ -192,19 +192,19 @@ function WatchlistPage() {
       const idsToFetch = []
 
       idsToFetch.push(
-        ...(accountInfo?.watchedListPages?.find((x) => x.title === listsTab)
-          ?.mappingIds ?? [])
+        ...(accountInfo?.watchlists?.lists?.find((x) => x.title === listsTab)
+          ?.items ?? [])
       )
 
-      const res = await getAddressMappings({ mappingIds: idsToFetch })
-      setCustomView(res.addressMappings)
+      const res = await getAddressLists({ listIds: idsToFetch })
+      setCustomView(res.addressLists)
     }
 
     getCustomView()
-  }, [listsTab, accountInfo?.watchedListPages])
+  }, [listsTab, accountInfo?.watchlists?.lists])
 
   const listsView = customView.filter(
-    (x) => filteredLists.length === 0 || filteredLists.includes(x.mappingId)
+    (x) => filteredLists.length === 0 || filteredLists.includes(x.listId)
   )
 
   if (!accountInfo) {
@@ -295,7 +295,7 @@ function WatchlistPage() {
                           ? undefined
                           : async (badgeTab: string) => {
                             const newCustomPages = deepCopy(
-                              accountInfo.watchedBadgePages ?? []
+                              accountInfo.watchlists?.badges ?? []
                             )
                             newCustomPages.splice(
                               newCustomPages.findIndex(
@@ -305,12 +305,15 @@ function WatchlistPage() {
                             )
 
                             await updateProfileInfo(chain.address, {
-                              watchedBadgePages: newCustomPages,
+                              watchlists: {
+                                badges: newCustomPages,
+                                lists: accountInfo.watchlists?.lists ?? [],
+                              },
                             })
                           }
                       }
                       tabInfo={[
-                        ...(accountInfo.watchedBadgePages?.map((customPage) => {
+                        ...(accountInfo.watchlists?.badges?.map((customPage) => {
                           return {
                             key: customPage.title,
                             content: customPage.title,
@@ -339,7 +342,7 @@ function WatchlistPage() {
                 </div>
 
                 {badgeTab !== "" &&
-                  accountInfo.watchedBadgePages?.find(
+                  accountInfo.watchlists?.badges?.find(
                     (x) => x.title === badgeTab
                   )?.description && (
                     <div
@@ -347,14 +350,14 @@ function WatchlistPage() {
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       {
-                        accountInfo.watchedBadgePages?.find(
+                        accountInfo.watchlists?.badges?.find(
                           (x) => x.title === badgeTab
                         )?.description
                       }
                     </div>
                   )}
 
-                {!accountInfo.watchedBadgePages?.length &&
+                {!accountInfo.watchlists?.badges?.length &&
                   !addPageIsVisible && (
                     <div
                       className="secondary-text"
@@ -371,11 +374,11 @@ function WatchlistPage() {
                   <>
                     <div className="flex-center">
                       <CustomizeAddRemoveBadgeFromPage
-                        onAdd={async (selectedBadge: BatchBadgeDetails) => {
+                        onAdd={async (selectedBadge: BatchBadgeDetails<bigint>) => {
                           let currCustomPageBadges = deepCopy(
-                            accountInfo?.watchedBadgePages?.find(
+                            accountInfo?.watchlists?.badges?.find(
                               (x) => x.title === badgeTab
-                            )?.badges ?? []
+                            )?.items ?? []
                           )
                           currCustomPageBadges = addToBatchArray(
                             currCustomPageBadges,
@@ -383,28 +386,31 @@ function WatchlistPage() {
                           )
 
                           const currCustomPage =
-                            accountInfo?.watchedBadgePages?.find(
+                            accountInfo?.watchlists?.badges?.find(
                               (x) => x.title === badgeTab
                             )
                           if (!currCustomPage) return
 
                           await updateProfileInfo(chain.address, {
-                            watchedBadgePages:
-                              accountInfo?.watchedBadgePages?.map((x) =>
-                                x.title === badgeTab
-                                  ? {
-                                    ...currCustomPage,
-                                    badges: currCustomPageBadges,
-                                  }
-                                  : x
-                              ),
+                            watchlists: {
+                              badges: accountInfo?.watchlists?.badges?.map(
+                                (x) =>
+                                  x.title === badgeTab
+                                    ? {
+                                      ...currCustomPage,
+                                      items: currCustomPageBadges,
+                                    }
+                                    : x
+                              ) ?? [],
+                              lists: accountInfo.watchlists?.lists ?? [],
+                            },
                           })
                         }}
-                        onRemove={async (selectedBadge: BatchBadgeDetails) => {
+                        onRemove={async (selectedBadge: BatchBadgeDetails<bigint>) => {
                           let currCustomPageBadges = deepCopy(
-                            accountInfo?.watchedBadgePages?.find(
+                            accountInfo?.watchlists?.badges?.find(
                               (x) => x.title === badgeTab
-                            )?.badges ?? []
+                            )?.items ?? []
                           )
                           currCustomPageBadges = removeFromBatchArray(
                             currCustomPageBadges,
@@ -412,21 +418,24 @@ function WatchlistPage() {
                           )
 
                           const currCustomPage =
-                            accountInfo?.watchedBadgePages?.find(
+                            accountInfo?.watchlists?.badges?.find(
                               (x) => x.title === badgeTab
                             )
                           if (!currCustomPage) return
 
                           await updateProfileInfo(chain.address, {
-                            watchedBadgePages:
-                              accountInfo?.watchedBadgePages?.map((x) =>
-                                x.title === badgeTab
-                                  ? {
-                                    ...currCustomPage,
-                                    badges: currCustomPageBadges,
-                                  }
-                                  : x
-                              ),
+                            watchlists: {
+                              badges: accountInfo?.watchlists?.badges?.map(
+                                (x) =>
+                                  x.title === badgeTab
+                                    ? {
+                                      ...currCustomPage,
+                                      items: currCustomPageBadges,
+                                    }
+                                    : x
+                              ) ?? [],
+                              lists: accountInfo.watchlists?.lists ?? [],
+                            },
                           })
                         }}
                       />
@@ -442,16 +451,19 @@ function WatchlistPage() {
                     newPageDescription: string
                   ) => {
                     const newCustomPages = deepCopy(
-                      accountInfo.watchedBadgePages ?? []
+                      accountInfo.watchlists?.badges ?? []
                     )
                     newCustomPages.push({
                       title: newPageTitle,
                       description: newPageDescription,
-                      badges: [],
+                      items: [],
                     })
 
                     await updateProfileInfo(chain.address, {
-                      watchedBadgePages: newCustomPages,
+                      watchlists: {
+                        badges: newCustomPages,
+                        lists: accountInfo.watchlists?.lists ?? [],
+                      },
                     })
 
                     setBadgeTab(newPageTitle)
@@ -498,9 +510,9 @@ function WatchlistPage() {
               <br />
 
               <div className="full-width flex-center flex-wrap">
-                {filteredLists.map((mappingId, idx) => {
-                  const metadata = accountInfo.addressMappings?.find(
-                    (x) => x.mappingId === mappingId
+                {filteredLists.map((listId, idx) => {
+                  const metadata = accountInfo.addressLists?.find(
+                    (x) => x.listId === listId
                   )?.metadata
 
                   return (
@@ -523,7 +535,7 @@ function WatchlistPage() {
                       }
                       onClose={() => {
                         setFilteredLists(
-                          filteredLists.filter((x) => x !== mappingId)
+                          filteredLists.filter((x) => x !== listId)
                         )
                       }}
                     >
@@ -545,8 +557,8 @@ function WatchlistPage() {
                               noHover
                               collectionId={0n}
                               metadataOverride={
-                                accountInfo.addressMappings?.find(
-                                  (x) => x.mappingId === mappingId
+                                accountInfo.addressLists?.find(
+                                  (x) => x.listId === listId
                                 )?.metadata
                               }
                             />
@@ -578,7 +590,7 @@ function WatchlistPage() {
                       ? undefined
                       : async (listsTab: string) => {
                         const newCustomPages = deepCopy(
-                          accountInfo.watchedListPages ?? []
+                          accountInfo.watchlists?.lists ?? []
                         )
                         newCustomPages.splice(
                           newCustomPages.findIndex(
@@ -588,12 +600,15 @@ function WatchlistPage() {
                         )
 
                         await updateProfileInfo(chain.address, {
-                          watchedListPages: newCustomPages,
+                          watchlists: {
+                            badges: accountInfo.watchlists?.badges ?? [],
+                            lists: newCustomPages,
+                          },
                         })
                       }
                   }
                   tabInfo={[
-                    ...(accountInfo.watchedListPages?.map((customPage) => {
+                    ...(accountInfo.watchlists?.lists?.map((customPage) => {
                       return {
                         key: customPage.title,
                         content: customPage.title,
@@ -628,14 +643,14 @@ function WatchlistPage() {
                   style={{ marginBottom: 16, marginTop: 4 }}
                 >
                   {
-                    accountInfo.watchedListPages?.find(
+                    accountInfo.watchlists?.lists?.find(
                       (x) => x.title === badgeTab
                     )?.description
                   }
                 </div>
               )}
 
-              {!accountInfo.watchedListPages?.length && !addPageIsVisible && (
+              {!accountInfo.watchlists?.lists?.length && !addPageIsVisible && (
                 <div
                   className="secondary-text"
                   style={{ marginBottom: 16, marginTop: 4 }}
@@ -651,9 +666,9 @@ function WatchlistPage() {
                       addressOrUsername={accountInfo.address}
                       onAdd={async (selectedList: string) => {
                         let currCustomPageLists = deepCopy(
-                          accountInfo?.watchedListPages?.find(
+                          accountInfo?.watchlists?.lists?.find(
                             (x) => x.title === listsTab
-                          )?.mappingIds ?? []
+                          )?.items ?? []
                         )
 
                         currCustomPageLists = currCustomPageLists.concat([
@@ -661,49 +676,55 @@ function WatchlistPage() {
                         ])
 
                         const currCustomPage =
-                          accountInfo?.watchedListPages?.find(
+                          accountInfo?.watchlists?.lists?.find(
                             (x) => x.title === listsTab
                           )
                         if (!currCustomPage) return
 
                         await updateProfileInfo(chain.address, {
-                          watchedListPages: accountInfo?.watchedListPages?.map(
-                            (x) =>
+                          watchlists: {
+                            badges: accountInfo?.watchlists?.badges ?? [],
+                            lists: accountInfo?.watchlists?.lists?.map((x) =>
                               x.title === listsTab
                                 ? {
                                   ...currCustomPage,
-                                  mappingIds: currCustomPageLists,
+                                  items: currCustomPageLists,
                                 }
                                 : x
-                          ),
+                            ) ?? [],
+                          },
+
+
                         })
                       }}
                       onRemove={async (selectedList: string) => {
                         let currCustomPageLists = deepCopy(
-                          accountInfo?.watchedListPages?.find(
+                          accountInfo?.watchlists?.lists?.find(
                             (x) => x.title === listsTab
-                          )?.mappingIds ?? []
+                          )?.items ?? []
                         )
                         currCustomPageLists = currCustomPageLists.filter(
                           (x) => x !== selectedList
                         )
 
                         const currCustomPage =
-                          accountInfo?.watchedListPages?.find(
+                          accountInfo?.watchlists?.lists?.find(
                             (x) => x.title === listsTab
                           )
                         if (!currCustomPage) return
 
                         await updateProfileInfo(chain.address, {
-                          watchedListPages: accountInfo?.watchedListPages?.map(
-                            (x) =>
+                          watchlists: {
+                            badges: accountInfo?.watchlists?.badges ?? [],
+                            lists: accountInfo?.watchlists?.lists?.map((x) =>
                               x.title === listsTab
                                 ? {
                                   ...currCustomPage,
-                                  mappingIds: currCustomPageLists,
+                                  items: currCustomPageLists,
                                 }
                                 : x
-                          ),
+                            ) ?? [],
+                          },
                         })
                       }}
                     />
@@ -719,16 +740,19 @@ function WatchlistPage() {
                   newPageDescription: string
                 ) => {
                   const newCustomPages = deepCopy(
-                    accountInfo.watchedListPages ?? []
+                    accountInfo.watchlists?.lists ?? []
                   )
                   newCustomPages.push({
                     title: newPageTitle,
                     description: newPageDescription,
-                    mappingIds: [],
+                    items: [],
                   })
 
                   await updateProfileInfo(chain.address, {
-                    watchedListPages: newCustomPages,
+                    watchlists: {
+                      badges: accountInfo.watchlists?.badges ?? [],
+                      lists: newCustomPages,
+                    },
                   })
 
                   setListsTab(newPageTitle)

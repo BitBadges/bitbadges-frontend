@@ -327,3 +327,13 @@
 .ant-radio-button-wrapper:not(:first-child)::before {
   width: 0
 }
+
+.token {
+  background: inherit !important;
+}
+
+/* //when highlighted set color to white */
+.token.highlight {
+  background: inherit !important;
+  color: white !important;
+}

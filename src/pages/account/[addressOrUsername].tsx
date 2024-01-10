@@ -14,9 +14,9 @@ import {
 import { UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
   AccountViewKey,
-  AddressMappingWithMetadata,
+  AddressListWithMetadata,
   getMaxBadgeIdForCollection,
-  removeUintRangeFromUintRange
+  removeUintRangesFromUintRanges
 } from "bitbadgesjs-utils"
 import { SHA256 } from "crypto-js"
 import { useRouter } from "next/router"
@@ -26,13 +26,13 @@ import {
   useMemo,
   useState
 } from "react"
-import { getAddressMappings } from "../../bitbadges-api/api"
+import { getAddressLists } from "../../bitbadges-api/api"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
 import {
   fetchAccounts,
   fetchNextForAccountViews,
   getAccountActivityView,
-  getAccountAddressMappingsView,
+  getAccountAddressListsView,
   getAccountBalancesView,
   getAccountListsActivityView,
   updateProfileInfo,
@@ -42,7 +42,7 @@ import {
   fetchBalanceForUser,
   getCollection,
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "../../bitbadges-api/utils/batches"
+import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "bitbadgesjs-utils"
 import { AccountHeader } from "../../components/badges/AccountHeader"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
 import { BlockinDisplay } from "../../components/blockin/BlockinDisplay"
@@ -107,7 +107,7 @@ function PortfolioPage() {
   const [filteredLists, setFilteredLists] = useState<string[]>([])
   const [groupByCollection, setGroupByCollection] = useState(false)
   const [editMode, setEditMode] = useState(false)
-  const [listsTab, setListsTab] = useState<string>("addressMappings")
+  const [listsTab, setListsTab] = useState<string>("addressLists")
   const [searchValue, setSearchValue] = useState<string>("")
 
   useEffect(() => {
@@ -129,8 +129,8 @@ function PortfolioPage() {
     { key: "collected", content: "All", disabled: false },
   ]
 
-  if (accountInfo?.customPages) {
-    for (const customPage of accountInfo?.customPages) {
+  if (accountInfo?.customPages?.badges) {
+    for (const customPage of accountInfo?.customPages?.badges) {
       badgePageTabInfo.push({
         key: customPage.title,
         content: customPage.title,
@@ -208,14 +208,14 @@ function PortfolioPage() {
                 badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
               }
             })
-            .filter((x) => x) as BatchBadgeDetails[]) ?? []
+            .filter((x) => x) as BatchBadgeDetails<bigint>[]) ?? []
 
         allBadgeIds.push(...badgesToAdd)
       }
     } else {
       allBadgeIds.push(
         ...deepCopy(
-          accountInfo?.customPages?.find((x) => x.title === badgeTab)?.badges ??
+          accountInfo?.customPages?.badges?.find((x) => x.title === badgeTab)?.items ??
           []
         )
       )
@@ -227,7 +227,7 @@ function PortfolioPage() {
         for (const filteredCollection of filteredCollections) {
           const collectionId = filteredCollection.collectionId
           if (badgeIdObj.collectionId === collectionId) {
-            const [_, removed] = removeUintRangeFromUintRange(
+            const [_, removed] = removeUintRangesFromUintRanges(
               badgeIdObj.badgeIds,
               filteredCollection.badgeIds
             )
@@ -244,7 +244,7 @@ function PortfolioPage() {
       const collection = getCollection(badgeIdObj.collectionId)
       if (!collection) continue
       const maxBadgeId = getMaxBadgeIdForCollection(collection)
-      const [remaining] = removeUintRangeFromUintRange(
+      const [remaining] = removeUintRangesFromUintRanges(
         [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
         badgeIdObj.badgeIds
       )
@@ -355,14 +355,14 @@ function PortfolioPage() {
   }, [filteredLists, listsTab])
 
   const isPresetList =
-    listsTab === "addressMappings" ||
-    listsTab === "explicitlyIncludedAddressMappings" ||
-    listsTab === "explicitlyExcludedAddressMappings" ||
+    listsTab === "addressLists" ||
+    listsTab === "explicitlyIncludedAddressLists" ||
+    listsTab === "explicitlyExcludedAddressLists" ||
     listsTab === "privateLists" ||
     listsTab === "createdLists"
 
   const [customView, setCustomView] = useState<
-    AddressMappingWithMetadata<bigint>[]
+    AddressListWithMetadata<bigint>[]
   >([])
 
   useEffect(() => {
@@ -374,19 +374,19 @@ function PortfolioPage() {
         idsToFetch.push(...(accountInfo?.hiddenLists ?? []))
       } else {
         idsToFetch.push(
-          ...(accountInfo?.customListPages?.find((x) => x.title === listsTab)
-            ?.mappingIds ?? [])
+          ...(accountInfo?.customPages?.lists?.find((x) => x.title === listsTab)
+            ?.items ?? [])
         )
       }
 
-      const res = await getAddressMappings({ mappingIds: idsToFetch })
-      setCustomView(res.addressMappings)
+      const res = await getAddressLists({ listIds: idsToFetch })
+      setCustomView(res.addressLists)
     }
 
     getCustomView()
   }, [
     listsTab,
-    accountInfo?.customListPages,
+    accountInfo?.customPages?.lists,
     isPresetList,
     accountInfo?.hiddenLists,
   ])
@@ -399,15 +399,15 @@ function PortfolioPage() {
     : listsTab
   const listsView = !accountInfo ? [] : (
     isPresetList
-      ? getAccountAddressMappingsView(accountInfo, currListViewId)
+      ? getAccountAddressListsView(accountInfo, currListViewId)
       : customView
-  ).filter((x) => !filteredLists.includes(x.mappingId))
+  ).filter((x) => !filteredLists.includes(x.listId))
 
   const collectedHasMore = editMode
     ? accountInfo?.views["badgesCollectedWithHidden"]?.pagination?.hasMore ??
     true
     : accountInfo?.views["badgesCollected"]?.pagination?.hasMore ?? true
-  const hasMoreAddressMappings =
+  const hasMoreAddressLists =
     accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("useEffect: fetch more collected")
@@ -417,7 +417,7 @@ function PortfolioPage() {
     const listsIsEmpty = !accountInfo?.views[`${listsTab}`]?.ids.length
     const createdByIsEmpty = !accountInfo?.views["createdBy"]?.ids.length
     const managingIsEmpty = !accountInfo?.views["managing"]?.ids.length
-    const hasMoreAddressMappings =
+    const hasMoreAddressLists =
       accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true
 
     if (!accountInfo || !accountInfo.address) return
@@ -441,7 +441,7 @@ function PortfolioPage() {
       ) {
         fetchMoreCreatedBy(accountInfo?.address ?? "", "createdBy")
       }
-    } else if (tab === "lists" && hasMoreAddressMappings && listsIsEmpty) {
+    } else if (tab === "lists" && hasMoreAddressLists && listsIsEmpty) {
       if (isPresetList) {
         if (listsTab === "privateLists" && !chain.loggedIn) return
         fetchMoreLists(accountInfo?.address ?? "", listsTab)
@@ -564,7 +564,7 @@ function PortfolioPage() {
                               ? undefined
                               : async (badgeTab: string) => {
                                 const newCustomPages = deepCopy(
-                                  accountInfo.customPages ?? []
+                                  accountInfo.customPages?.badges ?? []
                                 )
                                 newCustomPages.splice(
                                   newCustomPages.findIndex(
@@ -574,7 +574,12 @@ function PortfolioPage() {
                                 )
 
                                 await updateProfileInfo(chain.address, {
-                                  customPages: newCustomPages,
+                                  customPages: {
+                                    ...accountInfo.customPages,
+                                    lists: accountInfo.customPages?.lists ?? [],
+                                    badges: newCustomPages,
+                                  }
+
                                 })
                               }
                           }
@@ -605,7 +610,7 @@ function PortfolioPage() {
                                 },
                               ]
                               : []),
-                            ...(accountInfo.customPages?.map((x) => {
+                            ...(accountInfo.customPages?.badges.map((x) => {
                               return {
                                 key: x.title,
                                 content: x.title,
@@ -649,14 +654,14 @@ function PortfolioPage() {
                       </div>
                     )}
                     {badgeTab !== "" &&
-                      accountInfo.customPages?.find((x) => x.title === badgeTab)
+                      accountInfo.customPages?.badges.find((x) => x.title === badgeTab)
                         ?.description && (
                         <div
                           className="secondary-text"
                           style={{ marginBottom: 16, marginTop: 4 }}
                         >
                           {
-                            accountInfo.customPages?.find(
+                            accountInfo.customPages?.badges.find(
                               (x) => x.title === badgeTab
                             )?.description
                           }
@@ -674,15 +679,15 @@ function PortfolioPage() {
                           <div className="flex-center">
                             <CustomizeAddRemoveBadgeFromPage
                               onAdd={async (
-                                selectedBadge: BatchBadgeDetails
+                                selectedBadge: BatchBadgeDetails<bigint>
                               ) => {
                                 let currCustomPageBadges =
                                   badgeTab == "Hidden"
                                     ? deepCopy(accountInfo?.hiddenBadges ?? [])
                                     : deepCopy(
-                                      accountInfo?.customPages?.find(
+                                      accountInfo?.customPages?.badges?.find(
                                         (x) => x.title === badgeTab
-                                      )?.badges ?? []
+                                      )?.items ?? []
                                     )
                                 currCustomPageBadges = addToBatchArray(
                                   currCustomPageBadges,
@@ -695,35 +700,37 @@ function PortfolioPage() {
                                   })
                                 } else {
                                   const currCustomPage =
-                                    accountInfo?.customPages?.find(
+                                    accountInfo?.customPages?.badges?.find(
                                       (x) => x.title === badgeTab
                                     )
                                   if (!currCustomPage) return
 
                                   await updateProfileInfo(chain.address, {
-                                    customPages: accountInfo?.customPages?.map(
-                                      (x) =>
-                                        x.title === badgeTab
-                                          ? {
-                                            ...currCustomPage,
-                                            badges: currCustomPageBadges,
-                                          }
-                                          : x
-                                    ),
+                                    customPages: {
+                                      lists: accountInfo?.customPages?.lists ?? [],
+                                      badges: accountInfo?.customPages?.badges?.map(
+                                        (x) =>
+                                          x.title === badgeTab
+                                            ? {
+                                              ...currCustomPage,
+                                              badges: currCustomPageBadges,
+                                            }
+                                            : x
+                                      ) ?? [],
+                                    }
                                   })
                                 }
                               }}
                               onRemove={async (
-                                selectedBadge: BatchBadgeDetails
+                                selectedBadge: BatchBadgeDetails<bigint>
                               ) => {
-                                let currCustomPageBadges =
-                                  badgeTab == "Hidden"
-                                    ? deepCopy(accountInfo?.hiddenBadges ?? [])
-                                    : deepCopy(
-                                      accountInfo?.customPages?.find(
-                                        (x) => x.title === badgeTab
-                                      )?.badges ?? []
-                                    )
+                                let currCustomPageBadges = badgeTab == "Hidden"
+                                  ? deepCopy(accountInfo?.hiddenBadges ?? [])
+                                  : deepCopy(
+                                    accountInfo?.customPages?.badges?.find(
+                                      (x) => x.title === badgeTab
+                                    )?.items ?? []
+                                  )
                                 currCustomPageBadges = removeFromBatchArray(
                                   currCustomPageBadges,
                                   [selectedBadge]
@@ -735,21 +742,24 @@ function PortfolioPage() {
                                   })
                                 } else {
                                   const currCustomPage =
-                                    accountInfo?.customPages?.find(
+                                    accountInfo?.customPages?.badges?.find(
                                       (x) => x.title === badgeTab
                                     )
                                   if (!currCustomPage) return
 
                                   await updateProfileInfo(chain.address, {
-                                    customPages: accountInfo?.customPages?.map(
-                                      (x) =>
-                                        x.title === badgeTab
-                                          ? {
-                                            ...currCustomPage,
-                                            badges: currCustomPageBadges,
-                                          }
-                                          : x
-                                    ),
+                                    customPages: {
+                                      lists: accountInfo?.customPages?.lists ?? [],
+                                      badges: accountInfo?.customPages?.badges?.map(
+                                        (x) =>
+                                          x.title === badgeTab
+                                            ? {
+                                              ...currCustomPage,
+                                              badges: currCustomPageBadges,
+                                            }
+                                            : x
+                                      ) ?? [],
+                                    }
                                   })
                                 }
                               }}
@@ -765,16 +775,19 @@ function PortfolioPage() {
                         newPageDescription: string
                       ) => {
                         const newCustomPages = deepCopy(
-                          accountInfo.customPages ?? []
+                          accountInfo.customPages?.badges ?? []
                         )
                         newCustomPages.push({
                           title: newPageTitle,
                           description: newPageDescription,
-                          badges: [],
+                          items: [],
                         })
 
                         await updateProfileInfo(chain.address, {
-                          customPages: newCustomPages,
+                          customPages: {
+                            lists: accountInfo.customPages?.lists ?? [],
+                            badges: newCustomPages,
+                          }
                         })
 
                         setBadgeTab(newPageTitle)
@@ -880,9 +893,9 @@ function PortfolioPage() {
                   <br />
 
                   <div className="full-width flex-center flex-wrap">
-                    {filteredLists.map((mappingId, idx) => {
-                      const metadata = accountInfo.addressMappings?.find(
-                        (x) => x.mappingId === mappingId
+                    {filteredLists.map((listId, idx) => {
+                      const metadata = accountInfo.addressLists?.find(
+                        (x) => x.listId === listId
                       )?.metadata
 
                       return (
@@ -905,7 +918,7 @@ function PortfolioPage() {
                           }
                           onClose={() => {
                             setFilteredLists(
-                              filteredLists.filter((x) => x !== mappingId)
+                              filteredLists.filter((x) => x !== listId)
                             )
                           }}
                         >
@@ -927,8 +940,8 @@ function PortfolioPage() {
                                   noHover
                                   collectionId={0n}
                                   metadataOverride={
-                                    accountInfo.addressMappings?.find(
-                                      (x) => x.mappingId === mappingId
+                                    accountInfo.addressLists?.find(
+                                      (x) => x.listId === listId
                                     )?.metadata
                                   }
                                 />
@@ -958,16 +971,16 @@ function PortfolioPage() {
                       onDeleteCurrTab={
                         !editMode ||
                           listsTab == "" ||
-                          listsTab == "addressMappings" ||
+                          listsTab == "addressLists" ||
                           listsTab == "Hidden" ||
-                          listsTab == "explicitlyIncludedAddressMappings" ||
-                          listsTab == "explicitlyExcludedAddressMappings" ||
+                          listsTab == "explicitlyIncludedAddressLists" ||
+                          listsTab == "explicitlyExcludedAddressLists" ||
                           listsTab == "privateLists" ||
                           listsTab == "createdLists"
                           ? undefined
                           : async (listsTab: string) => {
                             const newCustomPages = deepCopy(
-                              accountInfo.customListPages ?? []
+                              accountInfo.customPages?.lists ?? []
                             )
                             newCustomPages.splice(
                               newCustomPages.findIndex(
@@ -977,23 +990,26 @@ function PortfolioPage() {
                             )
 
                             await updateProfileInfo(chain.address, {
-                              customListPages: newCustomPages,
+                              customPages: {
+                                badges: accountInfo.customPages?.badges ?? [],
+                                lists: newCustomPages,
+                              }
                             })
                           }
                       }
                       tabInfo={[
                         {
-                          key: "addressMappings",
+                          key: "addressLists",
                           content: "All",
                           disabled: false,
                         },
                         {
-                          key: "explicitlyIncludedAddressMappings",
+                          key: "explicitlyIncludedAddressLists",
                           content: "Included",
                           disabled: false,
                         },
                         {
-                          key: "explicitlyExcludedAddressMappings",
+                          key: "explicitlyExcludedAddressLists",
                           content: "Excluded",
                           disabled: false,
                         },
@@ -1019,7 +1035,7 @@ function PortfolioPage() {
                             },
                           ]
                           : []),
-                        ...(accountInfo.customListPages?.map((customPage) => {
+                        ...(accountInfo.customPages?.lists?.map((customPage) => {
                           return {
                             key: customPage.title,
                             content: customPage.title,
@@ -1067,26 +1083,26 @@ function PortfolioPage() {
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       <InfoCircleOutlined /> These results only include
-                      whitelists where the address is included and blacklists
+                      allowlists where the address is included and blocklists
                       where the address is excluded.
                     </div>
                   )}
-                  {listsTab === "explicitlyIncludedAddressMappings" && (
+                  {listsTab === "explicitlyIncludedAddressLists" && (
                     <div
                       className="secondary-text"
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       <InfoCircleOutlined /> These results only include
-                      whitelists where the address is included.
+                      allowlists where the address is included.
                     </div>
                   )}
-                  {listsTab === "explicitlyExcludedAddressMappings" && (
+                  {listsTab === "explicitlyExcludedAddressLists" && (
                     <div
                       className="secondary-text"
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       <InfoCircleOutlined /> These results only include
-                      blacklists where the address is excluded.
+                      blocklists where the address is excluded.
                     </div>
                   )}
                   {listsTab === "createdLists" && (
@@ -1113,7 +1129,7 @@ function PortfolioPage() {
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       {
-                        accountInfo.customListPages?.find(
+                        accountInfo.customPages?.lists?.find(
                           (x) => x.title === badgeTab
                         )?.description
                       }
@@ -1130,9 +1146,9 @@ function PortfolioPage() {
                               listsTab == "Hidden"
                                 ? deepCopy(accountInfo?.hiddenLists ?? [])
                                 : deepCopy(
-                                  accountInfo?.customListPages?.find(
+                                  accountInfo?.customPages?.lists?.find(
                                     (x) => x.title === listsTab
-                                  )?.mappingIds ?? []
+                                  )?.items ?? []
                                 )
 
                             currCustomPageLists = currCustomPageLists.concat([
@@ -1145,21 +1161,24 @@ function PortfolioPage() {
                               })
                             } else {
                               const currCustomPage =
-                                accountInfo?.customListPages?.find(
+                                accountInfo?.customPages?.lists?.find(
                                   (x) => x.title === listsTab
                                 )
                               if (!currCustomPage) return
 
                               await updateProfileInfo(chain.address, {
-                                customListPages:
-                                  accountInfo?.customListPages?.map((x) =>
-                                    x.title === listsTab
-                                      ? {
-                                        ...currCustomPage,
-                                        mappingIds: currCustomPageLists,
-                                      }
-                                      : x
-                                  ),
+                                customPages: {
+                                  badges: accountInfo?.customPages?.badges ?? [],
+                                  lists: accountInfo?.customPages?.lists?.map(
+                                    (x) =>
+                                      x.title === listsTab
+                                        ? {
+                                          ...currCustomPage,
+                                          listIds: currCustomPageLists,
+                                        }
+                                        : x
+                                  ) ?? [],
+                                }
                               })
                             }
                           }}
@@ -1168,9 +1187,9 @@ function PortfolioPage() {
                               listsTab == "Hidden"
                                 ? deepCopy(accountInfo?.hiddenLists ?? [])
                                 : deepCopy(
-                                  accountInfo?.customListPages?.find(
+                                  accountInfo?.customPages?.lists?.find(
                                     (x) => x.title === listsTab
-                                  )?.mappingIds ?? []
+                                  )?.items ?? []
                                 )
                             currCustomPageLists = currCustomPageLists.filter(
                               (x) => x !== selectedList
@@ -1182,21 +1201,25 @@ function PortfolioPage() {
                               })
                             } else {
                               const currCustomPage =
-                                accountInfo?.customListPages?.find(
+                                accountInfo?.customPages?.lists?.find(
                                   (x) => x.title === listsTab
                                 )
                               if (!currCustomPage) return
 
                               await updateProfileInfo(chain.address, {
-                                customListPages:
-                                  accountInfo?.customListPages?.map((x) =>
-                                    x.title === listsTab
-                                      ? {
-                                        ...currCustomPage,
-                                        mappingIds: currCustomPageLists,
-                                      }
-                                      : x
-                                  ),
+                                customPages: {
+                                  badges: accountInfo?.customPages?.badges ?? [],
+                                  lists: accountInfo?.customPages?.lists?.map(
+                                    (x) =>
+                                      x.title === listsTab
+                                        ? {
+                                          ...currCustomPage,
+                                          listIds: currCustomPageLists,
+                                        }
+                                        : x
+                                  ) ?? [],
+
+                                }
                               })
                             }
                           }}
@@ -1213,16 +1236,19 @@ function PortfolioPage() {
                       newPageDescription: string
                     ) => {
                       const newCustomPages = deepCopy(
-                        accountInfo.customListPages ?? []
+                        accountInfo.customPages?.lists ?? []
                       )
                       newCustomPages.push({
                         title: newPageTitle,
                         description: newPageDescription,
-                        mappingIds: [],
+                        items: [],
                       })
 
                       await updateProfileInfo(chain.address, {
-                        customListPages: newCustomPages,
+                        customPages: {
+                          badges: accountInfo.customPages?.badges ?? [],
+                          lists: newCustomPages,
+                        }
                       })
 
                       setListsTab(newPageTitle)
@@ -1240,7 +1266,7 @@ function PortfolioPage() {
                                 if (
                                   filteredLists.length > 0 &&
                                   isPresetList &&
-                                  hasMoreAddressMappings
+                                  hasMoreAddressLists
                                 ) {
                                   await fetchMoreListsWithFiltered(
                                     accountInfo?.address ?? "",
@@ -1255,7 +1281,7 @@ function PortfolioPage() {
                                 }
                               }
                             }}
-                            hasMore={isPresetList && hasMoreAddressMappings}
+                            hasMore={isPresetList && hasMoreAddressLists}
                             listsView={listsView}
                             addressOrUsername={accountInfo?.address ?? ""}
                             showInclusionDisplay={
@@ -1279,12 +1305,12 @@ function PortfolioPage() {
                     fetchMore={async () => {
                       await fetchNextForAccountViews(
                         accountInfo?.address ?? "",
-                        "latestReviews",
-                        "latestReviews"
+                        "reviews",
+                        "reviews"
                       )
                     }}
                     hasMore={
-                      accountInfo?.views["latestReviews"]?.pagination
+                      accountInfo?.views["reviews"]?.pagination
                         ?.hasMore ?? true
                     }
                     addressOrUsername={accountInfo?.address ?? ""}
@@ -1318,18 +1344,18 @@ function PortfolioPage() {
                   {activityTab === "badges" && (
                     <ActivityTab
                       activity={
-                        getAccountActivityView(accountInfo, "latestActivity") ??
+                        getAccountActivityView(accountInfo, "transferActivity") ??
                         []
                       }
                       fetchMore={async () =>
                         fetchNextForAccountViews(
                           accountInfo?.address ?? "",
-                          "latestActivity",
-                          "latestActivity"
+                          "transferActivity",
+                          "transferActivity"
                         )
                       }
                       hasMore={
-                        accountInfo?.views["latestActivity"]?.pagination
+                        accountInfo?.views["transferActivity"]?.pagination
                           ?.hasMore ?? true
                       }
                     />

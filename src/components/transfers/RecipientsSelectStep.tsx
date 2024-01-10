@@ -3,7 +3,7 @@ import { Col, Divider, Typography } from "antd";
 import { useEffect } from "react";
 import { getAccount, useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { INFINITE_LOOP_MODE } from "../../constants";
-import { AddressListSelect } from "../address/AddressListSelect";
+import { BatchAddressSelect } from "../address/AddressListSelect";
 
 export function RecipientsSelectStep({
   sender,
@@ -50,7 +50,7 @@ export function RecipientsSelectStep({
   return {
     title: `Recipients (${toAddresses.length})`,
     description: <div className="flex-center"><Col className='' md={12} xs={24} >
-      <AddressListSelect
+      <BatchAddressSelect
         users={toAddresses}
         setUsers={setToAddresses}
         invalidUsers={forbiddenUsersMap}

@@ -9,7 +9,7 @@ import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContex
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";
 import { WEBSITE_HOSTNAME } from "../../constants";
 import { downloadJson, downloadTxt } from "../../utils/downloadJson";
-import { AddressListSelect } from "../address/AddressListSelect";
+import { BatchAddressSelect } from "../address/AddressListSelect";
 import { AddressSelect } from "../address/AddressSelect";
 import { ClaimAlertsTab } from "../collection-page/ClaimAlertsTab";
 import { Pagination } from "../common/Pagination";
@@ -66,7 +66,7 @@ export function CodesDisplay({
       bookmark: claimAlertPagination.bookmark,
     });
 
-    setClaimAlerts([...claimAlerts, ...res.claimAlerts].filter((x, i, a) => a.findIndex(y => y._legacyId === x._legacyId) === i));
+    setClaimAlerts([...claimAlerts, ...res.claimAlerts].filter((x, i, a) => a.findIndex(y => y._docId === x._docId) === i));
     setClaimAlertPagination(res.pagination);
   }
 
@@ -276,7 +276,7 @@ export function CodesDisplay({
                         </div>
 
                         <div className="full-width" style={{ margin: 8, }}>
-                          <AddressListSelect users={claimAlertAddresses} setUsers={setClaimAlertAddresses} />
+                          <BatchAddressSelect users={claimAlertAddresses} setUsers={setClaimAlertAddresses} />
                         </div>
                         {!hasPassword && claimAlertAddresses.length > 0 && <>
                           <div className=" flex-center">
@@ -494,7 +494,7 @@ export function CodesDisplay({
                           setLoading(true);
                           const code = codes?.[codePage - 1] ?? '';
                           const password = claimPassword ?? '';
-                          //// You have been whitelisted to claim badges from collection ${collectionDoc.collectionId}! ${orderMatters ? `You have been reserved specific badges which are only claimable to you. Your claim number is #${idx + 1}` : ''}`,
+                          //// You have been allowlisted to claim badges from collection ${collectionDoc.collectionId}! ${orderMatters ? `You have been reserved specific badges which are only claimable to you. Your claim number is #${idx + 1}` : ''}`,
 
                           if (claimAlertAddress && claimAlertAccount) {
                             if (hasPassword) {

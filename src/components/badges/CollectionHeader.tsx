@@ -11,13 +11,13 @@ import { BadgeButtonDisplay } from '../button-displays/BadgePageButtonDisplay';
 
 const { Text } = Typography;
 
-export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, badgeId, metadataOverride, multiDisplay }: {
+export function CollectionHeader({ listId, collectionId, hideCollectionLink, badgeId, metadataOverride, multiDisplay }: {
   collectionId: bigint;
   badgeId?: bigint;
   hideCollectionLink?: boolean;
   metadataOverride?: Metadata<bigint>
   multiDisplay?: boolean,
-  mappingId?: string
+  listId?: string
 }) {
   const router = useRouter();
   const collection = useCollection(collectionId)
@@ -77,7 +77,7 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
       {Title}
 
       <div className='flex-center-if-mobile' style={{ maxWidth: 350 }}>
-        <BadgeButtonDisplay mappingId={mappingId} website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
+        <BadgeButtonDisplay listId={listId} website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
       </div>
     </div>
 
@@ -90,14 +90,14 @@ export function CollectionHeader({ mappingId, collectionId, hideCollectionLink, 
       </div>
 
       <div className='flex-center-if-mobile' style={{ alignItems: 'normal' }}>
-        <BadgeButtonDisplay mappingId={mappingId} website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
+        <BadgeButtonDisplay listId={listId} website={metadata?.externalUrl} badgeId={badgeId} collectionId={collectionId} socials={metadata?.socials} />
       </div>
     </div>
 
   </>
 
   const About = metadata?.description && <>
-    <div className='primary-text' id={'description2' + badgeId + collectionId + mappingId} style={{ whiteSpace: 'normal' }}>
+    <div className='primary-text' id={'description2' + badgeId + collectionId + listId} style={{ whiteSpace: 'normal' }}>
       <MarkdownDisplay markdown={metadata?.description ?? ''} />
     </div>
 

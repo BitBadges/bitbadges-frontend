@@ -4,21 +4,21 @@ import Text from 'antd/lib/typography/Text';
 import { BLANK_USER_INFO, BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
 
 import { useRouter } from 'next/router';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
+import "@uiw/react-markdown-preview/markdown.css";
+import "@uiw/react-md-editor/markdown-editor.css";
+import crypto from 'crypto';
+import dynamic from "next/dynamic";
+import rehypeSanitize from "rehype-sanitize";
+import { updateAccount, useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
+import { AccountHeader } from '../../../components/badges/AccountHeader';
 import { AccountButtonDisplay } from '../../../components/button-displays/AccountButtonDisplay';
 import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 import { INFINITE_LOOP_MODE } from '../../../constants';
-import { useAccount, updateAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
-import { AccountHeader } from '../../../components/badges/AccountHeader';
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
-import dynamic from "next/dynamic";
-import rehypeSanitize from "rehype-sanitize";
-import crypto from 'crypto'
 
 
 const MDEditor = dynamic(
@@ -66,20 +66,12 @@ export const MarkdownEditor = ({ markdown, setMarkdown, placeholder }: { markdow
 export const MarkdownDisplay = ({ markdown, showMoreHeight = 300 }: { markdown: string, showMoreHeight?: number }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [showMore, setShowMore] = useState(false);
-  const [contentHeight, setContentHeight] = useState(0);
+
 
   const id = useRef(crypto.randomBytes(32).toString());
 
-  useLayoutEffect(() => {
-    // Calculate the height of the content inside the description div
-    const descriptionElement = document.getElementById('description' + id);
-    console.log(descriptionElement);
-
-    const height = descriptionElement?.clientHeight ?? 0;
-    console.log(height);
-    setContentHeight(height);
-
-  }, [id]);
+  const elemRef = useRef<HTMLDivElement>(null);
+  const contentHeight = elemRef.current?.clientHeight ?? 0;
 
   useEffect(() => {
     // Check if dark mode is enabled in local storage
@@ -89,26 +81,30 @@ export const MarkdownDisplay = ({ markdown, showMoreHeight = 300 }: { markdown: 
 
   const mode = darkMode ? 'dark' : 'light';
 
+  console.log("height", contentHeight, showMoreHeight);
+
   return <div className='primary-text my-1'>
     <div data-color-mode={mode} style={{
       textAlign: 'start',
       overflow: !showMore ? 'hidden' : undefined,
 
       maxHeight: showMore ? undefined : showMoreHeight, whiteSpace: 'normal',
-    }} id={'description' + id}>
+    }} id={'description' + id} ref={elemRef}>
       <EditerMarkdown source={markdown} style={{ whiteSpace: 'pre-wrap' }} />
     </div>
-    {contentHeight >= showMoreHeight && (
-      <div className='flex-between flex-wrap' style={{ marginTop: '10px' }}>
-        <div></div>
-        <div>
-          <a onClick={() => { setShowMore(!showMore) }}>
-            {showMore ? <FullscreenOutlined /> : <FullscreenExitOutlined />} {showMore ? 'Show Less' : 'Show More'}
-          </a>
+    {
+      contentHeight >= showMoreHeight && (
+        <div className='flex-between flex-wrap' style={{ marginTop: '10px' }}>
+          <div></div>
+          <div>
+            <a onClick={() => { setShowMore(!showMore) }}>
+              {showMore ? <FullscreenOutlined /> : <FullscreenExitOutlined />} {showMore ? 'Show Less' : 'Show More'}
+            </a>
+          </div>
         </div>
-      </div>
-    )}
-  </div>
+      )
+    }
+  </div >
 }
 
 export function AccountSettings() {
@@ -137,7 +133,10 @@ export function AccountSettings() {
   const setCustomLinks = (customLinks: any[]) => { setNewAccount({ ...newAccount, customLinks }) };
 
   const hiddenBadges = newAccount?.hiddenBadges ? newAccount.hiddenBadges : [];
-  const customPages = newAccount?.customPages ? newAccount.customPages : [];
+  const customPages = newAccount?.customPages ? newAccount.customPages : {
+    badges: [],
+    lists: [],
+  }
   const username = newAccount?.username ? newAccount.username : '';
 
   const setUsername = (username: string) => { setNewAccount({ ...newAccount, username }) };

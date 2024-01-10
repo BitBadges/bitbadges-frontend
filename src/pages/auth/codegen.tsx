@@ -122,7 +122,7 @@ function BlockinCodesScreen() {
         ...(currAccount?.authCodes ?? []),
         convertBlockinAuthSignatureDoc(
           {
-            _legacyId: signature,
+            _docId: signature,
             signature: signature,
             params: blockinParams,
             name: name as string,
@@ -198,7 +198,7 @@ function BlockinCodesScreen() {
                       <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
 
                         <AuthCode authCode={convertBlockinAuthSignatureDoc({
-                          _legacyId: '',
+                          _docId: '',
                           signature: '',
                           name: name as string,
                           description: description as string,
@@ -234,7 +234,7 @@ function BlockinCodesScreen() {
                         <div className='flex-center'>
                           {!qrCode && <EmptyIcon description='No QR Code generated yet...' />}
                           {qrCode && <AuthCode authCode={convertBlockinAuthSignatureDoc({
-                            _legacyId: '',
+                            _docId: '',
                             signature: qrCode,
                             name: name as string,
                             description: description as string,

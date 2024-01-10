@@ -173,7 +173,7 @@ export function UpdateSelectWrapper({
             />
             <br />
           </div>}
-        {(permissionDataSource?.hasForbiddenTimes) && updateFlag && !(err) &&
+        {(permissionDataSource?.hasPermanentlyForbiddenTimes) && updateFlag && !(err) &&
           <div className='secondary-text' style={{ textAlign: 'center' }}>
             <br />
             {<>

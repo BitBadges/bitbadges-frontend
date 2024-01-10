@@ -13,7 +13,7 @@ export type StatusContextType = {
 
 const StatusContext = createContext<StatusContextType>({
   status: {
-    _legacyId: "status",
+    _docId: "status",
     block: {
       height: 0n,
       timestamp: 0n,
@@ -26,7 +26,7 @@ const StatusContext = createContext<StatusContextType>({
   },
   updateStatus: async () => {
     return {
-      _legacyId: "status",
+      _docId: "status",
       block: {
         height: 0n,
         timestamp: 0n,
@@ -47,7 +47,7 @@ type Props = {
 
 export const StatusContextProvider: React.FC<Props> = ({ children }) => {
   const [status, setStatus] = useState<StatusDoc<DesiredNumberType>>({
-    _legacyId: 'status',
+    _docId: 'status',
     block: {
       height: 0n,
       timestamp: 0n,

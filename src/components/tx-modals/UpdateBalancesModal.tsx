@@ -3,7 +3,7 @@ import { Divider, Modal, Spin, message, notification } from 'antd';
 import { BigIntify, BitBadgesCollection, OffChainBalancesMap, TransferWithIncrements, convertOffChainBalancesMap, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils/dist/distribution';
 import React, { useEffect, useState } from 'react';
-import { addBalancesToOffChainStorage, fetchMetadataDirectly, getCollectionById } from '../../bitbadges-api/api';
+import { addBalancesToOffChainStorage, fetchMetadataDirectly, getCollections } from '../../bitbadges-api/api';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DistributionComponent } from '../tx-timelines/step-items/OffChainBalancesStepItem';
@@ -12,8 +12,8 @@ import { DisconnectedWrapper } from '../wrappers/DisconnectedWrapper';
 const getCollectionFromId = async (collectionId: bigint) => {
   let collection = getCollection(collectionId);
   if (!collection) {
-    const res = await getCollectionById(collectionId, {}, true);
-    collection = res.collection;
+    const res = await getCollections({ collectionsToFetch: [{ collectionId }] });
+    collection = res.collections[0];
   }
 
   return collection

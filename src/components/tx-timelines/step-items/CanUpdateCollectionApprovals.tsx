@@ -1,5 +1,5 @@
 import { deepCopy } from "bitbadgesjs-proto";
-import { CollectionApprovalPermissionWithDetails, getMintApprovals, getNonMintApprovals, getReservedAddressMapping } from "bitbadgesjs-utils";
+import { CollectionApprovalPermissionWithDetails, getMintApprovals, getNonMintApprovals, getReservedAddressList } from "bitbadgesjs-utils";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
@@ -13,35 +13,35 @@ import { SwitchForm } from "../form-items/SwitchForm";
 import { getBadgesWithUnlockedSupply } from "../../../bitbadges-api/utils/badges";
 
 const EverythingElsePermanentlyPermittedPermission: CollectionApprovalPermissionWithDetails<bigint> = {
-  fromMapping: getReservedAddressMapping("All"),
-  fromMappingId: "All",
-  toMapping: getReservedAddressMapping("All"),
-  toMappingId: "All",
-  initiatedByMapping: getReservedAddressMapping("All"),
-  initiatedByMappingId: "All",
+  fromList: getReservedAddressList("All"),
+  fromListId: "All",
+  toList: getReservedAddressList("All"),
+  toListId: "All",
+  initiatedByList: getReservedAddressList("All"),
+  initiatedByListId: "All",
   amountTrackerId: "All",
   challengeTrackerId: "All",
   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  permittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  forbiddenTimes: [],
+  permanentlyPermittedTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  permanentlyForbiddenTimes: [],
 }
 
 const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = {
-  fromMapping: getReservedAddressMapping("All"),
-  fromMappingId: "All",
-  toMapping: getReservedAddressMapping("All"),
-  toMappingId: "All",
-  initiatedByMapping: getReservedAddressMapping("All"),
-  initiatedByMappingId: "All",
+  fromList: getReservedAddressList("All"),
+  fromListId: "All",
+  toList: getReservedAddressList("All"),
+  toListId: "All",
+  initiatedByList: getReservedAddressList("All"),
+  initiatedByListId: "All",
   amountTrackerId: "All",
   challengeTrackerId: "All",
   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  permittedTimes: [],
-  forbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+  permanentlyPermittedTimes: [],
+  permanentlyForbiddenTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
 }
 
 export function FreezeSelectStepItem() {
@@ -56,9 +56,9 @@ export function FreezeSelectStepItem() {
   const getPermissionsToSet = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
       ...AlwaysLockedPermission,
-      fromMapping: idx == 0 ? getReservedAddressMapping("All")
-        : idx == 1 ? getReservedAddressMapping("!Mint") : getReservedAddressMapping("Mint"),
-      fromMappingId: idx == 0 ? "All" : idx == 1 ? "!Mint" : "Mint",
+      fromList: idx == 0 ? getReservedAddressList("All")
+        : idx == 1 ? getReservedAddressList("!Mint") : getReservedAddressList("Mint"),
+      fromListId: idx == 0 ? "All" : idx == 1 ? "!Mint" : "Mint",
     }] : []
 
 

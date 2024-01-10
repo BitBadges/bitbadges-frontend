@@ -1,53 +1,53 @@
 import { CloseOutlined, PlusOutlined, WarningOutlined } from "@ant-design/icons"
 import { Input, Switch } from "antd"
-import { AddressMapping } from "bitbadgesjs-proto"
-import { isAddressMappingEmpty } from "bitbadgesjs-utils"
+import { AddressList } from "bitbadgesjs-proto"
+import { isAddressListEmpty } from "bitbadgesjs-utils"
 import { useState } from "react"
-import { generateReservedMappingId } from "bitbadgesjs-utils"
+import { generateReservedListId } from "bitbadgesjs-utils"
 import IconButton from "../display/IconButton"
 import { AddressDisplayList } from "./AddressDisplayList"
-import { AddressListSelect } from "./AddressListSelect"
+import { BatchAddressSelect } from "./AddressListSelect"
 
 export const autoGenerateId = (
-  addressMapping: AddressMapping,
-  autoGenerateMappingId: boolean
-): AddressMapping => {
-  if (!autoGenerateMappingId) return addressMapping
+  addressList: AddressList,
+  autoGenerateListId: boolean
+): AddressList => {
+  if (!autoGenerateListId) return addressList
 
-  const mappingId = generateReservedMappingId(addressMapping)
+  const listId = generateReservedListId(addressList)
 
-  // Create a new AddressMapping with the calculated mappingId
-  const updatedAddressMapping: AddressMapping = {
-    ...addressMapping,
-    mappingId: mappingId,
+  // Create a new AddressList with the calculated listId
+  const updatedAddressList: AddressList = {
+    ...addressList,
+    listId: listId,
   }
 
-  return updatedAddressMapping
+  return updatedAddressList
 }
 
-export function AddressMappingSelect({
-  addressMapping,
-  setAddressMapping,
+export function AddressListSelect({
+  addressList,
+  setAddressList,
   disabled,
   showErrorOnEmpty,
   allowMintSearch,
   isIdSelect,
-  autoGenerateMappingId = true,
+  autoGenerateListId = true,
 }: {
-  addressMapping: AddressMapping
-  setAddressMapping: (addressMapping: AddressMapping) => void
+  addressList: AddressList
+  setAddressList: (addressList: AddressList) => void
   disabled?: boolean
   showErrorOnEmpty?: boolean
   allowMintSearch?: boolean
   isIdSelect?: boolean
-  autoGenerateMappingId?: boolean
+  autoGenerateListId?: boolean
 }) {
   const [visible, setVisible] = useState(false)
 
   const [currId, setCurrId] = useState("")
 
-  //Will need to change this in the future, but autoGenerateMappingId is currently only used for the AddressMappingSelectStepItem and is false for updates (not creates)
-  const disableListTypeChange = !autoGenerateMappingId
+  //Will need to change this in the future, but autoGenerateListId is currently only used for the AddressListSelectStepItem and is false for updates (not creates)
+  const disableListTypeChange = !autoGenerateListId
 
   return (
     <div
@@ -60,33 +60,33 @@ export function AddressMappingSelect({
           <b>
             <Switch
               disabled={disabled || disableListTypeChange}
-              checked={addressMapping.includeAddresses}
-              checkedChildren={"Whitelist"}
-              unCheckedChildren={"Blacklist"}
+              checked={addressList.allowlist}
+              checkedChildren={"Allowlist"}
+              unCheckedChildren={"Blocklist"}
               onChange={(e) => {
-                setAddressMapping(
+                setAddressList(
                   autoGenerateId(
                     {
-                      ...addressMapping,
-                      includeAddresses: e,
+                      ...addressList,
+                      allowlist: e,
                     },
-                    autoGenerateMappingId
+                    autoGenerateListId
                   )
                 )
               }}
               className="primary-text inherit-bg"
             ></Switch>{" "}
             - {isIdSelect ? "IDs" : "Addresses"} (
-            {addressMapping.addresses.length})
+            {addressList.addresses.length})
           </b>
         </div>
         <div style={{ textAlign: "center" }}>
-          {showErrorOnEmpty && isAddressMappingEmpty(addressMapping) && (
+          {showErrorOnEmpty && isAddressListEmpty(addressList) && (
             <>
               <br />
               <span style={{ color: "red" }}>
                 {" "}
-                <WarningOutlined /> Whitelists must have at least one address.
+                <WarningOutlined /> Allowlists must have at least one address.
               </span>
             </>
           )}
@@ -96,16 +96,16 @@ export function AddressMappingSelect({
           <div className="flex-center">
             <AddressDisplayList
               trackerIdList={isIdSelect}
-              users={addressMapping.addresses}
-              allExcept={!addressMapping.includeAddresses}
+              users={addressList.addresses}
+              allExcept={!addressList.allowlist}
               setUsers={(users) => {
-                setAddressMapping(
+                setAddressList(
                   autoGenerateId(
                     {
-                      ...addressMapping,
+                      ...addressList,
                       addresses: users,
                     },
-                    autoGenerateMappingId
+                    autoGenerateListId
                   )
                 )
               }}
@@ -132,16 +132,16 @@ export function AddressMappingSelect({
 
       {!disabled && visible && !isIdSelect && (
         <>
-          <AddressListSelect
-            users={addressMapping.addresses}
+          <BatchAddressSelect
+            users={addressList.addresses}
             setUsers={(users) => {
-              setAddressMapping(
+              setAddressList(
                 autoGenerateId(
                   {
-                    ...addressMapping,
+                    ...addressList,
                     addresses: users,
                   },
-                  autoGenerateMappingId
+                  autoGenerateListId
                 )
               )
               setVisible(false)
@@ -168,13 +168,13 @@ export function AddressMappingSelect({
             className="landing-button"
             style={{ width: "100%" }}
             onClick={() => {
-              setAddressMapping(
+              setAddressList(
                 autoGenerateId(
                   {
-                    ...addressMapping,
-                    addresses: [...addressMapping.addresses, currId],
+                    ...addressList,
+                    addresses: [...addressList.addresses, currId],
                   },
-                  autoGenerateMappingId
+                  autoGenerateListId
                 )
               )
               setCurrId("")

@@ -1,5 +1,5 @@
 import { Divider, Empty, Spin } from 'antd';
-import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressMapping } from 'bitbadgesjs-utils';
+import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressList } from 'bitbadgesjs-utils';
 import { useState } from 'react';
 
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
@@ -26,7 +26,7 @@ export function CodesPasswordsTab({ collectionId, codesAndPasswords, badgeId, ap
   const normalizedCodesAndPasswords = [];
   for (let i = 0; i < approvals.length; i++) {
     const approval = approvals[i];
-    if (isInAddressMapping(approval.fromMapping, 'Mint')) {
+    if (isInAddressList(approval.fromList, 'Mint')) {
       if (approvalId && approvalId !== approval.approvalId) continue;
       if (codesAndPasswords && (codesAndPasswords[i]?.codes.length > 0 || codesAndPasswords[i]?.password)) {
         approvalsForClaims.push(approval);

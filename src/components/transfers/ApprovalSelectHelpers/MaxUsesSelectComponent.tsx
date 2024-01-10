@@ -51,7 +51,7 @@ export const MaxUses = ({ label, disabled, type,
     (key === 'perToAddressMaxNumTransfers' && amountType === AmountType.Predetermined && approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerToAddressNumTransfers && approvalToAdd.approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers === 0n)
 
   const InputNode = <>
-    {numUses > 0n && <div style={{ justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
+    {numUses > 0n && !disabled && <div style={{ justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
       <NumberInput
         title={isPasswordDisplay ? 'Max Password Uses' : isCodeDisplay ? 'Number of Codes' : 'Max Uses'}
         value={Number(numUses)}
@@ -65,19 +65,14 @@ export const MaxUses = ({ label, disabled, type,
         min={1}
         max={100000}
       />
-      <br />
-      {disabled && <div style={{ marginLeft: 10 }}>
 
-        <LockOutlined /> {type === 'overall' ? 'To edit this, edit the number of ' + (codeType === CodeType.Unique ? 'codes.' : 'password uses.') : ''}
-        {type !== 'overall' && <>
-          Locked due to distribution method: {distributionMethod === DistributionMethod.Codes ?
-            codeType === CodeType.Unique ? 'Codes' : 'Password' : distributionMethod}
-        </>}
-      </div>}
+
     </div>}
-    {greaterThanOverall && <div style={{ color: '#FF5733' }}>
-      <WarningOutlined /> The per user max uses is greater than the cumulative max uses.
-    </div>}
+    {
+      greaterThanOverall && <div style={{ color: '#FF5733' }}>
+        <WarningOutlined /> The per user max uses is greater than the cumulative max uses.
+      </div>
+    }
   </>
 
   if (isPasswordDisplay || isCodeDisplay) {
@@ -91,6 +86,9 @@ export const MaxUses = ({ label, disabled, type,
 
   </>} value={<>
     <Switch
+      unCheckedChildren="Not Tracked"
+      checkedChildren={<>{numUses.toString()} {numUses === 1n ? 'Use' : 'Uses'}</>
+      }
       checked={numUses > 0n}
       onChange={(checked) => {
         setNumUses(checked ? 1n : 0n);
@@ -106,5 +104,14 @@ export const MaxUses = ({ label, disabled, type,
       <br /><br />
     </div>}
     {InputNode}
+    {disabled && <div style={{ marginLeft: 10 }} className="secondary-text">
+
+      <LockOutlined /> {type === 'overall' ? 'To edit this, edit the number of ' + (codeType === CodeType.Unique ? 'codes.' : 'password uses.') : ''}
+      {type !== 'overall' && <>
+        Locked due to distribution method: {distributionMethod === DistributionMethod.Codes ?
+          codeType === CodeType.Unique ? 'Codes' : 'Password' : distributionMethod}
+      </>}
+      <br />   <br />
+    </div>}
   </>
 }

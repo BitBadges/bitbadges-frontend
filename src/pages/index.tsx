@@ -695,7 +695,7 @@ const Home: NextPage = () => {
         <Row className='flex-center' style={{ alignItems: 'normal' }}>
           <Col md={22} sm={22} xs={22}>
             <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
-              Badges can be transferred directly or claimed by users via whitelists, unique codes, and passwords. This makes them compatible with many of your favorite tools and services!
+              Badges can be transferred directly or claimed by users via allowlists, unique codes, and passwords. This makes them compatible with many of your favorite tools and services!
             </Typography.Text>
           </Col>
         </Row>

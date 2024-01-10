@@ -1,7 +1,7 @@
 import { DeleteOutlined, EditOutlined, FieldTimeOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined, UpOutlined } from '@ant-design/icons';
 import { Col, Popover } from 'antd';
 import { TimelineItem, UintRange } from 'bitbadgesjs-proto';
-import { checkIfUintRangesOverlap, getCurrentIdxForTimeline, removeUintRangeFromUintRange } from 'bitbadgesjs-utils';
+import { checkIfUintRangesOverlap, getCurrentIdxForTimeline, removeUintRangesFromUintRanges } from 'bitbadgesjs-utils';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { useState, useMemo } from 'react';
 import { compareObjects } from '../../utils/compare';
@@ -89,7 +89,7 @@ export function TimelineEditor<T extends TimelineItem<bigint>>({
       const x = timeline[i];
       let validUintRanges = x.timelineTimes;
       for (const prevTimelineItem of timeline.slice(0, i)) {
-        const [remaining, removed] = removeUintRangeFromUintRange(prevTimelineItem.timelineTimes, validUintRanges);
+        const [remaining, removed] = removeUintRangesFromUintRanges(prevTimelineItem.timelineTimes, validUintRanges);
         validUintRanges = remaining;
         diffFromSelected = diffFromSelected || removed.length > 0;
       }

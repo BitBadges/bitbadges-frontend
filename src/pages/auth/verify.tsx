@@ -114,7 +114,7 @@ function BlockinCodesScreen() {
             description: '',
             image: '',
             params,
-            _legacyId: inputtedQrCode,
+            _docId: inputtedQrCode,
             usedAt: BigInt(Date.now()),
           });
 

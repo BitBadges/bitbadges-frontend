@@ -1,6 +1,6 @@
 import { ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Divider, Empty, Typography } from 'antd';
-import { UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendDefaultForIncoming, appendDefaultForOutgoing, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressMapping, getUnhandledUserIncomingApprovals } from 'bitbadgesjs-utils';
+import { UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendSelfInitiatedIncomingApproval, appendSelfInitiatedOutgoingApproval, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressList, getUnhandledUserIncomingApprovals } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -83,8 +83,8 @@ function UniversalUserApprovalsTab({
   const incomingApprovals = userIncomingApprovals ? userIncomingApprovals : fetchedIncomingApprovals;
   const appendDefaultIncoming = fetchedBalanceStore?.autoApproveSelfInitiatedIncomingTransfers ?? collection?.defaultBalances.autoApproveSelfInitiatedIncomingTransfers;
   const appendDefaultOutgoing = fetchedBalanceStore?.autoApproveSelfInitiatedOutgoingTransfers ?? collection?.defaultBalances.autoApproveSelfInitiatedOutgoingTransfers;
-  const outgoingApprovalsWithDefaults = !approverAccount?.cosmosAddress ? [] : appendDefaultForOutgoing(outgoingApprovals, approverAccount?.cosmosAddress ?? '')
-  const incomingApprovalsWithDefaults = !approverAccount?.cosmosAddress ? [] : appendDefaultForIncoming(incomingApprovals, approverAccount?.cosmosAddress ?? '')
+  const outgoingApprovalsWithDefaults = !approverAccount?.cosmosAddress ? [] : appendSelfInitiatedOutgoingApproval(outgoingApprovals, approverAccount?.cosmosAddress ?? '')
+  const incomingApprovalsWithDefaults = !approverAccount?.cosmosAddress ? [] : appendSelfInitiatedIncomingApproval(incomingApprovals, approverAccount?.cosmosAddress ?? '')
 
   const updateHistory = fetchedBalanceStore?.updateHistory ?? [];
 
@@ -97,11 +97,11 @@ function UniversalUserApprovalsTab({
 
   //For compatibility with other components, we cast the approvals to the collection transfer type
   const castedOutgoingApprovals = approverAccount?.cosmosAddress ? castOutgoingTransfersToCollectionTransfers(
-    appendDefaultOutgoing ? outgoingApprovalsWithDefaults : outgoingApprovalsWithDefaults.filter(x => x.approvalId !== "default-outgoing"),
+    appendDefaultOutgoing ? outgoingApprovalsWithDefaults : outgoingApprovalsWithDefaults.filter(x => x.approvalId !== "self-initiated-outgoing"),
     approverAccount?.cosmosAddress ?? '')
     : [];
   const castedIncomingApprovals = approverAccount?.cosmosAddress ? castIncomingTransfersToCollectionTransfers(
-    appendDefaultIncoming ? incomingApprovalsWithDefaults : incomingApprovals.filter(x => x.approvalId !== "default-incoming"),
+    appendDefaultIncoming ? incomingApprovalsWithDefaults : incomingApprovals.filter(x => x.approvalId !== "self-initiated-incoming"),
     approverAccount?.cosmosAddress ?? '') : []
 
   const tabInfo = [
@@ -163,23 +163,23 @@ function UniversalUserApprovalsTab({
           {
             title: 'Approve All',
             message: 'Approve any incoming transfer for this collection.',
-            isSelected: getUnhandledUserIncomingApprovals((userIncomingApprovals ?? []).filter(x => x.approvalId !== "default-incoming"), approverAccount?.cosmosAddress ?? '', true).length == 0,
+            isSelected: getUnhandledUserIncomingApprovals((userIncomingApprovals ?? []).filter(x => x.approvalId !== "self-initiated-incoming"), approverAccount?.cosmosAddress ?? '', true).length == 0,
             additionalNode: () => <><DefaultApprovedDisplay address={approverAccount?.cosmosAddress ?? ''} /></>
           },
           {
             title: 'Must Initiate',
             message: 'Only approve incoming transfers that were initiated by you.',
-            isSelected: (userIncomingApprovals ?? []).filter(x => x.approvalId !== "default-incoming").length === 0,
+            isSelected: (userIncomingApprovals ?? []).filter(x => x.approvalId !== "self-initiated-incoming").length === 0,
             additionalNode: () => <><DefaultOptInDisplay address={approverAccount?.cosmosAddress ?? ''} /></>
           }
         ]}
         onSwitchChange={(value) => {
           if (value === 0) {
             setUserIncomingApprovals?.([{
-              fromMappingId: "All",
-              fromMapping: getReservedAddressMapping("All"),
-              initiatedByMapping: getReservedAddressMapping("All"),
-              initiatedByMappingId: "All",
+              fromListId: "All",
+              fromList: getReservedAddressList("All"),
+              initiatedByList: getReservedAddressList("All"),
+              initiatedByListId: "All",
               transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
               badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
               ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -297,8 +297,8 @@ function UniversalUserApprovalsTab({
               (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateOutgoingApprovals ?? []).map(x => {
                 return {
                   ...x,
-                  toMapping: getReservedAddressMapping(x.toMappingId),
-                  initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
+                  toList: getReservedAddressList(x.toListId),
+                  initiatedByList: getReservedAddressList(x.initiatedByListId),
                 }
               }),
               approverAccount.address
@@ -322,8 +322,8 @@ function UniversalUserApprovalsTab({
                 (collection.owners?.find(x => x.cosmosAddress === approverAccount?.address)?.userPermissions.canUpdateIncomingApprovals ?? []).map(x => {
                   return {
                     ...x,
-                    fromMapping: getReservedAddressMapping(x.fromMappingId),
-                    initiatedByMapping: getReservedAddressMapping(x.initiatedByMappingId),
+                    fromList: getReservedAddressList(x.fromListId),
+                    initiatedByList: getReservedAddressList(x.initiatedByListId),
                   }
                 }),
                 approverAccount.address
