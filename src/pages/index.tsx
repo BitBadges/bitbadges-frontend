@@ -228,7 +228,7 @@ const Home: NextPage = () => {
                   </Typography.Text> */}
 
             </div>
-            <div className="container" style={{ marginTop: 12 }}>
+            <div className="container" style={{ marginTop: 12, maxHeight: 300 }}>
               <iframe
                 className='responsive-iframe rounded-2xl'
                 // width={'60%'}

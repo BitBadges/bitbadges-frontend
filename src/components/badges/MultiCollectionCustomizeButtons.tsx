@@ -106,7 +106,7 @@ export const CustomizeButtons = ({ accountInfo, badgeIdObj, badgeId, onlyShowCol
             </div>
           </div>
         }
-        {<>
+        {pages.length > 0 && <>
           <b>Pages</b>
           {(pages ?? [])?.length == 0 && <EmptyIcon description='No created pages yet.' />}
 

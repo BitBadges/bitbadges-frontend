@@ -45,8 +45,6 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
     if (index !== currPage) return null;
 
     return items.map((item) => {
-      const x = crypto.randomUUID();
-      console.log(x);
       return item;
     });
   }).filter(x => x).flat();

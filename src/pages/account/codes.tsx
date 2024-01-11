@@ -1,7 +1,7 @@
 import { Layout, Tooltip } from 'antd';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
-import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, WarningOutlined } from '@ant-design/icons';
 import { BigIntify, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -224,7 +224,7 @@ export function AuthCodes() {
         Authentication QR codes can be used to prove you own specific badges in-person.
         Looking to become an authentication provider? See  <a onClick={() => { router.push('https://docs.bitbadges.io/overview/verification-tools') }} target='_blank' rel="noreferrer" >here</a>.
       </div>
-      <br />
+      <Divider />
       <div className='flex-center'>
 
         <Tabs
@@ -237,7 +237,7 @@ export function AuthCodes() {
         />
       </div>
       <div className='secondary-text' style={{ textAlign: 'center' }}>
-        <InfoCircleOutlined /> {tab == 'all' ? 'QR codes for this account stored by BitBadges servers.' : 'QR codes you have saved to the browser on this device.'}
+        {tab == 'all' ? 'QR codes for this account stored by BitBadges servers.' : 'QR codes you have saved to the browser on this device.'}
       </div>
 
       <br />

@@ -526,7 +526,7 @@ export function AccountSettings() {
                           profilePicUrl: fileList.length == 0 ? '' : newAccount.profilePicUrl
                         });
 
-                        notification.success({ message: "Account updated!", description: "It may take a couple minutes to display changes." });
+                        notification.success({ message: "Account updated!", description: "You may need to refresh to display changes." });
                         await router.push(`/account/${chain.cosmosAddress}`);
                       }
                     } catch (err) {

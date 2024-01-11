@@ -195,8 +195,7 @@ export function SubmitMsgCreateAddressList() {
           {
             title: 'On-Chain',
             message: <>
-              The address list will be stored on-chain. This will cost a transaction fee to store it. <span style={{ color: 'orange', fontWeight: 'bolder' }}>The list will be permanently frozen, meaning it can never be updated or deleted.</span>
-              If you need an on-chain solution that can be updated, please create a badge collection instead.
+              The address list will be stored on-chain. This will cost a transaction fee to store it. <span style={{ color: 'orange', fontWeight: 'bolder' }}>The list will be permanently frozen, meaning it can never be updated or deleted.</span>{' '}If you need an on-chain solution that can be updated, please create a badge collection instead.
             </>,
             isSelected: clicked && onChainStorage,
             additionalNode: ListIDInput
