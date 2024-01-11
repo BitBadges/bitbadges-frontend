@@ -32,6 +32,10 @@ export function BadgeAvatarDisplay({
   onClick,
   filterGreaterThanMax,
   sortBy,
+
+  isWatchlist,
+  showCustomizeButtons,
+  addressOrUsername,
 }: {
   collectionId: bigint
   balance?: Balance<bigint>[]
@@ -51,7 +55,10 @@ export function BadgeAvatarDisplay({
   onClick?: (id: bigint) => void
   filterGreaterThanMax?: boolean
   sortBy?: 'oldest' | 'newest' | undefined
-  groupByCollection?: boolean
+  groupByCollection?: boolean,
+  isWatchlist?: boolean,
+  showCustomizeButtons?: boolean,
+  addressOrUsername?: string,
 }) {
   const txTimelineContext = useTxTimelineContext()
   const collection = useCollection(collectionId)
@@ -176,6 +183,9 @@ export function BadgeAvatarDisplay({
                         : undefined
                     }
                     groupedByCollection={groupByCollection}
+                    showCustomizeButtons={showCustomizeButtons}
+                    addressOrUsername={addressOrUsername}
+                    isWatchlist={isWatchlist}
                   />
                 )}
               </div>

@@ -9,7 +9,8 @@ import {
 } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { BatchBadgeDetails, getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext"
 import {
   getAccountBalancesView,
   useAccount,
@@ -27,9 +28,6 @@ import { BadgeAvatar } from "./BadgeAvatar"
 import { BadgeAvatarDisplay } from "./BadgeAvatarDisplay"
 import { BadgeCard } from "./BadgeCard"
 import { CollectionHeader } from "./CollectionHeader"
-import { CustomizeButtons } from "./MultiCollectionCustomizeButtons"
-import { BatchBadgeDetails } from "bitbadgesjs-utils"
-import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext"
 
 export function CollectionDisplayWithBadges({
   badgeObj,
@@ -39,7 +37,9 @@ export function CollectionDisplayWithBadges({
   addressOrUsernameToShowBalance,
   hideCollectionLink,
   span,
-  sortBy
+  sortBy,
+  showCustomizeButtons,
+  isWatchlist,
 }: {
   badgeObj: BatchBadgeDetails<bigint>
   accountInfo?: BitBadgesUserInfo<bigint>
@@ -48,7 +48,9 @@ export function CollectionDisplayWithBadges({
   addressOrUsernameToShowBalance?: string
   hideCollectionLink?: boolean
   span?: number
-  sortBy?: "oldest" | "newest" | undefined
+  sortBy?: "oldest" | "newest" | undefined,
+  showCustomizeButtons?: boolean,
+  isWatchlist?: boolean
 }) {
   const collectionId = badgeObj.collectionId
   const collection = useCollection(collectionId)
@@ -107,6 +109,9 @@ export function CollectionDisplayWithBadges({
         fromMultiCollectionDisplay
         sortBy={sortBy}
         groupByCollection
+        showCustomizeButtons={showCustomizeButtons}
+        isWatchlist={isWatchlist}
+        addressOrUsername={addressOrUsernameToShowBalance}
       />
     </InformationDisplayCard>
   )
@@ -209,6 +214,7 @@ export function MultiCollectionBadgeDisplay({
       if (allBadgesToDisplay.length > 0) {
         const allArePreviewFetches = allBadgesToDisplay.every((x) => x.collectionId == 0n)
         if (!allArePreviewFetches) {
+          
           await batchFetchAndUpdateMetadata(
             allBadgesToDisplay.map((x) => {
               return {
@@ -240,8 +246,6 @@ export function MultiCollectionBadgeDisplay({
     fetchAndUpdate()
   }, [collectionIds, groupByCollection, allBadgesToDisplay, defaultPageSize, txTimelineContext.existingCollectionId])
 
-  console.log(badgesToShow);
-
   if (groupByCollection) {
     ///Little hacky way to not trigger the first fetch in BadgeAvatarDisplay in favor of the batch fetch from this file
     if (!loaded) return <Spin />
@@ -264,6 +268,9 @@ export function MultiCollectionBadgeDisplay({
                 key={idx}
                 span={span}
                 sortBy={sortBy}
+                isWatchlist={isWatchlist}
+                showCustomizeButtons={showCustomizeButtons}
+
               />
             )
           })}
@@ -318,14 +325,13 @@ export function MultiCollectionBadgeDisplay({
                                         badgeIdObj.collectionId
                                     )?.balances ?? []
                                   )}
-                                />
-                                <CustomizeButtons
-                                  badgeIdObj={badgeIdObj}
-                                  badgeId={badgeId}
                                   showCustomizeButtons={showCustomizeButtons}
-                                  accountInfo={accountInfo}
                                   isWatchlist={isWatchlist}
+                                  addressOrUsername={
+                                    addressOrUsernameToShowBalance
+                                  }
                                 />
+
                               </div>
                             ) : (
                               <BadgeAvatar

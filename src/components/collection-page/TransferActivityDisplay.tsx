@@ -8,9 +8,11 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { DesiredNumberType } from '../../bitbadges-api/api';
 
 
+import { useSelector } from 'react-redux';
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { fetchCollections, getCollection, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE, NODE_API_URL } from '../../constants';
+import { GlobalReduxState } from '../../pages/_app';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';
@@ -86,6 +88,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
   numShown: number
 }) {
   const router = useRouter();
+  const collections = useSelector((state: GlobalReduxState) => state.collections.collections)
 
   return <>{/** No activity */}
     {activity.length === 0 && !hasMore && <EmptyIcon description='No Activity' />}
@@ -107,7 +110,7 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
           }
 
           const collectionId = activity.collectionId;
-          const collection = getCollection(collectionId);
+          const collection = collections[`${collectionId}`];
 
           return <CollapsePanel
             key={idx}

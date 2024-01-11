@@ -1,5 +1,5 @@
 import { Col, Input, Dropdown } from "antd"
-import { AddressListWithMetadata } from "bitbadgesjs-utils"
+import { AddressListWithMetadata, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
 import { useState, useEffect } from "react"
 import { getAddressLists } from "../../bitbadges-api/api"
 import { BatchBadgeDetails } from "bitbadgesjs-utils"
@@ -9,6 +9,9 @@ import { InformationDisplayCard } from "./InformationDisplayCard"
 import { SearchDropdown } from "../navigation/SearchDropdown"
 import { BatchBadgeDetailsTag } from "../badges/DisplayFilters"
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
+import IconButton from "./IconButton"
+import { MinusOutlined, SearchOutlined } from "@ant-design/icons"
+import { allInBatchArray } from "bitbadgesjs-utils"
 
 export const NewPageInputForm = ({
   visible,
@@ -89,18 +92,20 @@ export const CustomizeAddRemoveListFromPage = ({
   addressOrUsername,
   onAdd,
   onRemove,
+  currItems
 }: {
   addressOrUsername: string
   onAdd: (listId: string) => Promise<void>
   onRemove: (listId: string) => Promise<void>
+  currItems: string[]
 }) => {
   const accountInfo = useAccount(addressOrUsername)
 
+  const [visible, setVisible] = useState<boolean>(false)
   const [customizeSearchListValue, setCustomizeSearchListValue] =
     useState<string>("")
   const [selectedList, setSelectedList] = useState<string>("")
-  const [selectedListList, setSelectedListList] =
-    useState<AddressListWithMetadata<bigint> | null>(null)
+  const [selectedListList, setSelectedListList] = useState<AddressListWithMetadata<bigint> | null>(null)
 
   useEffect(() => {
     if (!selectedList) return
@@ -128,6 +133,8 @@ export const CustomizeAddRemoveListFromPage = ({
 
     />
   )
+
+
 
   const CustomizeSearchListDropdown = (
     <Dropdown
@@ -163,6 +170,8 @@ export const CustomizeAddRemoveListFromPage = ({
     </Dropdown>
   )
 
+  const added = selectedList ? currItems?.includes(selectedList) : false;
+
   if (!accountInfo) return <></>
 
   return (
@@ -174,65 +183,85 @@ export const CustomizeAddRemoveListFromPage = ({
       noBorder={!selectedList}
       inheritBg={!selectedList}
     >
-      <div className="flex">{CustomizeSearchListDropdown}</div>
+      <IconButton
+        secondary
+        src={visible ? <MinusOutlined /> : <SearchOutlined />}
+        onClick={() => {
+          setVisible(!visible)
+        }}
+        text='Add / remove via search'
+      />
 
-      {selectedList && selectedListList && (
-        <>
-          <br />
-          <div className="flex-center">
-            <AddressListCard
-              addressList={selectedListList}
-              addressOrUsername={accountInfo.address}
-            />
+      {visible && <>
+
+        <div className="flex">{CustomizeSearchListDropdown}</div>
+
+        {selectedList && selectedListList && (
+          <>
+            <br />
+            <div className="flex-center">
+              <AddressListCard
+                addressList={selectedListList}
+                addressOrUsername={accountInfo.address}
+              />
+            </div>
+            <br />
+          </>
+        )}
+
+        {selectedList && (
+          <div className="flex-center flex-wrap">
+            {!added && <button
+              className="landing-button"
+              onClick={async () => {
+                if (!selectedList) return
+
+                await onAdd(selectedList)
+
+                setSelectedList("")
+              }}
+            >
+              Add
+            </button>}
+
+            {added && <button
+              className="landing-button"
+              onClick={async () => {
+                if (!selectedList) return
+
+                await onRemove(selectedList)
+
+                setSelectedList("")
+              }}
+            >
+              Remove
+            </button>}
           </div>
-          <br />
-        </>
-      )}
-
-      {selectedList && (
-        <div className="flex-center flex-wrap">
-          <button
-            className="landing-button"
-            onClick={async () => {
-              if (!selectedList) return
-
-              await onAdd(selectedList)
-
-              setSelectedList("")
-            }}
-          >
-            Add
-          </button>
-
-          <button
-            className="landing-button"
-            onClick={async () => {
-              if (!selectedList) return
-
-              await onRemove(selectedList)
-
-              setSelectedList("")
-            }}
-          >
-            Remove
-          </button>
-        </div>
-      )}
+        )}</>}
     </InformationDisplayCard>
   )
+}
+
+export const noneInBatchArray = (arr: BatchBadgeDetails<bigint>[], badgeIdObj: BatchBadgeDetails<bigint>) => {
+  const matchingElem = arr.find(x => x.collectionId === badgeIdObj.collectionId);
+  if (!matchingElem) return true;
+
+  const [_, removed] = removeUintRangesFromUintRanges(matchingElem.badgeIds, badgeIdObj.badgeIds);
+  return removed.length == 0
 }
 
 export const CustomizeAddRemoveBadgeFromPage = ({
   onAdd,
   onRemove,
+  currItems
 }: {
   onAdd: (badgeIdObj: BatchBadgeDetails<bigint>) => Promise<void>
   onRemove: (badgeIdObj: BatchBadgeDetails<bigint>) => Promise<void>
+  currItems: BatchBadgeDetails<bigint>[]
 }) => {
-  const [selectedBadge, setSelectedBadge] = useState<BatchBadgeDetails<bigint> | null>(
-    null
-  )
+  const [selectedBadge, setSelectedBadge] = useState<BatchBadgeDetails<bigint> | null>(null)
   const [customizeSearchValue, setCustomizeSearchValue] = useState<string>("")
+  const [visible, setVisible] = useState<boolean>(false)
 
   const CustomizeSearchBar = (
     <Input
@@ -290,62 +319,77 @@ export const CustomizeAddRemoveBadgeFromPage = ({
     </Dropdown>
   )
 
+  const allAreAdded = selectedBadge ? allInBatchArray(currItems, selectedBadge) : false;
+  const noneAreAdded = selectedBadge ? noneInBatchArray(currItems, selectedBadge) : false;
+
   return (
     <>
       <InformationDisplayCard
-
         md={12}
         xs={24}
         style={{ marginBottom: 8 }}
         noBorder={!selectedBadge}
         inheritBg={!selectedBadge}
+        noPadding
       >
-        <div className="flex">{CustomizeSearchDropdown}</div>
+        <IconButton
+          secondary
+          src={visible ? <MinusOutlined /> : <SearchOutlined />}
+          onClick={() => {
+            setVisible(!visible)
+          }}
+          text='Add / remove via search'
+        />
+        {visible && <>
+          <div className="flex">{CustomizeSearchDropdown}</div>
 
-        {selectedBadge && (
-          <>
-            <br />
-            <div className="flex-center">
-              <BatchBadgeDetailsTag
-                badgeIdObj={selectedBadge}
-                onClose={() => {
+          {selectedBadge && (
+            <>
+              <br />
+              <div className="flex-center">
+                <BatchBadgeDetailsTag
+                  badgeIdObj={selectedBadge}
+                  onClose={() => {
+                    setSelectedBadge(null)
+                  }}
+                />
+              </div>
+              <br />
+            </>
+          )}
+
+          {selectedBadge && (
+            <div className="flex-center flex-wrap">
+
+
+              {!noneAreAdded && <button
+                className="landing-button"
+                onClick={async () => {
+                  if (!selectedBadge) return
+
+                  await onRemove(selectedBadge)
+
                   setSelectedBadge(null)
                 }}
-              />
+              >
+                Remove
+              </button>}
+
+              {!allAreAdded && <button
+                className="landing-button"
+                onClick={async () => {
+                  if (!selectedBadge) return
+
+                  await onAdd(selectedBadge)
+
+                  setSelectedBadge(null)
+                }}
+              >
+                Add
+              </button>}
             </div>
-            <br />
-          </>
-        )}
 
-        {selectedBadge && (
-          <div className="flex-center flex-wrap">
-            <button
-              className="landing-button"
-              onClick={async () => {
-                if (!selectedBadge) return
-
-                await onAdd(selectedBadge)
-
-                setSelectedBadge(null)
-              }}
-            >
-              Add
-            </button>
-
-            <button
-              className="landing-button"
-              onClick={async () => {
-                if (!selectedBadge) return
-
-                await onRemove(selectedBadge)
-
-                setSelectedBadge(null)
-              }}
-            >
-              Remove
-            </button>
-          </div>
-        )}
+          )} </>}
       </InformationDisplayCard>
     </>
   )

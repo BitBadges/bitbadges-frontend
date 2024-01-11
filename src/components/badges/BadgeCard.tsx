@@ -10,11 +10,13 @@ import { useRouter } from "next/router"
 
 import { ClockCircleOutlined } from "@ant-design/icons"
 import { Balance } from "bitbadgesjs-proto"
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext"
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
+import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getTimeRangesString } from "../../utils/dates"
 import { BadgeAvatar } from "./BadgeAvatar"
-import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext"
+import { CustomizeButtons } from "./MultiCollectionCustomizeButtons"
 
 export function BadgeCard({
   size = 100,
@@ -25,6 +27,9 @@ export function BadgeCard({
   showSupplys,
   balances,
   groupedByCollection,
+  showCustomizeButtons,
+  isWatchlist,
+  addressOrUsername
 }: {
   badgeId: bigint
   collectionId: bigint
@@ -33,11 +38,15 @@ export function BadgeCard({
   hideCollectionLink?: boolean
   showSupplys?: boolean
   balances?: Balance<bigint>[],
-  groupedByCollection?: boolean
+  groupedByCollection?: boolean,
+  showCustomizeButtons?: boolean,
+  isWatchlist?: boolean,
+  addressOrUsername?: string,
 }) {
   const router = useRouter()
 
   const collection = useCollection(collectionId)
+  const accountInfo = useAccount(addressOrUsername)
 
   //Calculate total, undistributed, claimable, and distributed supplys
 
@@ -47,10 +56,9 @@ export function BadgeCard({
 
   const collectionMetadata = collection?.cachedCollectionMetadata
   const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances) : 0n
-  const showOwnershipTimesIcon =
-    badgeId && balances && showSupplys
-      ? balances.some((x) => !isFullUintRanges(x.ownershipTimes))
-      : false
+  const showOwnershipTimesIcon = badgeId && balances && showSupplys
+    ? balances.some((x) => !isFullUintRanges(x.ownershipTimes))
+    : false
 
 
   const isMobile = window.innerWidth < 768
@@ -69,6 +77,7 @@ export function BadgeCard({
         width: isMobile ? undefined : 200,
       }}
       hoverable={hoverable ? hoverable : true}
+      bodyStyle={{ padding: 8 }}
       onClick={() => {
         if (collectionId == NEW_COLLECTION_ID) {
           notification.info({
@@ -181,10 +190,29 @@ export function BadgeCard({
                 </Tooltip>
               )}
               {showSupplys && <> owned</>}
+              <div className="my-3" />
+              {showCustomizeButtons && <div onClick={(e) => e.stopPropagation()}>
+
+                <div className="flex-center full-width primary-text">
+
+                  {<CustomizeButtons
+                    badgeIdObj={{
+                      collectionId: collectionId,
+                      badgeIds: [{ start: badgeId, end: badgeId }],
+                    }}
+                    badgeId={badgeId}
+                    showCustomizeButtons={showCustomizeButtons}
+                    accountInfo={accountInfo}
+                    isWatchlist={isWatchlist}
+                  />}
+                </div>
+              </div>
+              }
             </div>
           }
         />
       </div>
+
     </Card>
   )
 }

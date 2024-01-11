@@ -28,6 +28,7 @@ import {
   useMemo,
   useState
 } from "react"
+import { useSelector } from "react-redux"
 import { getAddressLists } from "../../bitbadges-api/api"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
 import {
@@ -41,8 +42,7 @@ import {
   useAccount
 } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 import {
-  fetchBalanceForUser,
-  getCollection,
+  fetchBalanceForUser
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { AccountHeader } from "../../components/badges/AccountHeader"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
@@ -61,6 +61,7 @@ import { ReportedWrapper } from "../../components/wrappers/ReportedWrapper"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
+import { GlobalReduxState } from "../_app"
 
 
 const { Content } = Layout
@@ -69,7 +70,7 @@ function PortfolioPage() {
   const router = useRouter()
 
   const chain = useChainContext()
-
+  const collections = useSelector((state: GlobalReduxState) => state.collections.collections)
   const { addressOrUsername } = router.query
   const accountInfo = useAccount(addressOrUsername as string)
   const [tab, setTab] = useState("collected")
@@ -99,12 +100,7 @@ function PortfolioPage() {
   }, [badgeTab])
 
   const [cardView, setCardView] = useState(true)
-  const [filteredCollections, setFilteredCollections] = useState<
-    {
-      collectionId: bigint
-      badgeIds: UintRange<bigint>[]
-    }[]
-  >([])
+  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails<bigint>[]>([])
   const [filteredLists, setFilteredLists] = useState<string[]>([])
   const [groupByCollection, setGroupByCollection] = useState(false)
   const [editMode, setEditMode] = useState(false)
@@ -189,35 +185,33 @@ function PortfolioPage() {
 
           allBadgeIds.push(
             deepCopy({
-              badgeIds:
-                balanceInfo.balances
-                  .map((balance) => balance.badgeIds)
-                  .flat() || [],
+              badgeIds: balanceInfo.balances
+                .map((balance) => balance.badgeIds)
+                .flat() || [],
               collectionId: balanceInfo.collectionId,
             })
           )
         }
       } else {
-        const badgesToAdd =
-          (currView?.ids
-            .map((id) => {
-              const collectionId = getCollection(BigInt(id))?.collectionId
-              if (!collectionId) return null
+        const badgesToAdd = (currView?.ids
+          .map((id) => {
+            const collection = collections[`${id}`]
+            const collectionId = collection?.collectionId
+            if (!collectionId) return null
 
-              return {
-                collectionId,
-                badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-              }
-            })
-            .filter((x) => x) as BatchBadgeDetails<bigint>[]) ?? []
+            return {
+              collectionId,
+              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+            }
+          })
+          .filter((x) => x) as BatchBadgeDetails<bigint>[]) ?? []
 
         allBadgeIds.push(...badgesToAdd)
       }
     } else {
       allBadgeIds.push(
         ...deepCopy(
-          accountInfo?.customPages?.badges?.find((x) => x.title === badgeTab)?.items ??
-          []
+          accountInfo?.customPages?.badges?.find((x) => x.title === badgeTab)?.items ?? []
         )
       )
     }
@@ -242,7 +236,7 @@ function PortfolioPage() {
     }
 
     for (const badgeIdObj of allBadgeIds) {
-      const collection = getCollection(badgeIdObj.collectionId)
+      const collection = collections[`${badgeIdObj.collectionId}`]
       if (!collection) continue
       const maxBadgeId = getMaxBadgeIdForCollection(collection)
       const [remaining] = removeUintRangesFromUintRanges(
@@ -253,7 +247,7 @@ function PortfolioPage() {
     }
 
     return allBadgeIds.filter((x) => x.badgeIds.length > 0)
-  }, [accountInfo, badgeTab, filteredCollections, currView?.ids])
+  }, [accountInfo, badgeTab, filteredCollections, currView?.ids, collections])
 
   const fetchMoreCollected = useCallback(
     async (address: string) => {
@@ -666,8 +660,6 @@ function PortfolioPage() {
                         </div>
                       )}
 
-                    <br />
-
                     {badgeTab != "All" &&
                       badgeTab != "" &&
                       badgeTab != "Created" &&
@@ -676,17 +668,23 @@ function PortfolioPage() {
                         <>
                           <div className="flex-center">
                             <CustomizeAddRemoveBadgeFromPage
+                              currItems={deepCopy(badgeTab == "Hidden"
+                                ? deepCopy(accountInfo?.hiddenBadges ?? [])
+                                : deepCopy(
+                                  accountInfo?.customPages?.badges?.find(
+                                    (x) => x.title === badgeTab
+                                  )?.items ?? []
+                                ))}
                               onAdd={async (
                                 selectedBadge: BatchBadgeDetails<bigint>
                               ) => {
-                                let currCustomPageBadges =
-                                  badgeTab == "Hidden"
-                                    ? deepCopy(accountInfo?.hiddenBadges ?? [])
-                                    : deepCopy(
-                                      accountInfo?.customPages?.badges?.find(
-                                        (x) => x.title === badgeTab
-                                      )?.items ?? []
-                                    )
+                                let currCustomPageBadges = badgeTab == "Hidden"
+                                  ? deepCopy(accountInfo?.hiddenBadges ?? [])
+                                  : deepCopy(
+                                    accountInfo?.customPages?.badges?.find(
+                                      (x) => x.title === badgeTab
+                                    )?.items ?? []
+                                  )
                                 currCustomPageBadges = addToBatchArray(
                                   currCustomPageBadges,
                                   [selectedBadge]
@@ -703,6 +701,7 @@ function PortfolioPage() {
                                     )
                                   if (!currCustomPage) return
 
+
                                   await updateProfileInfo(chain.address, {
                                     customPages: {
                                       lists: accountInfo?.customPages?.lists ?? [],
@@ -711,7 +710,7 @@ function PortfolioPage() {
                                           x.title === badgeTab
                                             ? {
                                               ...currCustomPage,
-                                              badges: currCustomPageBadges,
+                                              items: currCustomPageBadges,
                                             }
                                             : x
                                       ) ?? [],
@@ -753,7 +752,7 @@ function PortfolioPage() {
                                           x.title === badgeTab
                                             ? {
                                               ...currCustomPage,
-                                              badges: currCustomPageBadges,
+                                              items: currCustomPageBadges,
                                             }
                                             : x
                                       ) ?? [],
@@ -811,16 +810,14 @@ function PortfolioPage() {
                                   : false
                           }
                           fetchMore={async () => {
+                            console.log("GET MORE")
                             const hasMore =
-                              badgeTab === "All"
-                                ? collectedHasMore
-                                : badgeTab === "Managing"
-                                  ? accountInfo?.views["managingBadges"]?.pagination
+                              badgeTab === "All" ? collectedHasMore : badgeTab === "Managing"
+                                ? accountInfo?.views["managingBadges"]?.pagination?.hasMore ?? true
+                                : badgeTab === "Created"
+                                  ? accountInfo?.views["createdBadges"]?.pagination
                                     ?.hasMore ?? true
-                                  : badgeTab === "Created"
-                                    ? accountInfo?.views["createdBadges"]?.pagination
-                                      ?.hasMore ?? true
-                                    : false
+                                  : false
 
                             if (filteredCollections.length > 0 && hasMore) {
                               //If we have a view where we havent fetched everything plus have specific filters, we need to fetch more with filters
@@ -844,7 +841,7 @@ function PortfolioPage() {
                                   filteredCollections
                                 )
                               }
-                            } else {
+                            } else if (hasMore) {
                               if (badgeTab === "All") {
                                 await fetchMoreCollected(
                                   accountInfo?.address ?? ""
@@ -1080,9 +1077,8 @@ function PortfolioPage() {
                       className="secondary-text"
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
-                      <InfoCircleOutlined /> These results only include
-                      allowlists where the address is included and blocklists
-                      where the address is excluded.
+                      <InfoCircleOutlined /> These results include
+                      allowlists and blocklists.
                     </div>
                   )}
                   {listsTab === "allowlists" && (
@@ -1091,7 +1087,7 @@ function PortfolioPage() {
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       <InfoCircleOutlined /> These results only include
-                      allowlists where the address is included.
+                      allowlists.
                     </div>
                   )}
                   {listsTab === "blocklists" && (
@@ -1100,7 +1096,7 @@ function PortfolioPage() {
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       <InfoCircleOutlined /> These results only include
-                      blocklists where the address is excluded.
+                      blocklists.
                     </div>
                   )}
                   {listsTab === "createdLists" && (
@@ -1138,6 +1134,13 @@ function PortfolioPage() {
                     <>
                       <div className="flex-center">
                         <CustomizeAddRemoveListFromPage
+                          currItems={deepCopy(listsTab == "Hidden"
+                            ? deepCopy(accountInfo?.hiddenLists ?? [])
+                            : deepCopy(
+                              accountInfo?.customPages?.lists?.find(
+                                (x) => x.title === listsTab
+                              )?.items ?? []
+                            ))}
                           addressOrUsername={accountInfo.address}
                           onAdd={async (selectedList: string) => {
                             let currCustomPageLists =
@@ -1172,7 +1175,7 @@ function PortfolioPage() {
                                       x.title === listsTab
                                         ? {
                                           ...currCustomPage,
-                                          listIds: currCustomPageLists,
+                                          items: currCustomPageLists,
                                         }
                                         : x
                                   ) ?? [],
@@ -1198,10 +1201,9 @@ function PortfolioPage() {
                                 hiddenLists: currCustomPageLists,
                               })
                             } else {
-                              const currCustomPage =
-                                accountInfo?.customPages?.lists?.find(
-                                  (x) => x.title === listsTab
-                                )
+                              const currCustomPage = accountInfo?.customPages?.lists?.find(
+                                (x) => x.title === listsTab
+                              )
                               if (!currCustomPage) return
 
                               await updateProfileInfo(chain.address, {
@@ -1212,7 +1214,7 @@ function PortfolioPage() {
                                       x.title === listsTab
                                         ? {
                                           ...currCustomPage,
-                                          listIds: currCustomPageLists,
+                                          items: currCustomPageLists,
                                         }
                                         : x
                                   ) ?? [],

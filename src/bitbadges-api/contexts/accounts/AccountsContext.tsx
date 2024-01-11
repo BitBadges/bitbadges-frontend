@@ -79,7 +79,7 @@ export const updateAccount = (account: BitBadgesUserInfo<DesiredNumberType>, for
 export const updateProfileInfo = async (addressOrUsername: string, newProfileInfo: UpdateAccountInfoRouteRequestBody<bigint>) => {
   const account = getAccount(addressOrUsername);
   if (!account) throw new Error(`Account ${addressOrUsername} not found`);
-
+  console.log(newProfileInfo);
   await updateAccountInfo(newProfileInfo);
   const newAccount: BitBadgesUserInfo<bigint> = {
     ...account,
@@ -121,34 +121,27 @@ export function viewHasMore(addressOrUsername: string, viewId: string) {
   return account.views[viewId]?.pagination?.hasMore || true;
 }
 
-export async function fetchNextForAccountViews(addressOrUsername: string, viewType: AccountViewKey, viewId: string, filteredCollections?: {
+export async function fetchNextForAccountViews(addressOrUsername: string, viewType: AccountViewKey, viewId: string, specificCollections?: {
   collectionId: bigint,
   badgeIds: UintRange<bigint>[]
 }[],
-  filteredLists?: string[]) {
+  specificLists?: string[]) {
+
+  const currPagination = getAccount(addressOrUsername)?.views[viewId]?.pagination;
+  const hasMore = currPagination?.hasMore || true;
+  const bookmark = currPagination?.bookmark || '';
+  if (!hasMore) return;
 
   await fetchAccountsWithOptions([{
     address: isAddressValid(addressOrUsername) ? addressOrUsername : undefined,
     username: isAddressValid(addressOrUsername) ? undefined : addressOrUsername,
-    viewsToFetch: [viewId].map(x => {
-      const currPagination = getAccount(addressOrUsername)?.views[x]?.pagination;
-
-      if (!currPagination) return {
-        viewId: viewId,
-        viewType,
-        bookmark: '',
-        filteredCollections,
-        filteredLists
-      };
-
-      else return {
-        viewId: viewId,
-        filteredLists,
-        viewType,
-        filteredCollections,
-        bookmark: getAccount(addressOrUsername)?.views[viewId]?.pagination.hasMore ? getAccount(addressOrUsername)?.views[viewId]?.pagination?.bookmark || '' : 'nil'
-      }
-    })
+    viewsToFetch: [{
+      viewId: viewId,
+      specificLists,
+      viewType,
+      specificCollections,
+      bookmark: bookmark,
+    }]
   }]);
 }
 

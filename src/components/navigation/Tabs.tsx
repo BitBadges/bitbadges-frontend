@@ -33,13 +33,12 @@ export function Tabs({
       if (tab.key == selectedTab) {
         return {
           ...tab,
-          content: <div className='flex-center' style={{ marginLeft: 8 }}>
+          content: <div className='flex-center' style={{}}>
             {tab.key}
             {<>
-
-
               <IconButton
                 text=''
+                noMinWidth
                 onClick={async () => {
                   if (!confirm('Are you sure you want to delete?')) {
                     return
@@ -96,8 +95,6 @@ export function Tabs({
         <div className={'primary-text ' + (type == 'underline' ? ' hover:text-gray-400' : '')}
           style={{
             color: tab.key == selectedTab && type != 'underline' ? 'white' : undefined,
-
-
             fontSize: 18, fontWeight: 'bolder'
           }}>
           {tab.content}

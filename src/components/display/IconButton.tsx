@@ -12,13 +12,14 @@ interface IconButtonProps {
   children?: ReactNode
   hideText?: boolean
   secondary?: boolean
+  noMinWidth?: boolean
 }
 
-const IconButton: React.FC<IconButtonProps> = ({ secondary, src, text, style, onClick, tooltipMessage, size, disabled, hideText }) => {
+const IconButton: React.FC<IconButtonProps> = ({ noMinWidth, secondary, src, text, style, onClick, tooltipMessage, size, disabled, hideText }) => {
   return (
     <Tooltip title={tooltipMessage ?? text} color='black' placement='bottom'>
 
-      <div className='flex-center flex-column' style={{ margin: 8, minWidth: 60 }}>
+      <div className='flex-center flex-column' style={{ margin: noMinWidth ? undefined : 8, marginLeft: 8, minWidth: noMinWidth ? undefined : 60, }}>
         <Avatar
           className={secondary ? 'styled-button-normal' : 'styled-icon-button'}
           src={src}

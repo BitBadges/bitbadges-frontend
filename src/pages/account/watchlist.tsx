@@ -13,27 +13,27 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
 
+import { BatchBadgeDetails, addToBatchArray, getMaxBadgeIdForCollection, removeFromBatchArray } from "bitbadgesjs-utils"
+import { useSelector } from "react-redux"
 import { getAddressLists } from "../../bitbadges-api/api"
 import {
   updateProfileInfo,
   useAccount,
 } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 import {
-  fetchBalanceForUser,
-  getCollection,
+  fetchBalanceForUser
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
+import { BadgeInfiniteScroll } from "../../components/badges/BadgeInfiniteScroll"
+import { BatchBadgeDetailsTag, OptionsSelects } from "../../components/badges/DisplayFilters"
+import { ListInfiniteScroll } from "../../components/badges/ListInfiniteScroll"
 import { DevMode } from "../../components/common/DevMode"
+import { CustomizeAddRemoveBadgeFromPage, CustomizeAddRemoveListFromPage, NewPageInputForm } from "../../components/display/CustomPages"
 import IconButton from "../../components/display/IconButton"
 import { Tabs } from "../../components/navigation/Tabs"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
-import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
-import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "bitbadgesjs-utils"
-import { BadgeInfiniteScroll } from "../../components/badges/BadgeInfiniteScroll"
-import { OptionsSelects, BatchBadgeDetailsTag } from "../../components/badges/DisplayFilters"
-import { ListInfiniteScroll } from "../../components/badges/ListInfiniteScroll"
-import { CustomizeAddRemoveBadgeFromPage, NewPageInputForm, CustomizeAddRemoveListFromPage } from "../../components/display/CustomPages"
+import { GlobalReduxState } from "../_app"
 
 const { Content } = Layout
 
@@ -84,6 +84,8 @@ function WatchlistPage() {
   )
   const [searchValue, setSearchValue] = useState<string>("")
   const [tabSetInitial, setTabSetInitial] = useState(!!accountInfo)
+
+  const collections = useSelector((state: GlobalReduxState) => state.collections.collections)
 
   useEffect(() => {
     if (!accountInfo) return
@@ -169,7 +171,7 @@ function WatchlistPage() {
     }
 
     for (const badgeIdObj of allBadgeIds) {
-      const collection = getCollection(badgeIdObj.collectionId)
+      const collection = collections[`${badgeIdObj.collectionId}`]
       if (!collection) continue
       const maxBadgeId = getMaxBadgeIdForCollection(collection)
       const [remaining] = removeUintRangesFromUintRanges(
@@ -180,7 +182,7 @@ function WatchlistPage() {
     }
 
     return allBadgeIds.filter((x) => x.badgeIds.length > 0)
-  }, [accountInfo, badgeTab, filteredCollections])
+  }, [accountInfo, badgeTab, filteredCollections, collections])
 
   const [customView, setCustomView] = useState<
     AddressListWithMetadata<bigint>[]
@@ -374,6 +376,11 @@ function WatchlistPage() {
                   <>
                     <div className="flex-center">
                       <CustomizeAddRemoveBadgeFromPage
+                        currItems={deepCopy(
+                          accountInfo?.watchlists?.badges?.find(
+                            (x) => x.title === badgeTab
+                          )?.items ?? []
+                        )}
                         onAdd={async (selectedBadge: BatchBadgeDetails<bigint>) => {
                           let currCustomPageBadges = deepCopy(
                             accountInfo?.watchlists?.badges?.find(
@@ -663,6 +670,11 @@ function WatchlistPage() {
                 <>
                   <div className="flex-center">
                     <CustomizeAddRemoveListFromPage
+                      currItems={deepCopy(
+                        accountInfo?.watchlists?.lists?.find(
+                          (x) => x.title === listsTab
+                        )?.items ?? []
+                      )}
                       addressOrUsername={accountInfo.address}
                       onAdd={async (selectedList: string) => {
                         let currCustomPageLists = deepCopy(

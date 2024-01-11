@@ -9,6 +9,7 @@ import {
   Typography
 } from "antd"
 import {
+  BatchBadgeDetails,
   getMetadataForBadgeId,
   isFullUintRanges
 } from "bitbadgesjs-utils"
@@ -19,13 +20,12 @@ import {
   useAccount
 } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 import {
-  getCollection
+  useCollection
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { BatchBadgeDetails } from "bitbadgesjs-utils"
-import { BadgeAvatar } from "./BadgeAvatar"
+import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { SelectWithOptions } from "../inputs/Selects"
 import { SearchDropdown } from "../navigation/SearchDropdown"
-import { GO_MAX_UINT_64 } from "../../utils/dates"
+import { BadgeAvatar } from "./BadgeAvatar"
 
 
 export const ListFilterSearchBar = ({
@@ -142,7 +142,7 @@ export const BatchBadgeDetailsTag = ({
   badgeIdObj: BatchBadgeDetails<bigint>
   onClose?: () => void
 }) => {
-  const collection = getCollection(badgeIdObj.collectionId)
+  const collection = useCollection(badgeIdObj.collectionId)
   const metadata = isFullUintRanges(badgeIdObj.badgeIds)
     ? collection?.cachedCollectionMetadata
     : getMetadataForBadgeId(

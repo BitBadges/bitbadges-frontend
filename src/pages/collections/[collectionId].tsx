@@ -3,21 +3,21 @@ import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { fetchCollections, fetchNextForCollectionViews, getCollection, getCollectionActivityView, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { fetchCollections, fetchNextForCollectionViews, getCollectionActivityView, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { ActionsTab } from '../../components/collection-page/ActionsTab';
-import { UserApprovalsTab } from '../../components/collection-page/transferability/ApprovalsTab';
 import { BadgesTab } from '../../components/collection-page/BadgesTab';
-import { OffChainTransferabilityTab } from '../../components/collection-page/transferability/OffChainTransferabilityTab';
 import { OverviewTab } from '../../components/collection-page/OverviewTab';
+import { CollectionOwnersTab } from '../../components/collection-page/OwnersTab';
 import { ReputationTab } from '../../components/collection-page/ReputationTab';
 import { ActivityTab } from '../../components/collection-page/TransferActivityDisplay';
+import { UserApprovalsTab } from '../../components/collection-page/transferability/ApprovalsTab';
+import { OffChainTransferabilityTab } from '../../components/collection-page/transferability/OffChainTransferabilityTab';
 import { TransferabilityTab } from '../../components/collection-page/transferability/TransferabilityTab';
 import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
 import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { CollectionOwnersTab } from '../../components/collection-page/OwnersTab';
 
 const { Content } = Layout;
 
@@ -174,7 +174,7 @@ function CollectionPage({
                   fetchMore={async () => {
                     await fetchNextForCollectionViews(collectionIdNumber, 'reviews', 'reviews');
                   }}
-                  hasMore={getCollection(collectionIdNumber)?.views.reviews?.pagination.hasMore ?? true}
+                  hasMore={collection?.views.reviews?.pagination.hasMore ?? true}
                 />
               )}
 
@@ -190,7 +190,7 @@ function CollectionPage({
                   fetchMore={async () => {
                     await fetchNextForCollectionViews(collectionIdNumber, 'transferActivity', 'transferActivity');
                   }}
-                  hasMore={getCollection(collectionIdNumber)?.views.transferActivity?.pagination.hasMore ?? true}
+                  hasMore={collection?.views.transferActivity?.pagination.hasMore ?? true}
                 />
               )}
 

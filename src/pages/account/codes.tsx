@@ -217,6 +217,14 @@ export function AuthCodes() {
       style={{ minHeight: '80vh', padding: 8 }}
     >
       <br />
+      <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
+        Authentication QR Codes
+      </div>
+      <div className='secondary-text' style={{ textAlign: 'center' }}>
+        Authentication QR codes can be used to prove you own specific badges in-person.
+        Looking to become an authentication provider? See  <a onClick={() => { router.push('https://docs.bitbadges.io/overview/verification-tools') }} target='_blank' rel="noreferrer" >here</a>.
+      </div>
+      <br />
       <div className='flex-center'>
 
         <Tabs
@@ -224,14 +232,12 @@ export function AuthCodes() {
           setTab={setTab}
           tabInfo={[
             { key: 'all', content: 'All' },
-            { key: 'saved', content: 'Saved' }
+            { key: 'saved', content: 'Browser' }
           ]}
-          type='underline'
         />
       </div>
-      <br />
       <div className='secondary-text' style={{ textAlign: 'center' }}>
-        <InfoCircleOutlined /> {tab == 'all' ? 'All QR codes for this account (must be signed in).' : 'QR codes you have saved to the browser on this device.'}
+        <InfoCircleOutlined /> {tab == 'all' ? 'QR codes for this account stored by BitBadges servers.' : 'QR codes you have saved to the browser on this device.'}
       </div>
 
       <br />
@@ -256,7 +262,7 @@ export function AuthCodes() {
           </div>
 
           {authCodes.length === 0 && <div className='flex-center flex-column'>
-            <EmptyIcon description='No QR codes found. QR codes can be used to prove you own specific badges in-person.' />
+            <EmptyIcon description='No QR codes found. Providers will give you instructions on how to create one.' />
           </div>}
         </>}
       </>}
@@ -283,12 +289,7 @@ export function AuthCodes() {
       </>}
       <Divider />
     </Content>
-    {/* //aign to bottom of page */}
-    <div className='secondary-text' style={{ textAlign: 'center', margin: 16 }}>
-      Looking to become an authentication provider and create / verify QR codes?
 
-      Create <a onClick={() => { router.push('/auth/linkgen') }} target='_blank' rel="noreferrer" >here</a> or verify <a onClick={() => { router.push('/auth/verify') }} target='_blank' rel="noreferrer" >here</a>.
-    </div>
   </>
   );
 }

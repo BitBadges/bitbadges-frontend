@@ -1,13 +1,13 @@
-import { Spin, Empty } from "antd"
+import { Empty, Spin } from "antd"
 import { Numberify } from "bitbadgesjs-proto"
-import { getMaxBadgeIdForCollection, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
-import { useState, useMemo } from "react"
+import { BatchBadgeDetails, getMaxBadgeIdForCollection, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
+import { useMemo, useState } from "react"
 import InfiniteScroll from "react-infinite-scroll-component"
-import { getCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { BatchBadgeDetails } from "bitbadgesjs-utils"
+import { useSelector } from "react-redux"
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
+import { GlobalReduxState } from "../../pages/_app"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { MultiCollectionBadgeDisplay } from "./MultiCollectionBadgeDisplay"
-import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 
 export const BadgeInfiniteScroll = ({
   addressOrUsername,
@@ -32,15 +32,15 @@ export const BadgeInfiniteScroll = ({
 }) => {
   const [numBadgesDisplayed, setNumBadgesDisplayed] = useState<number>(25)
   const accountInfo = useAccount(addressOrUsername)
+  const collections = useSelector((state: GlobalReduxState) => state.collections.collections)
 
   const numTotalBadges = useMemo(() => {
     //Calculate total number of badge IDs
     let total = 0n
     for (const obj of badgesToShow) {
 
-      const collection = getCollection(obj.collectionId)
+      const collection = collections[`${obj.collectionId}`]
       if (!collection) {
-        //TODO: Valid hacky way to do this, or is this going to cause issues?
         total += GO_MAX_UINT_64
         continue
       }
@@ -61,7 +61,7 @@ export const BadgeInfiniteScroll = ({
     }
 
     return Numberify(total)
-  }, [badgesToShow])
+  }, [badgesToShow, collections])
 
   const totalNumToShow = groupByCollection ? badgesToShow.length : numTotalBadges
 
