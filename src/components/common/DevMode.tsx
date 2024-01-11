@@ -3,7 +3,7 @@ import { DEV_MODE } from '../../constants';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 
-export function DevMode({ obj, override, subtitle, inheritBg, noBorder, isJsonDisplay
+export function DevMode({ obj, override, subtitle, inheritBg, noBorder, isJsonDisplay = true
 
 }: {
   obj?: Object, override?: boolean, subtitle?: string | ReactNode,
@@ -24,7 +24,7 @@ export function DevMode({ obj, override, subtitle, inheritBg, noBorder, isJsonDi
 
 
   return <>{(DEV_MODE || override) &&
-    <InformationDisplayCard title='' span={24} style={{ marginTop: '10px' }} subtitle={subtitle} inheritBg={inheritBg} noBorder={noBorder}>
+    <InformationDisplayCard title='' span={24} style={{ marginTop: '10px' }} subtitle={subtitle} inheritBg={isJsonDisplay || inheritBg} noBorder={isJsonDisplay || noBorder}>
       {/* <Editor
         value={JSON.stringify(obj, null, 2)}
         onValueChange={() => { }}
@@ -36,14 +36,16 @@ export function DevMode({ obj, override, subtitle, inheritBg, noBorder, isJsonDi
         padding={10}
         style={{ border: 'none' }}
       /> */}
-      {isJsonDisplay ? <MarkdownDisplay
+      {isJsonDisplay ? <>
+        {/* <b className='primary-text' style={{ fontSize: 16 }}>JSON</b> */}
+        <MarkdownDisplay
 
-        showMoreHeight={10000}
-        markdown={
-          "```json\n" +
-          JSON.stringify(obj, null, 2) +
-          "\n```"
-        } />
+          showMoreHeight={10000}
+          markdown={
+            "```json\n" +
+            JSON.stringify(obj, null, 2) +
+            "\n```"
+          } /></>
         :
         <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', textAlign: 'start' }}>
           {JSON.stringify(obj, null, 2)}

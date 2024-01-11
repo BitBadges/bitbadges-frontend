@@ -14,7 +14,7 @@ import { InformationDisplayCard } from '../../components/display/InformationDisp
 import { TxInfo, TxModal } from '../../components/tx-modals/TxModal';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
-import { MarkdownDisplay, MarkdownEditor } from '../account/[addressOrUsername]/settings';
+import { MarkdownDisplay } from '../account/[addressOrUsername]/settings';
 
 const sampleMsgUpdateCollection = require('./sample-msgupdate.json');
 const sampleMsgDeleteCollection = require('./sample-msgdelete.json');
