@@ -61,7 +61,7 @@ export function BalanceDisplay({
     balance: Balance<bigint>,
     amountRange?: UintRange<bigint>,
     collectionId?: bigint,
-    mustOwnAll?: boolean
+    mustSatisfyForAllAssets?: boolean
   ) => void
   setBalances?: (balances: Balance<bigint>[]) => void
   onRemoveAll?: () => void
@@ -148,7 +148,7 @@ export function BalanceDisplay({
         ...x,
         amountRange: { start: x.amount, end: GO_MAX_UINT_64 },
         collectionId: 0n,
-        mustOwnAll: true,
+        mustSatisfyForAllAssets: true,
       }
     })
 
@@ -299,7 +299,7 @@ export function BalanceDisplay({
                                 paddingRight: 4,
                               }}
                             >
-                              {balance.mustOwnAll ? "Must Own All" : "Must Own One"}
+                              {balance.mustSatisfyForAllAssets ? "Must Own All" : "Must Own One"}
                             </td>
                           )}
                           {!isMustOwnBadgesInput && (

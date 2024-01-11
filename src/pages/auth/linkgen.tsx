@@ -375,10 +375,10 @@ function BlockinCodesScreen() {
                           amountRange: x.mustOwnAmounts,
                           badgeIds: badgeIds,
                           ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                          mustOwnAll: true
+                          mustSatisfyForAllAssets: true
                         }
                       }) ?? []}
-                      onAddBadges={(balance, amountRange, collectionId) => {
+                      onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets) => {
                         if (!collectionId || !amountRange) return;
 
                         const newAssets = codeGenParams.challengeParams.assets ? [...codeGenParams.challengeParams.assets] : [];
@@ -387,6 +387,7 @@ function BlockinCodesScreen() {
                           collectionId: collectionId,
                           mustOwnAmounts: amountRange,
                           chain: 'BitBadges',
+                          mustSatisfyForAllAssets: !!mustSatisfyForAllAssets,
                           //no ownership times = auth time
                         });
                         setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, assets: newAssets } });

@@ -66,7 +66,7 @@ export function BalanceDisplayEditRow({
     balances: Balance<bigint>,
     amountRange?: UintRange<bigint>,
     collectionId?: bigint,
-    mustOwnAll?: boolean
+    mustSatisfyForAllAssets?: boolean
   ) => void
   defaultBalancesToShow?: Balance<bigint>[]
   onRemoveAll?: () => void
@@ -77,7 +77,7 @@ export function BalanceDisplayEditRow({
   suggestedBalances?: Balance<bigint>[]
 }) {
   const [selectIsVisible, setSelectIsVisible] = useState(false)
-  const [mustOwnAll, setMustOwnAll] = useState(true)
+  const [mustSatisfyForAllAssets, setmustSatisfyForAllAssets] = useState(true)
   const [currentSupply, setCurrentSupply] = useState<Balance<bigint>>({
     amount: 1n,
     badgeIds: [],
@@ -117,7 +117,7 @@ export function BalanceDisplayEditRow({
     nonSequential ||
     (isMustOwnBadgesInput && selectedCollection?.balancesType !== 'Standard' && noOffChainBalances)
 
-  
+
   return (
     <>
       <tr style={{ color: currentSupply.amount < 0 ? "red" : undefined }}>
@@ -304,15 +304,15 @@ export function BalanceDisplayEditRow({
                 <Switch
                   checkedChildren="Must Own All"
                   unCheckedChildren="Must Own One"
-                  checked={mustOwnAll}
+                  checked={mustSatisfyForAllAssets}
                   onChange={(checked) => {
-                    setMustOwnAll(checked)
+                    setmustSatisfyForAllAssets(checked)
                   }}
                 />
                 <br />
                 <div className="secondary-text">
                   <InfoCircleOutlined />{" "}
-                  {mustOwnAll
+                  {mustSatisfyForAllAssets
                     ? "To be approved, the requirements for ALL selected badges must be met."
                     : "To be approved, the requirements for ONE of the selected badges must be met."}
                 </div>
@@ -499,7 +499,7 @@ export function BalanceDisplayEditRow({
                   //rest are ignored unless mustOwnBadges input
                   selectedAmountRange,
                   selectedCollectionId,
-                  mustOwnAll
+                  mustSatisfyForAllAssets
                 )
 
                 setCurrentSupply({

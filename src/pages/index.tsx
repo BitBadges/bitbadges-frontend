@@ -527,7 +527,9 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges reuses the same interface for badges as opposed to individual smart contracts. This results in increased transparency, scalability, maintainability, consistency, and security.
+                      BitBadges reuses the same interface for badges as opposed to individual smart contracts. 
+                      This results in increased transparency, scalability, maintainability, consistency, and security.
+                      However, smart contracts can be used for implementing advanced functionality, not natively supported.
                     </Typography.Text>
                   </>
                 }

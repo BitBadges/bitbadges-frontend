@@ -783,7 +783,7 @@ export function ApprovalSelect({
                     }
                   })}
                   mustOwnBadges={mustOwnBadges}
-                  onAddBadges={(balance, amountRange, collectionId, mustOwnAll) => {
+                  onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets) => {
                     if (!collectionId || !amountRange) return;
 
                     setMustOwnBadges([...mustOwnBadges, {
@@ -792,7 +792,7 @@ export function ApprovalSelect({
                       amountRange: amountRange,
                       badgeIds: balance.badgeIds,
                       ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                      mustOwnAll: !!mustOwnAll
+                      mustSatisfyForAllAssets: !!mustSatisfyForAllAssets
                     }]);
                   }}
                   onRemoveAll={() => {

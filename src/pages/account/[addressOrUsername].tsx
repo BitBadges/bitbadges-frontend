@@ -15,7 +15,9 @@ import { UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
   AccountViewKey,
   AddressListWithMetadata,
+  BatchBadgeDetails, addToBatchArray,
   getMaxBadgeIdForCollection,
+  removeFromBatchArray,
   removeUintRangesFromUintRanges
 } from "bitbadgesjs-utils"
 import { SHA256 } from "crypto-js"
@@ -42,24 +44,23 @@ import {
   fetchBalanceForUser,
   getCollection,
 } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "bitbadgesjs-utils"
 import { AccountHeader } from "../../components/badges/AccountHeader"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
+import { BadgeInfiniteScroll } from "../../components/badges/BadgeInfiniteScroll"
+import { BatchBadgeDetailsTag, OptionsSelects } from "../../components/badges/DisplayFilters"
+import { ListInfiniteScroll } from "../../components/badges/ListInfiniteScroll"
 import { BlockinDisplay } from "../../components/blockin/BlockinDisplay"
 import { ListActivityTab } from "../../components/collection-page/ListActivityDisplay"
 import { ReputationTab } from "../../components/collection-page/ReputationTab"
 import { ActivityTab } from "../../components/collection-page/TransferActivityDisplay"
 import { DevMode } from "../../components/common/DevMode"
+import { CustomizeAddRemoveBadgeFromPage, CustomizeAddRemoveListFromPage, NewPageInputForm } from "../../components/display/CustomPages"
 import IconButton from "../../components/display/IconButton"
 import { Tabs } from "../../components/navigation/Tabs"
 import { ReportedWrapper } from "../../components/wrappers/ReportedWrapper"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
-import { BadgeInfiniteScroll } from "../../components/badges/BadgeInfiniteScroll"
-import { OptionsSelects, BatchBadgeDetailsTag } from "../../components/badges/DisplayFilters"
-import { ListInfiniteScroll } from "../../components/badges/ListInfiniteScroll"
-import { CustomizeAddRemoveBadgeFromPage, NewPageInputForm, CustomizeAddRemoveListFromPage } from "../../components/display/CustomPages"
 
 
 const { Content } = Layout
@@ -107,7 +108,7 @@ function PortfolioPage() {
   const [filteredLists, setFilteredLists] = useState<string[]>([])
   const [groupByCollection, setGroupByCollection] = useState(false)
   const [editMode, setEditMode] = useState(false)
-  const [listsTab, setListsTab] = useState<string>("addressLists")
+  const [listsTab, setListsTab] = useState<string>("allLists")
   const [searchValue, setSearchValue] = useState<string>("")
 
   useEffect(() => {
@@ -154,15 +155,15 @@ function PortfolioPage() {
     ? undefined
     : accountInfo?.views[
     badgeTab === "Managing"
-      ? "managing"
+      ? "managingBadges"
       : badgeTab === "Created"
-        ? "createdBy"
+        ? "createdBadges"
         : "badgesCollected"
     ]
 
 
   const currViewId = customViewId && currViewWithoutFiltered?.pagination.hasMore
-    ? customViewId : badgeTab === "Managing" ? "managing" : badgeTab === "Created" ? "createdBy"
+    ? customViewId : badgeTab === "Managing" ? "managingBadges" : badgeTab === "Created" ? "createdBadges"
       : "badgesCollected"
 
   let currView = !accountInfo ? undefined : accountInfo?.views[currViewId]
@@ -258,8 +259,8 @@ function PortfolioPage() {
     async (address: string) => {
       await fetchNextForAccountViews(
         address,
-        editMode ? "badgesCollectedWithHidden" : "badgesCollected",
-        editMode ? "badgesCollectedWithHidden" : "badgesCollected"
+        "badgesCollected",
+        "badgesCollected"
       )
     },
     [editMode]
@@ -332,9 +333,9 @@ function PortfolioPage() {
     if (filteredCollections.length > 0) {
       const currViewId =
         badgeTab === "Managing"
-          ? "managing"
+          ? "managingBadges"
           : badgeTab === "Created"
-            ? "createdBy"
+            ? "createdBadges"
             : "badgesCollected"
 
       const newViewId = currViewId + ":" +
@@ -355,9 +356,9 @@ function PortfolioPage() {
   }, [filteredLists, listsTab])
 
   const isPresetList =
-    listsTab === "addressLists" ||
-    listsTab === "explicitlyIncludedAddressLists" ||
-    listsTab === "explicitlyExcludedAddressLists" ||
+    listsTab === "allLists" ||
+    listsTab === "allowlists" ||
+    listsTab === "blocklists" ||
     listsTab === "privateLists" ||
     listsTab === "createdLists"
 
@@ -403,10 +404,7 @@ function PortfolioPage() {
       : customView
   ).filter((x) => !filteredLists.includes(x.listId))
 
-  const collectedHasMore = editMode
-    ? accountInfo?.views["badgesCollectedWithHidden"]?.pagination?.hasMore ??
-    true
-    : accountInfo?.views["badgesCollected"]?.pagination?.hasMore ?? true
+  const collectedHasMore = accountInfo?.views["badgesCollected"]?.pagination?.hasMore ?? true
   const hasMoreAddressLists =
     accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true
   useEffect(() => {
@@ -415,8 +413,8 @@ function PortfolioPage() {
     //Fetch on tab change but only if empty and has more
     const collectedIsEmpty = !accountInfo?.views["badgesCollected"]?.ids.length
     const listsIsEmpty = !accountInfo?.views[`${listsTab}`]?.ids.length
-    const createdByIsEmpty = !accountInfo?.views["createdBy"]?.ids.length
-    const managingIsEmpty = !accountInfo?.views["managing"]?.ids.length
+    const createdByIsEmpty = !accountInfo?.views["createdBadges"]?.ids.length
+    const managingIsEmpty = !accountInfo?.views["managingBadges"]?.ids.length
     const hasMoreAddressLists =
       accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true
 
@@ -430,16 +428,16 @@ function PortfolioPage() {
         fetchMoreCollected(accountInfo?.address ?? "")
       } else if (
         badgeTab === "Managing" &&
-        (accountInfo?.views["managing"]?.pagination?.hasMore ?? true) &&
+        (accountInfo?.views["managingBadges"]?.pagination?.hasMore ?? true) &&
         managingIsEmpty
       ) {
-        fetchMoreManaging(accountInfo?.address ?? "", "managing")
+        fetchMoreManaging(accountInfo?.address ?? "", "managingBadges")
       } else if (
         badgeTab === "Created" &&
-        (accountInfo?.views["createdBy"]?.pagination?.hasMore ?? true) &&
+        (accountInfo?.views["createdBadges"]?.pagination?.hasMore ?? true) &&
         createdByIsEmpty
       ) {
-        fetchMoreCreatedBy(accountInfo?.address ?? "", "createdBy")
+        fetchMoreCreatedBy(accountInfo?.address ?? "", "createdBadges")
       }
     } else if (tab === "lists" && hasMoreAddressLists && listsIsEmpty) {
       if (isPresetList) {
@@ -806,9 +804,9 @@ function PortfolioPage() {
                             badgeTab === "All"
                               ? collectedHasMore
                               : badgeTab === "Managing"
-                                ? accountInfo?.views["managing"]?.pagination?.hasMore ?? true
+                                ? accountInfo?.views["managingBadges"]?.pagination?.hasMore ?? true
                                 : badgeTab === "Created"
-                                  ? accountInfo?.views["createdBy"]?.pagination
+                                  ? accountInfo?.views["createdBadges"]?.pagination
                                     ?.hasMore ?? true
                                   : false
                           }
@@ -817,10 +815,10 @@ function PortfolioPage() {
                               badgeTab === "All"
                                 ? collectedHasMore
                                 : badgeTab === "Managing"
-                                  ? accountInfo?.views["managing"]?.pagination
+                                  ? accountInfo?.views["managingBadges"]?.pagination
                                     ?.hasMore ?? true
                                   : badgeTab === "Created"
-                                    ? accountInfo?.views["createdBy"]?.pagination
+                                    ? accountInfo?.views["createdBadges"]?.pagination
                                       ?.hasMore ?? true
                                     : false
 
@@ -836,13 +834,13 @@ function PortfolioPage() {
                               } else if (badgeTab === "Managing") {
                                 await fetchMoreWithFiltered(
                                   accountInfo?.address ?? "",
-                                  "managing",
+                                  "managingBadges",
                                   filteredCollections
                                 )
                               } else if (badgeTab === "Created") {
                                 await fetchMoreWithFiltered(
                                   accountInfo?.address ?? "",
-                                  "createdBy",
+                                  "createdBadges",
                                   filteredCollections
                                 )
                               }
@@ -854,12 +852,12 @@ function PortfolioPage() {
                               } else if (badgeTab === "Managing") {
                                 await fetchMoreManaging(
                                   accountInfo?.address ?? "",
-                                  "managing"
+                                  "managingBadges"
                                 )
                               } else if (badgeTab === "Created") {
                                 await fetchMoreCreatedBy(
                                   accountInfo?.address ?? "",
-                                  "createdBy"
+                                  "createdBadges"
                                 )
                               }
                             }
@@ -971,10 +969,10 @@ function PortfolioPage() {
                       onDeleteCurrTab={
                         !editMode ||
                           listsTab == "" ||
-                          listsTab == "addressLists" ||
+                          listsTab == "allLists" ||
                           listsTab == "Hidden" ||
-                          listsTab == "explicitlyIncludedAddressLists" ||
-                          listsTab == "explicitlyExcludedAddressLists" ||
+                          listsTab == "allowlists" ||
+                          listsTab == "blocklists" ||
                           listsTab == "privateLists" ||
                           listsTab == "createdLists"
                           ? undefined
@@ -999,17 +997,17 @@ function PortfolioPage() {
                       }
                       tabInfo={[
                         {
-                          key: "addressLists",
+                          key: "allLists",
                           content: "All",
                           disabled: false,
                         },
                         {
-                          key: "explicitlyIncludedAddressLists",
+                          key: "allowlists",
                           content: "Included",
                           disabled: false,
                         },
                         {
-                          key: "explicitlyExcludedAddressLists",
+                          key: "blocklists",
                           content: "Excluded",
                           disabled: false,
                         },
@@ -1087,7 +1085,7 @@ function PortfolioPage() {
                       where the address is excluded.
                     </div>
                   )}
-                  {listsTab === "explicitlyIncludedAddressLists" && (
+                  {listsTab === "allowlists" && (
                     <div
                       className="secondary-text"
                       style={{ marginBottom: 16, marginTop: 4 }}
@@ -1096,7 +1094,7 @@ function PortfolioPage() {
                       allowlists where the address is included.
                     </div>
                   )}
-                  {listsTab === "explicitlyExcludedAddressLists" && (
+                  {listsTab === "blocklists" && (
                     <div
                       className="secondary-text"
                       style={{ marginBottom: 16, marginTop: 4 }}

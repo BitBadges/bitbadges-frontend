@@ -181,6 +181,7 @@ export const BlockinDisplay = ({
           displayedAssets={[
             {
               collectionId: 1,
+              mustSatisfyForAllAssets: true,
               chain: 'BitBadges',
               assetIds: [{ start: 9, end: 9 }],
               mustOwnAmounts: { start: 0, end: 0 },

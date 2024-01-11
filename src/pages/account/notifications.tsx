@@ -29,7 +29,7 @@ export function Notifications() {
   const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'latestClaimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
 
   const listsActivity = (getAccountListsActivityView(signedInAccount, 'listsActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
-  const listsTab = 'latestAddressLists';
+  const listsTab = 'listsActivity';
   const hasMoreAddressLists = signedInAccount?.views[`${listsTab}`]?.pagination?.hasMore ?? true;
 
   const [prevSeenActivity, setPrevSeenActivity] = useState<number | undefined>(Number(signedInAccount?.seenActivity) ?? 0n);
@@ -83,7 +83,7 @@ export function Notifications() {
       setTimeout(() => {
         setSeenTransferActivity(true);
       }, 5000);
-    } else if (tab === 'latestAddressLists') {
+    } else if (tab === 'listsActivity') {
       if (seenAddressLists) return
       setTimeout(() => {
         setSeenAddressLists(true);
@@ -142,7 +142,7 @@ export function Notifications() {
                       disabled: false
                     },
                     {
-                      key: 'latestAddressLists',
+                      key: 'listsActivity',
                       content: <TabComponent title={'List Activity'} count={unseenListsActivityCount} />,
                       disabled: false
                     },
@@ -169,7 +169,7 @@ export function Notifications() {
                   />
                   </>}
 
-                  {tab === 'latestAddressLists' && <><br />
+                  {tab === 'listsActivity' && <><br />
                     <ListActivityTab
                       activity={listsActivity ?? []}
                       fetchMore={async () => fetchMore(chain.address, 'listsActivity')}

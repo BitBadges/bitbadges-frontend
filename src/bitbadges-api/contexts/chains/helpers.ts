@@ -19,17 +19,17 @@ export async function fetchDefaultViews(address: string, loggedIn: boolean) {
     viewId: 'reviews',
     bookmark: '',
   }, {
-    viewType: 'addressLists',
-    viewId: 'addressLists',
+    viewType: 'allLists',
+    viewId: 'allLists',
     bookmark: '',
   }, {
-    viewType: 'explicitlyIncludedAddressLists',
-    viewId: 'explicitlyIncludedAddressLists',
+    viewType: 'allowlists',
+    viewId: 'allowlists',
     bookmark: ''
   },
   {
-    viewType: 'explicitlyExcludedAddressLists',
-    viewId: 'explicitlyExcludedAddressLists',
+    viewType: 'blocklists',
+    viewId: 'blocklists',
     bookmark: ''
   }]
   const viewsToFetch = DefaultViewsToFetch.slice();
@@ -40,15 +40,10 @@ export async function fetchDefaultViews(address: string, loggedIn: boolean) {
       viewId: 'latestClaimAlerts',
       bookmark: '',
     }, {
-      viewType: 'latestAddressLists',
-      viewId: 'latestAddressLists',
-      bookmark: ''
-    },
-      {
-        viewType: 'authCodes',
-        viewId: 'authCodes',
-        bookmark: '',
-      })
+      viewType: 'authCodes',
+      viewId: 'authCodes',
+      bookmark: '',
+    })
   }
 
   await fetchAccountsWithOptions([{

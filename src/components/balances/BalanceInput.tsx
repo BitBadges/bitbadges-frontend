@@ -24,7 +24,7 @@ export function BalanceInput({
   noOffChainBalances
 }: {
   balancesToShow: Balance<bigint>[],
-  onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint, mustOwnAll?: boolean) => void,
+  onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint, mustSatisfyForAllAssets?: boolean) => void,
   onRemoveAll?: () => void,
   collectionId?: bigint,
   message?: string,

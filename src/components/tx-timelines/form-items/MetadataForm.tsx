@@ -766,7 +766,11 @@ export function MetadataForm({
                   <span style={{ color: 'orange' }}>
                     <WarningOutlined />
                     You have not updated the metadata for IDs {getBadgeIdsString(nonUpdatedIds)}.
-                    If these are newly created IDs, they will have default placeholder metadata. Or else, they will remain as previously set.
+
+                    {!!txTimelineContext.existingCollectionId ?
+                      "If these are newly created IDs, they will have default placeholder metadata. Or else, they will remain as previously set."
+                      : "They will have default placeholder metadata."
+                    }
                   </span>}
               </div>
               <br />

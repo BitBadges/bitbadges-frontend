@@ -114,16 +114,7 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
           const chainName = asset.chain;
 
           return <div key={i}>
-            You must own {[asset.mustOwnAmounts].map(amount => {
-              if (typeof amount !== 'object') {
-                return 'x' + BigInt(amount).toString();
-              } else {
-                if (amount.start === amount.end) {
-                  return `x${BigInt(amount.start).toString()}`
-                }
-                return `x${BigInt(amount.start).toString()}-${BigInt(amount.end).toString()}`
-              }
-            }).join(', ')} of {asset.assetIds.map((assetId, index) => {
+            For {asset.mustSatisfyForAllAssets ? 'all' : 'one'} of the specified assets ({asset.assetIds.map((assetId, index) => {
               if (typeof assetId !== 'object') {
                 return <>{"ID: " + assetId.toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
               } else {
@@ -132,7 +123,16 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
                 }
                 return <>IDs {BigInt(assetId.start).toString()}-{BigInt(assetId.end).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
               }
-            })} from {chainName + " Collection: " + asset.collectionId.toString()} {asset.ownershipTimes ? 'from ' +
+            })}), you must own {[asset.mustOwnAmounts].map(amount => {
+              if (typeof amount !== 'object') {
+                return 'x' + BigInt(amount).toString();
+              } else {
+                if (amount.start === amount.end) {
+                  return `x${BigInt(amount.start).toString()}`
+                }
+                return `x${BigInt(amount.start).toString()}-${BigInt(amount.end).toString()}`
+              }
+            }).join(', ')} from {chainName + " Collection: " + asset.collectionId.toString()} {asset.ownershipTimes ? 'from ' +
               asset.ownershipTimes.map(time => {
                 if (typeof time === 'string') {
                   return new Date(time).toLocaleString();
