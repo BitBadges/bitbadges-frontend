@@ -73,7 +73,7 @@ export function BadgePage({ collectionPreview, badgeIdOverride }
   );
 
   if (noBalancesStandard || isNonIndexedBalances) {
-    tabInfo = tabInfo.filter(tab => tab.key !== 'transferability' && tab.key !== 'approvals' && tab.key !== 'activity' && tab.key !== "owners")
+    tabInfo = tabInfo.filter(tab => tab.key !== 'approvals' && tab.key !== 'activity' && tab.key !== "owners")
   }
 
   return (
@@ -106,9 +106,11 @@ export function BadgePage({ collectionPreview, badgeIdOverride }
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />}
             {tab === 'transferability' && (
-              <>{collection?.balancesType == 'Off-Chain - Indexed' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
+              <>{collection?.balancesType == 'Off-Chain - Indexed' || collection?.balancesType == 'Off-Chain - Non-Indexed' ? <OffChainTransferabilityTab collectionId={collectionIdNumber} /> : <TransferabilityTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />}
               </>)
             }
+
+
 
             {tab === 'owners' && !isPreview && collection && (<>
               <SpecificBadgeOwnersTab collectionId={collectionIdNumber} badgeId={badgeIdNumber} />

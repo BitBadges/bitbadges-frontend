@@ -82,7 +82,7 @@ export function SubmitMsgCreateAddressList() {
               {<>
                 {clicked && !onChainStorage &&
                   <>{!isUpdateAddressList && <Divider />}
-                    <div className='flex-center full-width'>
+                    <div className='flex-center full-width' style={{ textAlign: 'start' }}>
                       <InformationDisplayCard md={24} xs={24} sm={24} title='Additional Options' subtitle='These options are only applicable to off-chain lists.'>
                         <TableRow label='Public?' value={<Switch
                           checked={!privateMode}
@@ -196,6 +196,7 @@ export function SubmitMsgCreateAddressList() {
             title: 'On-Chain',
             message: <>
               The address list will be stored on-chain. This will cost a transaction fee to store it. <span style={{ color: 'orange', fontWeight: 'bolder' }}>The list will be permanently frozen, meaning it can never be updated or deleted.</span>
+              If you need an on-chain solution that can be updated, please create a badge collection instead.
             </>,
             isSelected: clicked && onChainStorage,
             additionalNode: ListIDInput

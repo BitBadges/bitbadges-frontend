@@ -395,8 +395,8 @@ export function DistributionOverview({
     >
       {collection && !isSelectStep && <BalancesStorageRow collection={collection} />}
       {collection && collection.defaultBalances.balances.length > 0 && !isNonIndexed && totalSupplyBalance.length > 0 && <DefaultBalancesRow collection={collection} />}
-      {!isSelectStep && !isNonIndexed && <UnmintedRow collection={collection} badgeId={badgeId} />}
       {!isNonIndexed && <TotalSupplyRow collection={collection} badgeId={badgeId} />}
+      {!isSelectStep && !isNonIndexed && <UnmintedRow collection={collection} badgeId={badgeId} />}
       {!isBadgeView && <NumUniqueBadgesRow collection={collection} />}
       {!isSelectStep && <CanCreateMoreBadgesRow collection={collection} badgeId={badgeId} />}
       {!isSelectStep && !isOffChainBalances && !isNonIndexed && <CanUpdateTransferabilityDisplay collection={collection} badgeId={badgeId} />}

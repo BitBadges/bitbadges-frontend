@@ -44,7 +44,7 @@ export const CustomizeButtons = ({ accountInfo, badgeIdObj, badgeId, onlyShowCol
         {accountInfo &&
           <div className='flex-center flex-column' style={{ alignItems: 'center', justifyContent: 'center' }}>
 
-            <b>Hidden</b>
+            {!onlyShowCollectionOptions && !isWatchlist && <b>Hidden</b>}
             <div className="flex-center">
 
               {!onlyShowCollectionOptions && !isWatchlist && <>

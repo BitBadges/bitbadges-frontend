@@ -1,6 +1,4 @@
 import { Layout, Spin } from 'antd';
-import 'react-markdown-editor-lite/lib/index.css';
-
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { BigIntify, GetFollowDetailsRouteSuccessResponse } from 'bitbadgesjs-utils';
 import { useCallback, useEffect, useState } from 'react';

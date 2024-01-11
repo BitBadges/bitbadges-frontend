@@ -97,7 +97,7 @@ export function CollectionHeader({ listId, collectionId, hideCollectionLink, bad
   </>
 
   const About = metadata?.description && <>
-    <div className='primary-text' id={'description2' + badgeId + collectionId + listId} style={{ whiteSpace: 'normal' }}>
+    <div className='primary-text' id={'description2' + badgeId + collectionId + listId} style={{  }}>
       <MarkdownDisplay markdown={metadata?.description ?? ''} />
     </div>
 

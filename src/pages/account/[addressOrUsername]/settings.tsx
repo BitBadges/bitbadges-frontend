@@ -8,8 +8,6 @@ import { useEffect, useRef, useState } from 'react';
 import { updateAccountInfo } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
-import "@uiw/react-markdown-preview/markdown.css";
-import "@uiw/react-md-editor/markdown-editor.css";
 import crypto from 'crypto';
 import dynamic from "next/dynamic";
 import rehypeSanitize from "rehype-sanitize";
@@ -20,6 +18,8 @@ import { DisconnectedWrapper } from '../../../components/wrappers/DisconnectedWr
 import { RegisteredWrapper } from '../../../components/wrappers/RegisterWrapper';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 
+import "@uiw/react-markdown-preview/markdown.css";
+import "@uiw/react-md-editor/markdown-editor.css";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -81,16 +81,14 @@ export const MarkdownDisplay = ({ markdown, showMoreHeight = 300 }: { markdown: 
 
   const mode = darkMode ? 'dark' : 'light';
 
-  console.log("height", contentHeight, showMoreHeight);
-
-  return <div className='primary-text my-1'>
+  return <div className='primary-text full-width'>
     <div data-color-mode={mode} style={{
       textAlign: 'start',
       overflow: !showMore ? 'hidden' : undefined,
 
-      maxHeight: showMore ? undefined : showMoreHeight, whiteSpace: 'normal',
+      maxHeight: showMore ? undefined : showMoreHeight,
     }} id={'description' + id} ref={elemRef}>
-      <EditerMarkdown source={markdown} style={{ whiteSpace: 'pre-wrap' }} />
+      <EditerMarkdown source={markdown} style={{}} />
     </div>
     {
       contentHeight >= showMoreHeight && (

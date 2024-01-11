@@ -64,7 +64,6 @@ import { getBadgeIdsString } from "../../../utils/badgeIds"
 import { GO_MAX_UINT_64 } from "../../../utils/dates"
 import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay"
 import { CollectionHeader } from "../../badges/CollectionHeader"
-import { DevMode } from "../../common/DevMode"
 import IconButton from "../../display/IconButton"
 import { InformationDisplayCard } from "../../display/InformationDisplayCard"
 import { BadgeIdRangesInput } from "../../inputs/BadgeIdRangesInput"
@@ -1220,10 +1219,6 @@ export function MetadataForm({
             </Form.Item>
           </Form>
         )}
-        <DevMode obj={collection?.collectionMetadataTimeline} />
-        <DevMode obj={collection?.cachedCollectionMetadata} />
-        <DevMode obj={collection?.cachedBadgeMetadata} />
-        <DevMode obj={collection?.badgeMetadataTimeline} />
       </InformationDisplayCard>
     </>
   )

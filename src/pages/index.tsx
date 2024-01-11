@@ -387,7 +387,7 @@ const Home: NextPage = () => {
                 content={
                   <><ClusterOutlined
                     className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    style={{ fontSize: 48 }}
                   />
                     <br />
                     <br />
@@ -409,7 +409,7 @@ const Home: NextPage = () => {
                   <>
                     <DatabaseOutlined
                       className='figma-blue'
-                      style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                      style={{ fontSize: 48 }}
                     />
                     <br />
                     <br />
@@ -419,8 +419,9 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges supports multiple storage methods for balances, including storing balances off-chain for enhanced user experience and scalability.
-                      Learn more about this <a href='https://docs.bitbadges.io/overview/concepts/balances-types' target='_blank'>here</a>.
+                      BitBadges supports multiple methods of storing balances,
+                      including storing balances off-chain where users never need to interact with the blockchain and pay gas fees.
+                      Learn more about the options <a href='https://docs.bitbadges.io/overview/concepts/balances-types' target='_blank'>here</a>.
                     </Typography.Text>
                   </>
                 }
@@ -432,7 +433,7 @@ const Home: NextPage = () => {
                   <>
                     <QrcodeOutlined
                       className='figma-blue'
-                      style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                      style={{ fontSize: 48 }}
                     />
                     <br />
                     <br />
@@ -454,7 +455,7 @@ const Home: NextPage = () => {
                 content={<>
                   <DeploymentUnitOutlined
                     className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    style={{ fontSize: 48 }}
                   />
                   <br />
                   <br />
@@ -477,7 +478,7 @@ const Home: NextPage = () => {
                   <>
                     <FieldTimeOutlined
                       className='figma-blue'
-                      style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                      style={{ fontSize: 48 }}
                     />
                     <br />
                     <br />
@@ -498,12 +499,12 @@ const Home: NextPage = () => {
                 content={
                   <><ControlOutlined
                     className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    style={{ fontSize: 48 }}
                   />
                     <br />
                     <br />
                     <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Fine-Grained Transferability
+                      Custom Transferability
                     </Typography.Text>
                     <br /><br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
@@ -517,7 +518,7 @@ const Home: NextPage = () => {
                 content={
                   <><FileProtectOutlined
                     className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    style={{ fontSize: 48 }}
                   />
                     <br />
                     <br />
@@ -527,7 +528,7 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges reuses the same interface for badges as opposed to individual smart contracts. 
+                      BitBadges reuses the same interface for badges as opposed to individual smart contracts.
                       This results in increased transparency, scalability, maintainability, consistency, and security.
                       However, smart contracts can be used for implementing advanced functionality, not natively supported.
                     </Typography.Text>
@@ -545,7 +546,7 @@ const Home: NextPage = () => {
                   <>
                     <ContactsOutlined
                       className='figma-blue'
-                      style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                      style={{ fontSize: 48 }}
                     />
                     <br />
                     <br />
@@ -567,7 +568,7 @@ const Home: NextPage = () => {
                 content={
                   <><LikeOutlined
                     className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    style={{ fontSize: 48 }}
                   />
                     <br />
                     <br />
@@ -587,7 +588,7 @@ const Home: NextPage = () => {
                 content={
                   <><SendOutlined
                     className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    style={{ fontSize: 48 }}
                   />
                     <br />
                     <br />
@@ -607,7 +608,7 @@ const Home: NextPage = () => {
                 content={
                   <><ClockCircleOutlined
                     className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    style={{ fontSize: 48 }}
                   />
                     <br />
                     <br />
@@ -627,7 +628,7 @@ const Home: NextPage = () => {
                 content={
                   <><OrderedListOutlined
                     className='figma-blue'
-                    style={{ fontSize: 48, marginLeft: 8, marginRight: 8 }}
+                    style={{ fontSize: 48 }}
                   />
                     <br />
                     <br />

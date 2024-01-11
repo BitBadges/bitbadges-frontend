@@ -172,8 +172,8 @@ export function AddressDisplayList({
     })}
 
 
-    {usersToDisplay.filter(x => x != 'All').length > 1 && !trackerIdList && <div className='flex-center flex-column'>
-      <br />
+    {usersToDisplay.filter(x => x != 'All').length > 1 && !trackerIdList && <div className='flex-center flex-column' style={{ marginTop: 8 }}>
+
 
       <a
 
@@ -195,7 +195,7 @@ export function AddressDisplayList({
           });
         }}
       >
-        Copy All Addresses <CopyOutlined />
+        Copy All <CopyOutlined />
       </a>
 
       {copying && <>

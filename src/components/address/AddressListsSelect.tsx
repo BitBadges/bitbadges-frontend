@@ -43,7 +43,6 @@ export function AddressListSelect({
   autoGenerateListId?: boolean
 }) {
   const [visible, setVisible] = useState(false)
-
   const [currId, setCurrId] = useState("")
 
   //Will need to change this in the future, but autoGenerateListId is currently only used for the AddressListSelectStepItem and is false for updates (not creates)

@@ -4,10 +4,7 @@ import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { BigIntify, convertMsgCreateCollection, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertMsgUpdateCollection, convertMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
 
 import { useRouter } from 'next/router';
-import Prism from 'prismjs';
-import 'prismjs/components/prism-json'; // need this
-import 'prismjs/components/prism-json.min';
-import 'prismjs/themes/prism.css'; //Example style, you can use another
+
 import { useEffect, useState } from 'react';
 import Editor from 'react-simple-code-editor';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -17,6 +14,7 @@ import { InformationDisplayCard } from '../../components/display/InformationDisp
 import { TxInfo, TxModal } from '../../components/tx-modals/TxModal';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { RegisteredWrapper } from '../../components/wrappers/RegisterWrapper';
+import { MarkdownDisplay, MarkdownEditor } from '../account/[addressOrUsername]/settings';
 
 const sampleMsgUpdateCollection = require('./sample-msgupdate.json');
 const sampleMsgDeleteCollection = require('./sample-msgdelete.json');
@@ -117,15 +115,6 @@ function Broadcast() {
     </div>
   );
 
-  const [highlightedCode, setHighlightedCode] = useState<string>('');
-
-  useEffect(() => {
-    if (!window.Prism) return;
-
-    const newC = Prism.highlight(inputMsg, Prism.languages.json, 'json');
-    setHighlightedCode(newC);
-  }, [inputMsg]);
-
   return (
     <DisconnectedWrapper
       requireLogin
@@ -143,6 +132,7 @@ function Broadcast() {
                 paddingTop: '20px',
               }}
             >
+
               <Col md={24} xs={24} style={{ textAlign: 'center' }} className='primary-text'>
                 <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>
                   Transaction Builder
@@ -192,6 +182,7 @@ function Broadcast() {
 
                         </div>
                         <DevMode obj={txInfo.msg}
+                          isJsonDisplay
 
                           override inheritBg noBorder />
 
@@ -299,121 +290,136 @@ function Broadcast() {
                   Learn more about {inputTxType} here.
                 </a>
                 <br />
-                <InformationDisplayCard noBorder inheritBg title='' md={18} xs={24} style={{ textAlign: 'center' }}>
-                  {inputTxType !== 'MsgStoreCodeCompat' && <>
-                    <Row className='full-width flex-center flex-column'>
+                <div className='flex-center full-width' style={{ alignItems: 'normal' }}>
+                  <InformationDisplayCard noBorder inheritBg title='' md={12} xs={24} style={{ textAlign: 'center' }}>
+                    {inputTxType !== 'MsgStoreCodeCompat' && <>
+                      <Row className='full-width flex-center flex-column'>
 
-                      <b className='primary-text'>Enter MsgValue</b>
+                        <b className='primary-text'>Enter MsgValue</b>
+                        <br />
+                        <Editor
+                          value={inputMsg}
+                          onValueChange={code => {
+                            setErr(null)
+                            try {
+                              setInputMsg(code);
+                              JSON.parse(code);
+
+
+                            } catch (e: any) {
+                              console.error(e);
+                              setErr(e.message);
+                            }
+                          }}
+                          highlight={x => x}
+                          className='rounded-md full-width'
+                          padding={16}
+                          style={{ border: '1px solid gray', }}
+                        />
+
+                      </Row>
+                    </>}
+
+                    {inputTxType === 'MsgStoreCodeCompat' && <>
+                      {!byteCode && <div className='flex-center'>
+                        <Upload
+                          fileList={fileList}
+                          showUploadList={false}
+                          onChange={onChange}
+                          maxCount={1}
+                          accept=".wasm.gz"
+                          customRequest={customRequest}
+                        >
+                          {uploadButton}
+                        </Upload>
+
+                      </div>}
+
+                      {byteCode && <div className='secondary-text'>
+                        Uploaded WASM gzip file <CheckCircleFilled style={{ color: 'green' }} />
+                      </div>}
                       <br />
-                      <br />
-                      <Editor
-                        value={inputMsg}
-                        onValueChange={code => {
-                          setErr(null)
-                          try {
-                            setInputMsg(code);
-                            JSON.parse(code);
-
-
-                          } catch (e: any) {
-                            console.error(e);
-                            setErr(e.message);
-                          }
+                      {byteCode && <IconButton
+                        src={<UndoOutlined />}
+                        onClick={() => {
+                          setByteCode(undefined);
+                          setFileList([]);
                         }}
-                        highlight={() => {
-                          return highlightedCode;
-                        }}
-                        padding={10}
-                        style={{ border: '1px solid gray' }}
+                        text='Reset'
                       />
+                      }
+                    </>}
 
+
+                  </InformationDisplayCard>
+                  <InformationDisplayCard noBorder inheritBg title='' md={12} xs={24} style={{ textAlign: 'center' }}>
+                    <Row className='full-width flex-center flex-column'><b className='primary-text'>JSON</b>
+                      <br />
+                      <MarkdownDisplay
+    
+                        showMoreHeight={10000}
+                        markdown={
+                          "```json\n" +
+                          inputMsg +
+                          "\n```"
+                        } />
                     </Row>
-                  </>}
+                  </InformationDisplayCard>
 
-                  {inputTxType === 'MsgStoreCodeCompat' && <>
-                    {!byteCode && <div className='flex-center'>
-                      <Upload
-                        fileList={fileList}
-                        showUploadList={false}
-                        onChange={onChange}
-                        maxCount={1}
-                        accept=".wasm.gz"
-                        customRequest={customRequest}
-                      >
-                        {uploadButton}
-                      </Upload>
+                </div>
+                {err && <div className='flex-center' style={{ color: 'red' }}>
+                  {err.toString()}
+                </div>}
+                <br />
+                <Divider />
+                <button className='landing-button'
+                  style={{ width: '100%' }}
+                  disabled={!!err || (inputTxType === 'MsgStoreCodeCompat' && !byteCode)}
+                  onClick={() => {
+                    if (!inputTxType) return;
 
-                    </div>}
-
-                    {byteCode && <div className='secondary-text'>
-                      Uploaded WASM gzip file <CheckCircleFilled style={{ color: 'green' }} />
-                    </div>}
-                    <br />
-                    {byteCode && <IconButton
-                      src={<UndoOutlined />}
-                      onClick={() => {
-                        setByteCode(undefined);
-                        setFileList([]);
-                      }}
-                      text='Reset'
-                    />
+                    let msg = JSON.parse(inputMsg);
+                    if (inputTxType === 'MsgUniversalUpdateCollection') msg = convertMsgUniversalUpdateCollection(msg, BigIntify)
+                    else if (inputTxType === 'MsgDeleteCollection') msg = convertMsgDeleteCollection(msg, BigIntify)
+                    else if (inputTxType === 'MsgCreateAddressLists') msg = msg
+                    else if (inputTxType === 'MsgUpdateUserApprovals') msg = convertMsgUpdateUserApprovals(msg, BigIntify)
+                    else if (inputTxType === 'MsgTransferBadges') msg = convertMsgTransferBadges(msg, BigIntify)
+                    else if (inputTxType === 'MsgCreateCollection') msg = convertMsgCreateCollection(msg, BigIntify)
+                    else if (inputTxType === 'MsgUpdateCollection') msg = convertMsgUpdateCollection(msg, BigIntify)
+                    else if (inputTxType === 'MsgSend') msg = {
+                      fromAddress: msg.fromAddress,
+                      toAddress: msg.toAddress,
+                      amount: msg.amount.map((a: any) => ({
+                        amount: BigInt(a.amount),
+                        denom: a.denom
+                      }))
                     }
-                  </>}
-                  {err && <div className='flex-center' style={{ color: 'red' }}>
-                    {err.toString()}
-                  </div>}
-                  <br />
-                  <Divider />
-                  <button className='landing-button'
-                    style={{ width: '100%' }}
-                    disabled={!!err || (inputTxType === 'MsgStoreCodeCompat' && !byteCode)}
-                    onClick={() => {
-                      if (!inputTxType) return;
+                    else if (inputTxType === 'MsgStoreCodeCompat') msg = {
+                      sender: chain.cosmosAddress,
+                      hexWasmByteCode: byteCode,
+                    }
+                    else msg = msg
 
-                      let msg = JSON.parse(inputMsg);
-                      if (inputTxType === 'MsgUniversalUpdateCollection') msg = convertMsgUniversalUpdateCollection(msg, BigIntify)
-                      else if (inputTxType === 'MsgDeleteCollection') msg = convertMsgDeleteCollection(msg, BigIntify)
-                      else if (inputTxType === 'MsgCreateAddressLists') msg = msg
-                      else if (inputTxType === 'MsgUpdateUserApprovals') msg = convertMsgUpdateUserApprovals(msg, BigIntify)
-                      else if (inputTxType === 'MsgTransferBadges') msg = convertMsgTransferBadges(msg, BigIntify)
-                      else if (inputTxType === 'MsgCreateCollection') msg = convertMsgCreateCollection(msg, BigIntify)
-                      else if (inputTxType === 'MsgUpdateCollection') msg = convertMsgUpdateCollection(msg, BigIntify)
-                      else if (inputTxType === 'MsgSend') msg = {
-                        fromAddress: msg.fromAddress,
-                        toAddress: msg.toAddress,
-                        amount: msg.amount.map((a: any) => ({
-                          amount: BigInt(a.amount),
-                          denom: a.denom
-                        }))
+                    if (editIdx !== -1) {
+                      const newTxsInfo = [...txsInfo];
+                      newTxsInfo[editIdx] = {
+                        type: inputTxType,
+                        msg: msg,
                       }
-                      else if (inputTxType === 'MsgStoreCodeCompat') msg = {
-                        sender: chain.cosmosAddress,
-                        hexWasmByteCode: byteCode,
-                      }
-                      else msg = msg
+                      setTxsInfo(newTxsInfo);
+                    } else {
 
-                      if (editIdx !== -1) {
-                        const newTxsInfo = [...txsInfo];
-                        newTxsInfo[editIdx] = {
+                      setTxsInfo([
+                        ...txsInfo,
+                        {
                           type: inputTxType,
                           msg: msg,
                         }
-                        setTxsInfo(newTxsInfo);
-                      } else {
-
-                        setTxsInfo([
-                          ...txsInfo,
-                          {
-                            type: inputTxType,
-                            msg: msg,
-                          }
-                        ]);
-                      }
-                      setEditIdx(-1);
-                      setEditIsVisible(false);
-                    }}>{editIdx >= 0 ? 'Edit' : 'Add Msg to Transaction'}</button>
-
-                </InformationDisplayCard>
+                      ]);
+                    }
+                    setEditIdx(-1);
+                    setEditIsVisible(false);
+                  }}>{editIdx >= 0 ? 'Edit' : 'Add Msg to Transaction'}</button>
               </div>}
 
               {!editIsVisible && <>

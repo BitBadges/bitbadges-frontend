@@ -220,111 +220,113 @@ export const PermissionDisplayTable = (
             <InfoCircleOutlined />
             {` There is and will never be a manager for this collection, so this permission can never be executed.`}
           </p> :
+            <>
+              <div style={{ textAlign: 'center' }} className='primary-text flex-center '>
+                {/* <Typography.Text strong style={{ fontSize: 20, textAlign: 'center' }} className='primary-text'>{question} </Typography.Text> */}
+                {/* <br /> */}
+                <br />
 
-            <div style={{ textAlign: 'center' }} className='primary-text flex-center '>
-              {/* <Typography.Text strong style={{ fontSize: 20, textAlign: 'center' }} className='primary-text'>{question} </Typography.Text> */}
-              {/* <br /> */}
-              <br />
+                <div className="primary-text" style={{ textAlign: 'center', overflow: 'auto' }}>
+                  <div>
 
-              <div className="primary-text" style={{ textAlign: 'center', overflow: 'auto' }}>
-                <div>
+                    <table className="table-auto overflow-x-scroll">
+                      {hasBothPermittedAndForbidden && !editMode && <>
+                        <tr>
+                          <td colSpan={1000}>
 
-                  <table className="table-auto overflow-x-scroll">
-                    {hasBothPermittedAndForbidden && !editMode && <>
-                      <tr>
-                        <td colSpan={1000}>
+                            <div style={{ float: 'right' }}>
+                              <Switch
+                                checked={showForbidden}
+                                onChange={(checked) => {
+                                  setShowForbidden(checked);
+                                }}
+                                checkedChildren={<>Show Forbidden</>}
+                                unCheckedChildren={<>Show Permitted Only</>}
+                              />
 
-                          <div style={{ float: 'right' }}>
-                            <Switch
-                              checked={showForbidden}
-                              onChange={(checked) => {
-                                setShowForbidden(checked);
-                              }}
-                              checkedChildren={<>Show Forbidden</>}
-                              unCheckedChildren={<>Show Permitted Only</>}
-                            />
+                            </div>
+                          </td>
+                        </tr>
+                        <br />
+                      </>}
 
-                          </div>
-                        </td>
+                      < tr className="primary-border">
+                        {editMode && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>Priority</td>}
+                        {editMode && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}></td>}
+
+
+                        {columns.map((x, idx) => {
+                          return <td key={x.key} style={{
+                            padding: 8, fontWeight: 'bold', fontSize: 16,
+                            borderRight: idx === 2 && columns.length > 3 ? '1px solid' : undefined,
+                            verticalAlign: 'top', minWidth: 70
+
+                          }}>{x.title}</td>
+                        })}
+
                       </tr>
-                      <br />
-                    </>}
+                      {dataSource.map((y, idx) => {
 
-                    < tr className="primary-border">
-                      {editMode && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>Priority</td>}
-                      {editMode && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}></td>}
+                        if (hasBothPermittedAndForbidden) {
+                          if (y.forbidden && !showForbidden) {
+                            return null;
+                          }
+                        }
 
-
-                      {columns.map((x, idx) => {
-                        return <td key={x.key} style={{
-                          padding: 8, fontWeight: 'bold', fontSize: 16,
-                          borderRight: idx === 2 && columns.length > 3 ? '1px solid' : undefined,
-                          verticalAlign: 'top', minWidth: 70
-
-                        }}>{x.title}</td>
-                      })}
-
-                    </tr>
-                    {dataSource.map((y, idx) => {
-
-                      if (hasBothPermittedAndForbidden) {
-                        if (y.forbidden && !showForbidden) {
+                        if ((mintOnly && (!y.fromList || !isInAddressList(y.fromList, "Mint")))) {
                           return null;
                         }
-                      }
 
-                      if ((mintOnly && (!y.fromList || !isInAddressList(y.fromList, "Mint")))) {
-                        return null;
-                      }
-
-                      if (nonMintOnly && (compareObjects(y.fromList?.addresses, ["Mint"] && y.fromList?.allowlist))) {
-                        return null;
-                      }
-
-                      if (mintOnly) {
-                        y.fromList = getReservedAddressList("Mint")
-                      }
-
-                      if (badgeIds) {
-                        const [, removed] = removeUintRangesFromUintRanges(badgeIds, y.badgeIds ?? []);
-                        y.badgeIds = removed;
-                      }
-
-                      //we previously may have filtered out columns, here we should not display them
-                      const columnKeys = columns.map(x => x.key);
-
-                      //delete everything from y that doesn't have a corresponding column
-                      for (const key of Object.keys(y)) {
-                        if (key == 'permitted' || key == 'forbidden' || key == 'permissionTimes') continue;
-                        if (!columnKeys.includes(key)) {
-                          delete y[key as keyof typeof y];
+                        if (nonMintOnly && (compareObjects(y.fromList?.addresses, ["Mint"] && y.fromList?.allowlist))) {
+                          return null;
                         }
-                      }
 
-                      return <PermissionTableRow key={idx}
-                        idx={idx}
-                        permissions={permissions}
-                        permission={y}
-                        columns={columns} onFreezePermitted={onFreezePermitted}
-                        setPermissions={setPermissions}
-                      />
-                    })}
-                  </table>
+                        if (mintOnly) {
+                          y.fromList = getReservedAddressList("Mint")
+                        }
+
+                        if (badgeIds) {
+                          const [, removed] = removeUintRangesFromUintRanges(badgeIds, y.badgeIds ?? []);
+                          y.badgeIds = removed;
+                        }
+
+                        //we previously may have filtered out columns, here we should not display them
+                        const columnKeys = columns.map(x => x.key);
+
+                        //delete everything from y that doesn't have a corresponding column
+                        for (const key of Object.keys(y)) {
+                          if (key == 'permitted' || key == 'forbidden' || key == 'permissionTimes') continue;
+                          if (!columnKeys.includes(key)) {
+                            delete y[key as keyof typeof y];
+                          }
+                        }
+
+                        return <PermissionTableRow key={idx}
+                          idx={idx}
+                          permissions={permissions}
+                          permission={y}
+                          columns={columns} onFreezePermitted={onFreezePermitted}
+                          setPermissions={setPermissions}
+                        />
+                      })}
+                    </table>
+                  </div>
                 </div>
               </div>
-            </div>
+              {
+
+                <>
+                  <br />
+                  <div className="full-width secondary-text">
+
+                    <InfoCircleOutlined style={{ marginRight: 4 }} /> If a value is frozen, it is non-updatable and can NEVER be updated in the future.
+                  </div>
+                </>
+              }
+            </>
         }
       </div >
-      {
 
-        <>
-          <br />
-          <div className="full-width secondary-text">
-
-            <InfoCircleOutlined style={{ marginRight: 4 }} /> If a value is frozen, it is non-updatable and can NEVER be updated in the future.
-          </div>
-        </>
-      }
 
 
       {

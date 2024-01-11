@@ -45,7 +45,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
   }
 
   const Bio = <>
-    <div className='primary-text' style={{ whiteSpace: 'normal' }}>
+    <div className='primary-text' style={{ }}>
       <MarkdownDisplay markdown={accountInfo?.readme ?? ''} />
     </div>
   </>
