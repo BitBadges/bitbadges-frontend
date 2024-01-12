@@ -26,7 +26,7 @@ export function Notifications() {
   //This is to avoid the race conditions where we somehow fetch or add an activity at time T in some other manner (claiming a badge, sending an announcement, etc)
   //We don't want to mark all notifications as read if we haven't yet loaded notifications from last seen to T
   const transferActivity = (getAccountActivityView(signedInAccount, 'transferActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
-  const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'latestClaimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
+  const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'claimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
 
   const listsActivity = (getAccountListsActivityView(signedInAccount, 'listsActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
   const listsTab = 'listsActivity';
@@ -164,8 +164,8 @@ export function Notifications() {
                   </>}
                   {tab === 'claimAlerts' && <><br /><ClaimAlertsTab
                     claimAlerts={claimAlerts ?? []}
-                    fetchMore={async () => fetchMore(chain.address, 'latestClaimAlerts')}
-                    hasMore={signedInAccount?.views.latestClaimAlerts?.pagination.hasMore ?? true}
+                    fetchMore={async () => fetchMore(chain.address, 'claimAlerts')}
+                    hasMore={signedInAccount?.views.claimAlerts?.pagination.hasMore ?? true}
                   />
                   </>}
 

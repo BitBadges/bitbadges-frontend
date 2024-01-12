@@ -97,6 +97,7 @@ export const BadgeInfiniteScroll = ({
           collectionIds={badgesToShow.map(
             (collection) => collection.collectionId
           )}
+          hideCollectionLink={true}
           addressOrUsernameToShowBalance={accountInfo?.address}
           cardView={cardView}
           customPageBadges={badgesToShow}

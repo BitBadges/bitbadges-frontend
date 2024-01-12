@@ -40,6 +40,7 @@ export function CollectionDisplayWithBadges({
   sortBy,
   showCustomizeButtons,
   isWatchlist,
+  browseDisplay
 }: {
   badgeObj: BatchBadgeDetails<bigint>
   accountInfo?: BitBadgesUserInfo<bigint>
@@ -50,7 +51,8 @@ export function CollectionDisplayWithBadges({
   span?: number
   sortBy?: "oldest" | "newest" | undefined,
   showCustomizeButtons?: boolean,
-  isWatchlist?: boolean
+  isWatchlist?: boolean,
+  browseDisplay?: boolean
 }) {
   const collectionId = badgeObj.collectionId
   const collection = useCollection(collectionId)
@@ -73,13 +75,15 @@ export function CollectionDisplayWithBadges({
       md={span ?? 8}
       xs={span ?? 24}
       sm={span ?? 24}
+      noBorder={!browseDisplay}
+      inheritBg={!browseDisplay}
     >
       <Tooltip
         color="black"
         title={"Collection ID: " + collectionId}
         placement="bottom"
       >
-        <CollectionHeader collectionId={collectionId} multiDisplay hideCollectionLink={hideCollectionLink} />
+        {browseDisplay && <CollectionHeader collectionId={collectionId} multiDisplay hideCollectionLink={hideCollectionLink} />}
         {collection && !hideAddress && (
           <div className="flex-center">
             <Typography.Text
@@ -102,7 +106,7 @@ export function CollectionDisplayWithBadges({
         cardView={cardView}
         balance={addressOrUsernameToShowBalance ? balances : undefined}
         badgeIds={badgeObj.badgeIds}
-        hideCollectionLink={hideCollectionLink}
+        hideCollectionLink={false}
         showIds
         showSupplys
         showOnSinglePage
@@ -124,6 +128,7 @@ export function MultiCollectionBadgeDisplay({
   defaultPageSize = 10,
   customPageBadges,
   groupByCollection,
+  browseDisplay,
   hideCollectionLink,
   showCustomizeButtons,
   hideAddress,
@@ -143,7 +148,8 @@ export function MultiCollectionBadgeDisplay({
   customPageBadges?: BatchBadgeDetails<bigint>[]
   isWatchlist?: boolean
   span?: number
-  sortBy?: "oldest" | "newest" | undefined
+  sortBy?: "oldest" | "newest" | undefined,
+  browseDisplay?: boolean
 }) {
   const accountInfo = useAccount(addressOrUsernameToShowBalance)
   const txTimelineContext = useTxTimelineContext()
@@ -200,9 +206,7 @@ export function MultiCollectionBadgeDisplay({
     }
 
     if (!groupByCollection) {
-      return getBadgesToDisplay(deepCopy(allBadges), currPage, defaultPageSize, sortBy).filter(
-        (x) => x.badgeIds.length > 0
-      )
+      return getBadgesToDisplay(deepCopy(allBadges), currPage, defaultPageSize, sortBy).filter((x) => x.badgeIds.length > 0)
     } else {
       return allBadges
     }
@@ -214,7 +218,7 @@ export function MultiCollectionBadgeDisplay({
       if (allBadgesToDisplay.length > 0) {
         const allArePreviewFetches = allBadgesToDisplay.every((x) => x.collectionId == 0n)
         if (!allArePreviewFetches) {
-          
+
           await batchFetchAndUpdateMetadata(
             allBadgesToDisplay.map((x) => {
               return {
@@ -270,7 +274,7 @@ export function MultiCollectionBadgeDisplay({
                 sortBy={sortBy}
                 isWatchlist={isWatchlist}
                 showCustomizeButtons={showCustomizeButtons}
-
+                browseDisplay={browseDisplay}
               />
             )
           })}

@@ -36,8 +36,8 @@ export async function fetchDefaultViews(address: string, loggedIn: boolean) {
 
   if (loggedIn) {
     viewsToFetch.push({
-      viewType: 'latestClaimAlerts',
-      viewId: 'latestClaimAlerts',
+      viewType: 'claimAlerts',
+      viewId: 'claimAlerts',
       bookmark: '',
     }, {
       viewType: 'authCodes',

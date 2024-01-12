@@ -125,7 +125,7 @@ export async function fetchNextForAccountViews(addressOrUsername: string, viewTy
   collectionId: bigint,
   badgeIds: UintRange<bigint>[]
 }[],
-  specificLists?: string[]) {
+  specificLists?: string[], oldestFirst?: boolean) {
 
   const currPagination = getAccount(addressOrUsername)?.views[viewId]?.pagination;
   const hasMore = currPagination?.hasMore || true;
@@ -141,6 +141,7 @@ export async function fetchNextForAccountViews(addressOrUsername: string, viewTy
       viewType,
       specificCollections,
       bookmark: bookmark,
+      oldestFirst
     }]
   }]);
 }

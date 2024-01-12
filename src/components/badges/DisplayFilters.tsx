@@ -231,10 +231,12 @@ export const OptionsSelects = ({
   isListsSelect,
   searchValue,
   setSearchValue,
-  filteredCollections,
-  setFilteredCollections,
-  filteredLists,
-  setFilteredLists,
+  onlySpecificCollections,
+  setOnlySpecificCollections,
+  onlySpecificLists,
+  setOnlyFilteredLists,
+  oldestFirst,
+  setOldestFirst,
 }: {
   editMode: boolean
   setEditMode: (editMode: boolean) => void
@@ -246,10 +248,12 @@ export const OptionsSelects = ({
   isListsSelect?: boolean
   searchValue: string
   setSearchValue: (searchValue: string) => void
-  filteredCollections: BatchBadgeDetails<bigint>[]
-  setFilteredCollections: (filteredCollections: BatchBadgeDetails<bigint>[]) => void
-  filteredLists: string[]
-  setFilteredLists: (filteredLists: string[]) => void
+  onlySpecificCollections: BatchBadgeDetails<bigint>[]
+  setOnlySpecificCollections: (onlySpecificCollections: BatchBadgeDetails<bigint>[]) => void
+  onlySpecificLists: string[]
+  setOnlyFilteredLists: (onlySpecificLists: string[]) => void,
+  oldestFirst: boolean,
+  setOldestFirst: (oldestFirst: boolean) => void
 }) => {
   const chain = useChainContext()
   const accountInfo = useAccount(addressOrUsername)
@@ -281,8 +285,8 @@ export const OptionsSelects = ({
       ) => {
         if (typeof searchValue === "string") {
           if (isCollection) {
-            setFilteredCollections([
-              ...filteredCollections,
+            setOnlySpecificCollections([
+              ...onlySpecificCollections,
               {
                 collectionId: BigInt(searchValue),
                 badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -292,8 +296,8 @@ export const OptionsSelects = ({
             const collectionId = BigInt(searchValue.split("/")[0])
             const badgeId = BigInt(searchValue.split("/")[1])
 
-            setFilteredCollections([
-              ...filteredCollections,
+            setOnlySpecificCollections([
+              ...onlySpecificCollections,
               {
                 collectionId,
                 badgeIds: [{ start: badgeId, end: badgeId }],
@@ -315,7 +319,7 @@ export const OptionsSelects = ({
       setSearchValue={setSearchValue}
       onSearch={async (searchValue: any) => {
         if (typeof searchValue === "string") {
-          setFilteredLists([...filteredLists, searchValue])
+          setOnlyFilteredLists([...onlySpecificLists, searchValue])
           setSearchValue("")
           //TODO: Roundabout way without context
           const listRes = await getAddressLists({
@@ -350,6 +354,17 @@ export const OptionsSelects = ({
             }}
             options={[{ label: 'None', value: 'none' }, { label: 'Collection', value: 'collection' }]}
           // style={{ flexGrow: 1 }} // Add this style to make it grow
+          />
+        )}
+
+        {(
+          <SelectWithOptions
+            title='Sort By'
+            value={oldestFirst ? 'oldest' : 'newest'}
+            setValue={(e) => {
+              setOldestFirst(e === 'oldest');
+            }}
+            options={[{ label: 'Newest', value: 'newest' }, { label: 'Oldest', value: 'oldest' }]}
           />
         )}
 

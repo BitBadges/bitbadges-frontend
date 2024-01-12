@@ -11,14 +11,15 @@ import {
   Typography,
   notification
 } from "antd"
-import { UintRange, deepCopy } from "bitbadgesjs-proto"
+import { deepCopy } from "bitbadgesjs-proto"
 import {
   AccountViewKey,
   AddressListWithMetadata,
-  BatchBadgeDetails, addToBatchArray,
+  BatchBadgeDetails, CollectionMap, addToBatchArray,
   getMaxBadgeIdForCollection,
   removeFromBatchArray,
-  removeUintRangesFromUintRanges
+  removeUintRangesFromUintRanges,
+  sortUintRangesAndMergeIfNecessary
 } from "bitbadgesjs-utils"
 import { SHA256 } from "crypto-js"
 import { useRouter } from "next/router"
@@ -66,6 +67,55 @@ import { GlobalReduxState } from "../_app"
 
 const { Content } = Layout
 
+export function applyClientSideFilters(
+  allBadgeIds: BatchBadgeDetails<bigint>[],
+  onlySpecificCollections: BatchBadgeDetails<bigint>[] = [],
+  oldestFirst: boolean = false,
+  collections: CollectionMap<bigint>
+) {
+  //Filter to only include the specific collections requested (if any)
+  if (onlySpecificCollections.length > 0) {
+    const filtered = []
+    for (const badgeIdObj of allBadgeIds) {
+      for (const filteredCollection of onlySpecificCollections) {
+        const collectionId = filteredCollection.collectionId
+        if (badgeIdObj.collectionId === collectionId) {
+          const [_, removed] = removeUintRangesFromUintRanges(
+            badgeIdObj.badgeIds,
+            filteredCollection.badgeIds
+          )
+          badgeIdObj.badgeIds = removed
+
+          filtered.push(badgeIdObj)
+        }
+      }
+    }
+    allBadgeIds = filtered
+  }
+
+  //Filter out the max badge ID for each collection
+  for (const badgeIdObj of allBadgeIds) {
+    const collection = collections[`${badgeIdObj.collectionId}`]
+    if (!collection) continue
+    const maxBadgeId = getMaxBadgeIdForCollection(collection)
+    const [remaining] = removeUintRangesFromUintRanges(
+      [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
+      badgeIdObj.badgeIds
+    )
+    badgeIdObj.badgeIds = remaining
+  }
+
+  //Apply client-side sorts
+  if (oldestFirst) {
+    allBadgeIds = allBadgeIds.sort((a, b) => a.collectionId > b.collectionId ? 1 : -1)
+  } else {
+    allBadgeIds = allBadgeIds.sort((a, b) => a.collectionId < b.collectionId ? 1 : -1)
+  }
+
+  return allBadgeIds.filter((x) => x.badgeIds.length > 0)
+}
+
+
 function PortfolioPage() {
   const router = useRouter()
 
@@ -76,6 +126,65 @@ function PortfolioPage() {
   const [tab, setTab] = useState("collected")
   const [addPageIsVisible, setAddPageIsVisible] = useState(false)
   const [warned, setWarned] = useState(false)
+  const [badgeTab, setBadgeTab] = useState("All")
+  const [cardView, setCardView] = useState(true)
+  const [onlySpecificCollections, setOnlySpecificCollections] = useState<BatchBadgeDetails<bigint>[]>([])
+  const [onlySpecificLists, setOnlyFilteredLists] = useState<string[]>([])
+  const [groupByCollection, setGroupByCollection] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [listsTab, setListsTab] = useState<string>("allLists")
+  const [oldestFirst, setOldestFirst] = useState(false)
+  const [searchValue, setSearchValue] = useState<string>("")
+  const [activityTab, setActivityTab] = useState("badges")
+  const [customView, setCustomView] = useState<AddressListWithMetadata<bigint>[]>([])
+
+  const badgeViewId = useMemo(() => {
+    const baseViewId = badgeTab === "Managing" ? "managingBadges" : badgeTab === "Created" ? "createdBadges" : "badgesCollected";
+    if (accountInfo?.views[baseViewId]?.pagination?.hasMore === false) {
+      // We can handle all filters client-side using the base view
+      return baseViewId;
+    }
+
+    let newViewId = baseViewId;
+    if (onlySpecificCollections.length > 0) {
+      newViewId += ":" + SHA256(JSON.stringify(onlySpecificCollections)).toString();
+    }
+
+    if (oldestFirst) {
+      newViewId += ":oldestFirst";
+    }
+
+    return newViewId;
+  }, [badgeTab, oldestFirst, accountInfo, onlySpecificCollections]);
+
+  const listViewId = useMemo(() => {
+    const baseViewId = listsTab;
+    if (accountInfo?.views[baseViewId]?.pagination?.hasMore === false) {
+      // We can handle all filters client-side using the base view
+      return baseViewId;
+    }
+
+    let newViewId = baseViewId;
+    if (onlySpecificLists.length > 0) {
+      newViewId += ":" + SHA256(JSON.stringify(onlySpecificLists)).toString();
+    }
+
+    if (oldestFirst) {
+      newViewId += ":oldestFirst";
+    }
+
+    return newViewId;
+  }, [listsTab, oldestFirst, accountInfo, onlySpecificLists]);
+
+  const badgesView = !accountInfo ? undefined : accountInfo?.views[badgeViewId]
+
+  //apply client side filters for lists
+  const listsView = !accountInfo ? [] : customView ?? getAccountAddressListsView(accountInfo, listViewId).filter((x) => !onlySpecificLists.includes(x.listId))
+  if (oldestFirst) {
+    listsView.sort((a, b) => a.createdBlock > b.createdBlock ? 1 : -1)
+  } else {
+    listsView.sort((a, b) => a.createdBlock < b.createdBlock ? 1 : -1)
+  }
 
   useEffect(() => {
     if (
@@ -91,7 +200,11 @@ function PortfolioPage() {
     }
   }, [accountInfo, chain, warned])
 
-  const [badgeTab, setBadgeTab] = useState("All")
+  useEffect(() => {
+    if (listsTab !== "") {
+      setAddPageIsVisible(false)
+    }
+  }, [listsTab])
 
   useEffect(() => {
     if (badgeTab !== "") {
@@ -99,27 +212,13 @@ function PortfolioPage() {
     }
   }, [badgeTab])
 
-  const [cardView, setCardView] = useState(true)
-  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails<bigint>[]>([])
-  const [filteredLists, setFilteredLists] = useState<string[]>([])
-  const [groupByCollection, setGroupByCollection] = useState(false)
-  const [editMode, setEditMode] = useState(false)
-  const [listsTab, setListsTab] = useState<string>("allLists")
-  const [searchValue, setSearchValue] = useState<string>("")
-
-  useEffect(() => {
-    if (listsTab !== "") {
-      setAddPageIsVisible(false)
-    }
-  }, [listsTab])
 
   const tabInfo = []
-
   tabInfo.push(
     { key: "collected", content: "Badges", disabled: false },
     { key: "lists", content: "Lists" },
     { key: "activity", content: "Activity", disabled: false },
-    { key: "reputation", content: "Reviews" },
+    { key: "reviews", content: "Reviews" },
   )
 
   const badgePageTabInfo = [
@@ -139,72 +238,43 @@ function PortfolioPage() {
   useEffect(() => {
     if (!accountInfo?.address) return
 
-    for (const id of filteredCollections) {
+    for (const id of onlySpecificCollections) {
       fetchBalanceForUser(id.collectionId, accountInfo?.address)
     }
-  }, [filteredCollections, accountInfo?.address])
-
-  const [customViewId, setCustomViewId] = useState<string>("")
-  const [customListViewId, setCustomListViewId] = useState<string>("")
-
-  const currViewWithoutFiltered = !accountInfo
-    ? undefined
-    : accountInfo?.views[
-    badgeTab === "Managing"
-      ? "managingBadges"
-      : badgeTab === "Created"
-        ? "createdBadges"
-        : "badgesCollected"
-    ]
+  }, [onlySpecificCollections, accountInfo?.address])
 
 
-  const currViewId = customViewId && currViewWithoutFiltered?.pagination.hasMore
-    ? customViewId : badgeTab === "Managing" ? "managingBadges" : badgeTab === "Created" ? "createdBadges"
-      : "badgesCollected"
+  const badgesToShow = useMemo(() => {
+    const allBadgeIds: BatchBadgeDetails<bigint>[] = []
 
-  let currView = !accountInfo ? undefined : accountInfo?.views[currViewId]
-  let badgesToShow = useMemo(() => {
-    let badgesToShow = getAccountBalancesView(accountInfo, "badgesCollected")
-
-    let allBadgeIds: {
-      collectionId: bigint
-      badgeIds: UintRange<bigint>[]
-    }[] = []
+    //Get correct view: "All", "Hidden", "Managing", "Created", or custom page
+    //Put all badge IDs from view into allBadgeIds
     if (badgeTab === "Hidden") {
       allBadgeIds.push(...deepCopy(accountInfo?.hiddenBadges ?? []))
-    } else if (
-      badgeTab === "All" ||
-      badgeTab === "Managing" ||
-      badgeTab === "Created"
-    ) {
+    } else if (badgeTab === "All" || badgeTab === "Managing" || badgeTab === "Created") {
       if (badgeTab === "All") {
-        for (const balanceInfo of badgesToShow) {
+        const collectedBadges = getAccountBalancesView(accountInfo, "badgesCollected")
+        for (const balanceInfo of collectedBadges) {
           if (!balanceInfo) {
             continue
           }
 
           allBadgeIds.push(
             deepCopy({
-              badgeIds: balanceInfo.balances
-                .map((balance) => balance.badgeIds)
-                .flat() || [],
+              badgeIds: sortUintRangesAndMergeIfNecessary(deepCopy(balanceInfo.balances.map((balance) => balance.badgeIds).flat() || []), true),
               collectionId: balanceInfo.collectionId,
             })
           )
         }
       } else {
-        const badgesToAdd = (currView?.ids
-          .map((id) => {
-            const collection = collections[`${id}`]
-            const collectionId = collection?.collectionId
-            if (!collectionId) return null
-
-            return {
-              collectionId,
-              badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-            }
-          })
-          .filter((x) => x) as BatchBadgeDetails<bigint>[]) ?? []
+        //.ids are a string[] of collectionIds
+        //we will filter > max out later
+        const badgesToAdd = (badgesView?.ids.map((id) => {
+          return {
+            collectionId: BigInt(id),
+            badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
+          }
+        }).filter((x) => x) as BatchBadgeDetails<bigint>[]) ?? []
 
         allBadgeIds.push(...badgesToAdd)
       }
@@ -216,138 +286,8 @@ function PortfolioPage() {
       )
     }
 
-    if (filteredCollections.length > 0) {
-      const filtered = []
-      for (const badgeIdObj of allBadgeIds) {
-        for (const filteredCollection of filteredCollections) {
-          const collectionId = filteredCollection.collectionId
-          if (badgeIdObj.collectionId === collectionId) {
-            const [_, removed] = removeUintRangesFromUintRanges(
-              badgeIdObj.badgeIds,
-              filteredCollection.badgeIds
-            )
-            badgeIdObj.badgeIds = removed
-
-            filtered.push(badgeIdObj)
-          }
-        }
-      }
-      allBadgeIds = filtered
-    }
-
-    for (const badgeIdObj of allBadgeIds) {
-      const collection = collections[`${badgeIdObj.collectionId}`]
-      if (!collection) continue
-      const maxBadgeId = getMaxBadgeIdForCollection(collection)
-      const [remaining] = removeUintRangesFromUintRanges(
-        [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
-        badgeIdObj.badgeIds
-      )
-      badgeIdObj.badgeIds = remaining
-    }
-
-    return allBadgeIds.filter((x) => x.badgeIds.length > 0)
-  }, [accountInfo, badgeTab, filteredCollections, currView?.ids, collections])
-
-  const fetchMoreCollected = useCallback(
-    async (address: string) => {
-      await fetchNextForAccountViews(
-        address,
-        "badgesCollected",
-        "badgesCollected"
-      )
-    },
-    [editMode]
-  )
-
-  const fetchMoreLists = useCallback(
-    async (address: string, viewType: AccountViewKey) => {
-      await fetchNextForAccountViews(address, viewType, viewType)
-    }, []
-  )
-
-  const fetchMoreCreatedBy = useCallback(
-    async (address: string, viewType: AccountViewKey) => {
-      await fetchNextForAccountViews(address, viewType, viewType)
-    },
-    []
-  )
-
-  const fetchMoreManaging = useCallback(
-    async (address: string, viewType: AccountViewKey) => {
-      console.log("fetchMoreManaging", address, viewType)
-      await fetchNextForAccountViews(address, viewType, viewType)
-    },
-    []
-  )
-
-  const fetchMoreWithFiltered = useCallback(
-    async (
-      address: string,
-      viewType: AccountViewKey,
-      filteredCollections: {
-        collectionId: bigint
-        badgeIds: UintRange<bigint>[]
-      }[]
-    ) => {
-      const newViewId =
-        viewType + ":" + SHA256(JSON.stringify(filteredCollections)).toString()
-      await fetchNextForAccountViews(
-        address,
-        viewType,
-        newViewId,
-        filteredCollections
-      )
-      setCustomViewId(newViewId)
-    },
-    []
-  )
-
-  const fetchMoreListsWithFiltered = useCallback(
-    async (
-      address: string,
-      viewType: AccountViewKey,
-      filteredLists: string[]
-    ) => {
-      const newViewId =
-        viewType + ":" + SHA256(JSON.stringify(filteredLists)).toString()
-      await fetchNextForAccountViews(
-        address,
-        viewType,
-        newViewId,
-        undefined,
-        filteredLists
-      )
-      setCustomListViewId(newViewId)
-    },
-    []
-  )
-
-  useEffect(() => {
-    if (filteredCollections.length > 0) {
-      const currViewId =
-        badgeTab === "Managing"
-          ? "managingBadges"
-          : badgeTab === "Created"
-            ? "createdBadges"
-            : "badgesCollected"
-
-      const newViewId = currViewId + ":" +
-        SHA256(JSON.stringify(filteredCollections)).toString()
-      setCustomViewId(newViewId)
-    } else {
-      setCustomViewId("")
-    }
-  }, [filteredCollections, badgeTab])
-
-  useEffect(() => {
-    if (filteredLists.length > 0) {
-      const newViewId = listsTab + ":" + SHA256(JSON.stringify(filteredLists)).toString()
-      setCustomListViewId(newViewId)
-    } else {
-      setCustomListViewId("")
-    }
-  }, [filteredLists, listsTab])
+    return applyClientSideFilters(allBadgeIds, onlySpecificCollections, oldestFirst, collections)
+  }, [accountInfo, badgeTab, onlySpecificCollections, badgesView?.ids, collections, oldestFirst])
 
   const isPresetList =
     listsTab === "allLists" ||
@@ -356,102 +296,70 @@ function PortfolioPage() {
     listsTab === "privateLists" ||
     listsTab === "createdLists"
 
-  const [customView, setCustomView] = useState<
-    AddressListWithMetadata<bigint>[]
-  >([])
+  const fetchAccountViewPage = useCallback(async () => {
+    if (tab === "lists" && isPresetList && listsTab === "privateLists" && !chain.loggedIn) return;
+
+    const viewId = tab === "collected" ? badgeViewId : listViewId;
+    const viewType = viewId.split(':')[0] as AccountViewKey;
+    await fetchNextForAccountViews(
+      addressOrUsername as string,
+      viewType,
+      viewId,
+      tab === "collected" ? onlySpecificCollections : undefined,
+      tab === "lists" ? onlySpecificLists : undefined,
+      oldestFirst
+    )
+  }, [addressOrUsername, listViewId, badgeViewId, onlySpecificCollections, onlySpecificLists, oldestFirst, tab, isPresetList, listsTab, chain.loggedIn])
+
 
   useEffect(() => {
     if (isPresetList) return
 
+    //Should fix this in future (probably with a context), but for custom list pages, we do not have a fetch system like we do with badges
+    //Here, we fetch them manually and store in the customView state
     async function getCustomView() {
-      const idsToFetch = []
+      let idsToFetch = []
+      const allIds = []
+      const cachedLists = deepCopy(customView)
       if (listsTab === "Hidden") {
         idsToFetch.push(...(accountInfo?.hiddenLists ?? []))
+        allIds.push(...(accountInfo?.hiddenLists ?? []))
       } else {
-        idsToFetch.push(
-          ...(accountInfo?.customPages?.lists?.find((x) => x.title === listsTab)
-            ?.items ?? [])
-        )
+        idsToFetch.push(...(accountInfo?.customPages?.lists?.find((x) => x.title === listsTab)?.items ?? []))
+        allIds.push(...(accountInfo?.customPages?.lists?.find((x) => x.title === listsTab)?.items ?? []))
       }
 
-      const res = await getAddressLists({ listIds: idsToFetch })
-      setCustomView(res.addressLists)
+      //Remove any cached lists from idsToFetch
+      idsToFetch = idsToFetch.filter((x) => !cachedLists.find((y) => y.listId === x))
+
+      const res = idsToFetch.length > 0 ? await getAddressLists({ listIds: idsToFetch }) : { addressLists: [] }
+
+      const newView = [];
+      for (const id of allIds) {
+        //Find it in either the cached lists or the newly fetched lists
+        const list = cachedLists.find((x) => x.listId === id) ?? res.addressLists.find((x) => x.listId === id)
+        if (!list) continue
+
+        newView.push(list)
+      }
+
+      setCustomView(newView)
     }
 
     getCustomView()
-  }, [
-    listsTab,
-    accountInfo?.customPages?.lists,
-    isPresetList,
-    accountInfo?.hiddenLists,
-  ])
+  }, [listsTab, accountInfo?.customPages?.lists, isPresetList, accountInfo?.hiddenLists,])
 
-  const listViewwithoutFiltered = !accountInfo
-    ? undefined
-    : accountInfo?.views[`${listsTab}`]
-  const currListViewId = customListViewId && (listViewwithoutFiltered?.pagination.hasMore ?? true)
-    ? customListViewId
-    : listsTab
-  const listsView = !accountInfo ? [] : (
-    isPresetList
-      ? getAccountAddressListsView(accountInfo, currListViewId)
-      : customView
-  ).filter((x) => !filteredLists.includes(x.listId))
 
-  const collectedHasMore = accountInfo?.views["badgesCollected"]?.pagination?.hasMore ?? true
-  const hasMoreAddressLists =
-    accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("useEffect: fetch more collected")
 
-    //Fetch on tab change but only if empty and has more
-    const collectedIsEmpty = !accountInfo?.views["badgesCollected"]?.ids.length
-    const listsIsEmpty = !accountInfo?.views[`${listsTab}`]?.ids.length
-    const createdByIsEmpty = !accountInfo?.views["createdBadges"]?.ids.length
-    const managingIsEmpty = !accountInfo?.views["managingBadges"]?.ids.length
-    const hasMoreAddressLists =
-      accountInfo?.views[`${listsTab}`]?.pagination?.hasMore ?? true
-
     if (!accountInfo || !accountInfo.address) return
-    if (tab === "collected") {
-      if (
-        badgeTab === "All" &&
-        collectedIsEmpty &&
-        (accountInfo?.views["badgesCollected"]?.pagination?.hasMore ?? true)
-      ) {
-        fetchMoreCollected(accountInfo?.address ?? "")
-      } else if (
-        badgeTab === "Managing" &&
-        (accountInfo?.views["managingBadges"]?.pagination?.hasMore ?? true) &&
-        managingIsEmpty
-      ) {
-        fetchMoreManaging(accountInfo?.address ?? "", "managingBadges")
-      } else if (
-        badgeTab === "Created" &&
-        (accountInfo?.views["createdBadges"]?.pagination?.hasMore ?? true) &&
-        createdByIsEmpty
-      ) {
-        fetchMoreCreatedBy(accountInfo?.address ?? "", "createdBadges")
-      }
-    } else if (tab === "lists" && hasMoreAddressLists && listsIsEmpty) {
-      if (isPresetList) {
-        if (listsTab === "privateLists" && !chain.loggedIn) return
-        fetchMoreLists(accountInfo?.address ?? "", listsTab)
-      }
-    }
-  }, [
-    tab,
-    accountInfo,
-    fetchMoreLists,
-    fetchMoreCreatedBy,
-    fetchMoreManaging,
-    fetchMoreCollected,
-    listsTab,
-    isPresetList,
-    badgeTab,
-    chain.loggedIn,
-  ])
+    if (tab === 'activity' || tab == 'reviews') return
 
+    fetchAccountViewPage();
+  }, [fetchAccountViewPage, accountInfo, chain.loggedIn, chain.address, tab, listsTab, isPresetList])
+
+  //Default fetch account, if not fetched already
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log("useEffect: get portfolio info")
     async function getPortfolioInfo() {
@@ -463,7 +371,6 @@ function PortfolioPage() {
     getPortfolioInfo()
   }, [addressOrUsername])
 
-  const [activityTab, setActivityTab] = useState("badges")
 
   if (!accountInfo) {
     return <></>
@@ -494,9 +401,6 @@ function PortfolioPage() {
                 <AccountHeader addressOrUsername={accountInfo.address} />
               )}
 
-
-
-
               <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab} fullWidth />
 
               {(tab === "collected") && (
@@ -504,29 +408,31 @@ function PortfolioPage() {
                   <OptionsSelects
                     searchValue={searchValue}
                     setSearchValue={setSearchValue}
-                    filteredCollections={filteredCollections}
-                    setFilteredCollections={setFilteredCollections}
+                    onlySpecificCollections={onlySpecificCollections}
+                    setOnlySpecificCollections={setOnlySpecificCollections}
                     editMode={editMode}
                     setEditMode={setEditMode}
-                    filteredLists={filteredLists}
-                    setFilteredLists={setFilteredLists}
+                    onlySpecificLists={onlySpecificLists}
+                    setOnlyFilteredLists={setOnlyFilteredLists}
                     cardView={cardView}
                     setCardView={setCardView}
                     groupByCollection={groupByCollection}
                     setGroupByCollection={setGroupByCollection}
                     addressOrUsername={addressOrUsername as string}
+                    setOldestFirst={setOldestFirst}
+                    oldestFirst={oldestFirst}
                   />
                   <br />
 
                   <div className="full-width flex-center flex-wrap">
-                    {filteredCollections.map((filteredCollection, idx) => {
+                    {onlySpecificCollections.map((filteredCollection, idx) => {
                       return (
                         <BatchBadgeDetailsTag
                           key={idx}
                           badgeIdObj={filteredCollection}
                           onClose={() => {
-                            setFilteredCollections(
-                              filteredCollections.filter(
+                            setOnlySpecificCollections(
+                              onlySpecificCollections.filter(
                                 (x) => !compareObjects(x, filteredCollection)
                               )
                             )
@@ -535,7 +441,7 @@ function PortfolioPage() {
                       )
                     })}
                   </div>
-                  {filteredCollections.length > 0 && <br />}
+                  {onlySpecificCollections.length > 0 && <br />}
                 </>
               )}
 
@@ -558,12 +464,9 @@ function PortfolioPage() {
                                 const newCustomPages = deepCopy(
                                   accountInfo.customPages?.badges ?? []
                                 )
-                                newCustomPages.splice(
-                                  newCustomPages.findIndex(
-                                    (x) => x.title === badgeTab
-                                  ),
-                                  1
-                                )
+                                newCustomPages.splice(newCustomPages.findIndex(
+                                  (x) => x.title === badgeTab
+                                ), 1)
 
                                 await updateProfileInfo(chain.address, {
                                   customPages: {
@@ -799,64 +702,11 @@ function PortfolioPage() {
                           badgesToShow={badgesToShow}
                           cardView={cardView}
                           editMode={editMode}
-                          hasMore={
-                            badgeTab === "All"
-                              ? collectedHasMore
-                              : badgeTab === "Managing"
-                                ? accountInfo?.views["managingBadges"]?.pagination?.hasMore ?? true
-                                : badgeTab === "Created"
-                                  ? accountInfo?.views["createdBadges"]?.pagination
-                                    ?.hasMore ?? true
-                                  : false
-                          }
+                          hasMore={accountInfo.views[badgeViewId]?.pagination?.hasMore ?? true}
                           fetchMore={async () => {
-                            console.log("GET MORE")
-                            const hasMore =
-                              badgeTab === "All" ? collectedHasMore : badgeTab === "Managing"
-                                ? accountInfo?.views["managingBadges"]?.pagination?.hasMore ?? true
-                                : badgeTab === "Created"
-                                  ? accountInfo?.views["createdBadges"]?.pagination
-                                    ?.hasMore ?? true
-                                  : false
-
-                            if (filteredCollections.length > 0 && hasMore) {
-                              //If we have a view where we havent fetched everything plus have specific filters, we need to fetch more with filters
-                              //Else, we can just filter client side
-                              if (badgeTab === "All") {
-                                await fetchMoreWithFiltered(
-                                  accountInfo?.address ?? "",
-                                  "badgesCollected",
-                                  filteredCollections
-                                )
-                              } else if (badgeTab === "Managing") {
-                                await fetchMoreWithFiltered(
-                                  accountInfo?.address ?? "",
-                                  "managingBadges",
-                                  filteredCollections
-                                )
-                              } else if (badgeTab === "Created") {
-                                await fetchMoreWithFiltered(
-                                  accountInfo?.address ?? "",
-                                  "createdBadges",
-                                  filteredCollections
-                                )
-                              }
-                            } else if (hasMore) {
-                              if (badgeTab === "All") {
-                                await fetchMoreCollected(
-                                  accountInfo?.address ?? ""
-                                )
-                              } else if (badgeTab === "Managing") {
-                                await fetchMoreManaging(
-                                  accountInfo?.address ?? "",
-                                  "managingBadges"
-                                )
-                              } else if (badgeTab === "Created") {
-                                await fetchMoreCreatedBy(
-                                  accountInfo?.address ?? "",
-                                  "createdBadges"
-                                )
-                              }
+                            const hasMore = accountInfo.views[badgeViewId]?.pagination?.hasMore ?? true
+                            if (hasMore) {
+                              await fetchAccountViewPage();
                             }
                           }}
                           groupByCollection={groupByCollection}
@@ -871,12 +721,12 @@ function PortfolioPage() {
                 <>
                   <OptionsSelects
                     isListsSelect
-                    filteredLists={filteredLists}
-                    setFilteredLists={setFilteredLists}
+                    onlySpecificLists={onlySpecificLists}
+                    setOnlyFilteredLists={setOnlyFilteredLists}
                     searchValue={searchValue}
                     setSearchValue={setSearchValue}
-                    filteredCollections={filteredCollections}
-                    setFilteredCollections={setFilteredCollections}
+                    onlySpecificCollections={onlySpecificCollections}
+                    setOnlySpecificCollections={setOnlySpecificCollections}
                     editMode={editMode}
                     setEditMode={setEditMode}
                     cardView={cardView}
@@ -884,11 +734,13 @@ function PortfolioPage() {
                     groupByCollection={groupByCollection}
                     setGroupByCollection={setGroupByCollection}
                     addressOrUsername={addressOrUsername as string}
+                    setOldestFirst={setOldestFirst}
+                    oldestFirst={oldestFirst}
                   />
                   <br />
 
                   <div className="full-width flex-center flex-wrap">
-                    {filteredLists.map((listId, idx) => {
+                    {onlySpecificLists.map((listId, idx) => {
                       const metadata = accountInfo.addressLists?.find(
                         (x) => x.listId === listId
                       )?.metadata
@@ -912,8 +764,8 @@ function PortfolioPage() {
                             />
                           }
                           onClose={() => {
-                            setFilteredLists(
-                              filteredLists.filter((x) => x !== listId)
+                            setOnlyFilteredLists(
+                              onlySpecificLists.filter((x) => x !== listId)
                             )
                           }}
                         >
@@ -1262,26 +1114,9 @@ function PortfolioPage() {
                         <>
                           <ListInfiniteScroll
                             fetchMore={async () => {
-                              if (isPresetList) {
-                                if (
-                                  filteredLists.length > 0 &&
-                                  isPresetList &&
-                                  hasMoreAddressLists
-                                ) {
-                                  await fetchMoreListsWithFiltered(
-                                    accountInfo?.address ?? "",
-                                    listsTab,
-                                    filteredLists
-                                  )
-                                } else {
-                                  await fetchMoreLists(
-                                    accountInfo?.address ?? "",
-                                    listsTab
-                                  )
-                                }
-                              }
+                              await fetchAccountViewPage();
                             }}
-                            hasMore={isPresetList && hasMoreAddressLists}
+                            hasMore={accountInfo.views[listViewId]?.pagination?.hasMore ?? true}
                             listsView={listsView}
                             addressOrUsername={accountInfo?.address ?? ""}
                             showInclusionDisplay={
@@ -1298,7 +1133,7 @@ function PortfolioPage() {
                 </>
               )}
 
-              {tab === "reputation" && (
+              {tab === "reviews" && (
                 <>
                   <ReputationTab
                     reviews={accountInfo?.reviews ?? []}

@@ -83,6 +83,7 @@ function BrowsePage() {
         hideCollectionLink
         key={`${collection.collectionId}`}
         collectionIds={[collection.collectionId]}
+        browseDisplay
         groupByCollection
         cardView={cardView}
         span={24}

@@ -7,22 +7,19 @@ import { Divider, Layout, Tag, Typography, notification } from "antd"
 import { UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
   AccountViewKey,
-  AddressListWithMetadata,
-  removeUintRangesFromUintRanges,
+  AddressListWithMetadata
 } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
 
-import { BatchBadgeDetails, addToBatchArray, getMaxBadgeIdForCollection, removeFromBatchArray } from "bitbadgesjs-utils"
+import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "bitbadgesjs-utils"
 import { useSelector } from "react-redux"
 import { getAddressLists } from "../../bitbadges-api/api"
 import {
   updateProfileInfo,
   useAccount,
 } from "../../bitbadges-api/contexts/accounts/AccountsContext"
-import {
-  fetchBalanceForUser
-} from "../../bitbadges-api/contexts/collections/CollectionsContext"
+import { fetchBalanceForUser } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { BadgeAvatar } from "../../components/badges/BadgeAvatar"
 import { BadgeInfiniteScroll } from "../../components/badges/BadgeInfiniteScroll"
 import { BatchBadgeDetailsTag, OptionsSelects } from "../../components/badges/DisplayFilters"
@@ -32,8 +29,8 @@ import { CustomizeAddRemoveBadgeFromPage, CustomizeAddRemoveListFromPage, NewPag
 import IconButton from "../../components/display/IconButton"
 import { Tabs } from "../../components/navigation/Tabs"
 import { compareObjects } from "../../utils/compare"
-import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { GlobalReduxState } from "../_app"
+import { applyClientSideFilters } from "./[addressOrUsername]"
 
 const { Content } = Layout
 
@@ -45,6 +42,7 @@ function WatchlistPage() {
   const [tab, setTab] = useState(accountInfo?.readme ? "overview" : "collected")
   const [addPageIsVisible, setAddPageIsVisible] = useState(false)
   const [warned, setWarned] = useState(false)
+  const [oldestFirst, setOldestFirst] = useState(false)
 
   useEffect(() => {
     if (
@@ -73,7 +71,7 @@ function WatchlistPage() {
   }, [badgeTab])
 
   const [cardView, setCardView] = useState(true)
-  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails<bigint>[]>([])
+  const [onlySpecificCollections, setOnlySpecificCollections] = useState<BatchBadgeDetails<bigint>[]>([])
   const [groupByCollection, setGroupByCollection] = useState(false)
 
   const [editMode, setEditMode] = useState(false)
@@ -134,10 +132,10 @@ function WatchlistPage() {
   useEffect(() => {
     if (!accountInfo?.address) return
 
-    for (const id of filteredCollections) {
+    for (const id of onlySpecificCollections) {
       fetchBalanceForUser(id.collectionId, accountInfo?.address)
     }
-  }, [filteredCollections, accountInfo?.address])
+  }, [onlySpecificCollections, accountInfo?.address])
 
   let badgesToShow = useMemo(() => {
     let allBadgeIds: {
@@ -145,68 +143,41 @@ function WatchlistPage() {
       badgeIds: UintRange<bigint>[]
     }[] = []
     allBadgeIds.push(
-      ...deepCopy(
-        accountInfo?.watchlists?.badges?.find((x) => x.title === badgeTab)
-          ?.items ?? []
+      ...deepCopy(accountInfo?.watchlists?.badges?.find((x) => x.title === badgeTab)
+        ?.items ?? []
       )
     )
 
-    if (filteredCollections.length > 0) {
-      const filtered = []
-      for (const badgeIdObj of allBadgeIds) {
-        for (const filteredCollection of filteredCollections) {
-          const collectionId = filteredCollection.collectionId
-          if (badgeIdObj.collectionId === collectionId) {
-            const [_, removed] = removeUintRangesFromUintRanges(
-              badgeIdObj.badgeIds,
-              filteredCollection.badgeIds
-            )
-            badgeIdObj.badgeIds = removed
+    return applyClientSideFilters(allBadgeIds, onlySpecificCollections, oldestFirst, collections)
+  }, [accountInfo, badgeTab, onlySpecificCollections, collections, oldestFirst])
 
-            filtered.push(badgeIdObj)
-          }
-        }
-      }
-      allBadgeIds = filtered
-    }
-
-    for (const badgeIdObj of allBadgeIds) {
-      const collection = collections[`${badgeIdObj.collectionId}`]
-      if (!collection) continue
-      const maxBadgeId = getMaxBadgeIdForCollection(collection)
-      const [remaining] = removeUintRangesFromUintRanges(
-        [{ start: maxBadgeId + 1n, end: GO_MAX_UINT_64 }],
-        badgeIdObj.badgeIds
-      )
-      badgeIdObj.badgeIds = remaining
-    }
-
-    return allBadgeIds.filter((x) => x.badgeIds.length > 0)
-  }, [accountInfo, badgeTab, filteredCollections, collections])
-
-  const [customView, setCustomView] = useState<
-    AddressListWithMetadata<bigint>[]
-  >([])
-  const [filteredLists, setFilteredLists] = useState<string[]>([])
+  const [customView, setCustomView] = useState<AddressListWithMetadata<bigint>[]>([])
+  const [onlySpecificLists, setOnlyFilteredLists] = useState<string[]>([])
 
   useEffect(() => {
     async function getCustomView() {
       const idsToFetch = []
 
-      idsToFetch.push(
-        ...(accountInfo?.watchlists?.lists?.find((x) => x.title === listsTab)
-          ?.items ?? [])
+      idsToFetch.push(...(accountInfo?.watchlists?.lists?.find((x) => x.title === listsTab)
+        ?.items ?? [])
       )
 
       const res = await getAddressLists({ listIds: idsToFetch })
-      setCustomView(res.addressLists)
+      const addressLists = res.addressLists;
+
+      if (oldestFirst) {
+        addressLists.sort((a, b) => a.createdBlock > b.createdBlock ? 1 : -1)
+      } else {
+        addressLists.sort((a, b) => a.createdBlock < b.createdBlock ? 1 : -1)
+      }
+      setCustomView(addressLists)
     }
 
     getCustomView()
-  }, [listsTab, accountInfo?.watchlists?.lists])
+  }, [listsTab, accountInfo?.watchlists?.lists, oldestFirst])
 
   const listsView = customView.filter(
-    (x) => filteredLists.length === 0 || filteredLists.includes(x.listId)
+    (x) => onlySpecificLists.length === 0 || onlySpecificLists.includes(x.listId)
   )
 
   if (!accountInfo) {
@@ -249,12 +220,12 @@ function WatchlistPage() {
             <>
               <br />
               <OptionsSelects
-                filteredLists={filteredLists}
-                setFilteredLists={setFilteredLists}
+                onlySpecificLists={onlySpecificLists}
+                setOnlyFilteredLists={setOnlyFilteredLists}
                 searchValue={searchValue}
                 setSearchValue={setSearchValue}
-                filteredCollections={filteredCollections}
-                setFilteredCollections={setFilteredCollections}
+                onlySpecificCollections={onlySpecificCollections}
+                setOnlySpecificCollections={setOnlySpecificCollections}
                 editMode={editMode}
                 setEditMode={setEditMode}
                 cardView={cardView}
@@ -262,18 +233,20 @@ function WatchlistPage() {
                 groupByCollection={groupByCollection}
                 setGroupByCollection={setGroupByCollection}
                 addressOrUsername={chain.address as string}
+                oldestFirst={oldestFirst}
+                setOldestFirst={setOldestFirst}
               />
               <br />
 
               <div className="full-width flex-center flex-wrap">
-                {filteredCollections.map((filteredCollection, idx) => {
+                {onlySpecificCollections.map((filteredCollection, idx) => {
                   return (
                     <BatchBadgeDetailsTag
                       key={idx}
                       badgeIdObj={filteredCollection}
                       onClose={() => {
-                        setFilteredCollections(
-                          filteredCollections.filter(
+                        setOnlySpecificCollections(
+                          onlySpecificCollections.filter(
                             (x) => !compareObjects(x, filteredCollection)
                           )
                         )
@@ -500,12 +473,12 @@ function WatchlistPage() {
               <br />
               <OptionsSelects
                 isListsSelect
-                filteredLists={filteredLists}
-                setFilteredLists={setFilteredLists}
+                onlySpecificLists={onlySpecificLists}
+                setOnlyFilteredLists={setOnlyFilteredLists}
                 searchValue={searchValue}
                 setSearchValue={setSearchValue}
-                filteredCollections={filteredCollections}
-                setFilteredCollections={setFilteredCollections}
+                onlySpecificCollections={onlySpecificCollections}
+                setOnlySpecificCollections={setOnlySpecificCollections}
                 editMode={editMode}
                 setEditMode={setEditMode}
                 cardView={cardView}
@@ -513,11 +486,13 @@ function WatchlistPage() {
                 groupByCollection={groupByCollection}
                 setGroupByCollection={setGroupByCollection}
                 addressOrUsername={chain.address as string}
+                oldestFirst={oldestFirst}
+                setOldestFirst={setOldestFirst}
               />
               <br />
 
               <div className="full-width flex-center flex-wrap">
-                {filteredLists.map((listId, idx) => {
+                {onlySpecificLists.map((listId, idx) => {
                   const metadata = accountInfo.addressLists?.find(
                     (x) => x.listId === listId
                   )?.metadata
@@ -541,8 +516,8 @@ function WatchlistPage() {
                         />
                       }
                       onClose={() => {
-                        setFilteredLists(
-                          filteredLists.filter((x) => x !== listId)
+                        setOnlyFilteredLists(
+                          onlySpecificLists.filter((x) => x !== listId)
                         )
                       }}
                     >

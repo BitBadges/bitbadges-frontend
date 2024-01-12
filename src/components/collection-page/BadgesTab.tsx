@@ -21,7 +21,7 @@ const { Text } = Typography;
 
 export function BadgesTab({ collectionId }: { collectionId: bigint }) {
   const [cardView, setCardView] = useState(true);
-  const [filteredCollections, setFilteredCollections] = useState<BatchBadgeDetails<bigint>[]>([]);
+  const [onlySpecificCollections, setOnlySpecificCollections] = useState<BatchBadgeDetails<bigint>[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const collection = useCollection(collectionId)
   const [loading, setLoading] = useState(false);
@@ -77,8 +77,8 @@ export function BadgesTab({ collectionId }: { collectionId: bigint }) {
 
 
     let badgeIds = collection ? getUintRangesForAllBadgeIdsInCollection(collection) : [];
-    if (filteredCollections.length > 0) {
-      badgeIds = filteredCollections.map(x => x.badgeIds).flat();
+    if (onlySpecificCollections.length > 0) {
+      badgeIds = onlySpecificCollections.map(x => x.badgeIds).flat();
     }
 
     if (hasCirculatingSupplyFilter === true) {
@@ -114,7 +114,7 @@ export function BadgesTab({ collectionId }: { collectionId: bigint }) {
     }
 
     return badgeIds;
-  }, [hasCirculatingSupplyFilter, canUpdateMetadataFilter, canCreateMoreFilter, canUpdateTransferabilityFilter, filteredCollections, collection]);
+  }, [hasCirculatingSupplyFilter, canUpdateMetadataFilter, canCreateMoreFilter, canUpdateTransferabilityFilter, onlySpecificCollections, collection]);
 
   const [customViewPagination, setCustomViewPagination] = useState<PaginationInfo | undefined>(undefined);
 
@@ -142,7 +142,7 @@ export function BadgesTab({ collectionId }: { collectionId: bigint }) {
     }
 
 
-    //If we are just using filteredCollections or nothing at all, we can do that all client-side
+    //If we are just using onlySpecificCollections or nothing at all, we can do that all client-side
     if (categories.length == 0 && tags.length == 0) {
       setCustomView(undefined);
       return;
@@ -182,7 +182,7 @@ export function BadgesTab({ collectionId }: { collectionId: bigint }) {
         const collectionId = BigInt(searchValue.split('/')[0]);
         const badgeId = BigInt(searchValue.split('/')[1]);
 
-        setFilteredCollections([...filteredCollections, {
+        setOnlySpecificCollections([...onlySpecificCollections, {
           collectionId,
           badgeIds: [{ start: badgeId, end: badgeId }]
         }])
@@ -238,12 +238,12 @@ export function BadgesTab({ collectionId }: { collectionId: bigint }) {
       </div>
 
       {
-        filteredCollections.length > 0 && !sortByMostViewed && <>
+        onlySpecificCollections.length > 0 && !sortByMostViewed && <>
           <br />
           <div className='full-width flex-center flex-wrap'>
-            {filteredCollections.map((filteredCollection, idx) => {
+            {onlySpecificCollections.map((filteredCollection, idx) => {
               return <BatchBadgeDetailsTag key={idx} badgeIdObj={filteredCollection} onClose={() => {
-                setFilteredCollections(filteredCollections.filter(x => !compareObjects(x, filteredCollection)));
+                setOnlySpecificCollections(onlySpecificCollections.filter(x => !compareObjects(x, filteredCollection)));
               }} />
             })}
           </div>
