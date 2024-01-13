@@ -22,6 +22,7 @@ import { TableRow } from "../display/TableRow"
 import { TimelineFieldWrapper } from "../wrappers/TimelineFieldWrapper"
 
 export function BalancesStorageRow({ collection }: { collection: BitBadgesCollection<bigint> }) {
+
   return (
     <TableRow
       label={"Balances Storage"}
@@ -114,6 +115,7 @@ export function DefaultBalancesRow({ collection }: { collection: BitBadgesCollec
     />
   )
 }
+
 
 export function UnmintedRow({ collection, badgeId }: { collection: BitBadgesCollection<bigint>, badgeId?: bigint }) {
   const mintSupplyBalance = collection?.owners.find((x) => x.cosmosAddress === "Mint")?.balances ?? []

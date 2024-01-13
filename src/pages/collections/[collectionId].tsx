@@ -37,7 +37,7 @@ function CollectionPage({
 
   const collectionMetadata = collection?.cachedCollectionMetadata;
   const isOffChainBalances = collection && collection.balancesType == "Off-Chain - Indexed" ? true : false;
-  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No User Ownership");
   const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
 
   let tabInfo = [];

@@ -18,11 +18,8 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
   if (!collection) return <></>;
 
 
-  let info = {
-    'host': collection.offChainBalancesMetadataTimeline.length > 0 ?
-      collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri :
-      'Unknown',
-    'assignMethod': 'Custom. Balances can be updated by whoever has permission to update what is returned from the server.',
+  let info: any = {
+    'assignMethod': 'Balances can be updated by whoever has permission to update what is returned from the server URL.',
   }
 
   //Fetch badge's metadata (if applicable), else default to collection if not present, else default to auto-generate
@@ -86,12 +83,15 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
           sm={24}
         >
           <InformationDisplayCard title='' inheritBg span={24} noBorder style={{ textAlign: 'left' }}>
-            <b>Where are the balances hosted?</b>
-            <br />
-            <div className='flex secondary-text'>
-              <MarkdownDisplay markdown={info.host} />
-            </div>
-            <br />
+            {info.host && <>
+              <b>How are the balances hosted?</b>
+              <br />
+              <div className='flex secondary-text'>
+                <MarkdownDisplay markdown={info.host} />
+              </div>
+              <br />
+            </>}
+
             <b>How are balances assigned?</b>
             <br />
             <div className='flex secondary-text'>

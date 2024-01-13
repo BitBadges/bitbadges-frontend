@@ -459,7 +459,7 @@ export function PermissionsOverview({
   const noManager = neverHasManager(collection);
   const isBadgeView = badgeId !== undefined;
   const badgeIds = isBadgeView ? [{ start: badgeId, end: badgeId }] : undefined;
-  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No User Ownership");
 
   return <InformationDisplayCard title={permissionName ? '' : 'Manager Permissions'} span={span}>
     {(!permissionName || permissionName == "canCreateMoreBadges") && <TableRow label={"Create more badges?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={(collection.collectionPermissions.canCreateMoreBadges)} neverHasManager={noManager} badgeIds={badgeIds} permissionName="canCreateMoreBadges" />} labelSpan={18} valueSpan={6} />}

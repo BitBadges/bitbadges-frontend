@@ -52,6 +52,24 @@ export const ArchivedRow = ({ collection }: { collection: BitBadgesCollection<bi
   }</>
 }
 
+export const StandardsRow = ({ collection }: { collection: BitBadgesCollection<bigint> | undefined }) => {
+  return <TableRow label={"Standards"} value={
+    <TimelineFieldWrapper
+      createNode={(timelineVal: StandardsTimeline<bigint>) => {
+        const standards = timelineVal.standards;
+        return <>
+          {standards && standards.length > 0 ? standards.map((standard) => {
+            return <Tag key={standard} className='secondary-text inherit-bg' style={{ margin: 2 }}>
+              {standard}
+            </Tag>
+          }) : 'Default'}
+        </>
+      }}
+      timeline={collection?.standardsTimeline ?? []}
+    />
+  } labelSpan={9} valueSpan={15} />
+}
+
 
 export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride, isAddressListDisplay, metadataUrl }: {
   collectionId: bigint,
@@ -134,21 +152,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride,
 
               </div>} labelSpan={7} valueSpan={17} />}
 
-          {<TableRow label={"Standards"} value={
-            <TimelineFieldWrapper
-              createNode={(timelineVal: StandardsTimeline<bigint>) => {
-                const standards = timelineVal.standards;
-                return <>
-                  {standards && standards.length > 0 ? standards.map((standard) => {
-                    return <Tag key={standard} className='secondary-text inherit-bg' style={{ margin: 2 }}>
-                      {standard}
-                    </Tag>
-                  }) : 'Default'}
-                </>
-              }}
-              timeline={collection?.standardsTimeline ?? []}
-            />
-          } labelSpan={9} valueSpan={15} />}
+          <StandardsRow collection={collection} />
 
           {(collection?.customDataTimeline ?? []).length > 0 &&
             collection?.customDataTimeline.some(x => x.customData) &&

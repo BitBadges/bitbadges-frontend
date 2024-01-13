@@ -11,7 +11,136 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { TableRow } from '../display/TableRow';
+import { SelectWithOptions } from '../inputs/Selects';
 import { BalanceOverview } from './BalancesInfo';
+
+
+function BalanceInfiniteScroll({
+  collectionId,
+  cardView,
+  setCardView,
+  fetchMore,
+  owners,
+  pagination,
+  showBadges,
+  setShowBadges,
+}: {
+  collectionId: bigint;
+  cardView: boolean;
+  setCardView: (val: boolean) => void;
+  fetchMore: () => Promise<void>;
+  owners: BalanceDoc<bigint>[];
+  pagination: PaginationInfo;
+  showBadges: boolean;
+  setShowBadges: (val: boolean) => void;
+}) {
+  const isPreview = collectionId === NEW_COLLECTION_ID;
+
+  const [numShown, setNumShown] = useState(25);
+
+  const toShow = owners.slice(0, numShown);
+
+  return <>
+    <div className='flex-between'>
+      <div></div>
+      <div className='flex flex-wrap'>
+        <SelectWithOptions
+          title='View'
+          value={cardView ? 'Card' : 'Table'}
+          setValue={val => {
+            setCardView(val === 'Card');
+          }}
+          options={[{
+            label: 'Card',
+            value: 'Card',
+          }, {
+            label: 'Table',
+            value: 'Table',
+          }]}
+        />
+        <SelectWithOptions
+          title='Images'
+          value={showBadges ? 'Yes' : 'No'}
+          setValue={val => {
+            setShowBadges(val === 'Yes');
+          }}
+          options={[{
+            label: 'Yes',
+            value: 'Yes',
+          }, {
+            label: 'No',
+            value: 'No',
+          }]}
+        />
+      </div>
+    </div >
+    <br />
+    <div className='primary-text flex-center flex-wrap full-width'>
+      <InfiniteScroll
+        dataLength={toShow.length}
+        next={() => {
+          if (numShown + 25 >= owners.length) {
+
+            fetchMore()
+          }
+
+          setNumShown(numShown + 25);
+
+
+        }}
+        className='flex-center flex-wrap full-width'
+        hasMore={isPreview ? false : pagination.hasMore}
+        loader={<div>
+          <br />
+          <Spin size={'large'} />
+          <br />
+          <br />
+        </div>}
+
+        scrollThreshold="200px"
+        endMessage={null}
+        style={{ width: '100%' }}
+      >
+        {cardView ? <>
+          {toShow?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
+            return <BalanceCard key={idx} collectionId={collectionId} owner={owner} />
+          })}</> : <>
+          <div className='full-width flex-center'>
+            <InformationDisplayCard md={12} xs={24} sm={24} title='Owners'>
+
+              {toShow?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
+                return <TableRow
+                  key={idx}
+                  label={<AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={24} />}
+                  value={
+                    <div style={{ float: "right" }}>
+                      <BalanceDisplay
+                        floatToRight
+                        hideBadges={!showBadges}
+                        collectionId={collectionId}
+                        hideMessage
+                        balances={owner.balances}
+                      />
+                    </div>
+                  }
+                  labelSpan={8}
+                  valueSpan={16}
+                />
+              })}
+            </InformationDisplayCard>
+          </div>
+        </>}
+      </InfiniteScroll>
+
+      {!pagination.hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
+        description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        className='primary-text'
+      />}
+    </div >
+  </>
+}
 
 
 export function CollectionOwnersTab({ collectionId }: {
@@ -20,7 +149,8 @@ export function CollectionOwnersTab({ collectionId }: {
   const collection = useCollection(collectionId)
   const isPreview = collection?.collectionId === NEW_COLLECTION_ID;
   const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
-
+  const [cardView, setCardView] = useState(true);
+  const [showBadges, setShowBadges] = useState(true);
   const owners = useMemo(() => {
     return (collection?.owners ?? []).filter(x => x.balances.length > 0 && x.balances.some(x => x.amount > 0));
   }, [collection?.owners]);
@@ -43,40 +173,19 @@ export function CollectionOwnersTab({ collectionId }: {
     if (owners && owners.length > 0) fetchAccounts(owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map(x => x.cosmosAddress));
   }, [owners]);
 
-  const hasMore = collection?.views.owners?.pagination?.hasMore ?? true;
-
   return (<>
     {!isNonIndexedBalances && <>
       <InformationDisplayCard inheritBg noBorder>
-        <div className='primary-text flex-center flex-column'>
-          <InfiniteScroll
-            dataLength={owners.length}
-            next={() => {
-              fetchMore()
-            }}
-            className='flex-center flex-wrap full-width'
-            hasMore={isPreview ? false : hasMore}
-            loader={<div>
-              <br />
-              <Spin size={'large'} />
-              <br />
-              <br />
-            </div>}
-            scrollThreshold="200px"
-            endMessage={null}
-            style={{ width: '100%' }}
-          >
-            {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
-              return <BalanceCard key={idx} collectionId={collectionId} owner={owner} />
-            })}
-          </InfiniteScroll>
-
-          {!hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
-            description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            className='primary-text'
-          />}
-        </div >
+        <BalanceInfiniteScroll
+          collectionId={collectionId}
+          cardView={cardView}
+          setCardView={setCardView}
+          showBadges={showBadges}
+          setShowBadges={setShowBadges}
+          fetchMore={async () => { fetchMore() }}
+          owners={owners}
+          pagination={collection?.views.owners?.pagination ?? { hasMore: true, bookmark: '' }}
+        />
       </InformationDisplayCard>
     </>}
   </>)
@@ -117,6 +226,9 @@ export function SpecificBadgeOwnersTab({ collectionId, badgeId }: {
     hasMore: true,
   });
 
+  const [cardView, setCardView] = useState(true);
+  const [showBadges, setShowBadges] = useState(true);
+
   const isNonIndexedBalances = collection && collection.balancesType == "Off-Chain - Non-Indexed" ? true : false;
 
   const fetchMore = useCallback(async (bookmark?: string) => {
@@ -149,37 +261,17 @@ export function SpecificBadgeOwnersTab({ collectionId, badgeId }: {
   return (<>
     {!isNonIndexedBalances && <>
       <InformationDisplayCard inheritBg noBorder>
-        <div className='primary-text flex-center flex-wrap full-width'>
-          <InfiniteScroll
-            dataLength={owners.length}
-            next={() => {
-              fetchMore(pagination.bookmark)
-            }}
-            className='flex-center flex-wrap full-width'
-            hasMore={isPreview ? false : pagination.hasMore}
-            loader={<div>
-              <br />
-              <Spin size={'large'} />
-              <br />
-              <br />
-            </div>}
 
-            scrollThreshold="200px"
-            endMessage={null}
-            style={{ width: '100%' }}
-          >
-            {owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
-              return <BalanceCard key={idx} collectionId={collectionId} owner={owner} />
-            })}
-          </InfiniteScroll>
-
-          {!pagination.hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
-            description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            className='primary-text'
-          />}
-        </div >
-
+        <BalanceInfiniteScroll
+          collectionId={collectionId}
+          cardView={cardView}
+          setCardView={setCardView}
+          showBadges={showBadges}
+          setShowBadges={setShowBadges}
+          fetchMore={async () => { fetchMore(pagination.bookmark) }}
+          owners={owners}
+          pagination={pagination}
+        />
       </InformationDisplayCard>
     </>}
   </>)

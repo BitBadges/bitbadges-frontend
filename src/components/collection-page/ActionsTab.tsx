@@ -109,7 +109,7 @@ export function ActionsTab({
   const isManager = collection && getCurrentValuesForCollection(collection).manager === chain.cosmosAddress && chain.cosmosAddress;
   const isOffChainIndexedBalances = collection && collection.balancesType == "Off-Chain - Indexed" ? true : false;
   const isOnChainBalances = collection && collection.balancesType == "Standard";
-  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No User Ownership");
 
   if (isOnChainBalances && !noBalancesStandard) {
     actions.push({

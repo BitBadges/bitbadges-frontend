@@ -2,6 +2,7 @@ import { Divider, Switch } from "antd"
 import {
   DefaultPlaceholderMetadata,
   deepCopyBalances,
+  getCurrentValuesForCollection,
   removeBadgeMetadata,
   sortUintRangesAndMergeIfNecessary,
   updateBadgeMetadata,
@@ -147,6 +148,7 @@ export function BadgeSupplySelectStepItem() {
     }
   }
 
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No User Ownership")
   const isCreateTx = !existingCollectionId
 
   const SuggestedEmptyBalances: Balance<bigint>[] = [
@@ -174,8 +176,8 @@ export function BadgeSupplySelectStepItem() {
 
   return {
     title: `Circulating Supplys`,
-    description: isNonIndexed
-      ? "Define the number of badges to be used in your collection."
+    description: isNonIndexed || noBalancesStandard
+      ? "Define the number of unique badges for your collection."
       : "Define the circulating supplys for badges in your collection. You can customize and distribute these badges in later steps.",
     node: () => (
       <UpdateSelectWrapper
@@ -212,7 +214,7 @@ export function BadgeSupplySelectStepItem() {
               alignItems: "center",
             }}
           >
-            {isNonIndexed && (
+            {(isNonIndexed || noBalancesStandard) && (
               <div
                 className="flex-center flex-column"
                 style={{
@@ -246,7 +248,7 @@ export function BadgeSupplySelectStepItem() {
                 />
               </div>
             )}
-            {!isNonIndexed && (
+            {!isNonIndexed && !noBalancesStandard && (
               <>
                 <div
                   className="flex-center"

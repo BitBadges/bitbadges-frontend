@@ -85,7 +85,7 @@ export const SelectWithOptions = ({
             {open &&
               <div id={"dropdown" + title} className="full-width absolute z-20">
                 {(
-                  <ul className="absolute z-20 mt-2  bg-white shadow-lg rounded py-1" id={"dropdown" + title}>
+                  <ul className="list-none absolute z-20 mt-2  bg-white shadow-lg rounded py-1" id={"dropdown" + title}>
                     {options.map((option, idx) => (
                       <li
                         key={idx}

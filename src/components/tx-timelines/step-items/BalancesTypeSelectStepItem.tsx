@@ -7,6 +7,7 @@ import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
+import { getCurrentValuesForCollection } from "bitbadgesjs-utils";
 
 export function BalanceTypeSelectStepItem() {
 
@@ -15,6 +16,9 @@ export function BalanceTypeSelectStepItem() {
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
 
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No User Ownership");
+
+  if (noBalancesStandard) return EmptyStepItem;
   if (!collection || existingCollectionId) return EmptyStepItem;
 
   const StandardOption = {
@@ -156,7 +160,7 @@ export const BalanceComparisonTable = () => {
             <td className="border p-2 secondary-text">Can access non-blockchain data and integrate with non-blockchain tools to customize the experience.</td>
             <td className="border p-2 secondary-text">Must use blockchain data only (i.e. smart contracts, native features, etc.).</td>
           </tr>
-          
+
           <tr>
             <td className="border p-2">Max owners limit?</td>
             <td className="border p-2 secondary-text">15k (can change)</td>

@@ -195,7 +195,7 @@ export function BalanceDisplay({
             >
               {!hideTable && (
                 <table className="table-auto" style={{ alignItems: "normal" }}>
-                  {
+                  {castedMustOwnBadges.length > 0 &&
                     <thead>
                       <tr>
                         {isMustOwnBadgesInput && (

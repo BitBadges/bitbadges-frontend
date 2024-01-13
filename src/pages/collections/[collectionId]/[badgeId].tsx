@@ -44,7 +44,7 @@ export function BadgePage({ collectionPreview, badgeIdOverride }
 
   const collection = useCollection(collectionIdNumber);
   const metadata = collection ? getMetadataForBadgeId(badgeIdNumber, collection.cachedBadgeMetadata) : undefined;
-  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No User Ownership");
 
   //Get collection information
   useEffect(() => {
@@ -74,6 +74,10 @@ export function BadgePage({ collectionPreview, badgeIdOverride }
 
   if (noBalancesStandard || isNonIndexedBalances) {
     tabInfo = tabInfo.filter(tab => tab.key !== 'approvals' && tab.key !== 'activity' && tab.key !== "owners")
+  }
+
+  if (noBalancesStandard) {
+    tabInfo = tabInfo.filter(tab => tab.key !== 'transferability')
   }
 
   return (

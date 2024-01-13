@@ -24,7 +24,7 @@ export function OverviewTab({
 
   if (!collection) return <></>
 
-  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances")
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No User Ownership")
   const MetadataDisplayElem = <MetadataDisplay collectionId={collectionId} span={24} />
 
   return (

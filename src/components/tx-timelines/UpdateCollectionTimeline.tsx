@@ -1,4 +1,5 @@
 import {
+  getCurrentValuesForCollection,
   isInAddressList
 } from "bitbadgesjs-utils"
 import {
@@ -93,6 +94,7 @@ export function UpdateCollectionTimeline() {
   const CustomCollectionStep = CollectionTypeSelect()
   const TemplateSelectStep = TemplateCollectionSelect()
 
+
   const DirectTransfersStep = DirectTransfersStepItem()
 
   const items: TimelineItem[] = [
@@ -103,6 +105,9 @@ export function UpdateCollectionTimeline() {
   ]
 
   if (!collection || !startingCollection) return <></>
+
+
+  const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No User Ownership")
 
   if (mintType === MintType.BitBadge) {
     const isOffChainBalances = collection.balancesType === "Off-Chain - Indexed"
@@ -201,12 +206,7 @@ export function UpdateCollectionTimeline() {
     } else {
       items.push(
 
-        false && toShowUpdateStandardsAction
-          ? StandardsSelectStep
-          : EmptyStepItem,
-        false && toShowCanUpdateStandardsPermission
-          ? CanUpdateStandardsSelectStep
-          : EmptyStepItem,
+
 
         toShowManagerTransferAction ? ConfirmManager : EmptyStepItem,
         hasManager && toShowCompleteControl ? ChooseControlStepItem : EmptyStepItem,
@@ -215,8 +215,13 @@ export function UpdateCollectionTimeline() {
           toShowCanManagerBeTransferredPermission
           ? CanManagerBeTransferredStep
           : EmptyStepItem,
-
-        BalanceTypeSelect,
+        toShowUpdateStandardsAction
+          ? StandardsSelectStep
+          : EmptyStepItem,
+        toShowCanUpdateStandardsPermission
+          ? CanUpdateStandardsSelectStep
+          : EmptyStepItem,
+        !noBalancesStandard ? BalanceTypeSelect : EmptyStepItem,
 
         toShowCreateMoreAction ? BadgeSupplySelectStep : EmptyStepItem,
         !completeControl &&
@@ -239,35 +244,31 @@ export function UpdateCollectionTimeline() {
           ? UpdatableBadgeMetadataSelectStep
           : EmptyStepItem,
 
-        !isOffChainBalances && !isNonIndexedBalances && !isDefaultUserBalances
+        !isOffChainBalances && !isNonIndexedBalances && !isDefaultUserBalances && !noBalancesStandard
           ? DefaultToApprovedStepItem
           : EmptyStepItem,
-        !isOffChainBalances &&
-          !isNonIndexedBalances &&
-          toShowUpdateMintTransfersAction &&
+        !isOffChainBalances && !isNonIndexedBalances && toShowUpdateMintTransfersAction && !noBalancesStandard &&
           !isDefaultUserBalances
           ? DistributionMethodStep
           : EmptyStepItem,
         CodesViewStep,
-        !isDefaultUserBalances ? DirectTransfersStep : EmptyStepItem,
+        !isDefaultUserBalances && !noBalancesStandard ? DirectTransfersStep : EmptyStepItem,
 
         //TODO: We currently make some assumptions here w/ isBitBadgesHosted and on-chain permissions. Make more robust
-        isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction
+        isOffChainBalances && toShowUpdateOffChainBalancesMetadataAction && !noBalancesStandard
           ? OffChainBalancesStorageStepItem
           : EmptyStepItem,
-        (isOffChainBalances || isNonIndexedBalances) &&
+        (isOffChainBalances || isNonIndexedBalances) && !noBalancesStandard &&
           toShowCanUpdateOffChainBalancesMetadataPermission
           ? CanUpdateBytesStep
           : EmptyStepItem,
 
-        !isOffChainBalances &&
-          !isNonIndexedBalances &&
-          toShowUpdateNonMintTransfersAction
+        !isOffChainBalances && !isNonIndexedBalances && toShowUpdateNonMintTransfersAction && !noBalancesStandard
           ? TransferabilityStep
           : EmptyStepItem,
         !isOffChainBalances &&
           !isNonIndexedBalances &&
-          !completeControl &&
+          !completeControl && !noBalancesStandard &&
           hasManager &&
           toShowCanUpdateCollectionApprovalsPermission
           ? FreezeSelectStep
