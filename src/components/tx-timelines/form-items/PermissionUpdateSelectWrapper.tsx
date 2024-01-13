@@ -53,8 +53,7 @@ export function PermissionUpdateSelectWrapper({
       const err = validatePermissionUpdateFunction(oldPermissions, newPermissions);
       setErr(err);
     }
-  }, [collection, startingCollection, permissionName, setErr
-  ]);
+  }, [collection, startingCollection, permissionName, setErr]);
 
 
   const startingPermissions = startingCollection?.collectionPermissions[`${permissionName as keyof typeof startingCollection.collectionPermissions}`] ?? [] as any;

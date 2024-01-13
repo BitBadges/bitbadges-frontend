@@ -4,8 +4,7 @@ import {
   FlagOutlined,
   LinkOutlined,
   SettingOutlined,
-  ShareAltOutlined,
-  TwitterOutlined
+  ShareAltOutlined
 } from '@ant-design/icons';
 import { Avatar, Tooltip, message, notification } from 'antd';
 import { BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
@@ -57,7 +56,7 @@ export function AccountButtonDisplay({
   const isSameAccount = chain.cosmosAddress === accountInfo?.cosmosAddress
   const openSeaLink = 'https://opensea.io/' + address;
   const etherscanLink = 'https://etherscan.io/address/' + address;
-  const twitterLink = 'https://twitter.com/' + accountInfo?.twitter;
+  const twitterLink = 'https://x.com/' + accountInfo?.twitter;
   const telegramLink = 'https://t.me/' + accountInfo?.telegram;
   const githubLink = 'https://github.com/' + accountInfo?.github;
   const stargazeLink = `https://www.stargaze.zone/p/${address?.replace('cosmos', 'stars')}/tokens`
@@ -113,13 +112,15 @@ export function AccountButtonDisplay({
 
         {accountInfo?.twitter && (
           <a href={twitterLink} target="_blank" rel="noreferrer">
-            <Tooltip title="Twitter" placement="bottom">
+            <Tooltip title="X (formerly Twitter)" placement="bottom">
               <Avatar
                 size={mobile ? undefined : 'large'}
                 onClick={() => { }}
+                style={{ background: 'black' }}
                 className="styled-button-normal account-socials-button"
-                src={"https://about.twitter.com/content/dam/about-twitter/en/brand-toolkit/brand-download-img-1.jpg.twimg.1920.jpg"}
+
               >
+                <img src="/images/x-logo.svg" style={{ width: 24, height: 24, }} />
                 {/* <TwitterOutlined /> */}
               </Avatar>
             </Tooltip>
@@ -232,7 +233,7 @@ export function AccountButtonDisplay({
                   <CopyOutlined />
                 </Avatar>
               </Tooltip>
-              <Tooltip title="Share on Twitter" placement="left">
+              <Tooltip title="Share on X" placement="left">
                 <Avatar
                   size={mobile ? undefined : 'large'}
                   onClick={() => {
@@ -245,8 +246,10 @@ export function AccountButtonDisplay({
                     window.open(shareUrl, '_blank');
                   }}
                   className="styled-button account-socials-button"
+
                 >
-                  <TwitterOutlined />
+                  {/*path /images/logo.svg */}
+                  <img src="/images/x-logo.svg" style={{ width: 24, height: 24 }} />
                 </Avatar>
               </Tooltip>
             </div>

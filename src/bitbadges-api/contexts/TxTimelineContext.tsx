@@ -337,6 +337,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   //Throughout the timeline, we never update the existing collection, only the simulated collection with ID === 0n
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: inital load ');
+    if (!chain.cosmosAddress) return;
 
     async function initialize() {
       let startingCollectionDefault: BitBadgesCollection<bigint> = {
@@ -439,7 +440,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       }
 
       //TODO: This infinite loops if connected account is not manager of collection bc createdBy is different
-      if (!startingCollection || chain.cosmosAddress != startingCollection.createdBy) {
+      if (!startingCollection) {
         const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await fetchCollectionsWithOptions(
           [{
             collectionId: existingCollectionId, viewsToFetch: [],

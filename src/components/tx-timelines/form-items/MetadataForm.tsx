@@ -1021,7 +1021,7 @@ export function MetadataForm({
             <Form.Item
               label={
                 <Text className="primary-text" strong>
-                  Twitter
+                  X
                 </Text>
               }
             >
@@ -1042,12 +1042,12 @@ export function MetadataForm({
               {currMetadata.socials?.twitter && (
                 <a
                   href={
-                    "https://twitter.com/" + currMetadata.socials?.twitter ?? ""
+                    "https://x.com/" + currMetadata.socials?.twitter ?? ""
                   }
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  https://twitter.com/{currMetadata.socials?.twitter}
+                  https://x.com/{currMetadata.socials?.twitter}
                 </a>
               )}
             </Form.Item>

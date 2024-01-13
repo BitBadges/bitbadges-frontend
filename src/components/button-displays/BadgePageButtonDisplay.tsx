@@ -3,17 +3,16 @@ import {
   EyeOutlined,
   FlagOutlined,
   LinkOutlined,
-  ShareAltOutlined,
-  TwitterOutlined
+  ShareAltOutlined
 } from '@ant-design/icons';
 import { Avatar, Col, Tooltip, message, notification } from 'antd';
-import { useState } from 'react';
-import { ReportModal } from '../tx-modals/ReportModal';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { updateAccountInfo } from '../../bitbadges-api/api';
-import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { addToBatchArray } from 'bitbadgesjs-utils';
+import { useState } from 'react';
+import { updateAccountInfo } from '../../bitbadges-api/api';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { ReportModal } from '../tx-modals/ReportModal';
 
 export function BadgeButtonDisplay({
   website,
@@ -34,7 +33,7 @@ export function BadgeButtonDisplay({
   const [reportIsVisible, setReportIsVisible] = useState(false);
   const signedInAccount = useAccount(chain.address);
 
-  const twitterLink = 'https://twitter.com/' + socials?.twitter;
+  const twitterLink = 'https://x.com/' + socials?.twitter;
   const telegramLink = 'https://t.me/' + socials?.telegram;
   const githubLink = 'https://github.com/' + socials?.github;
   const discordLink = 'https://discord.com/invite/' + socials?.discord;
@@ -46,14 +45,14 @@ export function BadgeButtonDisplay({
       <div style={{ display: 'flex' }}>
         {socials?.twitter && (
           <a href={twitterLink} target="_blank" rel="noreferrer">
-            <Tooltip title="Twitter" placement="bottom">
+            <Tooltip title="X (formerly Twitter)" placement="bottom">
               <Avatar
-                style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
+                style={{ cursor: isPreview ? 'not-allowed' : 'pointer', backgroundColor: 'black' }}
                 size="large"
                 onClick={isPreview ? undefined : () => { }}
                 className="styled-button-normal account-socials-button"
-                src={"https://about.twitter.com/content/dam/about-twitter/en/brand-toolkit/brand-download-img-1.jpg.twimg.1920.jpg"}
               >
+                <img src="/images/x-logo.svg" style={{ width: 24, height: 24, }} />
                 {/* <TwitterOutlined /> */}
               </Avatar>
             </Tooltip>
@@ -269,7 +268,7 @@ export function BadgeButtonDisplay({
                 <CopyOutlined />
               </Avatar>
             </Tooltip>
-            <Tooltip title="Share on Twitter" placement="left">
+            <Tooltip title="Share on X" placement="left">
               <Avatar
                 style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
                 size="large"
@@ -283,7 +282,8 @@ export function BadgeButtonDisplay({
                 }}
                 className="styled-button account-socials-button"
               >
-                <TwitterOutlined />
+                <img src="/images/x-logo.svg" style={{ width: 24, height: 24, }} />
+                {/* <TwitterOutlined /> */}
               </Avatar>
             </Tooltip>
           </div>

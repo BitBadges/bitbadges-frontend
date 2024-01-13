@@ -284,7 +284,7 @@ export function AccountSettings() {
                   <Form.Item
                     label={
                       <Text className='primary-text' strong>
-                        Twitter
+                        X
                       </Text>
                     }
                   >
@@ -298,8 +298,8 @@ export function AccountSettings() {
                       className="form-input"
                     />
                     {twitter &&
-                      <a href={"https://twitter.com/" + twitter} target="_blank" rel="noopener noreferrer">
-                        https://twitter.com/{twitter}
+                      <a href={"https://x.com/" + twitter} target="_blank" rel="noopener noreferrer">
+                        https://x.com/{twitter}
                       </a>}
 
                   </Form.Item>
@@ -621,7 +621,7 @@ export function AccountSettings() {
                         if (updatedEmail) {
                           notification.info({
                             message: "Email updated",
-                            description: "We have sent you an email to verify your new email address. Once you veriyf, you will begin receiving notifications.",
+                            description: "We have sent you an email to verify your new email address. Once you verify, you will begin receiving notifications.",
                             duration: 0
                           });
                         }
