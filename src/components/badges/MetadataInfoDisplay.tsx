@@ -1,27 +1,59 @@
 import {
-  CheckCircleFilled,
   EditOutlined,
   FieldTimeOutlined,
   InfoCircleOutlined,
   LinkOutlined,
-  LockOutlined,
-  WarningFilled
+  LockOutlined
 } from '@ant-design/icons';
-import { Divider, Tag, Tooltip } from 'antd';
+import { Tag, Tooltip } from 'antd';
 import { BadgeMetadataTimeline, CollectionMetadataTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
-import { Metadata, getCurrentValuesForCollection, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, Metadata, getCurrentValuesForCollection, getFullIsArchivedTimeline, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
 
 import { useEffect } from 'react';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { getTimeRangesElement } from '../../utils/dates';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { TimelineFieldWrapper } from '../wrappers/TimelineFieldWrapper';
 import { BalancesStorageRow } from './DistributionCard';
+
+export const ManagerRow = ({ collection }: { collection: BitBadgesCollection<bigint> | undefined }) => {
+  return <TableRow label={"Manager"} value={
+    <>
+      <TimelineFieldWrapper
+        createNode={(managerVal: ManagerTimeline<bigint>) => {
+          if (!managerVal.manager) return <>None</>
+
+          return <AddressDisplay
+            fontSize={16}
+            addressOrUsername={managerVal.manager}
+          />
+        }}
+        timeline={collection?.managerTimeline ?? []}
+      />
+    </>} labelSpan={7} valueSpan={17} />
+}
+
+export const ArchivedRow = ({ collection }: { collection: BitBadgesCollection<bigint> | undefined }) => {
+  return <>{getFullIsArchivedTimeline(collection?.isArchivedTimeline ?? []).length > 0 && <TableRow label={"Archived"} value={
+    <>
+
+      <TimelineFieldWrapper
+        createNode={(timelineVal: IsArchivedTimeline<bigint>) => {
+          return <>{timelineVal.isArchived ? 'Yes' : 'No'}</>
+        }}
+        emptyNode={
+          <>No</>
+        }
+        timeline={collection?.isArchivedTimeline ?? []}
+      />
+    </>} labelSpan={9} valueSpan={15} />
+  }</>
+}
+
 
 export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride, isAddressListDisplay, metadataUrl }: {
   collectionId: bigint,
@@ -37,7 +69,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride,
 
   const isCollectionInfo = !badgeId;
   const noBalancesStandard = collection && getCurrentValuesForCollection(collection).standards.includes("No Balances");
-  const [_, isValid] = searchUintRangesForId(BigInt(Date.now()), metadata?.validFrom ?? []);
 
   useEffect(() => {
     fetchAccounts([collection?.createdBy ?? '', ...collection?.managerTimeline.map(x => x.manager) ?? [], collection?.aliasAddress ?? ''])
@@ -72,20 +103,7 @@ export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride,
           } labelSpan={9} valueSpan={15} />}
           {!noBalancesStandard && <BalancesStorageRow collection={collection} />}
 
-          {<TableRow label={"Manager"} value={
-            <>
-              <TimelineFieldWrapper
-                createNode={(managerVal: ManagerTimeline<bigint>) => {
-                  if (!managerVal.manager) return <>None</>
-
-                  return <AddressDisplay
-                    fontSize={16}
-                    addressOrUsername={managerVal.manager}
-                  />
-                }}
-                timeline={collection?.managerTimeline ?? []}
-              />
-            </>} labelSpan={7} valueSpan={17} />}
+          <ManagerRow collection={collection} />
 
           {collection?.createdBy && <TableRow label={"Created By"} value={
             <div className='flex-between' style={{ textAlign: 'right' }}>
@@ -127,24 +145,9 @@ export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride,
                 />
               </>} labelSpan={9} valueSpan={15} />}
 
+          <ArchivedRow collection={collection} />
 
 
-          {(collection?.isArchivedTimeline ?? []).length > 0
-
-            && <TableRow label={"Archived"} value={
-              <>
-
-                <TimelineFieldWrapper
-                  createNode={(timelineVal: IsArchivedTimeline<bigint>) => {
-                    return <>{timelineVal.isArchived ? 'Yes' : 'No'}</>
-                  }}
-                  emptyNode={
-                    <>No</>
-                  }
-                  timeline={collection?.isArchivedTimeline ?? []}
-                />
-              </>} labelSpan={9} valueSpan={15} />
-          }
 
           <DevMode obj={collection} />
         </InformationDisplayCard>
@@ -246,7 +249,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride,
           </div>
         } labelSpan={9} valueSpan={15} />}
 
-        {metadata?.name && <TableRow label={"Name"} value={metadata.name} labelSpan={9} valueSpan={15} />}
         {metadata?.category && <TableRow label={"Category"} value={metadata.category} labelSpan={9} valueSpan={15} />}
         {metadata?.externalUrl && <TableRow label={"Website"} value={
           <div>
@@ -258,28 +260,6 @@ export function MetadataDisplay({ collectionId, span, badgeId, metadataOverride,
           </div>
         } labelSpan={9} valueSpan={15} />}
 
-        {/* {isCollectionInfo && collection?.bytes && <TableRow label={"Bytes"} value={collection.bytes} labelSpan={9} valueSpan={15} />} */}
-        {metadata?.validFrom && metadata?.validFrom.length > 0 && <TableRow label={"Validity"} value={
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
-            {getTimeRangesElement(metadata.validFrom, 'Valid from ', true)}
-            <Divider type="vertical" />
-            {isValid ? (
-              <CheckCircleFilled
-                style={{
-                  fontSize: 20,
-                  color: 'green',
-                }}
-              />
-            ) : (
-              <WarningFilled
-                style={{
-                  fontSize: 20,
-                  color: 'red',
-                }}
-              />
-            )}
-          </div>} labelSpan={9} valueSpan={15} />
-        }
 
         {metadata?.tags && <TableRow label={"Tags"} value={<div style={{ display: 'flex', justifyContent: 'right', alignItems: 'center' }}>
           {

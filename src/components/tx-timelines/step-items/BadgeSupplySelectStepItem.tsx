@@ -40,7 +40,7 @@ export function BadgeSupplySelectStepItem() {
   const [limitedSupply, setLimitedSupply] = useState<boolean>(
     collection?.defaultBalances.balances.length === 0
   )
-  const [updateFlag, setUpdateFlag] = useState<boolean>(true)
+  const [updateFlag, setUpdateFlag] = useState<boolean>(!txTimelineContext.existingCollectionId)
 
   const revertFunction = () => {
     if (!collection) return
@@ -173,7 +173,7 @@ export function BadgeSupplySelectStepItem() {
   ]
 
   return {
-    title: `Create Badges`,
+    title: `Circulating Supplys`,
     description: isNonIndexed
       ? "Define the number of badges to be used in your collection."
       : "Define the circulating supplys for badges in your collection. You can customize and distribute these badges in later steps.",
@@ -184,6 +184,20 @@ export function BadgeSupplySelectStepItem() {
         setErr={(err) => {
           setErr(err)
         }}
+        doNotUpdateNode={() => <div
+          className="flex-center"
+          style={{
+            textAlign: "center",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <DistributionOverview
+            span={24}
+            collectionId={NEW_COLLECTION_ID}
+            isSelectStep={true}
+          />
+        </div>}
         updateFlag={updateFlag}
         setUpdateFlag={setUpdateFlag}
         jsonPropertyPath={limitedSupply ? "badgesToCreate" : ""}

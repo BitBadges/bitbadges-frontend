@@ -186,11 +186,7 @@ export function UpdateCollectionTimeline() {
 
     const toShowCompleteControl =
       !existingCollectionId ||
-      existingCollectionId == 0n ||
-      //or permissions are completely neutral
-      Object.values(startingCollection.collectionPermissions).every(
-        (x) => x.length == 0
-      )
+      existingCollectionId == 0n
 
     const toShowCollectionType =
       !existingCollectionId || existingCollectionId == 0n

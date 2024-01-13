@@ -35,7 +35,6 @@ export function ReportModal({ visible, setVisible, collectionId, addressOrUserna
         message={'Please connect and sign in to view this page.'}
         node={
           <RegisteredWrapper
-
             node={
               <>
                 <Form

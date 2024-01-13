@@ -31,9 +31,9 @@ export function UpdatableMetadataSelectStepItem(
   collectionMetadataUpdate: boolean
 ) {
   const collection = useCollection(NEW_COLLECTION_ID)
-  const [checked, setChecked] = useState<boolean>(true)
+  const txTimelineContext = useTxTimelineContext();
+  const [checked, setChecked] = useState<boolean>(!txTimelineContext.existingCollectionId)
 
-  const txTimelineContext = useTxTimelineContext()
   const addMethod = collectionMetadataUpdate
     ? txTimelineContext.collectionAddMethod
     : txTimelineContext.badgeAddMethod

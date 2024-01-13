@@ -1,5 +1,6 @@
 import {
-  MetadataAddMethod
+  MetadataAddMethod,
+  getMaxBadgeIdForCollection
 } from "bitbadgesjs-utils"
 import { useState } from "react"
 import {
@@ -12,6 +13,7 @@ import { useCollection } from "../../../bitbadges-api/contexts/collections/Colle
 import { getBadgesWithUpdatableMetadata } from "../../../bitbadges-api/utils/badges"
 import { MetadataForm } from "../form-items/MetadataForm"
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper"
+import { BadgeAvatarDisplay } from "../../badges/BadgeAvatarDisplay"
 
 export function SetBadgeMetadataStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID)
@@ -39,6 +41,9 @@ export function SetBadgeMetadataStepItem() {
     description: <>Customize each individual badge in the collection.</>,
     node: () => (
       <UpdateSelectWrapper
+        doNotUpdateNode={() => {
+          return <BadgeAvatarDisplay collectionId={NEW_COLLECTION_ID} badgeIds={[{ start: 1n, end: getMaxBadgeIdForCollection(collection) }]} />
+        }}
         documentationLink={
           "https://docs.bitbadges.io/overview/how-it-works/metadata"
         }

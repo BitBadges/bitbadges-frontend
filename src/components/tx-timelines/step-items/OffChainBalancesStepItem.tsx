@@ -1,12 +1,14 @@
-import { Form, Input, Typography } from "antd";
+import { Divider, Form, Input, Typography } from "antd";
 import { Transfer } from "bitbadgesjs-proto";
 import { MetadataAddMethod } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
+import { InfoCircleOutlined } from "@ant-design/icons";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { areBalancesBitBadgesHosted } from "../../../bitbadges-api/utils/balances";
 import { INFINITE_LOOP_MODE } from "../../../constants";
+import { MarkdownEditor } from "../../../pages/account/[addressOrUsername]/settings";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { TransferSelect } from "../../transfers/TransferOrClaimSelect";
 import { getExistingBalanceMap } from "../../tx-modals/UpdateBalancesModal";
@@ -71,6 +73,40 @@ export function OffChainBalancesStorageSelectStepItem() {
   const addMethod = txTimelineContext.offChainAddMethod;
   const setAddMethod = txTimelineContext.setOffChainAddMethod;
 
+  const host = collection?.cachedCollectionMetadata?.offChainTransferabilityInfo?.host ?? '';
+  const assignMethod = collection?.cachedCollectionMetadata?.offChainTransferabilityInfo?.assignMethod ?? '';
+
+  const setHost = (host: string) => {
+    if (!collection || !collection.cachedCollectionMetadata) return;
+
+    updateCollection({
+      collectionId: NEW_COLLECTION_ID,
+      cachedCollectionMetadata: {
+        ...collection.cachedCollectionMetadata,
+        offChainTransferabilityInfo: {
+          host,
+          assignMethod: collection.cachedCollectionMetadata.offChainTransferabilityInfo?.assignMethod ?? ''
+        }
+      }
+    })
+  }
+
+  const setAssignMethod = (assignMethod: string) => {
+    if (!collection || !collection.cachedCollectionMetadata) return;
+
+    updateCollection({
+      collectionId: NEW_COLLECTION_ID,
+      cachedCollectionMetadata: {
+        ...collection.cachedCollectionMetadata,
+        offChainTransferabilityInfo: {
+          host: collection.cachedCollectionMetadata.offChainTransferabilityInfo?.host ?? '',
+          assignMethod
+        }
+      }
+    })
+  }
+
+
   const [uri, setUri] = useState('');
   const [err, setErr] = useState<Error | null>(null);
 
@@ -130,12 +166,64 @@ export function OffChainBalancesStorageSelectStepItem() {
                 className='primary-text inherit-bg'
               />
             </Form.Item>
+            <Divider />
+            {txTimelineContext.collectionAddMethod === MetadataAddMethod.UploadUrl && txTimelineContext.updateCollectionMetadataTimeline && <>
+              <div className="secondary-text" style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined /> {'To provide additional transferability info, you can host it at the self-hosted URL of your collection metadata.'} See <a href='https://app.gitbook.com/o/7VSYQvtb1QtdWFsEGoUn/s/7R34Y0QZwgpUGaJnJ4dq/for-developers/core-concepts/metadata' target='_blank'>here</a> for more info.
+              </div>
+            </>}
+            {txTimelineContext.collectionAddMethod === MetadataAddMethod.Manual && txTimelineContext.updateCollectionMetadataTimeline && <>
+              <div className="full-width" style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
+                <Form
+                  colon={false}
+                  layout="vertical"
+                  className="full-width"
+                >
+                  <Form.Item
+                    label={<>
+                      <Typography.Text className='primary-text' strong>
+                        Host
+                      </Typography.Text >
+                    </>}
+                  >
+                    <MarkdownEditor
+                      height={200}
+                      markdown={host}
+                      setMarkdown={(e) => {
+                        setHost(e);
+                      }}
+                      placeholder={`Provide a brief description of where the balances are hosted (i.e. decentralized? who controls it?)`}
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    label={<>
+                      <Typography.Text className='primary-text' strong>
+                        Assignment
+                      </Typography.Text>
+                    </>}
+                  >
+                    <MarkdownEditor
+                      height={200}
+                      markdown={assignMethod}
+                      setMarkdown={(e) => {
+                        setAssignMethod(e);
+                      }}
+                      placeholder={`How are balances assigned?`}
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            </>}
+            {!txTimelineContext.updateCollectionMetadataTimeline && <>
+              <div className="secondary-text" style={{ textAlign: 'center' }}>
+                <InfoCircleOutlined /> {'To edit the transferability metadata, you cannot have collection metadata set to "Do not update".'}
+              </div>
+            </>}
           </>
         },
         {
           title: 'Manual',
-          message: <div>{`Assign your balances directly in this form, and we handle the balances storage for you!`}
-
+          message: <div>{`Assign your balances directly in this form, and we handle the balances storage for you! The current manager will be able to update the balances.`}
           </div>,
           isSelected: addMethod === MetadataAddMethod.Manual,
         },

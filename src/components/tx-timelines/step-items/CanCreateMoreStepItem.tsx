@@ -6,6 +6,7 @@ import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
 import {
   EmptyStepItem,
   NEW_COLLECTION_ID,
+  useTxTimelineContext,
 } from "../../../bitbadges-api/contexts/TxTimelineContext"
 import {
   updateCollection,
@@ -37,8 +38,8 @@ const AlwaysLockedPermission: BalancesActionPermission<bigint> = {
 
 export function CanCreateMoreStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID)
-
-  const [checked, setChecked] = useState<boolean>(true)
+  const txTimelineContext = useTxTimelineContext();
+  const [checked, setChecked] = useState<boolean>(!txTimelineContext.existingCollectionId)
   const [err, setErr] = useState<Error | null>(null)
 
   const maxBadgeId = collection ? getMaxBadgeIdForCollection(collection) : 0n

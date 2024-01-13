@@ -15,7 +15,7 @@ export function CanUpdateBalancesStepItem() {
   const txTimelineContext = useTxTimelineContext();
   const addMethod = txTimelineContext.offChainAddMethod;
   const collection = useCollection(NEW_COLLECTION_ID);
-  const [checked, setChecked] = useState<boolean>(true);
+  const [checked, setChecked] = useState<boolean>(!txTimelineContext.existingCollectionId);
   const [err, setErr] = useState<Error | null>(null);
 
   if (!collection) return EmptyStepItem;

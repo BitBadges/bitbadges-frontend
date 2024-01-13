@@ -93,8 +93,8 @@ export function ClaimAlertDisplay({
 
 
           <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-            {new Date(Number(claimAlert.createdTimestamp)).toLocaleDateString() + ' '}
-            {new Date(Number(claimAlert.createdTimestamp)).toLocaleTimeString()}
+            {new Date(Number(claimAlert.timestamp)).toLocaleDateString() + ' '}
+            {new Date(Number(claimAlert.timestamp)).toLocaleTimeString()}
           </Typography.Text>
 
         </Col>

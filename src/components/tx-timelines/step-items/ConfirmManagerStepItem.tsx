@@ -15,6 +15,7 @@ import { DevMode } from "../../common/DevMode";
 import { TimelineEditor } from "../../wrappers/TimelineFieldWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { ManagerRow } from "../../badges/MetadataInfoDisplay";
 
 const AddManagerNode = ({ address, setAddress }: { address: string, setAddress: (address: string) => void }) => {
   return <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
@@ -61,7 +62,11 @@ export function ConfirmManagerStepItem() {
         {' '}here.
       </a>
     </>,
+
     node: () => <UpdateSelectWrapper
+      doNotUpdateNode={() => <>
+        <ManagerRow collection={collection} />
+      </>}
       documentationLink={"https://docs.bitbadges.io/overview/how-it-works/manager"}
       err={err}
       setErr={(err) => { setErr(err) }}

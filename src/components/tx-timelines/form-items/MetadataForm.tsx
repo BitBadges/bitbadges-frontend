@@ -67,7 +67,6 @@ import { CollectionHeader } from "../../badges/CollectionHeader"
 import IconButton from "../../display/IconButton"
 import { InformationDisplayCard } from "../../display/InformationDisplayCard"
 import { BadgeIdRangesInput } from "../../inputs/BadgeIdRangesInput"
-import { DateRangeInput } from "../../inputs/DateRangeInput"
 import { RadioGroup } from "../../inputs/Selects"
 import { MetadataUriSelect } from "./MetadataUriSelect"
 
@@ -417,10 +416,6 @@ export function MetadataForm({
     "Certification",
   ])
   const [name, setName] = useState("")
-  const [validForeverChecked, setValidForeverChecked] = useState(
-    !metadata.validFrom ||
-    (metadata.validFrom && metadata.validFrom.length === 0)
-  )
   const [applyingBatchUpdate, setApplyingBatchUpdate] = useState(false)
 
 
@@ -524,7 +519,6 @@ export function MetadataForm({
                 <FieldCheckbox fieldName="image" label="Image" />
                 <FieldCheckbox fieldName="video" label="Video" />
                 <FieldCheckbox fieldName="description" label="Description" />
-                <FieldCheckbox fieldName="validFrom" label="Validity" />
                 <FieldCheckbox fieldName="category" label="Category" />
                 <FieldCheckbox fieldName="tags" label="Tags" />
                 <FieldCheckbox fieldName="externalUrl" label="Website" />
@@ -971,74 +965,6 @@ export function MetadataForm({
                   {toBeFrozen &&
                     "*You have selected for this metadata to be frozen and uneditable. Please enter a website URL that is permanent and will not change in the future."}
                 </Text>
-              </div>
-            </Form.Item>
-            <Form.Item
-              label={
-                <Text className="primary-text" strong>
-                  Validity{" "}
-                  <Tooltip
-                    color="black"
-                    title={
-                      "How long will badge(s) be valid? Note this has no on-chain significance and is only informational. Could be used for subscriptions, memberships, etc."
-                    }
-                  >
-                    <InfoCircleOutlined />
-                  </Tooltip>
-                </Text>
-              }
-            >
-              <div className="flex-between">
-                <div className="primary-text inherit-bg full-width">
-                  <div className="primary-text">
-                    Always Valid?
-                    <Checkbox
-                      checked={validForeverChecked}
-                      style={{ marginLeft: 5 }}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setMetadata({
-                            ...currMetadata,
-                            validFrom: [],
-                          })
-                        } else {
-                          const maxDate = new Date()
-                          maxDate.setFullYear(9999)
-                          maxDate.setMonth(11)
-                          maxDate.setDate(31)
-                          maxDate.setHours(0)
-                          maxDate.setMinutes(0)
-                          maxDate.setSeconds(0)
-
-                          setMetadata({
-                            ...currMetadata,
-                            validFrom: [
-                              {
-                                start: BigInt(Date.now()),
-                                end: BigInt(maxDate.valueOf()),
-                              },
-                            ],
-                          })
-                        }
-                        setValidForeverChecked(e.target.checked)
-                      }}
-                    />
-                  </div>
-
-                  {!validForeverChecked && (
-                    <>
-                      <DateRangeInput
-                        timeRanges={currMetadata.validFrom ?? []}
-                        setTimeRanges={(timeRanges: UintRange<bigint>[]) => {
-                          setMetadata({
-                            ...currMetadata,
-                            validFrom: timeRanges,
-                          })
-                        }}
-                      />
-                    </>
-                  )}
-                </div>
               </div>
             </Form.Item>
 

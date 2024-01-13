@@ -301,15 +301,15 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     })
     setSize(0);
 
-    setUpdateCollectionPermissions(true);
-    setUpdateManagerTimeline(true);
-    setUpdateCollectionMetadataTimeline(true);
-    setUpdateBadgeMetadataTimeline(true);
-    setUpdateOffChainBalancesMetadataTimeline(true);
-    setUpdateCustomDataTimeline(true);
-    setUpdateCollectionApprovals(true);
-    setUpdateStandardsTimeline(true);
-    setUpdateIsArchivedTimeline(true);
+    setUpdateCollectionPermissions(!existingCollectionId);
+    setUpdateManagerTimeline(!existingCollectionId);
+    setUpdateCollectionMetadataTimeline(!existingCollectionId);
+    setUpdateBadgeMetadataTimeline(!existingCollectionId);
+    setUpdateOffChainBalancesMetadataTimeline(!existingCollectionId);
+    setUpdateCustomDataTimeline(!existingCollectionId);
+    setUpdateCollectionApprovals(!existingCollectionId);
+    setUpdateStandardsTimeline(!existingCollectionId);
+    setUpdateIsArchivedTimeline(!existingCollectionId);
 
     setCompleteControl(false);
     resetCollectionApprovals();

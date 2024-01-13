@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { GenericCollectionPermissionWithDetails, getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";
@@ -62,7 +62,8 @@ export const AdditionalPermissionSelectNode = ({
 
 export function CanDeleteStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID);
-  const [checked, setChecked] = useState<boolean>(true);
+  const txTimelineContext = useTxTimelineContext();
+  const [checked, setChecked] = useState<boolean>(!txTimelineContext.existingCollectionId);
   const [err, setErr] = useState<Error | null>(null);
 
   if (!collection) return EmptyStepItem;

@@ -118,6 +118,13 @@ export function BadgeAvatar({
 
           size={size ? size : 65}
           onClick={() => {
+
+
+            if (onClick) {
+              onClick()
+              return
+            }
+            if (!badgeId) return
             if (collectionId == NEW_COLLECTION_ID) {
               notification.info({
                 message: "Navigating to a preview badge is not supported.",
@@ -125,12 +132,6 @@ export function BadgeAvatar({
               })
               return
             }
-
-            if (onClick) {
-              onClick()
-              return
-            }
-            if (!badgeId) return
             router.push(`/collections/${collectionId}/${badgeId}`)
           }}
           onError={() => {

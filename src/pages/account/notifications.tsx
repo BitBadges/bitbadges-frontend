@@ -26,7 +26,7 @@ export function Notifications() {
   //This is to avoid the race conditions where we somehow fetch or add an activity at time T in some other manner (claiming a badge, sending an announcement, etc)
   //We don't want to mark all notifications as read if we haven't yet loaded notifications from last seen to T
   const transferActivity = (getAccountActivityView(signedInAccount, 'transferActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
-  const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'claimAlerts') ?? []).filter((claimAlert) => claimAlert.createdTimestamp < (chain.lastSeenActivity));
+  const claimAlerts = (getAccountClaimAlertsView(signedInAccount, 'claimAlerts') ?? []).filter((claimAlert) => claimAlert.timestamp < (chain.lastSeenActivity));
 
   const listsActivity = (getAccountListsActivityView(signedInAccount, 'listsActivity') ?? []).filter((transfer) => transfer.timestamp < (chain.lastSeenActivity));
   const listsTab = 'listsActivity';
@@ -62,7 +62,7 @@ export function Notifications() {
 
 
   // const unseenAnnouncementsCount = announcements.filter((announcement) => announcement.timestamp > (prevSeenActivity ?? 0)).length;
-  const unseenClaimAlertsCount = claimAlerts.filter((claimAlert) => claimAlert.createdTimestamp > (prevSeenActivity ?? 0)).length;
+  const unseenClaimAlertsCount = claimAlerts.filter((claimAlert) => claimAlert.timestamp > (prevSeenActivity ?? 0)).length;
   const unseenTransferActivityCount = transferActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
   const unseenListsActivityCount = listsActivity.filter((transfer) => transfer.timestamp > (prevSeenActivity ?? 0)).length;
 

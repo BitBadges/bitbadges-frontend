@@ -124,7 +124,7 @@ export function PermissionUpdateSelectWrapper({
 
         {!isMint &&
           <Switch
-            style={{ marginBottom: 10 }}
+            style={{ marginTop: 10, marginBottom: 10 }}
             checked={checked}
             checkedChildren="Update"
             unCheckedChildren="Do Not Update"
@@ -169,7 +169,7 @@ export function PermissionUpdateSelectWrapper({
           </div>
         </>}
 
-      
+
       {checked && flags && showBeforeAndAfter && <>
         <BeforeAfterPermission
           permissionName={permissionName}

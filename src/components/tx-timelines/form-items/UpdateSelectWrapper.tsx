@@ -30,7 +30,8 @@ export function UpdateSelectWrapper({
   err,
   setErr,
   documentationLink,
-  advancedNode
+  advancedNode,
+  doNotUpdateNode
 }: {
   setUpdateFlag: (val: boolean) => void,
   updateFlag: boolean,
@@ -47,6 +48,7 @@ export function UpdateSelectWrapper({
   setErr: (err: Error | null) => void,
   documentationLink?: string,
   advancedNode?: () => JSX.Element,
+  doNotUpdateNode?: () => JSX.Element,
 }) {
 
   const txTimelineContext = useTxTimelineContext();
@@ -164,7 +166,7 @@ export function UpdateSelectWrapper({
           <div style={{ marginTop: 10, marginBottom: 10 }}>
             <Switch
               checkedChildren="Update"
-              unCheckedChildren="Do not update"
+              unCheckedChildren="Do Not Update"
               checked={updateFlag}
               onChange={(e) => {
                 setUpdateFlag(e);
@@ -199,6 +201,7 @@ export function UpdateSelectWrapper({
                   ${existingCollectionId && nonStandardUpdateSelect ? ' This means that users will have to opt-in to all incoming transfers by default.' : ''}
                   `,
               isSelected: true,
+              additionalNode: doNotUpdateNode
             },
             ]}
             onSwitchChange={() => { }}

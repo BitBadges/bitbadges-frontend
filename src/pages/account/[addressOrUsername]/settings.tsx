@@ -1,5 +1,5 @@
-import { FullscreenExitOutlined, FullscreenOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
+import { CheckCircleFilled, FullscreenExitOutlined, FullscreenOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { BLANK_USER_INFO, BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
 
@@ -20,6 +20,8 @@ import { INFINITE_LOOP_MODE } from '../../../constants';
 
 import "@uiw/react-markdown-preview/markdown.css";
 import "@uiw/react-md-editor/markdown-editor.css";
+import IconButton from '../../../components/display/IconButton';
+import { CheckboxSelect } from '../../../components/inputs/Selects';
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -35,7 +37,7 @@ const EditerMarkdown = dynamic(
 
 const { Content } = Layout;
 
-export const MarkdownEditor = ({ markdown, setMarkdown, placeholder }: { markdown: string, setMarkdown: (markdown: string) => void, placeholder?: string }) => {
+export const MarkdownEditor = ({ markdown, setMarkdown, placeholder, height = 600 }: { height?: number, markdown: string, setMarkdown: (markdown: string) => void, placeholder?: string }) => {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export const MarkdownEditor = ({ markdown, setMarkdown, placeholder }: { markdow
   return <div className='full-width' >
     <div data-color-mode={mode}>
       <MDEditor
-        height={600}
+        height={height}
         placeholder={placeholder}
         value={markdown}
         onChange={(value) => {
@@ -115,7 +117,7 @@ export function AccountSettings() {
   const [loading, setLoading] = useState<boolean>(false);
   const [newAccount, setNewAccount] = useState<BitBadgesUserInfo<bigint>>(signedInAccount ?? BLANK_USER_INFO);
 
-
+  const notifications = newAccount?.notifications ? newAccount.notifications : undefined;
   const twitter = newAccount?.twitter ? newAccount.twitter : '';
   const discord = newAccount?.discord ? newAccount.discord : '';
   const github = newAccount?.github ? newAccount.github : '';
@@ -129,6 +131,7 @@ export function AccountSettings() {
   const setTelegram = (telegram: string) => { setNewAccount({ ...newAccount, telegram }) };
   const setReadme = (readme: string) => { setNewAccount({ ...newAccount, readme }) };
   const setCustomLinks = (customLinks: any[]) => { setNewAccount({ ...newAccount, customLinks }) };
+  const setNotifications = (notifications: any) => { setNewAccount({ ...newAccount, notifications }) }
 
   const hiddenBadges = newAccount?.hiddenBadges ? newAccount.hiddenBadges : [];
   const customPages = newAccount?.customPages ? newAccount.customPages : {
@@ -136,7 +139,6 @@ export function AccountSettings() {
     lists: [],
   }
   const username = newAccount?.username ? newAccount.username : '';
-
   const setUsername = (username: string) => { setNewAccount({ ...newAccount, username }) };
 
   const [newCustomLinkTitle, setNewCustomLinkTitle] = useState('');
@@ -206,12 +208,10 @@ export function AccountSettings() {
               <Divider></Divider>
               <Form
                 colon={false}
-                labelCol={{ span: 6 }}
-                wrapperCol={{ span: 14 }}
-                layout="horizontal"
+                layout="vertical"
               >
                 <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
-
+                  <b className='primary-text' style={{ fontSize: 24, textAlign: 'center' }}>Profile</b>
                   <Form.Item
                     label={
                       <Text className='primary-text' strong>
@@ -440,9 +440,10 @@ export function AccountSettings() {
                     }
                   ><div className='flex-center full-width'>
 
-                      <Button
+                      <IconButton
+                        text='Add Link'
+                        src={<PlusOutlined style={{ fontSize: 16 }} />}
                         disabled={!newCustomLinkTitle || !newCustomLinkUrl}
-                        type='primary'
                         // className='styled-button'
                         onClick={() => {
                           if (!newCustomLinkTitle || !newCustomLinkUrl) return;
@@ -456,8 +457,87 @@ export function AccountSettings() {
                           setNewCustomLinkUrl('');
                           setNewCustomLinkImage('');
                         }}
-                      >Add Link</Button>
+                      ></IconButton>
                     </div>
+
+                  </Form.Item>
+                  <Divider />
+                  <b className='primary-text' style={{ fontSize: 24, textAlign: 'center' }}>Notifications</b>
+                  <Form.Item
+                    label={
+                      <Text className='primary-text' strong>
+                        Email
+                      </Text>
+                    }
+                  >
+
+                    <Input
+                      defaultValue={notifications?.email ?? ''}
+                      value={notifications?.email ?? ''}
+                      onChange={(e) => {
+                        setNotifications({ ...notifications, email: e.target.value });
+                      }}
+                      className="form-input"
+                    />
+                    <div className='secondary-text'>
+                      Your email is used to send you push notifications about activity on your account.
+                    </div>
+                    <div className='secondary-text'>
+                      {signedInAccount?.notifications?.emailVerification?.verified ? <div className='secondary-text'>
+                        <CheckCircleFilled style={{ color: 'green' }} /> Email verified</div> : <div className='secondary-text'>Email not verified</div>}
+                    </div>
+
+                  </Form.Item>
+                  <Form.Item
+                    label={
+                      <Text className='primary-text' strong>
+                        Preferences
+                      </Text>
+                    }
+                  >
+                    <div className='primary-text' style={{ textAlign: 'start' }}>
+                      <CheckboxSelect title='Email for claim alerts?' value={!!notifications?.preferences?.listActivity} setValue={(value) => {
+                        setNotifications({ ...notifications, preferences: { ...notifications?.preferences, listActivity: value } });
+                      }} options={[
+                        { label: 'No', value: false },
+                        { label: 'Yes', value: true },
+                      ]} />
+                      <CheckboxSelect title='Email for transfer activity?' value={!!notifications?.preferences?.transferActivity} setValue={(value) => {
+                        setNotifications({ ...notifications, preferences: { ...notifications?.preferences, transferActivity: value } });
+                      }} options={[
+                        { label: 'No', value: false },
+                        { label: 'Yes', value: true },
+                      ]} />
+                      <CheckboxSelect title='Email for list activity?' value={!!notifications?.preferences?.claimAlerts} setValue={(value) => {
+                        setNotifications({ ...notifications, preferences: { ...notifications?.preferences, claimAlerts: value } });
+                      }} options={[
+                        { label: 'No', value: false },
+                        { label: 'Yes', value: true },
+                      ]} />
+                    </div>
+                  </Form.Item>
+
+                  <Form.Item
+                    label={
+                      <Text className='primary-text' strong>
+                        Anti-Phishing Code
+                      </Text>
+                    }
+                  >
+
+                    <Input
+                      defaultValue={notifications?.emailVerification?.antiPhishingCode ?? ''}
+                      value={notifications?.emailVerification?.antiPhishingCode ?? ''}
+                      onChange={(e) => {
+                        setNotifications({ ...notifications, emailVerification: { ...notifications?.emailVerification, antiPhishingCode: e.target.value } });
+                      }}
+                      className="form-input"
+                    />
+                    <div className='secondary-text'>
+                      An anti-phishing code is used to verify that emails from BitBadges are not spoofed.
+                      We will provide this code in all notification emails sent to you.
+                    </div>
+
                   </Form.Item>
                 </div>
               </ Form>
@@ -468,23 +548,28 @@ export function AccountSettings() {
                   className='landing-button'
                   disabled={loading}
                   // disabled={!regex.test(name) && name.length > 0}
-                  style={{ width: '80%', textAlign: 'center', display: 'flex', justifyContent: 'center' }}
+                  style={{ width: '100%', textAlign: 'center', display: 'flex', justifyContent: 'center' }}
                   onClick={async () => {
                     setLoading(true);
                     try {
-                      if (!newAccount) return;
+                      if (!newAccount || !signedInAccount) return;
                       const data = {
-                        twitter,
-                        discord,
-                        github,
-                        telegram,
+                        twitter: twitter !== signedInAccount.twitter ? twitter : undefined,
+                        discord: discord !== signedInAccount.discord ? discord : undefined,
+                        github: github !== signedInAccount.github ? github : undefined,
+                        telegram: telegram !== signedInAccount.telegram ? telegram : undefined,
                         // name,
-                        readme,
+                        readme: readme !== signedInAccount.readme ? readme : undefined,
                         hiddenBadges,
-                        customLinks,
+                        customLinks: customLinks !== signedInAccount.customLinks ? customLinks : undefined,
                         customPages,
-                        username,
-                        profilePicImageFile: ''
+                        username: username !== signedInAccount.username ? username : undefined,
+                        profilePicImageFile: '',
+                        notifications: {
+                          email: signedInAccount.notifications?.email !== notifications?.email ? notifications?.email : undefined,
+                          preferences: signedInAccount.notifications?.preferences !== notifications?.preferences ? notifications?.preferences : undefined,
+                          antiPhishingCode: notifications?.emailVerification?.antiPhishingCode !== signedInAccount.notifications?.emailVerification?.antiPhishingCode ? notifications?.emailVerification?.antiPhishingCode : undefined,
+                        }
                       };
 
                       let file = null;

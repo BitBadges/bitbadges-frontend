@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getDetailsForCollectionPermission } from "../../../bitbadges-api/utils/permissions";
 import { PermissionUpdateSelectWrapper } from "../form-items/PermissionUpdateSelectWrapper";
@@ -12,7 +12,8 @@ export function CanUpdateStandardsStepItem() {
 
   const collection = useCollection(NEW_COLLECTION_ID);
 
-  const [checked, setChecked] = useState<boolean>(true);
+  const txTimelineContext = useTxTimelineContext();
+  const [checked, setChecked] = useState<boolean>(!txTimelineContext.existingCollectionId);
   const [err, setErr] = useState<Error | null>(null);
 
   if (!collection) return EmptyStepItem;

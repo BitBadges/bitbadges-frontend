@@ -25,7 +25,8 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: {
     'assignMethod': 'Custom. Balances can be updated by whoever has permission to update what is returned from the server.',
   }
 
-  const currMetadata = badgeId ? getMetadataForBadgeId(badgeId, collection.cachedBadgeMetadata) : collection.cachedCollectionMetadata;
+  //Fetch badge's metadata (if applicable), else default to collection if not present, else default to auto-generate
+  const currMetadata = badgeId ? getMetadataForBadgeId(badgeId, collection.cachedBadgeMetadata) ?? collection.cachedCollectionMetadata : collection.cachedCollectionMetadata;
   if (currMetadata?.offChainTransferabilityInfo) {
     if (currMetadata.offChainTransferabilityInfo.host) {
       info.host = currMetadata.offChainTransferabilityInfo.host;

@@ -3,9 +3,10 @@ import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
+import { getBadgesWithUpdatableMetadata } from "../../../bitbadges-api/utils/badges";
+import { CollectionHeader } from "../../badges/CollectionHeader";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { getBadgesWithUpdatableMetadata } from "../../../bitbadges-api/utils/badges";
 
 export function SetCollectionMetadataStepItem() {
 
@@ -30,6 +31,10 @@ export function SetCollectionMetadataStepItem() {
     </>,
 
     node: () => <UpdateSelectWrapper
+      doNotUpdateNode={() => {
+        return <><CollectionHeader multiDisplay collectionId={NEW_COLLECTION_ID} hideCollectionLink />
+        </>
+      }}
       documentationLink="https://docs.bitbadges.io/overview/how-it-works/metadata"
       err={err}
       updateFlag={canUpdateCollectionMetadata}
@@ -52,7 +57,7 @@ export function SetCollectionMetadataStepItem() {
     />,
     disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
       || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0)
-        ))
+      ))
       || !!err,
   }
 }

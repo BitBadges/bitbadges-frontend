@@ -1,7 +1,7 @@
 import { deepCopy } from "bitbadgesjs-proto";
 import { CollectionApprovalPermissionWithDetails, getMintApprovals, getNonMintApprovals, getReservedAddressList } from "bitbadgesjs-utils";
 import { useState } from "react";
-import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { compareObjects } from "../../../utils/compare";
@@ -46,7 +46,8 @@ const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = 
 
 export function FreezeSelectStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID);
-  const [checked, setChecked] = useState<boolean>(true);
+  const txTimelineContext = useTxTimelineContext();
+  const [checked, setChecked] = useState<boolean>(!txTimelineContext.existingCollectionId);
   const [err, setErr] = useState<Error | null>(null);
   const allMintAmountTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.amountTrackerId) : [];
   const allMintChallengeTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.challengeTrackerId) : [];

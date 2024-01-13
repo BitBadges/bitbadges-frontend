@@ -1,9 +1,8 @@
 import { Layout, Tooltip } from 'antd';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
-import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, WarningOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { BigIntify, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { deleteAuthCode, getAuthCode } from '../../bitbadges-api/api';
 import { getAuthCodesView, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -153,7 +152,6 @@ export const AuthCode = ({ authCode, storeLocally }: { authCode: BlockinAuthSign
 
 export function AuthCodes() {
   const chain = useChainContext();
-  const router = useRouter();
   const signedInAccount = useAccount(chain.address);
 
   const [loading, setLoading] = useState(false);
@@ -217,14 +215,14 @@ export function AuthCodes() {
       style={{ minHeight: '80vh', padding: 8 }}
     >
       <br />
-      <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
+      {/* <div className="primary-text" style={{ fontSize: 25, textAlign: 'center' }}>
         Authentication QR Codes
       </div>
       <div className='secondary-text' style={{ textAlign: 'center' }}>
         Authentication QR codes can be used to prove you own specific badges in-person.
         Looking to become an authentication provider? See  <a onClick={() => { router.push('https://docs.bitbadges.io/overview/verification-tools') }} target='_blank' rel="noreferrer" >here</a>.
       </div>
-      <Divider />
+      <Divider /> */}
       <div className='flex-center'>
 
         <Tabs
@@ -237,7 +235,7 @@ export function AuthCodes() {
         />
       </div>
       <div className='secondary-text' style={{ textAlign: 'center' }}>
-        {tab == 'all' ? 'QR codes for this account stored by BitBadges servers.' : 'QR codes you have saved to the browser on this device.'}
+        <InfoCircleOutlined /> {tab == 'all' ? 'QR codes for this account stored by BitBadges servers.' : 'QR codes you have saved to the browser on this device.'}
       </div>
 
       <br />
