@@ -1,7 +1,7 @@
 import { Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
-import { FooterButtonDisplay } from '../button-displays/FooterButtonDisplay';
 import { useRouter } from 'next/router';
+import { FooterButtonDisplay } from '../button-displays/FooterButtonDisplay';
 
 export function WalletFooter() {
   const router = useRouter();
@@ -23,6 +23,14 @@ export function WalletFooter() {
             <Row className='flex-center' style={{ width: '100%', alignItems: 'normal' }}>
               <FooterButtonDisplay />
             </Row>
+
+
+            {/* <Row className='flex-center' style={{ width: '100%', alignItems: 'normal' }}>
+              <Col md={8} sm={24} xs={24} className='flex-center'>
+                <Input className='' placeholder="Enter email to sign up for our mailing list" style={{ color: " white" }} />
+              </Col>
+            </Row>
+            <br /> */}
 
             <Row className='flex text-center justify-center'>
               <a target="_blank "

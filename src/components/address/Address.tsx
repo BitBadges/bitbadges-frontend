@@ -103,14 +103,10 @@ export function Address({
                   {`${address}`}
                   <br />
                   <br />
-                  {userInfo.alias ? (
+                  {userInfo.alias || userInfo.cosmosAddress.length > 45 ? (
                     <>
                       <div className="flex-center">
-                        This is a reserved alias account for{" "}
-                        {userInfo.alias.collectionId
-                          ? `collection ${userInfo.alias.collectionId.toString()}`
-                          : `address list ${userInfo.alias.listId?.toString()}`}
-                        . It is not a real account and cannot initiate
+                        This is a reserved alias account. It is not a real account and cannot initiate
                         transactions. However, it has a portfolio and can
                         receive badges.
                       </div>

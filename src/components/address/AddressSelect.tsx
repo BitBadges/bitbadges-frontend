@@ -39,41 +39,40 @@ export function AddressSelect({
   const [latestAddress, setLatestAddress] = useState<string | undefined>(defaultAccount?.address);
 
 
-  const AddressInput = <Input.Group compact className='flex'>
-    <Dropdown
-      open={changed && input != ''}
-      placement="bottom"
-      overlay={
-        <SearchDropdown
-          onlyAddresses
-          allowMintSearch={allowMintSearch}
-          searchValue={input}
-          onSearch={async (value: string) => {
-            const acc = getAccount(value);
-            if (!acc) return;
+  const AddressInput = <Dropdown
+    open={changed && input != ''}
+    placement="bottom"
+    overlay={
+      <SearchDropdown
+        onlyAddresses
+        allowMintSearch={allowMintSearch}
+        searchValue={input}
+        onSearch={async (value: string) => {
+          const acc = getAccount(value);
+          if (!acc) return;
 
-            onUserSelect(acc?.address);
-            setInput('');
-            setLatestAddress(acc?.address);
-            setShowSelect(switchable ? false : true);
-          }}
-        />
-      }
-      trigger={['hover', 'click']}
-    >
-      <Input
-        value={input}
-        placeholder='Enter an address or username'
-        className='primary-text inherit-bg'
-        onChange={async (e) => {
-          e.preventDefault();
-          setInput(e.target.value);
-          setChanged(true);
+          onUserSelect(acc?.address);
+          setInput('');
+          setLatestAddress(acc?.address);
+          setShowSelect(switchable ? false : true);
         }}
-        disabled={disabled}
       />
-    </Dropdown>
-  </Input.Group >
+    }
+    trigger={['hover', 'click']}
+  >
+    <Input
+      value={input}
+      placeholder='Enter an address or username'
+      className='primary-text inherit-bg'
+      style={{ textAlign: 'center' }}
+      onChange={async (e) => {
+        e.preventDefault();
+        setInput(e.target.value);
+        setChanged(true);
+      }}
+      disabled={disabled}
+    />
+  </Dropdown>
 
 
   return <>

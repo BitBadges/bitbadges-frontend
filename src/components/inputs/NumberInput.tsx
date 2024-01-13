@@ -36,7 +36,7 @@ export function NumberInput({
             }
           }
         }
-        className='primary-text inherit-bg'
+        className='primary-text inherit-bg rounded-md'
       />
     </div>
   </div>

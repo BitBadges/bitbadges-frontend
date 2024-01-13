@@ -122,14 +122,16 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
           // if (index < currPageStart || index > currPageEnd) return <></>;
           return (
             <div key={index} className='primary-text full-width'>
-              <Row className='full-width' style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
-                <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
-                  <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'start' }} >
-                    <AddressDisplay addressOrUsername={review.from} />
-                  </div>
-                  <div className='primary-text full-width flex-between'>
-                    <div className='primary-text full-width flex-between'>
-                      <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+              <InformationDisplayCard
+                subtitle=''
+                title='' inheritBg noBorder md={24} sm={24} xs={24}
+                style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}
+              >
+                <Row className='full-width' style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
+                  <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
+                    <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'start' }} >
+                      <AddressDisplay addressOrUsername={review.from} />
+                      <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8, marginLeft: 8 }}>
                         <ReactStars
                           edit={false}
                           count={5}
@@ -139,35 +141,36 @@ export function ReputationTab({ reviews, collectionId, addressOrUsername, fetchM
                         />
                       </Typography.Text>
                     </div>
-                  </div>
 
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 15, textAlign: 'left', marginRight: 8 }}>
-                    {new Date(Number(review.timestamp.toString())).toLocaleDateString() + ' '}
-                    {new Date(Number(review.timestamp.toString())).toLocaleTimeString()}
-                  </Typography.Text>
-                  {chain.connected && chain.loggedIn && (chain.address === review.from || chain.cosmosAddress === review.from) &&
-                    <DeleteOutlined className='styled-button-normal' style={{ border: 'none', cursor: 'pointer' }}
-                      onClick={async () => {
-                        if (loading) return;
+                    <Typography.Text strong className='secondary-text' style={{ fontSize: 15, textAlign: 'left', marginRight: 8 }}>
+                      {new Date(Number(review.timestamp.toString())).toLocaleDateString() + ' '}
+                      {new Date(Number(review.timestamp.toString())).toLocaleTimeString()}
+                    </Typography.Text>
+                    {chain.connected && chain.loggedIn && (chain.address === review.from || chain.cosmosAddress === review.from) &&
+                      <DeleteOutlined className='styled-button-normal' style={{ border: 'none', cursor: 'pointer' }}
+                        onClick={async () => {
+                          if (loading) return;
 
-                        setLoading(true);
-                        await deleteReview(review._docId);
-                        if (collectionId) {
-                          await fetchCollections([collectionId], true);
-                        } else if (addressOrUsername) {
-                          await fetchAccounts([addressOrUsername], true);
-                          await fetchNextForAccountViews(addressOrUsername, 'reviews', 'reviews');
-                        }
-                        setLoading(false);
-                      }}
-                    />
-                  }
-                  <br />
-                  {review.review}
-                </Col>
-              </Row>
+                          setLoading(true);
+                          await deleteReview(review._docId);
+                          if (collectionId) {
+                            await fetchCollections([collectionId], true);
+                          } else if (addressOrUsername) {
+                            await fetchAccounts([addressOrUsername], true);
+                            await fetchNextForAccountViews(addressOrUsername, 'reviews', 'reviews');
+                          }
+                          setLoading(false);
+                        }}
+                      />
+                    }
+                    <br />
+                    <div className='my-1'>
+                      {review.review}
+                    </div>
+                  </Col>
+                </Row>
 
-
+              </InformationDisplayCard>
               <Divider />
             </div>
           )

@@ -553,7 +553,7 @@ export function AccountSettings() {
                     setLoading(true);
                     try {
                       if (!newAccount || !signedInAccount) return;
-                      const data = {
+                      const data: any = {
                         twitter: twitter !== signedInAccount.twitter ? twitter : undefined,
                         discord: discord !== signedInAccount.discord ? discord : undefined,
                         github: github !== signedInAccount.github ? github : undefined,
@@ -571,6 +571,12 @@ export function AccountSettings() {
                           antiPhishingCode: notifications?.emailVerification?.antiPhishingCode !== signedInAccount.notifications?.emailVerification?.antiPhishingCode ? notifications?.emailVerification?.antiPhishingCode : undefined,
                         }
                       };
+
+                      let updatedEmail = false;
+                      if (Object.keys(data.notifications).length === 0) delete data.notifications;
+                      if (data.notifications?.email) {
+                        updatedEmail = true;
+                      }
 
                       let file = null;
 
@@ -612,6 +618,13 @@ export function AccountSettings() {
                         });
 
                         notification.success({ message: "Account updated!", description: "You may need to refresh to display changes." });
+                        if (updatedEmail) {
+                          notification.info({
+                            message: "Email updated",
+                            description: "We have sent you an email to verify your new email address. Once you veriyf, you will begin receiving notifications.",
+                            duration: 0
+                          });
+                        }
                         await router.push(`/account/${chain.cosmosAddress}`);
                       }
                     } catch (err) {

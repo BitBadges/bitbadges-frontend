@@ -278,7 +278,7 @@ export function BalancesUrlRow({ collection }: { collection: BitBadgesCollection
                         target="_blank"
                         rel="noreferrer"
                       >
-                        View
+                        View Source
                         <LinkOutlined style={{ marginLeft: 4 }} />
                       </a>
                     </Tooltip>

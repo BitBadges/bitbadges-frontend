@@ -39,11 +39,15 @@
 .ant-input {
   background: inherit;
   color: black;
+
+  @apply rounded-md p-1 px-2
 } 
 
 .dark .ant-input {
-  background: inherit;
   color: white;
+
+
+  @apply rounded-md p-1 px-2
 }
 
 .blockin-header {

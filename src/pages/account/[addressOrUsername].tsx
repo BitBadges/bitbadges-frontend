@@ -518,6 +518,7 @@ function PortfolioPage() {
                           type={"underline"}
                         />
                       }
+
                       {editMode && (
                         <IconButton
                           src={
@@ -693,7 +694,7 @@ function PortfolioPage() {
                         setBadgeTab(newPageTitle)
                       }}
                     />
-
+                    <br />
                     {badgeTab !== "" && (
                       <>
                         {/* // badgeTab !== 'Managing' && badgeTab !== 'Created' && <> */}
