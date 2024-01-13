@@ -476,6 +476,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     //If badgesToCreate change, we need to update the maxSupplys and unminted supplys field
     //All other updates are handled within CollectionContext
     //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
+    if (!startingCollection) return;
 
     const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
     const postSimulatedCollection = { owners: newOwnersArr, collectionId: NEW_COLLECTION_ID };
