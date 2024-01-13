@@ -321,7 +321,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       if (INFINITE_LOOP_MODE) console.log('useEffect: address list, initial load');
       if (!existingAddressListId) return;
       setMintType(MintType.AddressList);
-      const res = await getAddressLists({ listIds: [existingAddressListId] });
+      const res = await getAddressLists({ listsToFetch: [{ listId: existingAddressListId }] });
       if (res) {
         setAddressList(res.addressLists[0]);
       }

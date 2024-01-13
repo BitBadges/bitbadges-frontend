@@ -1,7 +1,7 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { Col, Collapse, Row, Spin } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { AddressListWithMetadata, ListActivityDoc } from 'bitbadgesjs-utils';
+import { BitBadgesAddressList, ListActivityDoc } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -10,7 +10,7 @@ import { DesiredNumberType, getAddressLists } from '../../bitbadges-api/api';
 
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { INFINITE_LOOP_MODE, NODE_API_URL } from '../../constants';
-import { AddressListCard } from '../badges/AddressListCard';
+import { AddressDisplayList } from '../address/AddressDisplayList';
 import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';
 import { Pagination } from '../common/Pagination';
@@ -20,7 +20,7 @@ import { PanelHeaderAddresses } from './TransferActivityDisplay';
 
 
 function PanelHeader({ addressLists, listId, activity, onDelete, idx }: {
-  addressLists: AddressListWithMetadata<bigint>[],
+  addressLists: BitBadgesAddressList<bigint>[],
   idx: number, listId: string, activity: ListActivityDoc<DesiredNumberType>, onDelete?: (idx: number) => void
 }) {
   const router = useRouter();
@@ -78,13 +78,15 @@ function PanelHeader({ addressLists, listId, activity, onDelete, idx }: {
 
 function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, hasMore, addressLists }: {
   activity: ListActivityDoc<DesiredNumberType>[],
-  addressLists: AddressListWithMetadata<bigint>[],
+  addressLists: BitBadgesAddressList<bigint>[],
   onDelete?: (idx: number) => void
   paginated?: boolean
   hasMore: boolean
   currPage: number,
   numShown: number
 }) {
+  const router = useRouter();
+
   return <>{/** No activity */}
     {activity.length === 0 && !hasMore && <EmptyIcon description='No Activity' />}
 
@@ -121,7 +123,25 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                   <div key={idx} className='primary-text'>
                     <Row>
                       <Col span={24}>
-                        {list && <AddressListCard addressList={list} />}
+                        {list && <a
+
+                          onClick={() => {
+                            router.push(`/lists/${activity.listId}`);
+                          }} style={{ fontWeight: 'bolder', fontSize: 24 }}>
+                          {list.metadata?.name}
+                        </a>}
+                        <br />
+                        The following users were{' '}
+                        {
+                          activity.addedToList ? `added to the ${list?.allowlist ? 'allowlist' : 'blocklist'}`
+                            : activity.addedToList === false ? `removed from the ${list?.allowlist ? 'allowlist' : 'blocklist'}`
+                              : activity.addedToList === undefined ? 'No change to allowlist/blocklist'
+                                : 'Unknown'
+                        } at {new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()
+                        }
+                        <br />
+                        <br />
+                        <AddressDisplayList users={activity.addresses ?? []} />
 
                         <br />
                         {activity.txHash &&
@@ -153,7 +173,7 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
   const [numShown, setNumShown] = useState(10);
   const [currPage, setCurrPage] = useState(1);
 
-  const [addressLists, setAddressLists] = useState<AddressListWithMetadata<bigint>[]>([]);
+  const [addressLists, setAddressLists] = useState<BitBadgesAddressList<bigint>[]>([]);
 
   //Shows 10 at a time even if we have like length 1000 activity
   //Only fetches more from source when we have run out of +10s
@@ -183,10 +203,10 @@ export function ListActivityTab({ activity, fetchMore, hasMore, onDelete, pagina
       const currActivityToDisplay = paginated ? activity.slice((currPage - 1) * 10, currPage * 10) : activity.slice(0, numShown);
 
       //We only fetch accounts for the panel headers, so if not displayed we don't fetch
-      const accountsToFetch = [...new Set(currActivityToDisplay.map(a => { return [...new Set([...a.addresses ?? []])].filter(a => a !== 'Mint') }).flat())];
+      const accountsToFetch = [...new Set(currActivityToDisplay.filter(x => (x.addresses ?? []).length == 1).map(a => { return [...new Set([...a.addresses ?? []])].filter(a => a !== 'Mint') }).flat())];
 
-      const listsToFetch = currActivityToDisplay.map(a => a.listId).filter(x => x);
-      const listsRes = await getAddressLists({ listIds: listsToFetch });
+      const listsToFetch = currActivityToDisplay.map(a => { return { listId: a.listId } }).filter(x => x);
+      const listsRes = await getAddressLists({ listsToFetch });
       setAddressLists((curr) => {
         return [...curr, ...listsRes.addressLists].filter((x, idx, self) => self.findIndex(y => y.listId === x.listId) === idx)
       });

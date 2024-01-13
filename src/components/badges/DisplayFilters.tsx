@@ -323,7 +323,7 @@ export const OptionsSelects = ({
           setSearchValue("")
           //TODO: Roundabout way without context
           const listRes = await getAddressLists({
-            listIds: [searchValue],
+            listsToFetch: [{ listId: searchValue }],
           })
 
           updateAccount({

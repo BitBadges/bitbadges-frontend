@@ -1,5 +1,5 @@
 import { Col, Input, Dropdown } from "antd"
-import { AddressListWithMetadata, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
+import { BitBadgesAddressList, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
 import { useState, useEffect } from "react"
 import { getAddressLists } from "../../bitbadges-api/api"
 import { BatchBadgeDetails } from "bitbadgesjs-utils"
@@ -105,13 +105,13 @@ export const CustomizeAddRemoveListFromPage = ({
   const [customizeSearchListValue, setCustomizeSearchListValue] =
     useState<string>("")
   const [selectedList, setSelectedList] = useState<string>("")
-  const [selectedListList, setSelectedListList] = useState<AddressListWithMetadata<bigint> | null>(null)
+  const [selectedListList, setSelectedListList] = useState<BitBadgesAddressList<bigint> | null>(null)
 
   useEffect(() => {
     if (!selectedList) return
     async function fetchAddressList() {
       const listRes = await getAddressLists({
-        listIds: [selectedList],
+        listsToFetch: [{ listId: selectedList }],
       })
       if (listRes.addressLists.length > 0) {
         setSelectedListList(listRes.addressLists[0])

@@ -7,7 +7,7 @@ import { Divider, Layout, Tag, Typography, notification } from "antd"
 import { UintRange, deepCopy } from "bitbadgesjs-proto"
 import {
   AccountViewKey,
-  AddressListWithMetadata
+  BitBadgesAddressList
 } from "bitbadgesjs-utils"
 import { useEffect, useMemo, useState } from "react"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
@@ -151,7 +151,7 @@ function WatchlistPage() {
     return applyClientSideFilters(allBadgeIds, onlySpecificCollections, oldestFirst, collections)
   }, [accountInfo, badgeTab, onlySpecificCollections, collections, oldestFirst])
 
-  const [customView, setCustomView] = useState<AddressListWithMetadata<bigint>[]>([])
+  const [customView, setCustomView] = useState<BitBadgesAddressList<bigint>[]>([])
   const [onlySpecificLists, setOnlyFilteredLists] = useState<string[]>([])
 
   useEffect(() => {
@@ -162,7 +162,7 @@ function WatchlistPage() {
         ?.items ?? [])
       )
 
-      const res = await getAddressLists({ listIds: idsToFetch })
+      const res = await getAddressLists({ listsToFetch: idsToFetch.map(x => { return { listId: x } }) })
       const addressLists = res.addressLists;
 
       if (oldestFirst) {

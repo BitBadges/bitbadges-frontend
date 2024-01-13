@@ -1,8 +1,8 @@
 import { Col, Divider, Empty, Input, Layout, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { AddressListDoc, AddressListWithMetadata, DefaultPlaceholderMetadata, Metadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { BitBadgesAddressList, DefaultPlaceholderMetadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
 
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { deleteAddressLists, getAddressLists } from '../../bitbadges-api/api';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 
@@ -23,6 +23,7 @@ import { TxHistory } from '../../components/display/TransactionHistory';
 import { Tabs } from '../../components/navigation/Tabs';
 import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { ListActivityTab } from '../../components/collection-page/ListActivityDisplay';
 
 const { Content } = Layout;
 
@@ -34,8 +35,7 @@ function AddressListPage() {
   const { listId } = router.query;
 
   const [tab, setTab] = useState('overview');
-  const [list, setList] = useState<AddressListDoc<bigint>>();
-  const [metadata, setMetadata] = useState<Metadata<bigint>>();
+  const [list, setList] = useState<BitBadgesAddressList<bigint>>();
   const [fetchError, setFetchError] = useState<string>();
 
   const [addressToCheck, setAddressToCheck] = useState<string>('');
@@ -77,39 +77,54 @@ function AddressListPage() {
     }
   }
 
-  useEffect(() => {
-    async function fetch() {
-      try {
-        if (!listId) return;
+  const fetchMore = useCallback(async function fetch(currList?: BitBadgesAddressList<bigint>) {
+    if (!listId) return;
+    try {
+      if (currList && !currList?.views?.listActivity?.pagination.hasMore) return;
 
-        let list: AddressListWithMetadata<bigint>;
-        const lists = await getAddressLists({
-          listIds: [listId as string],
-        })
+      let list = currList;
+      let newList: BitBadgesAddressList<bigint>;
+      const lists = await getAddressLists({
+        listsToFetch: [{
+          listId: listId as string,
+          viewsToFetch: [{
+            viewId: 'default',
+            viewType: 'listActivity',
+            bookmark: list?.views?.listActivity?.pagination.bookmark ?? ''
+          }],
+        }],
+      })
 
-        list = lists.addressLists[0];
-        if (list.reported) {
-          list.metadata = DefaultPlaceholderMetadata;
-        }
-
-        setList(list);
-        const toFetch = [];
-        if (list.createdBy) toFetch.push(list.createdBy);
-        if (list.aliasAddress) toFetch.push(list.aliasAddress);
-        if (toFetch.length > 0) await fetchAccounts(toFetch);
-
-
-
-        if (list.metadata) {
-          setMetadata(list.metadata);
-        }
-      } catch (e: any) {
-        console.error(e);
-        setFetchError(e.message);
+      newList = lists.addressLists[0];
+      if (newList.reported) {
+        newList.metadata = DefaultPlaceholderMetadata;
       }
+
+      setList({
+        ...newList,
+        listsActivity: [...(list?.listsActivity ?? []), ...(newList.listsActivity ?? [])],
+        views: {
+          listActivity: {
+            ...newList.views.listActivity,
+            ids: [...(list?.views?.listActivity?.ids ?? []), ...(newList.views.listActivity?.ids ?? [])],
+            pagination: newList.views.listActivity?.pagination ?? list?.views?.listActivity?.pagination ?? { hasMore: false, bookmark: '' },
+            type: newList.views.listActivity?.type ?? list?.views?.listActivity?.type ?? 'listActivity',
+          }
+        }
+      });
+      const toFetch = [];
+      if (newList.createdBy) toFetch.push(newList.createdBy);
+      if (newList.aliasAddress) toFetch.push(newList.aliasAddress);
+      if (toFetch.length > 0) await fetchAccounts(toFetch);
+    } catch (e: any) {
+      console.error(e);
+      setFetchError(e.message);
     }
-    fetch();
-  }, [listId])
+  }, [listId]);
+
+  useEffect(() => {
+    fetchMore(list);
+  }, [fetchMore])
 
   let isAddressInList = (list?.addresses.includes(addressToCheck) || list?.addresses.includes(convertToCosmosAddress(addressToCheck)));
 
@@ -121,6 +136,7 @@ function AddressListPage() {
   const tabInfo = []
   tabInfo.push(
     { key: 'overview', content: 'Overview' },
+    { key: 'activity', content: 'Activity' },
   );
   tabInfo.push(
     { key: 'history', content: 'Update History' },
@@ -151,7 +167,7 @@ function AddressListPage() {
               paddingTop: '20px',
             }}
           >
-            {!fetchError && <CollectionHeader listId={listId as string} collectionId={NEW_COLLECTION_ID} metadataOverride={metadata} hideCollectionLink />}
+            {!fetchError && <CollectionHeader listId={listId as string} collectionId={NEW_COLLECTION_ID} metadataOverride={list?.metadata} hideCollectionLink />}
             {!list && !fetchError && <Spin size='large' />}
             {fetchError && <>
               <div style={{ color: 'red' }}>
@@ -173,6 +189,16 @@ function AddressListPage() {
                 theme="dark"
                 fullWidth
               />
+              {tab === 'activity' && <>
+                <br />
+                <ListActivityTab activity={list?.listsActivity}
+                  fetchMore={async () => {
+                    await fetchMore(list);
+                  }}
+                  hasMore={list.views?.listActivity?.pagination.hasMore ?? true}
+                />
+              </>}
+
               {tab === 'history' && <>
                 <div className='primary-text'>
                   <br />
@@ -242,7 +268,7 @@ function AddressListPage() {
 
                         <MetadataDisplay
                           collectionId={0n}
-                          metadataOverride={metadata}
+                          metadataOverride={list?.metadata}
                           span={24}
                           isAddressListDisplay
                           metadataUrl={list?.uri}

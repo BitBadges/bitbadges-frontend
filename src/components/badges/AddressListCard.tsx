@@ -1,5 +1,5 @@
 import { Card, Typography } from 'antd';
-import { AddressListWithMetadata } from 'bitbadgesjs-utils';
+import { BitBadgesAddressList } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -10,7 +10,7 @@ export function AddressListCard({
   addressOrUsername,
   hideInclusionDisplay,
 }: {
-  addressList: AddressListWithMetadata<bigint>
+  addressList: BitBadgesAddressList<bigint>
   addressOrUsername?: string
   hideInclusionDisplay?: boolean
 }) {

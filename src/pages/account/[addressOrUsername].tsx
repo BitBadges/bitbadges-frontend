@@ -14,7 +14,7 @@ import {
 import { deepCopy } from "bitbadgesjs-proto"
 import {
   AccountViewKey,
-  AddressListWithMetadata,
+  BitBadgesAddressList,
   BatchBadgeDetails, CollectionMap, addToBatchArray,
   getMaxBadgeIdForCollection,
   removeFromBatchArray,
@@ -136,7 +136,7 @@ function PortfolioPage() {
   const [oldestFirst, setOldestFirst] = useState(false)
   const [searchValue, setSearchValue] = useState<string>("")
   const [activityTab, setActivityTab] = useState("badges")
-  const [customView, setCustomView] = useState<AddressListWithMetadata<bigint>[]>([])
+  const [customView, setCustomView] = useState<BitBadgesAddressList<bigint>[]>([])
 
   const badgeViewId = useMemo(() => {
     const baseViewId = badgeTab === "Managing" ? "managingBadges" : badgeTab === "Created" ? "createdBadges" : "badgesCollected";
@@ -332,7 +332,7 @@ function PortfolioPage() {
       //Remove any cached lists from idsToFetch
       idsToFetch = idsToFetch.filter((x) => !cachedLists.find((y) => y.listId === x))
 
-      const res = idsToFetch.length > 0 ? await getAddressLists({ listIds: idsToFetch }) : { addressLists: [] }
+      const res = idsToFetch.length > 0 ? await getAddressLists({ listsToFetch: idsToFetch.map(x => { return { listId: x } }) }) : { addressLists: [] }
 
       const newView = [];
       for (const id of allIds) {

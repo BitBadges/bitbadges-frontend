@@ -1,5 +1,5 @@
 import { Spin, Empty } from "antd"
-import { AddressListWithMetadata } from "bitbadgesjs-utils"
+import { BitBadgesAddressList } from "bitbadgesjs-utils"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { AddressListCard } from "./AddressListCard"
 
@@ -15,7 +15,7 @@ export const ListInfiniteScroll = ({
   showInclusionDisplay?: boolean
   fetchMore: () => Promise<void>
   hasMore: boolean
-  listsView: AddressListWithMetadata<bigint>[]
+  listsView: BitBadgesAddressList<bigint>[]
 }) => {
   return (
     <div className="flex-center flex-wrap">
