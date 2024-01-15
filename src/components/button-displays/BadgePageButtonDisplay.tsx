@@ -304,7 +304,6 @@ export function BadgeButtonDisplay({
             className="styled-button-normal account-socials-button"
             onClick={isPreview ? undefined : () => {
               navigator.share({
-
                 url: window.location.href,
               });
 

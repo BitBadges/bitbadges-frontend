@@ -199,7 +199,7 @@ export function CodesDisplay({
 
                         downloadTxt(codes.join('\n'), `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
                       }}
-                      className="landing-button primary-text" style={{ width: 150 }}
+                      className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                     >
                       Codes .txt  <DownloadOutlined />
                     </button>
@@ -221,11 +221,11 @@ export function CodesDisplay({
 
                         downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
                       }}
-                      className="landing-button primary-text" style={{ width: 150 }}
+                      className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                     >
                       URLs .txt <DownloadOutlined />
                     </button>
-                    <button className="landing-button primary-text" style={{ width: 150 }}
+                    <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                       onClick={() => {
                         navigator.clipboard.writeText(codes.join('\n'));
                         notification.success({
@@ -236,7 +236,7 @@ export function CodesDisplay({
                     >
                       Copy Codes <CopyOutlined />
                     </button>
-                    <button className="landing-button primary-text" style={{ width: 150 }}
+                    <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                       onClick={() => {
                         const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
 
@@ -259,7 +259,7 @@ export function CodesDisplay({
                     {!!global.navigator.canShare && global.navigator.canShare({
                       title: 'Claim Badge',
                       text: `test`,
-                    }) && <button className="landing-button primary-text" style={{ width: 150 }}
+                    }) && <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                       onClick={async () => {
 
                         await navigator.share({
@@ -274,7 +274,7 @@ export function CodesDisplay({
                     {!!global.navigator.canShare && global.navigator.canShare({
                       title: 'Claim Badge',
                       text: `test`,
-                    }) && <button className="landing-button primary-text" style={{ width: 150 }}
+                    }) && <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                       onClick={async () => {
 
                         await navigator.share({
@@ -456,7 +456,7 @@ export function CodesDisplay({
           </>}
           {!(challengeTracker?.usedLeafIndices?.find(x => x == BigInt(codePage - 1)) ?? -1 >= 0) && <>
             <div className="flex-center flex-wrap">
-              <button className="landing-button primary-text" style={{ width: 150 }}
+              <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                 onClick={() => {
 
                   navigator.clipboard.writeText((hasPassword ? claimPassword : codes?.[codePage - 1]) ?? '').catch(e => { console.error(e) });
@@ -469,7 +469,7 @@ export function CodesDisplay({
                 Copy {printStr[0].toUpperCase() + printStr.slice(1)}
               </button>
               <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`}>
-                <button className="landing-button primary-text" style={{ width: 150 }}
+                <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                   onClick={() => {
 
                     if (cantShowUrl) {
@@ -493,7 +493,7 @@ export function CodesDisplay({
               {!!global.navigator.canShare && global.navigator.canShare({
                 title: 'Claim Badge',
                 text: `test`,
-              }) && <button className="landing-button primary-text" style={{ width: 150 }}
+              }) && <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                 onClick={async () => {
 
                   await navigator.share({
@@ -508,7 +508,7 @@ export function CodesDisplay({
               {!!global.navigator.canShare && global.navigator.canShare({
                 title: 'Claim Badge',
                 text: `test`,
-              }) && <button className="landing-button primary-text" style={{ width: 150 }}
+              }) && <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
                 onClick={async () => {
 
                   await navigator.share({
@@ -546,7 +546,7 @@ export function CodesDisplay({
                       setClaimAlertAddress(address);
                     }} />
                     <div className="flex-center">
-                      <button className="landing-button primary-text " style={{ width: 150 }}
+                      <button className="landing-button primary-text " style={{ width: 150, margin: 2 }}
                         disabled={loading || !claimAlertAddress || !claimAlertAccount || (hasPassword && !claimPassword) || (!hasPassword && (!(codes?.[codePage - 1] ?? '')))}
                         onClick={async () => {
                           setLoading(true);

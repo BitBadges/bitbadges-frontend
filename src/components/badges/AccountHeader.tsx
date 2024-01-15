@@ -36,7 +36,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
           </div>
           <div style={{ overflow: 'hidden', textAlign: 'center' }}>
             <div >
-              <AddressDisplay addressOrUsername={addressOrUsername} fontSize={30} />
+              <AddressDisplay addressOrUsername={addressOrUsername} fontSize={20} />
             </div>
           </div>
         </div>

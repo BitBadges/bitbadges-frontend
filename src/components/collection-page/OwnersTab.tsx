@@ -204,7 +204,7 @@ export const BalanceCard = ({ collectionId, owner, fullWidth, hideBadges }: {
   return <InformationDisplayCard
     noBorder={fullWidth} inheritBg={fullWidth}
     md={fullWidth ? 24 : 8} xs={24} sm={24} title={<div className='flex-center'>
-      <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={24} />
+      <AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={20} />
     </div>}>
     <div className='primary-text flex-center flex-column'>
       <BalanceDisplay

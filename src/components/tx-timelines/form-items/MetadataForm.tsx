@@ -202,6 +202,7 @@ export function ImageSelect({
       label: "BitBadges Logo",
     },
   ]
+  const [imageUrl, setImageUrl] = useState("")
 
   const images = [
     ...sampleImages,
@@ -300,8 +301,9 @@ export function ImageSelect({
               or Enter URL
               <Input
                 style={{ color: "black" }}
-                value={image}
+                value={imageUrl}
                 onChange={(e) => {
+                  setImageUrl(e.target.value)
                   setImage(e.target.value)
                 }}
                 placeholder="Enter URL"
