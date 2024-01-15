@@ -41,12 +41,19 @@ function BlockinCodesScreen() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    const uriRegex = new RegExp('^(http|https|ipfs)://');
+
+
     if (!codeGenParams.name || !codeGenParams.description) {
       setErrorMessage('Please provide a name and description');
     } else if (!codeGenParams.challengeParams.domain || !codeGenParams.challengeParams.statement) {
       setErrorMessage('Please provide a domain and statement');
     } else if (!codeGenParams.image) {
       setErrorMessage('Please provide an image');
+    } else if (codeGenParams.challengeParams.uri && !uriRegex.test(codeGenParams.challengeParams.uri)) {
+      setErrorMessage('URI must be a valid URL');
+    } else if (codeGenParams.challengeParams.domain && !uriRegex.test(codeGenParams.challengeParams.domain)) {
+      setErrorMessage('Domain must be a valid URL');
     } else {
       setErrorMessage('');
     }

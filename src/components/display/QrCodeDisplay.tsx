@@ -101,8 +101,9 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, hideCopyButtons, s
         {navigator.canShare && navigator.canShare({ files: [new File([], 'test.png')] }) &&
           <button className='landing-button' style={{ minWidth: 130, margin: 5 }} onClick={async () => {
             const imageUrl = await toDataURL(value);
+            const file = await fetch(imageUrl).then(r => r.blob());
             navigator.share({
-              files: [new File([imageUrl], 'blockin-qr-code.png', { type: 'image/png' })],
+              files: [new File([file], 'blockin-qr-code.png', { type: 'image/png' })],
               title: 'Blockin QR Code',
               text: 'Blockin QR Code',
             });

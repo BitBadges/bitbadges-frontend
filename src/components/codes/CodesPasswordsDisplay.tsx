@@ -256,6 +256,35 @@ export function CodesDisplay({
                     >
                       Copy URLs  <CopyOutlined />
                     </button>
+                    {!!global.navigator.canShare && global.navigator.canShare({
+                      title: 'Claim Badge',
+                      text: `test`,
+                    }) && <button className="landing-button primary-text" style={{ width: 150 }}
+                      onClick={async () => {
+
+                        await navigator.share({
+                          title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
+                          text: codes.join('\n'),
+                        });
+                      }}
+                    >
+                        Share Codes
+                      </button>}
+                    {/* //share text */}
+                    {!!global.navigator.canShare && global.navigator.canShare({
+                      title: 'Claim Badge',
+                      text: `test`,
+                    }) && <button className="landing-button primary-text" style={{ width: 150 }}
+                      onClick={async () => {
+
+                        await navigator.share({
+                          title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
+                          text: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'),
+                        });
+                      }}
+                    >
+                        Share URLs
+                      </button>}
 
 
                   </div>
@@ -460,6 +489,37 @@ export function CodesDisplay({
                   Copy URL
                 </button>
               </Tooltip>
+              {/* //share text */}
+              {!!global.navigator.canShare && global.navigator.canShare({
+                title: 'Claim Badge',
+                text: `test`,
+              }) && <button className="landing-button primary-text" style={{ width: 150 }}
+                onClick={async () => {
+
+                  await navigator.share({
+                    title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
+                    text: (hasPassword ? claimPassword : codes?.[codePage - 1]) ?? '',
+                  });
+                }}
+              >
+                  Share Code
+                </button>}
+              {/* //share text */}
+              {!!global.navigator.canShare && global.navigator.canShare({
+                title: 'Claim Badge',
+                text: `test`,
+              }) && <button className="landing-button primary-text" style={{ width: 150 }}
+                onClick={async () => {
+
+                  await navigator.share({
+                    title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
+                    text: `${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`,
+                  });
+                }}
+              >
+                  Share URL
+                </button>}
+
               {!cantShowUrl &&
                 <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`}>
                   <button className="landing-button primary-text" style={{ width: 190 }}
@@ -470,10 +530,8 @@ export function CodesDisplay({
                     {showIndividualClaimAlert ? 'Hide' : 'Show'} Claim Alert Form
                   </button>
                 </Tooltip>}
-
-
-
             </div>
+
             {showIndividualClaimAlert && !cantShowUrl && <Divider />}
             {showIndividualClaimAlert && !cantShowUrl &&
               <div className="flex-center">
@@ -537,8 +595,6 @@ export function CodesDisplay({
           </>
           }
         </>}
-        <Divider />
-
       </InformationDisplayCard>
     </Row >
 
