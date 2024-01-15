@@ -2,9 +2,8 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Divider, Modal, Spin, message, notification } from 'antd';
 import { BigIntify, BitBadgesCollection, OffChainBalancesMap, TransferWithIncrements, convertOffChainBalancesMap, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils/dist/distribution';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { addBalancesToOffChainStorage, fetchMetadataDirectly, getCollections } from '../../bitbadges-api/api';
-import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { DistributionComponent } from '../tx-timelines/step-items/OffChainBalancesStepItem';
 import { DisconnectedWrapper } from '../wrappers/DisconnectedWrapper';
@@ -110,14 +109,8 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
   setVisible: (visible: boolean) => void,
   children?: React.ReactNode,
 }) {
-  const txTimelineContext = useTxTimelineContext();
-
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    txTimelineContext.resetState(collectionId);
-  }, [collectionId]);
-
+  const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
   return (
     <Modal
       title={<div className='primary-text inherit-bg'><b>{'Distribute'}</b></div>}
@@ -136,17 +129,17 @@ export function UpdateBalancesModal({ visible, setVisible, children, collectionI
         requireLogin
         message='Please connect and sign in to your wallet to distribute badges.'
         node={<>
-          {!txTimelineContext.initialLoad ? <Spin /> : <>
-            <DistributionComponent />
+          {<>
+            <DistributionComponent collectionIdOverride={collectionId} setTransfersOverride={setTransfers} transfersOverride={transfers} />
             <Divider />
             <Divider />
             <button
-              disabled={txTimelineContext.transfers.length == 0 || loading}
+              disabled={transfers.length == 0 || loading}
               className='landing-button'
               style={{ width: '100%', marginTop: 20 }}
               onClick={async () => {
                 setLoading(true);
-                await createBalancesMapAndAddToStorage(collectionId, txTimelineContext.transfers, 'centralized', true);
+                await createBalancesMapAndAddToStorage(collectionId, transfers, 'centralized', true);
                 setLoading(false);
                 setVisible(false);
               }}>

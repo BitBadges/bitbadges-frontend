@@ -59,15 +59,15 @@ export function AddressListSelect({
           <b>
             <Switch
               disabled={disabled || disableListTypeChange}
-              checked={addressList.allowlist}
-              checkedChildren={"Allowlist"}
-              unCheckedChildren={"Blocklist"}
+              checked={addressList.whitelist}
+              checkedChildren={"Whitelist"}
+              unCheckedChildren={"Blacklist"}
               onChange={(e) => {
                 setAddressList(
                   autoGenerateId(
                     {
                       ...addressList,
-                      allowlist: e,
+                      whitelist: e,
                     },
                     autoGenerateListId
                   )
@@ -85,7 +85,7 @@ export function AddressListSelect({
               <br />
               <span style={{ color: "red" }}>
                 {" "}
-                <WarningOutlined /> Allowlists must have at least one address.
+                <WarningOutlined /> Whitelists must have at least one address.
               </span>
             </>
           )}
@@ -96,7 +96,7 @@ export function AddressListSelect({
             <AddressDisplayList
               trackerIdList={isIdSelect}
               users={addressList.addresses}
-              allExcept={!addressList.allowlist}
+              allExcept={!addressList.whitelist}
               setUsers={(users) => {
                 setAddressList(
                   autoGenerateId(

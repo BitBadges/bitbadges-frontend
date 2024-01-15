@@ -230,7 +230,7 @@ export function AuthCodes() {
           setTab={setTab}
           tabInfo={[
             { key: 'all', content: 'All' },
-            { key: 'saved', content: 'Browser' }
+            { key: 'saved', content: 'Saved' }
           ]}
         />
       </div>

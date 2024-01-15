@@ -80,7 +80,7 @@ export const DetailsCard = ({ allApprovals, approval, isOutgoingDisplay, isIncom
       {approval.approvalCriteria?.merkleChallenge?.root && (
         <>
           {approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? (<>
-            <li>{"Must be on allowlist"}</li>
+            <li>{"Must be on whitelist"}</li>
             {approval.approvalCriteria.merkleChallenge.maxUsesPerLeaf > 0n ? <li>{`Max ${approval.approvalCriteria.merkleChallenge.maxUsesPerLeaf.toString()} use(s) per address`}</li> : <></>}
             {(approval.details?.challengeDetails.leavesDetails.leaves.length ?? 0n) > 0n && <div className='flex-center flex-column'>
               <br />
@@ -168,7 +168,7 @@ export const DetailsCard = ({ allApprovals, approval, isOutgoingDisplay, isIncom
       {hasSameChallengeTrackerId && (
         <>
           <WarningOutlined style={{ color: '#FF5733', marginRight: 4 }} /> There are multiple approvals using the same challenge tracker ID.
-          {approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? ' The allowlists' : ' The codes / passwords'} of these approvals are linked and will be used up whenever either approval is used.
+          {approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? ' The whitelists' : ' The codes / passwords'} of these approvals are linked and will be used up whenever either approval is used.
         </>
       )}
     </div>

@@ -127,7 +127,7 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
       y.fromList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
           users={y.fromList.addresses}
-          allExcept={!y.fromList.allowlist}
+          allExcept={!y.fromList.whitelist}
 
         />
       </td>
@@ -136,7 +136,7 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
       y.toList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
           users={y.toList.addresses}
-          allExcept={!y.toList.allowlist}
+          allExcept={!y.toList.whitelist}
           filterMint
         />
       </td>
@@ -147,7 +147,7 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
       y.initiatedByList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
           users={y.initiatedByList.addresses}
-          allExcept={!y.initiatedByList.allowlist}
+          allExcept={!y.initiatedByList.whitelist}
           filterMint
         />
       </td>
@@ -162,7 +162,7 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
       y.amountTrackerIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
           users={y.amountTrackerIdList.addresses}
-          allExcept={!y.amountTrackerIdList.allowlist}
+          allExcept={!y.amountTrackerIdList.whitelist}
           filterMint
           trackerIdList
         />
@@ -173,7 +173,7 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
       y.challengeTrackerIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
           users={y.challengeTrackerIdList.addresses}
-          allExcept={!y.challengeTrackerIdList.allowlist}
+          allExcept={!y.challengeTrackerIdList.whitelist}
           filterMint
           trackerIdList
         />
@@ -277,7 +277,7 @@ export const PermissionDisplayTable = (
                           return null;
                         }
 
-                        if (nonMintOnly && (compareObjects(y.fromList?.addresses, ["Mint"] && y.fromList?.allowlist))) {
+                        if (nonMintOnly && (compareObjects(y.fromList?.addresses, ["Mint"] && y.fromList?.whitelist))) {
                           return null;
                         }
 

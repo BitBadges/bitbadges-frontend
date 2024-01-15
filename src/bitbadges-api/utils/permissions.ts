@@ -314,7 +314,7 @@ export function getDetailsForPermission(
         let allAreFull = true;
         for (const x of dataSource) {
           const val = x[key] as any
-          if (!(val?.addresses?.length === 0 && val.allowlist === false)) {
+          if (!(val?.addresses?.length === 0 && val.whitelist === false)) {
             allAreFull = false;
           }
         }

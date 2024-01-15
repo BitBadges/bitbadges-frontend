@@ -179,7 +179,7 @@ export function UpdateCollectionTimeline() {
       ).filter(
         (x) =>
           !(
-            x.fromList.allowlist &&
+            x.fromList.whitelist &&
             x.fromList.addresses.length == 1 &&
             x.fromList.addresses[0] === "Mint"
           )

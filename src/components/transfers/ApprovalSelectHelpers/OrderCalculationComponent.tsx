@@ -86,7 +86,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
 
   return <><TableRow labelSpan={16} valueSpan={8} label={label} value={<>
     <Switch
-      disabled={keyId === 'useMerkleChallengeLeafIndex' && distributionMethod !== DistributionMethod.Codes && distributionMethod !== DistributionMethod.Allowlist}
+      disabled={keyId === 'useMerkleChallengeLeafIndex' && distributionMethod !== DistributionMethod.Codes && distributionMethod !== DistributionMethod.Whitelist}
       checked={checked}
       onChange={(checked) => {
         setChecked(checked);
@@ -103,7 +103,7 @@ export const OrderCalculationMethod = ({ approvalToAdd,
           {keyId == 'usePerInitiatedByAddressNumTransfers' ? ' Each unique approver will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on. Each partition will be approved more than once (if there are multiple approved addresses).' : ''}
           {keyId == 'usePerToAddressNumTransfers' ? ' Each unique recipient will be assigned partition #1 upon first use of this approval, partition #2 upon second use, and so on. Each partition will be approved more than once (if there are multiple recipients).' : ''}
           {keyId == 'useMerkleChallengeLeafIndex' ?
-            distributionMethod === DistributionMethod.Allowlist ? ' Reserve specific partitions for specific allowlisted users.' :
+            distributionMethod === DistributionMethod.Whitelist ? ' Reserve specific partitions for specific whitelisted users.' :
               distributionMethod === DistributionMethod.Codes ? codeType === CodeType.Unique ?
                 ' Reserve specific partitions for specific codes.' :
                 ' Reserve specific partitions for specific passwords.' :

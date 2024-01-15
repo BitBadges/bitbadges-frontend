@@ -280,10 +280,9 @@ const Home: NextPage = () => {
             <InformationDisplayCard noBorder inheritBg title='Protocols' subtitle='' md={8} sm={24} xs={24}>
               <br /><BadgeAvatar size={150} collectionId={1n} badgeId={15n} /> <br />
               <div className='secondary-text' style={{ fontSize: 14 }}>
-                Use badges to implement protocols, such as a multi-chain follow protocol or an attendance protocol.
-                {/* . For example, the
-                    <a href='https://docs.bitbadges.io/overview/ecosystem/bitbadges-follow-protocol' target='_blank' className='text-vivid-blue' rel="noreferrer"> BitBadges Follow Protocol</a>,
-                     or an attendance protocol. */}
+                Use badges to implement protocols, such as the
+                <a href='https://docs.bitbadges.io/overview/ecosystem/bitbadges-follow-protocol' target='_blank' className='text-vivid-blue' rel="noreferrer"> BitBadges Follow Protocol</a>,
+                or an attendance protocol.
               </div>
             </InformationDisplayCard>
           </div>
@@ -698,7 +697,7 @@ const Home: NextPage = () => {
         <Row className='flex-center' style={{ alignItems: 'normal' }}>
           <Col md={22} sm={22} xs={22}>
             <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
-              Badges can be transferred directly or claimed by users via allowlists, unique codes, and passwords. This makes them compatible with many of your favorite tools and services!
+              Badges can be transferred directly or claimed by users via whitelists, unique codes, and passwords. This makes them compatible with many of your favorite tools and services!
             </Typography.Text>
           </Col>
         </Row>

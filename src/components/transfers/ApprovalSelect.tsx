@@ -631,7 +631,7 @@ export function ApprovalSelect({
           {requireFromEqualsInitiatedBy && requireToEqualsInitiatedBy && <div style={{ color: 'red' }}>Recipient cannot be sender, recipient, and approver.</div>}
         </InformationDisplayCard>
         <InformationDisplayCard title='Approved' md={8} xs={24} sm={24} subtitle='Who is approved to initiate the transfer?'>
-          {/* Choose between codes, allowlist, and password */}
+          {/* Choose between codes, whitelist, and password */}
           {showMintingOnlyFeatures && !initiatedByListLocked &&
             <RadioGroup
               value={distributionMethod == DistributionMethod.None ? 'address' :
@@ -699,7 +699,7 @@ export function ApprovalSelect({
             />}
 
 
-          {(distributionMethod === DistributionMethod.None || distributionMethod === DistributionMethod.Allowlist) &&
+          {(distributionMethod === DistributionMethod.None || distributionMethod === DistributionMethod.Whitelist) &&
             <AddressListSelectComponent
               disabled={initiatedByListLocked}
               approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
@@ -707,12 +707,12 @@ export function ApprovalSelect({
 
 
 
-          {approvalToAdd.initiatedByList.allowlist && showMintingOnlyFeatures && <TableRow labelSpan={16} valueSpan={8} label={'Store allowlist off-chain?'} value={
+          {approvalToAdd.initiatedByList.whitelist && showMintingOnlyFeatures && <TableRow labelSpan={16} valueSpan={8} label={'Store whitelist off-chain?'} value={
             <Switch
               disabled={initiatedByListLocked || distributionMethod === DistributionMethod.Codes}
-              checked={distributionMethod === DistributionMethod.Allowlist} onChange={(checked) => {
+              checked={distributionMethod === DistributionMethod.Whitelist} onChange={(checked) => {
                 if (checked) {
-                  setDistributionMethod(DistributionMethod.Allowlist);
+                  setDistributionMethod(DistributionMethod.Whitelist);
                 } else {
                   setDistributionMethod(DistributionMethod.None);
                 }
@@ -1186,7 +1186,7 @@ export function ApprovalSelect({
                     approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
                     amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
                     increment={increment} startBalances={startBalances}
-                    keyId='useMerkleChallengeLeafIndex' label='Specific codes / allowlisted addresses?' />
+                    keyId='useMerkleChallengeLeafIndex' label='Specific codes / whitelisted addresses?' />
                   {/* if all are false watning message */}
                   {approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers === false &&
                     approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerToAddressNumTransfers === false &&
@@ -1334,7 +1334,7 @@ export function ApprovalSelect({
           newApprovalToAdd.details = details
 
           newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>
-        } else if (distributionMethod === DistributionMethod.Allowlist) {
+        } else if (distributionMethod === DistributionMethod.Whitelist) {
           const toAddresses = approvalToAdd.initiatedByList.addresses;
           newApprovalToAdd.initiatedByList = getReservedAddressList("All");
           newApprovalToAdd.initiatedByListId = "All";

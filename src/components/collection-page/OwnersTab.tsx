@@ -77,61 +77,63 @@ function BalanceInfiniteScroll({
     </div >
     <br />
     <div className='primary-text flex-center flex-wrap full-width'>
-      <InfiniteScroll
-        dataLength={toShow.length}
-        next={() => {
-          if (numShown + 25 >= owners.length) {
+      {toShow.length > 0 && <>
+        <InfiniteScroll
+          dataLength={toShow.length}
+          next={() => {
+            if (numShown + 25 >= owners.length) {
 
-            fetchMore()
-          }
+              fetchMore()
+            }
 
-          setNumShown(numShown + 25);
+            setNumShown(numShown + 25);
 
 
-        }}
-        className='flex-center flex-wrap full-width'
-        hasMore={isPreview ? false : pagination.hasMore}
-        loader={<div>
-          <br />
-          <Spin size={'large'} />
-          <br />
-          <br />
-        </div>}
+          }}
+          className='flex-center flex-wrap full-width'
+          hasMore={isPreview ? false : pagination.hasMore}
+          loader={<div>
+            <br />
+            <Spin size={'large'} />
+            <br />
+            <br />
+          </div>}
 
-        scrollThreshold="200px"
-        endMessage={null}
-        style={{ width: '100%' }}
-      >
-        {cardView ? <>
-          {toShow?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
-            return <BalanceCard key={idx} collectionId={collectionId} owner={owner} />
-          })}</> : <>
-          <div className='full-width flex-center'>
-            <InformationDisplayCard md={12} xs={24} sm={24} title='Owners'>
+          scrollThreshold="200px"
+          endMessage={null}
+          style={{ width: '100%' }}
+        >
+          {cardView ? <>
+            {toShow?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
+              return <BalanceCard key={idx} collectionId={collectionId} owner={owner} hideBadges={!showBadges} />
+            })}</> : <>
+            <div className='full-width flex-center'>
+              <InformationDisplayCard md={12} xs={24} sm={24} title='Owners'>
 
-              {toShow?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
-                return <TableRow
-                  key={idx}
-                  label={<AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={24} />}
-                  value={
-                    <div style={{ float: "right" }}>
-                      <BalanceDisplay
-                        floatToRight
-                        hideBadges={!showBadges}
-                        collectionId={collectionId}
-                        hideMessage
-                        balances={owner.balances}
-                      />
-                    </div>
-                  }
-                  labelSpan={8}
-                  valueSpan={16}
-                />
-              })}
-            </InformationDisplayCard>
-          </div>
-        </>}
-      </InfiniteScroll>
+                {toShow?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').map((owner, idx) => {
+                  return <TableRow
+                    key={idx}
+                    label={<AddressDisplay addressOrUsername={owner.cosmosAddress} fontSize={24} />}
+                    value={
+                      <div style={{ float: "right" }}>
+                        <BalanceDisplay
+                          floatToRight
+                          hideBadges={!showBadges}
+                          collectionId={collectionId}
+                          hideMessage
+                          balances={owner.balances}
+                        />
+                      </div>
+                    }
+                    labelSpan={8}
+                    valueSpan={16}
+                  />
+                })}
+              </InformationDisplayCard>
+            </div>
+          </>}
+        </InfiniteScroll>
+      </>}
 
       {!pagination.hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
         description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
@@ -191,10 +193,11 @@ export function CollectionOwnersTab({ collectionId }: {
   </>)
 }
 
-export const BalanceCard = ({ collectionId, owner, fullWidth }: {
+export const BalanceCard = ({ collectionId, owner, fullWidth, hideBadges }: {
   collectionId: bigint;
   owner?: BalanceDoc<bigint>;
   fullWidth?: boolean;
+  hideBadges?: boolean;
 }) => {
   if (!owner) return <></>;
 
@@ -205,6 +208,7 @@ export const BalanceCard = ({ collectionId, owner, fullWidth }: {
     </div>}>
     <div className='primary-text flex-center flex-column'>
       <BalanceDisplay
+        hideBadges={hideBadges}
         collectionId={collectionId}
         hideMessage
         balances={owner.balances}

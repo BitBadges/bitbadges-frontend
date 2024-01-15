@@ -14,8 +14,9 @@ import {
 import { deepCopy } from "bitbadgesjs-proto"
 import {
   AccountViewKey,
+  BatchBadgeDetails,
   BitBadgesAddressList,
-  BatchBadgeDetails, CollectionMap, addToBatchArray,
+  CollectionMap, addToBatchArray,
   getMaxBadgeIdForCollection,
   removeFromBatchArray,
   removeUintRangesFromUintRanges,
@@ -56,6 +57,7 @@ import { ReputationTab } from "../../components/collection-page/ReputationTab"
 import { ActivityTab } from "../../components/collection-page/TransferActivityDisplay"
 import { DevMode } from "../../components/common/DevMode"
 import { CustomizeAddRemoveBadgeFromPage, CustomizeAddRemoveListFromPage, NewPageInputForm } from "../../components/display/CustomPages"
+import { FollowProtocolDisplay } from "../../components/display/FollowProtocol"
 import IconButton from "../../components/display/IconButton"
 import { Tabs } from "../../components/navigation/Tabs"
 import { ReportedWrapper } from "../../components/wrappers/ReportedWrapper"
@@ -219,6 +221,7 @@ function PortfolioPage() {
     { key: "lists", content: "Lists" },
     { key: "activity", content: "Activity", disabled: false },
     { key: "reviews", content: "Reviews" },
+    { key: 'protocols', content: 'Protocols' },
   )
 
   const badgePageTabInfo = [
@@ -291,8 +294,8 @@ function PortfolioPage() {
 
   const isPresetList =
     listsTab === "allLists" ||
-    listsTab === "allowlists" ||
-    listsTab === "blocklists" ||
+    listsTab === "whitelists" ||
+    listsTab === "blacklists" ||
     listsTab === "privateLists" ||
     listsTab === "createdLists"
 
@@ -452,6 +455,7 @@ function PortfolioPage() {
                     <div className="flex-center flex-wrap">
                       {
                         <Tabs
+
                           onDeleteCurrTab={
                             !editMode ||
                               badgeTab == "" ||
@@ -478,6 +482,51 @@ function PortfolioPage() {
                                 })
                               }
                           }
+                          onLeftRight={async (direction: "left" | "right") => {
+                            if (direction === "left") {
+                              const currIdx = accountInfo.customPages?.badges?.findIndex(
+                                (x) => x.title === badgeTab
+                              )
+                              if (currIdx === undefined || currIdx === -1) return
+
+                              const newCustomPages = deepCopy(
+                                accountInfo.customPages?.badges ?? []
+                              )
+                              const temp = newCustomPages[currIdx]
+                              newCustomPages[currIdx] = newCustomPages[currIdx - 1]
+                              newCustomPages[currIdx - 1] = temp
+
+                              await updateProfileInfo(chain.address, {
+                                customPages: {
+                                  ...accountInfo.customPages,
+                                  lists: accountInfo.customPages?.lists ?? [],
+                                  badges: newCustomPages,
+                                }
+                              })
+                            } else {
+                              const currIdx = accountInfo.customPages?.badges?.findIndex(
+                                (x) => x.title === badgeTab
+                              )
+                              if (currIdx === undefined || currIdx === -1) return
+
+                              const newCustomPages = deepCopy(
+                                accountInfo.customPages?.badges ?? []
+                              )
+                              const temp = newCustomPages[currIdx]
+                              newCustomPages[currIdx] = newCustomPages[currIdx + 1]
+                              newCustomPages[currIdx + 1] = temp
+
+                              await updateProfileInfo(chain.address, {
+                                customPages: {
+                                  ...accountInfo.customPages,
+                                  lists: accountInfo.customPages?.lists ?? [],
+                                  badges: newCustomPages,
+                                }
+                              })
+                            }
+                          }}
+                          showLeft={accountInfo.customPages?.badges && accountInfo.customPages?.badges?.findIndex((x) => x.title === badgeTab) !== 0}
+                          showRight={accountInfo.customPages?.badges && accountInfo.customPages?.badges?.findIndex((x) => x.title === badgeTab) !== (accountInfo.customPages?.badges ?? [])?.length - 1}
                           tabInfo={[
                             {
                               key: "All",
@@ -821,8 +870,8 @@ function PortfolioPage() {
                           listsTab == "" ||
                           listsTab == "allLists" ||
                           listsTab == "Hidden" ||
-                          listsTab == "allowlists" ||
-                          listsTab == "blocklists" ||
+                          listsTab == "whitelists" ||
+                          listsTab == "blacklists" ||
                           listsTab == "privateLists" ||
                           listsTab == "createdLists"
                           ? undefined
@@ -852,12 +901,12 @@ function PortfolioPage() {
                           disabled: false,
                         },
                         {
-                          key: "allowlists",
+                          key: "whitelists",
                           content: "Included",
                           disabled: false,
                         },
                         {
-                          key: "blocklists",
+                          key: "blacklists",
                           content: "Excluded",
                           disabled: false,
                         },
@@ -931,25 +980,25 @@ function PortfolioPage() {
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       <InfoCircleOutlined /> These results include
-                      allowlists and blocklists.
+                      whitelists and blacklists.
                     </div>
                   )}
-                  {listsTab === "allowlists" && (
+                  {listsTab === "whitelists" && (
                     <div
                       className="secondary-text"
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       <InfoCircleOutlined /> These results only include
-                      allowlists.
+                      whitelists.
                     </div>
                   )}
-                  {listsTab === "blocklists" && (
+                  {listsTab === "blacklists" && (
                     <div
                       className="secondary-text"
                       style={{ marginBottom: 16, marginTop: 4 }}
                     >
                       <InfoCircleOutlined /> These results only include
-                      blocklists.
+                      blacklists.
                     </div>
                   )}
                   {listsTab === "createdLists" && (
@@ -1151,6 +1200,12 @@ function PortfolioPage() {
                     }
                     addressOrUsername={accountInfo?.address ?? ""}
                   />
+                </>
+              )}
+
+              {tab === 'protocols' && (
+                <>
+                  <FollowProtocolDisplay addressOrUsername={accountInfo.address} />
                 </>
               )}
 

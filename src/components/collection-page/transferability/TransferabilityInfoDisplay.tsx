@@ -156,21 +156,21 @@ const RowContentDetails = ({
 
   const FromValue = <AddressDisplayList
     users={approval.fromList.addresses}
-    allExcept={!approval.fromList.allowlist}
+    allExcept={!approval.fromList.whitelist}
     fontSize={16}
     filterMint={filterFromMint}
   />
 
   const ToValue = <AddressDisplayList
     users={toAddresses}
-    allExcept={!approval.toList.allowlist}
+    allExcept={!approval.toList.whitelist}
     filterMint
     fontSize={16}
   />
 
   const InitiatedByValue = <AddressDisplayList
     users={initiatedByAddresses}
-    allExcept={!approval.initiatedByList.allowlist}
+    allExcept={!approval.initiatedByList.whitelist}
     filterMint
     fontSize={16}
   />
@@ -214,7 +214,7 @@ const RowContentDetails = ({
         style={{ margin: 4, backgroundColor: '#1890ff' }}
         color='#1890ff'
         className='primary-text'
-      >Allowlist</Tag>}
+      >Whitelist</Tag>}
       {approval.approvalCriteria?.merkleChallenge?.root && !approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
         !approval.details?.challengeDetails.hasPassword &&
         <Tag

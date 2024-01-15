@@ -1,22 +1,30 @@
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, LeftOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, MenuTheme, Popover } from 'antd';
 import IconButton from '../display/IconButton';
 
 export function Tabs({
   hideOnSingleTab,
-  type, style, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass, onDeleteCurrTab }: {
-    tab: string;
-    setTab: (tab: string) => void;
-    tabInfo: ({ key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element } | undefined)[];
-    fullWidth?: boolean;
-    theme?: MenuTheme;
-    noSelectedKeys?: boolean;
-    type?: 'underline' | 'default';
-    customClass?: string;
-    onDeleteCurrTab?: (tab: string) => Promise<void>;
-    style?: React.CSSProperties;
-    hideOnSingleTab?: boolean;
-  }) {
+  type, style, tab, setTab, tabInfo, fullWidth, theme, noSelectedKeys, customClass, onDeleteCurrTab,
+  onLeftRight,
+  showLeft,
+  showRight,
+
+}: {
+  tab: string;
+  setTab: (tab: string) => void;
+  tabInfo: ({ key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element } | undefined)[];
+  fullWidth?: boolean;
+  theme?: MenuTheme;
+  noSelectedKeys?: boolean;
+  type?: 'underline' | 'default';
+  customClass?: string;
+  onDeleteCurrTab?: (tab: string) => Promise<void>;
+  style?: React.CSSProperties;
+  hideOnSingleTab?: boolean;
+  onLeftRight?: (direction: 'left' | 'right') => Promise<void>;
+  showLeft?: boolean;
+  showRight?: boolean;
+}) {
   let tabInfoFiltered = tabInfo.filter((tab) => tab != undefined) as { key: string, content: string | JSX.Element, disabled?: boolean, onClick?: () => void, subMenuOverlay?: JSX.Element, subMenuTrigger?: ("contextMenu" | "click" | "hover")[], popoverContent?: JSX.Element }[];
 
   if (hideOnSingleTab && tabInfoFiltered.length == 1) {
@@ -35,6 +43,22 @@ export function Tabs({
           ...tab,
           content: <div className='flex-center' style={{}}>
             {tab.key}
+            {showLeft && onLeftRight && <IconButton
+              text=''
+              noMinWidth
+              onClick={async () => {
+                await onLeftRight('left');
+              }}
+              src={<LeftOutlined />}
+            />}
+            {showRight && onLeftRight && <IconButton
+              text=''
+              noMinWidth
+              onClick={async () => {
+                await onLeftRight('right');
+              }}
+              src={<LeftOutlined style={{ transform: 'rotate(180deg)' }} />}
+            />}
             {<>
               <IconButton
                 text=''

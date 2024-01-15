@@ -201,7 +201,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
 
 
 
-      //If distribution method is codes or a allowlist, we need to add the merkle tree to IPFS and update the claim URI
+      //If distribution method is codes or a whitelist, we need to add the merkle tree to IPFS and update the claim URI
       if (collection.collectionApprovals?.length > 0 && txTimelineContext.updateCollectionApprovals) {
         if (simulate) {
           for (let i = 0; i < collection.collectionApprovals.length; i++) {

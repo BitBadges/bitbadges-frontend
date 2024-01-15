@@ -23,13 +23,13 @@ export async function fetchDefaultViews(address: string, loggedIn: boolean) {
     viewId: 'allLists',
     bookmark: '',
   }, {
-    viewType: 'allowlists',
-    viewId: 'allowlists',
+    viewType: 'whitelists',
+    viewId: 'whitelists',
     bookmark: ''
   },
   {
-    viewType: 'blocklists',
-    viewId: 'blocklists',
+    viewType: 'blacklists',
+    viewId: 'blacklists',
     bookmark: ''
   }]
   const viewsToFetch = DefaultViewsToFetch.slice();

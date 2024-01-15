@@ -36,7 +36,7 @@ export const PredeterminedCard = ({ transfer, collectionId, address, setAddress 
     && x.trackerType === trackerType);
 
   useEffect(() => {
-    //fetch accounts as needed if we iterate through allowlist
+    //fetch accounts as needed if we iterate through whitelist
     if (claim?.useCreatorAddressAsLeaf && approval.details?.challengeDetails?.leavesDetails.leaves[orderNumber]) {
       fetchAccounts([approvalCriteria?.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? '']);
     }
@@ -91,7 +91,7 @@ export const PredeterminedCard = ({ transfer, collectionId, address, setAddress 
             <li>{Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useOverallNumTransfers" ?
               <>{"Claim number starts at 1 and increments by 1 every use by any user."}</>
               : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "useMerkleChallengeLeafIndex" ?
-                <>{`Specific claim numbers are reserved for specific ${transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex && transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? 'allowlisted addresses' : 'claim codes'}.`}</>
+                <>{`Specific claim numbers are reserved for specific ${transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex && transfer.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf ? 'whitelisted addresses' : 'claim codes'}.`}</>
                 : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "usePerFromAddressNumTransfers" ?
                   <>{"Claim number starts at 1 for each unique sender (from address) and increments by 1 every transfer from that address."}</>
                   : Object.entries(transfer.approvalCriteria?.predeterminedBalances.orderCalculationMethod).find(x => x[1])?.[0] === "usePerToAddressNumTransfers" ?

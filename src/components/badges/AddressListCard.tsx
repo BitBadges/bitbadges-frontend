@@ -44,7 +44,7 @@ export function AddressListCard({
       </Typography.Text>
       <br />
       <Typography.Text strong className='secondary-text'>
-        {addressList.allowlist ? 'Allowlist' : 'Blocklist'}
+        {addressList.whitelist ? 'Whitelist' : 'Blacklist'}
         <br />
         {addressList.addresses.length} address{addressList.addresses.length === 1 ? '' : 'es'}
       </Typography.Text>
@@ -52,7 +52,7 @@ export function AddressListCard({
         <br />
         <br />
       </>}
-      {accountInfo && !hideInclusionDisplay ? addressList.allowlist ?
+      {accountInfo && !hideInclusionDisplay ? addressList.whitelist ?
         <Typography.Text strong style={{ color: 'green' }}>
           INCLUDED
         </Typography.Text>

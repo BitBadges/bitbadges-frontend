@@ -190,7 +190,7 @@ export function TransferabilityDisplay({
   }, [query.approvalId, approval.approvalId, hideActions, disapproved, populated, editable, onDelete]);
 
   //Only show rows that have at least one address (after filtration)
-  if ((toAddresses.length == 0 && approval.toList.allowlist) || (initiatedByAddresses.length == 0 && approval.initiatedByList.allowlist) || (fromAddresses.length == 0 && approval.fromList.allowlist)) {
+  if ((toAddresses.length == 0 && approval.toList.whitelist) || (initiatedByAddresses.length == 0 && approval.initiatedByList.whitelist) || (fromAddresses.length == 0 && approval.fromList.whitelist)) {
     return null;
   }
 

@@ -41,7 +41,7 @@ export const AddressListSelectComponent = ({
   const lockedBadgeIds = getBadgesWithLockedSupply(collection, undefined, undefined, 'always');
   const unlockedBadgeIds = invertUintRanges(lockedBadgeIds, 1n, GO_MAX_UINT_64);
 
-  const isLockedFromList = key === 'fromList' && approvalToAdd.fromList?.allowlist && approvalToAdd.fromList?.addresses?.length == 1 && disabled;
+  const isLockedFromList = key === 'fromList' && approvalToAdd.fromList?.whitelist && approvalToAdd.fromList?.addresses?.length == 1 && disabled;
   const firstAddress = approvalToAdd.fromList?.addresses?.[0];
 
   return <>
@@ -54,7 +54,7 @@ export const AddressListSelectComponent = ({
     />
     {!disabled && <>
       <div className='secondary-text'>
-        <InfoCircleOutlined /> Each added address increases your transaction fee{type === 'initiatedBy' && list.allowlist ? ' if stored on-chain' : ''}.
+        <InfoCircleOutlined /> Each added address increases your transaction fee{type === 'initiatedBy' && list.whitelist ? ' if stored on-chain' : ''}.
       </div> </>}
 
     {isLockedFromList && <>

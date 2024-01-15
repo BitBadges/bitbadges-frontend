@@ -41,8 +41,8 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
 
   const collection = useCollection(collectionId);
 
-  const requiresAllowlistProof = !!(approval && approval.approvalCriteria?.merkleChallenge?.root && approval.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf) ?? false;
-  const leaf = requiresAllowlistProof ? SHA256(chain.cosmosAddress).toString() : '';
+  const requiresWhitelistProof = !!(approval && approval.approvalCriteria?.merkleChallenge?.root && approval.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf) ?? false;
+  const leaf = requiresWhitelistProof ? SHA256(chain.cosmosAddress).toString() : '';
   const proofObj = tree?.getProof(leaf);
   const isValidProof = (proofObj && tree && proofObj.length === tree.getLayerCount() - 1) ?? false;
 
@@ -72,7 +72,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
   }, [transfers]);
 
   const items = [
-    approval?.fromList.addresses.length === 1 && approval.fromList.allowlist ? undefined :
+    approval?.fromList.addresses.length === 1 && approval.fromList.whitelist ? undefined :
       {
         title: 'Sender',
         description: <div>
@@ -139,7 +139,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
           approvalLevel: '',
           approverAddress: '',
         },
-        merkleProofs: requiresAllowlistProof ? [{
+        merkleProofs: requiresWhitelistProof ? [{
           aunts: proofObj ? proofObj.map((proof) => {
             return {
               aunt: proof.data.toString('hex'),
@@ -149,7 +149,11 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
           leaf: '',
         }] : [],
         memo: '',
-        prioritizedApprovals: [],
+        prioritizedApprovals: approval ? [{
+          approvalId: approval?.approvalId ?? '',
+          approvalLevel: 'collection',
+          approverAddress: '',
+        }] : [],
         onlyCheckPrioritizedApprovals: false,
       }
     })
@@ -184,14 +188,14 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         }
       }
     ]
-  }, [chain.cosmosAddress, collectionId, transfers, proofObj, requiresAllowlistProof, senderAccount]);
+  }, [chain.cosmosAddress, collectionId, transfers, proofObj, requiresWhitelistProof, senderAccount]);
 
   const filteredSteps = items.filter(x => x) as StepProps[];
   return (
     <TxModal
       msgSteps={filteredSteps}
-      visible={visible && (isValidProof || !requiresAllowlistProof)}
-      disabled={requiresAllowlistProof && !isValidProof}
+      visible={visible && (isValidProof || !requiresWhitelistProof)}
+      disabled={requiresWhitelistProof && !isValidProof}
       setVisible={setVisible}
       txsInfo={txsInfo}
       txName="Transfer Badge(s)"

@@ -48,7 +48,7 @@ export const ApprovalBalancesCard = ({
     }
     {
       balanceTab === 'remaining' && <>
-        {approval.fromList.addresses.length > 1 || !approval.fromList.allowlist ? <>
+        {approval.fromList.addresses.length > 1 || !approval.fromList.whitelist ? <>
           <div className='secondary-text'>
             <InfoCircleOutlined /> There are multiple addresses approved as senders.
           </div>
@@ -56,8 +56,8 @@ export const ApprovalBalancesCard = ({
         </> : <></>}
         <BalanceOverview
           collectionId={collectionId}
-          hideSelect={approval.fromList?.addresses.length === 1 && approval.fromList.allowlist}
-          defaultAddress={approval.fromList?.addresses.length >= 1 && approval.fromList.allowlist ? approval.fromList?.addresses[0] : undefined}
+          hideSelect={approval.fromList?.addresses.length === 1 && approval.fromList.whitelist}
+          defaultAddress={approval.fromList?.addresses.length >= 1 && approval.fromList.whitelist ? approval.fromList?.addresses[0] : undefined}
 
         />
       </>

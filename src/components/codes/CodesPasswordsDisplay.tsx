@@ -494,7 +494,7 @@ export function CodesDisplay({
                           setLoading(true);
                           const code = codes?.[codePage - 1] ?? '';
                           const password = claimPassword ?? '';
-                          //// You have been allowlisted to claim badges from collection ${collectionDoc.collectionId}! ${orderMatters ? `You have been reserved specific badges which are only claimable to you. Your claim number is #${idx + 1}` : ''}`,
+                          //// You have been whitelisted to claim badges from collection ${collectionDoc.collectionId}! ${orderMatters ? `You have been reserved specific badges which are only claimable to you. Your claim number is #${idx + 1}` : ''}`,
 
                           if (claimAlertAddress && claimAlertAccount) {
                             if (hasPassword) {

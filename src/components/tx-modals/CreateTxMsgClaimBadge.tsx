@@ -47,7 +47,7 @@ export function CreateTxMsgClaimBadgeModal(
   const claimItem = approval.approvalCriteria?.merkleChallenge?.root ? approval.approvalCriteria?.merkleChallenge : undefined;
   const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approval.challengeTrackerId);
   const requiresProof = !!approvalCriteria?.merkleChallenge?.root;
-  const isAllowlist = claimItem?.useCreatorAddressAsLeaf ?? false;
+  const isWhitelist = claimItem?.useCreatorAddressAsLeaf ?? false;
   const details = approval.details;
   const merkleChallenge = approval.approvalCriteria && approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
   const claim = merkleChallenge
@@ -126,7 +126,7 @@ export function CreateTxMsgClaimBadgeModal(
     errorMessage = 'This claim is not currently active! Invalid time.';
   } else if (claim && claim.root && claim.useCreatorAddressAsLeaf && !details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))) {
     cantClaim = true;
-    errorMessage = 'You are not on the allowlist for this claim!';
+    errorMessage = 'You are not on the whitelist for this claim!';
   } else if (code && !hasPassword && challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
     cantClaim = true;
     errorMessage = 'The entered code has already been used!';
@@ -178,7 +178,7 @@ export function CreateTxMsgClaimBadgeModal(
     }
   }
 
-  const leaf = isAllowlist ? SHA256(chain.cosmosAddress).toString() : SHA256(passwordCodeToSubmit).toString();
+  const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(passwordCodeToSubmit).toString();
   const proofObj = tree?.getProof(leaf, leafIndex !== undefined && leafIndex >= 0 ? leafIndex : undefined);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
   const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0))
@@ -211,12 +211,12 @@ export function CreateTxMsgClaimBadgeModal(
               onRight: proof.position === 'right'
             }
           }) : [],
-          leaf: isAllowlist ? '' : passwordCodeToSubmit,
+          leaf: isWhitelist ? '' : passwordCodeToSubmit,
         }] : [],
         memo: '',
-        prioritizedApprovals: hasPredetermined ? [{
+        prioritizedApprovals: precalculationId ? [{
           approvalId: precalculationId ?? '',
-          approvalLevel: hasPredetermined ? "collection" : "",
+          approvalLevel: "collection",
           approverAddress: "",
         }] : [],
         onlyCheckPrioritizedApprovals: false,
@@ -242,7 +242,7 @@ export function CreateTxMsgClaimBadgeModal(
         }
       }
     ]
-  }, [collectionId, chain.cosmosAddress, recipient, precalculationId, hasPredetermined, requiresProof, proofObj, isAllowlist, passwordCodeToSubmit]);
+  }, [collectionId, chain.cosmosAddress, recipient, precalculationId, hasPredetermined, requiresProof, proofObj, isWhitelist, passwordCodeToSubmit]);
 
 
   if (!collection || !visible) return <></>;

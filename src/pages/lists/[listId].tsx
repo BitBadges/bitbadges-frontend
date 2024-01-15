@@ -128,7 +128,7 @@ function AddressListPage() {
 
   let isAddressInList = (list?.addresses.includes(addressToCheck) || list?.addresses.includes(convertToCosmosAddress(addressToCheck)));
 
-  if (!list?.allowlist) {
+  if (!list?.whitelist) {
     isAddressInList = !isAddressInList;
   }
 
@@ -284,7 +284,7 @@ function AddressListPage() {
                             <AddressDisplayList
                               // title='Addresses'
                               users={list?.addresses || []}
-                              allExcept={!list?.allowlist}
+                              allExcept={!list?.whitelist}
                             />
 
                             <Divider />

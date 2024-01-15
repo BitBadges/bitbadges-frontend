@@ -177,7 +177,7 @@ const TxTimelineContext = createContext<TxTimelineContextType>({
   addressList: {
     listId: '',
     addresses: [],
-    allowlist: true,
+    whitelist: true,
     uri: '',
     customData: '',
 
@@ -238,7 +238,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
   const [addressList, setAddressList] = useState<AddressList>({
     listId: '',
     addresses: [],
-    allowlist: true,
+    whitelist: true,
     uri: '',
     customData: '',
     createdBy: chain.address
@@ -294,7 +294,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setAddressList({
       listId: '',
       addresses: [],
-      allowlist: true,
+      whitelist: true,
       uri: '',
       customData: '',
       createdBy: chain.address
@@ -312,6 +312,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setUpdateIsArchivedTimeline(!existingCollectionId);
 
     setCompleteControl(false);
+    setCustomCollection(true);
     resetCollectionApprovals();
   }
 
@@ -439,7 +440,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         collectionId: 0n
       }
 
-      //TODO: This infinite loops if connected account is not manager of collection bc createdBy is different
       if (!startingCollection) {
         const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await fetchCollectionsWithOptions(
           [{

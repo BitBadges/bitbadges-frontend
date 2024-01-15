@@ -58,9 +58,9 @@ function PanelHeader({ addressLists, listId, activity, onDelete, idx }: {
           </a>
           {' - '}
           {
-            activity.addedToList ? `Added to ${list?.allowlist ? 'allowlist' : 'blocklist'}`
-              : activity.addedToList === false ? `Removed from ${list?.allowlist ? 'allowlist' : 'blocklist'}`
-                : activity.addedToList === undefined ? 'No change to allowlist/blocklist'
+            activity.addedToList ? `Added to ${list?.whitelist ? 'whitelist' : 'blacklist'}`
+              : activity.addedToList === false ? `Removed from ${list?.whitelist ? 'whitelist' : 'blacklist'}`
+                : activity.addedToList === undefined ? 'No change to whitelist/blacklist'
                   : 'Unknown'
           } at {new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()}
 
@@ -133,9 +133,9 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                         <br />
                         The following users were{' '}
                         {
-                          activity.addedToList ? `added to the ${list?.allowlist ? 'allowlist' : 'blocklist'}`
-                            : activity.addedToList === false ? `removed from the ${list?.allowlist ? 'allowlist' : 'blocklist'}`
-                              : activity.addedToList === undefined ? 'No change to allowlist/blocklist'
+                          activity.addedToList ? `added to the ${list?.whitelist ? 'whitelist' : 'blacklist'}`
+                            : activity.addedToList === false ? `removed from the ${list?.whitelist ? 'whitelist' : 'blacklist'}`
+                              : activity.addedToList === undefined ? 'No change to whitelist/blacklist'
                                 : 'Unknown'
                         } at {new Date(Number(activity.timestamp)).toLocaleDateString()} {new Date(Number(activity.timestamp)).toLocaleTimeString()
                         }

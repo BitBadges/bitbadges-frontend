@@ -1,8 +1,8 @@
 import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
-import { ReactElement, useLayoutEffect, useMemo, useState } from 'react';
+import { ReactElement, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
-import { BigIntify, convertBitBadgesCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { BigIntify, GetFollowDetailsRouteSuccessResponse, convertBitBadgesCollection, convertGetFollowDetailsRouteSuccessResponse, getMetadataForBadgeId } from 'bitbadgesjs-utils';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
 import { AccountHeader } from '../components/badges/AccountHeader';
 import { AddressListCard } from '../components/badges/AddressListCard';
@@ -13,6 +13,9 @@ import CustomCarousel from '../components/display/Carousel';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
 import { Tabs } from '../components/navigation/Tabs';
 import { MarkdownDisplay } from './account/[addressOrUsername]/settings';
+import { getFollowDetails } from '../bitbadges-api/api';
+import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
+import { useAccount } from '../bitbadges-api/contexts/accounts/AccountsContext';
 
 
 const { Content } = Layout;
@@ -21,6 +24,8 @@ function BrowsePage() {
   const browseContext = useBrowseContext();
   const browseInfo = browseContext.browse;
   const router = useRouter();
+  const chain = useChainContext();
+  const signedInAccountInfo = useAccount(chain.address);
   const [tab, setTab] = useState('featured');
   const cardView = false;
 
@@ -30,6 +35,15 @@ function BrowsePage() {
 
   const [containerWidth, setContainerWidth] = useState<number>(0);
 
+  const [followDetails, setFollowDetails] = useState<GetFollowDetailsRouteSuccessResponse<bigint>>();
+  const [activityTab, setActivityTab] = useState('all');
+
+  useEffect(() => {
+    if (!signedInAccountInfo?.cosmosAddress) return;
+    getFollowDetails({ cosmosAddress: signedInAccountInfo.cosmosAddress, activityBookmark: '' }).then(res => {
+      setFollowDetails(convertGetFollowDetailsRouteSuccessResponse(res, BigIntify))
+    })
+  }, [signedInAccountInfo?.cosmosAddress]);
 
   useLayoutEffect(() => {
     const handleResize = () => {
@@ -260,11 +274,46 @@ function BrowsePage() {
           <Typography.Text strong className='primary-text' style={{ fontSize: 30, margin: 6, display: 'flex', fontWeight: 'bold', textAlign: 'start', alignItems: 'normal', marginBottom: 13 }}>
             Activity
           </Typography.Text>
-          <div className='full-width' style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+          {(followDetails?.activity ?? []).length > 0 && <>
+            <Tabs
+              style={{ margin: 6 }}
+              theme='dark'
+              tabInfo={[
+                {
+                  key: 'all',
+                  content: <div>
+                    All
+                  </div>
+                },
+                {
+                  key: 'follows',
+                  content: <div>
+                    Following
+                  </div>
+                },
+              ]}
+              setTab={setActivityTab}
+              tab={activityTab}
+            />
+          </>}
+          <div className='full-width' style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', margin: 6 }}>
             <ActivityTab
-              activity={browseInfo?.activity ?? []}
-              hasMore={false}
-              fetchMore={async () => { }}
+              activity={
+                activityTab == 'follows' ? followDetails?.activity ?? [] : browseInfo?.activity ?? []}
+              hasMore={activityTab == 'follows' ? followDetails?.activityPagination.hasMore ?? true : false}
+              fetchMore={async () => {
+                if (activityTab == 'follows') {
+                  const newFollowDetails = await getFollowDetails({
+                    cosmosAddress: signedInAccountInfo?.cosmosAddress ?? '',
+                    activityBookmark: followDetails?.activityPagination.bookmark ?? ''
+                  });
+                  setFollowDetails({
+                    ...newFollowDetails,
+                    activity: [...(followDetails?.activity ?? []), ...(newFollowDetails.activity ?? [])]
+                  })
+                }
+
+              }}
             />
           </div>
         </div>

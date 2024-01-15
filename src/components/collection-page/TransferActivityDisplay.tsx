@@ -148,9 +148,6 @@ function CollapseComponent({ activity, onDelete, paginated, currPage, numShown, 
                               balances: activity.balances,
                               memo: activity.memo,
                               precalculateBalancesFromApproval: activity.precalculateBalancesFromApproval,
-                              merkleProofs: [],
-                              prioritizedApprovals: [],
-                              onlyCheckPrioritizedApprovals: false,
                             }
                           ]}
                         />

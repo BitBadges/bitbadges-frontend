@@ -1,6 +1,6 @@
 import { Divider, Form, Input, Typography } from "antd";
 import { Transfer } from "bitbadgesjs-proto";
-import { MetadataAddMethod } from "bitbadgesjs-utils";
+import { MetadataAddMethod, TransferWithIncrements } from "bitbadgesjs-utils";
 import { useEffect, useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
@@ -17,9 +17,20 @@ import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
 
 const { Text } = Typography
 
-export const DistributionComponent = () => {
-  const collection = useCollection(NEW_COLLECTION_ID);
+export const DistributionComponent = ({
+  transfersOverride,
+  setTransfersOverride,
+  collectionIdOverride,
+}: {
+  transfersOverride?: TransferWithIncrements<bigint>[];
+  setTransfersOverride?: (transfers: TransferWithIncrements<bigint>[]) => void;
+  collectionIdOverride?: bigint;
+}) => {
+  const collectionId = collectionIdOverride ?? NEW_COLLECTION_ID;
+  const collection = useCollection(collectionIdOverride ?? NEW_COLLECTION_ID);
   const txTimelineContext = useTxTimelineContext();
+  const transfers = transfersOverride ?? txTimelineContext.transfers;
+  const setTransfers = setTransfersOverride ?? txTimelineContext.setTransfers;
 
   if (!collection) return <></>;
 
@@ -28,7 +39,7 @@ export const DistributionComponent = () => {
 
     <div className=''>
       <TransferSelect
-        collectionId={NEW_COLLECTION_ID}
+        collectionId={collectionId}
         sender={'Mint'}
         originalSenderBalances={collection.owners.find(x => x.cosmosAddress === 'Total')?.balances ?? []} //We use total balances and allow them to fetch currently minted
         setTransfers={(transfers) => {
@@ -37,12 +48,12 @@ export const DistributionComponent = () => {
             return;
           }
 
-          txTimelineContext.setTransfers(transfers);
+          setTransfers(transfers);
         }}
-        transfers={txTimelineContext.transfers}
+        transfers={transfers}
         plusButton
         isOffChainBalancesUpdate
-        fetchExisting={!!txTimelineContext.existingCollectionId && txTimelineContext.existingCollectionId > 0n && collection.offChainBalancesMetadataTimeline.length > 0 ? async () => {
+        fetchExisting={!!collectionId && collectionId > 0n && collection.offChainBalancesMetadataTimeline.length > 0 ? async () => {
           const balancesMap = await getExistingBalanceMap(collection);
           const transfers: Transfer<bigint>[] = Object.entries(balancesMap).map(([cosmosAddress, balances]) => {
             return {
@@ -51,7 +62,7 @@ export const DistributionComponent = () => {
               balances,
             }
           })
-          txTimelineContext.setTransfers(transfers);
+          setTransfers(transfers);
         } : undefined}
       />
     </div >

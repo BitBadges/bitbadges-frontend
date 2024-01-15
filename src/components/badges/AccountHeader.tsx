@@ -29,8 +29,8 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
         <div className='flex-center flex-column' style={{ width: '100%' }}>
           <div>
             <div className='flex-center flex-column'>
-              <div style={{ flex: '0 0 300px' }}>
-                <Avatar src={profilePicSrc} size={300} shape='square' className='rounded-lg' />
+              <div style={{ flex: '0 0 200px' }}>
+                <Avatar src={profilePicSrc} size={200} shape='square' className='rounded-lg' />
               </div>
             </div>
           </div>
@@ -45,7 +45,7 @@ export function AccountHeader({ accountInfoOverride, addressOrUsername, multiDis
   }
 
   const Bio = <>
-    <div className='primary-text' style={{ }}>
+    <div className='primary-text' style={{}}>
       <MarkdownDisplay markdown={accountInfo?.readme ?? ''} />
     </div>
   </>

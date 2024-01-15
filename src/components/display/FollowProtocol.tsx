@@ -40,17 +40,21 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
 
   const fetchMore = useCallback(async () => {
     setLoading(true);
+
+    if (followDetails?.followersPagination?.hasMore === false && followDetails?.followingPagination?.hasMore === false) {
+      setLoading(false);
+      return;
+    }
+
     const followRes = await getFollowDetails({
       cosmosAddress: accountInfo?.cosmosAddress ?? '',
-      followersBookmark: followDetails?.followersPagination?.bookmark,
-      followingBookmark: followDetails?.followingPagination?.bookmark,
+      followersBookmark: followDetails?.followersPagination?.hasMore ? followDetails?.followersPagination?.bookmark : undefined,
+      followingBookmark: followDetails?.followingPagination?.hasMore ? followDetails?.followingPagination?.bookmark : undefined,
     });
 
     if (followDetails?.cosmosAddress !== followRes.cosmosAddress) {
       setFollowDetails(followRes);
     } else {
-
-
       setFollowDetails({
         ...followRes,
         followers: [...(followDetails?.followers ?? []), ...(followRes.followers ?? [])].filter((x, idx, self) => self.findIndex(y => y === x) === idx),
@@ -210,12 +214,14 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                 <InfoCircleOutlined /> This is the collection that this user uses to follow other users. Their following is determined by who owns badge ID 1.
               </div>
               <br />
-              <CollectionDisplayWithBadges
-                badgeObj={{
-                  collectionId: followDetails?.followingCollectionId ?? 0n,
-                  badgeIds: [{ start: 1n, end: 1n }]
-                }}
-              />
+              <div className='flex-center'>
+                <CollectionDisplayWithBadges
+                  badgeObj={{
+                    collectionId: followDetails?.followingCollectionId ?? 0n,
+                    badgeIds: [{ start: 1n, end: 1n }]
+                  }}
+                />
+              </div>
 
 
             </div>}
