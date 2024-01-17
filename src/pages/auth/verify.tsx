@@ -171,7 +171,6 @@ function BlockinCodesScreen() {
         }) ?? undefined,
       };
     } catch (e) {
-      console.log("ADSJHKASFGHJJHGASFHGJK", e);
       return {}
     }
   }, [router.query.challengeParams, allowAddressSelect, generateNonce]);
