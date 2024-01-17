@@ -77,7 +77,7 @@ export const BlockinDisplay = ({
   const handleVerifyChallenge = async (message: string, signature: string) => {
 
     try {
-      const verificationResponse = await verifySignIn({ chain, message, signature });
+      await verifySignIn({ chain, message, signature });
 
       const _challengeObj = constructChallengeObjectFromString(message, Numberify);
       /**
@@ -88,7 +88,8 @@ export const BlockinDisplay = ({
       setLoggedIn(true);
       setCookie('blockincookie', cosmosAddress, { path: '/', expires: _challengeObj?.expirationDate ? new Date(_challengeObj.expirationDate) : undefined });
       return {
-        success: true, message: `${verificationResponse.successMessage}`
+        success: true,
+        message: 'Successfully signed in.',
       }
     } catch (e: any) {
       if (e.response.data) throw new Error(e.response.data.message);

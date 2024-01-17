@@ -111,6 +111,11 @@ export function WalletHeader() {
           addressOrUsername={address}
           hidePortfolioLink
         />
+        <div>
+          <Text strong className='primary-text'>
+            {account?.username}
+          </Text>
+        </div>
 
         {account?.balance?.amount ? <>
           <br />
@@ -179,7 +184,7 @@ export function WalletHeader() {
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address)}>Portfolio</Menu.Item>
     </>}
     {<>
-      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/codes')}>Authentication QR Codes</Menu.Item>
+      <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/codes')}>Authentication Codes</Menu.Item>
     </>}
     {connected && <>
       <Menu.Item className='dropdown-item text-sm text-vivid-blue' onClick={() => router.push('/account/' + address + '/settings')}>Account Settings</Menu.Item>

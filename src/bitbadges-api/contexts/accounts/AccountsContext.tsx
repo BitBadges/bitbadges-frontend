@@ -67,6 +67,10 @@ export const getAccount = (addressOrUsername: string, forcefulRefresh?: boolean)
 }
 
 export const updateAccounts = (userInfos: BitBadgesUserInfo<DesiredNumberType>[], forcefulRefresh?: boolean) => {
+  if (forcefulRefresh) {
+    dispatch(deleteAccountsRedux(userInfos.map(x => x.address || x.username) as string[]));
+  }
+
   dispatch(updateAccountsRedux(userInfos, forcefulRefresh));
 }
 

@@ -237,7 +237,6 @@ const MaxNumTransfersComponent = ({ approval, type, componentType, showUntracked
 
       {approval.approvalCriteria?.maxNumTransfers &&
         <Statistic
-          valueStyle={{ color: '#fff' }}
           value={`${numUsed.toString()} / ${!limit ? '?' : approval.approvalCriteria.maxNumTransfers[maxNumTransfersKey].toString()}`}
           title={<>{type === "overall" ? <b className='primary-text'>Cumulative Uses - All Addresses</b> : <>
             <b className='primary-text'>Uses as {type === "to" ? 'To' : type === "from" ? 'From' : 'Approved'} Address</b>

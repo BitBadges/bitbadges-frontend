@@ -73,6 +73,7 @@ import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import IconButton from '../display/IconButton';
 import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
+import { DisconnectedWrapper } from '../wrappers/DisconnectedWrapper';
 
 const { Step } = Steps;
 
@@ -891,14 +892,19 @@ export function TxModal(
       cancelText={"Cancel"}
       destroyOnClose={true}
     >
-      <Row>
-        <Col md={24} xs={24} sm={24}>
-          {requireRegistration ?
-            <RegisteredWrapper
-              node={innerContent}
-            /> : innerContent}
-        </Col>
-      </Row>
+      <DisconnectedWrapper
+        message={`Please connect ${requireRegistration ? 'and sign in' : ''} to submit a transaction.`}
+        node={
+          <Row>
+            <Col md={24} xs={24} sm={24}>
+              {requireRegistration ?
+                <RegisteredWrapper
+                  node={innerContent}
+                /> : innerContent}
+            </Col>
+          </Row>}
+        requireLogin={requireRegistration}
+      />
     </Modal >
   );
 }

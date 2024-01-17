@@ -38,6 +38,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
     fetchCollectionsWithOptions([{ collectionId: 1n, metadataToFetch: { badgeIds: [{ start: 15n, end: 15n }] } }]);
   }, []);
 
+
   const fetchMore = useCallback(async () => {
     setLoading(true);
 
@@ -51,6 +52,10 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
       followersBookmark: followDetails?.followersPagination?.hasMore ? followDetails?.followersPagination?.bookmark : undefined,
       followingBookmark: followDetails?.followingPagination?.hasMore ? followDetails?.followingPagination?.bookmark : undefined,
     });
+
+    if (followRes.followingCollectionId) {
+      await fetchCollectionsWithOptions([{ collectionId: followRes.followingCollectionId, metadataToFetch: { badgeIds: [{ start: 1n, end: 1n }] } }]);
+    }
 
     if (followDetails?.cosmosAddress !== followRes.cosmosAddress) {
       setFollowDetails(followRes);

@@ -302,8 +302,8 @@ export function BalanceDisplayEditRow({
                 title={"Requirements"}
               >
                 <Switch
-                  checkedChildren="Must Own All"
-                  unCheckedChildren="Must Own One"
+                  checkedChildren="Must Satisfy All"
+                  unCheckedChildren="Must Satisfy One"
                   checked={mustSatisfyForAllAssets}
                   onChange={(checked) => {
                     setmustSatisfyForAllAssets(checked)

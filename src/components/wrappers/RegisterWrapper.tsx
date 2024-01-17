@@ -1,8 +1,8 @@
 import { Spin } from 'antd';
 
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import RegisterScreen from '../../pages/register';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import RegisterScreen from '../../pages/register';
 
 export function RegisteredWrapper({ node, message }: { node: JSX.Element, message?: string }) {
   const chain = useChainContext();
@@ -10,7 +10,14 @@ export function RegisteredWrapper({ node, message }: { node: JSX.Element, messag
   const airdropped = signedInAccount?.airdropped;
   const fetched = signedInAccount?.fetchedProfile;
 
-  if (!signedInAccount) return <div className='inherit-bg flex-center'><Spin size='large' style={{ marginTop: 30, minHeight: '100vh' }} /></div>
+  // useEffect(() => {
+  //   fetchAccounts(chain.address);
+  // }, [chain.address]);
+
+
+  if (!signedInAccount) return <div className='inherit-bg flex-center'>
+    <Spin size='large' style={{ marginTop: 30, minHeight: '100vh' }} />
+  </div>
 
   return (
     <>

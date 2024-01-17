@@ -1,21 +1,21 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress } from 'bitbadgesjs-utils';
-import { ChallengeParams } from 'blockin';
+import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress } from 'bitbadgesjs-utils';
+import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString } from 'blockin';
 import { SignInModal } from 'blockin/dist/ui';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { createAuthCode } from '../../bitbadges-api/api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createAuthCode, verifySignInGeneric } from '../../bitbadges-api/api';
 import { SignChallengeResponse, useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchAccounts, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchCollections, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
+import { BadgeAvatarDisplay } from '../../components/badges/BadgeAvatarDisplay';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { EmptyIcon } from '../../components/common/Empty';
 import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { AuthCode } from '../account/codes';
-import { fetchCollections, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { BadgeAvatarDisplay } from '../../components/badges/BadgeAvatarDisplay';
 
 export interface CodeGenQueryParams {
   challengeParams?: ChallengeParams<bigint>;
@@ -25,6 +25,10 @@ export interface CodeGenQueryParams {
   generateNonce?: boolean
   allowAddressSelect?: boolean;
   callbackRequired?: boolean;
+  storeInAccount?: boolean;
+
+  skipVerify?: boolean;
+  verifyOptions?: VerifyChallengeOptions;
 }
 
 function BlockinCodesScreen() {
@@ -37,10 +41,11 @@ function BlockinCodesScreen() {
     image,
     generateNonce,
     allowAddressSelect,
-    callbackRequired
+    callbackRequired,
+    storeInAccount,
+    skipVerify,
+    verifyOptions,
   } = router.query;
-
-
 
 
   const {
@@ -54,12 +59,15 @@ function BlockinCodesScreen() {
 
   const currAccount = useAccount(address);
 
-  const blockinParams = challengeParams ? JSON.parse(challengeParams as string) as ChallengeParams<NumberType> : undefined;
+  const blockinParams = useMemo(() => {
+    if (!challengeParams) return undefined;
+    return JSON.parse(challengeParams as string) as ChallengeParams<NumberType>;
+  }, [challengeParams]);
+
   useEffect(() => {
     const collectionsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId) ?? [];
     const collectionIds = collectionsToFetch.map(x => BigInt(x.collectionId));
     fetchCollections(collectionIds);
-
   }, [blockinParams]);
 
   useEffect(() => {
@@ -67,6 +75,7 @@ function BlockinCodesScreen() {
     fetchAccounts([blockinParams.address]);
   }, [blockinParams?.address]);
 
+  const randomNonce = useRef(crypto.getRandomValues(new Uint8Array(32)))
 
 
   if (!challengeParams || !blockinParams) {
@@ -79,16 +88,16 @@ function BlockinCodesScreen() {
       height: '100vh'
     }}>
       <EmptyIcon description='No message to sign found...' />
-
-    </div>;
+    </div>
   }
 
   if (allowAddressSelect) {
     blockinParams.address = address
   }
 
+
   if (generateNonce) {
-    blockinParams.nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
+    blockinParams.nonce = Buffer.from(randomNonce.current).toString('base64');
   }
 
   const handleSignChallenge = async (challenge: string) => {
@@ -107,38 +116,69 @@ function BlockinCodesScreen() {
     const signature = signChallengeResponse.signature;
     setQrCode(signature);
 
-    await createAuthCode({
-      signature: signature,
-      message: challenge,
-      name: name as string,
-      description: description as string,
-      image: image as string,
-    });
-    if (!currAccount) throw new Error('No account found');
+    if (storeInAccount) {
+      await createAuthCode({
+        signature: signature,
+        message: challenge,
+        name: name as string,
+        description: description as string,
+        image: image as string,
+      });
+      if (!currAccount) throw new Error('No account found');
 
-    updateAccount({
-      ...currAccount,
-      authCodes: [
-        ...(currAccount?.authCodes ?? []),
-        convertBlockinAuthSignatureDoc(
-          {
-            _docId: signature,
-            signature: signature,
-            params: blockinParams,
-            name: name as string,
-            description: description as string,
-            image: image as string,
-            cosmosAddress: currAccount.cosmosAddress,
-            createdAt: Date.now(),
-          }, BigIntify)
-      ]
-    });
-
-    if (window.opener && callbackRequired) {
-      window.opener.postMessage({ signature: signature, message: challenge }, '*');
+      updateAccount({
+        ...currAccount,
+        authCodes: [
+          ...(currAccount?.authCodes ?? []),
+          convertBlockinAuthSignatureDoc(
+            {
+              _docId: signature,
+              signature: signature,
+              params: blockinParams,
+              name: name as string,
+              description: description as string,
+              image: image as string,
+              cosmosAddress: currAccount.cosmosAddress,
+              createdAt: Date.now(),
+            }, BigIntify)
+        ]
+      });
     }
 
-    return { success: true, message: 'Successfully signed challenge.' };
+    let verificationResponse: {
+      success: boolean,
+      errorMessage?: string
+    } = { success: false, errorMessage: 'skipVerify is true' };
+    if (!skipVerify) {
+      try {
+        const chain = getChainForAddress(constructChallengeObjectFromString(signChallengeResponse.message, BigIntify).address);
+        const parsedVerifyOptions = verifyOptions ? JSON.parse(verifyOptions as string) : undefined;
+        const verifyChallengeOptions: VerifyChallengeOptions = {
+          expectedChallengeParams: {
+            ...parsedVerifyOptions?.expectedChallengeParams,
+            nonce: generateNonce ? blockinParams.nonce : parsedVerifyOptions?.expectedChallengeParams.nonce,
+            address: allowAddressSelect ? blockinParams.address : parsedVerifyOptions?.expectedChallengeParams.address,
+          },
+          // beforeVerification: parsedVerifyOptions?.beforeVerification, Don't allow this to be set
+          balancesSnapshot: parsedVerifyOptions?.balancesSnapshot,
+          skipTimestampVerification: parsedVerifyOptions?.skipTimestampVerification,
+          skipAssetVerification: parsedVerifyOptions?.skipAssetVerification,
+        }
+
+        await verifySignInGeneric({ message: signChallengeResponse.message, chain: chain, signature: signChallengeResponse.signature, options: verifyChallengeOptions });
+        verificationResponse = { success: true };
+      } catch (e: any) {
+        verificationResponse = { success: false, errorMessage: e.errorMessage ?? e.message };
+      }
+    }
+
+
+    if (window.opener && callbackRequired) {
+      window.opener.postMessage({ signature: signature, message: challenge, verificationResponse }, '*');
+      window.close();
+    }
+
+    return { ...verificationResponse, message: verificationResponse.errorMessage ?? '' };
   }
 
   const flaggedWebsites = ['https://bitbadges.io', 'https://bitbadges.io/'];
@@ -209,10 +249,9 @@ function BlockinCodesScreen() {
                         }, BigIntify)} />
                         <Divider />
                         <div className='secondary-text' style={{ textAlign: 'center' }}>
-                          <InfoCircleOutlined /> To be authenticated, the site that directed you here requires you to sign the message with the above details.
-                          Once signed, a secret QR code will be generated for you to present at authentication time.
+                          <InfoCircleOutlined /> To be authenticated, the provider that directed you here requires you to sign a message to generate a secret authentication code.
                           {window.opener && callbackRequired && <>
-                            <WarningOutlined style={{ color: 'orange' }} /> <span style={{ color: 'orange' }}>This QR code will also be sent back to the site that directed you here.</span>
+                            {' '}<WarningOutlined style={{ color: 'orange' }} /> <span style={{ color: 'orange' }}>This code will be sent back and used by the provider that directed you here. Do not proceed if you do not trust the provider that sent you here.</span>
                           </>}
                         </div>
                         <br />
@@ -232,24 +271,29 @@ function BlockinCodesScreen() {
                     {qrCode &&
                       <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
                         <div className='flex-center'>
-                          {!qrCode && <EmptyIcon description='No QR Code generated yet...' />}
-                          {qrCode && <AuthCode authCode={convertBlockinAuthSignatureDoc({
-                            _docId: '',
-                            signature: qrCode,
-                            name: name as string,
-                            description: description as string,
-                            image: image as string,
-                            params: blockinParams,
-                            createdAt: Date.now(),
-                            cosmosAddress: convertToCosmosAddress(address as string),
-                          }, BigIntify)} />}
+                          {<AuthCode
+                            onlyShowCode
+                            notStoredInAccount={!storeInAccount}
+                            setSavedAuthCodes={() => { }}
+                            authCode={convertBlockinAuthSignatureDoc({
+                              _docId: '',
+                              signature: qrCode,
+                              name: name as string,
+                              description: description as string,
+                              image: image as string,
+                              params: blockinParams,
+                              createdAt: Date.now(),
+                              cosmosAddress: convertToCosmosAddress(address as string),
+                            }, BigIntify)} />}
+                        </div>
 
-                        </div>
-                        <div className='flex-center'>
-                          <button className='landing-button' onClick={() => router.push(`/account/codes`)} style={{ minWidth: 222 }}>
-                            View All My Codes
-                          </button>
-                        </div>
+                        {storeInAccount && <>
+                          <br />
+                          <div className='flex-center'>
+                            <button className='landing-button' onClick={() => window.open(window.location.origin + '/account/codes', '_blank')} style={{ minWidth: 222 }}>
+                              View All My Codes
+                            </button>
+                          </div></>}
                       </InformationDisplayCard>
                     }
                   </div>
@@ -266,6 +310,7 @@ function BlockinCodesScreen() {
                         signAndVerifyChallenge={signAndVerifyChallenge}
                         displayNotConnnectedWarning={false}
                         displayedAssets={blockinParams.assets?.map(x => {
+                          console.log(x);
                           const collection = x.chain === 'BitBadges' ? getCollection(BigInt(x.collectionId)) : undefined;
 
                           return {

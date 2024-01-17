@@ -37,7 +37,7 @@ async function handleApiError(error: any): Promise<void> {
     //if localhost, show errors but not on actual site
     notification.error({
       message: "Oops! We ran into an error!",
-      description: data.message ? data.message : "Unknown error",
+      description: data.errorMessage ? data.errorMessage : "Unknown error",
     });
   } else {
     notification.error({

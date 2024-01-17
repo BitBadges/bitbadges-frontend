@@ -1,7 +1,7 @@
-import { Avatar, notification } from 'antd';
-import { BlockinAuthSignatureDoc } from 'bitbadgesjs-utils';
+import { Avatar, Tooltip, Typography, notification } from 'antd';
+import { BlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { toDataURL } from 'qrcode';
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 
 interface QrCodeDisplayProps {
@@ -10,12 +10,14 @@ interface QrCodeDisplayProps {
   size?: number
   label?: ReactNode | string
   helperDisplay?: ReactNode
-  storeLocally?: boolean
+  savedAuthCodes?: BlockinAuthSignatureDoc<bigint>[]
+  setSavedAuthCodes?: (authCodes: BlockinAuthSignatureDoc<bigint>[]) => void
   authCode?: BlockinAuthSignatureDoc<bigint>
+  view?: string
 }
 
-const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, hideCopyButtons, size = 256, label, helperDisplay, storeLocally, authCode }) => {
-
+const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, hideCopyButtons, size = 256, label, helperDisplay, savedAuthCodes, setSavedAuthCodes, authCode, view = 'qr' }) => {
+  const storeLocally = !!setSavedAuthCodes;
 
   const handleDownload = (imageUrl: string) => {
     const link = document.createElement('a');
@@ -49,6 +51,7 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, hideCopyButtons, s
     img.src = imageUrl;
   }
 
+
   const handleStoreLocally = () => {
     const existingAuthCodes = localStorage.getItem('savedAuthCodes');
     const authCodes = existingAuthCodes ? JSON.parse(existingAuthCodes) : [];
@@ -56,46 +59,73 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, hideCopyButtons, s
     localStorage.setItem('savedAuthCodes', JSON.stringify(newAuthCodes));
   }
 
+  const [storedInBrowser, setStoredInBrowser] = React.useState(false);
 
+  useEffect(() => {
+    const existingAuthCodes = localStorage.getItem('savedAuthCodes');
+    const authCodes = existingAuthCodes ? JSON.parse(existingAuthCodes) : [];
+    const stored = authCodes.find((x: any) => x._docId === authCode?._docId);
+    setStoredInBrowser(!!stored);
+  }, [authCode]);
 
   return <>
     <div className='flex-center flex-column'>
 
       {value && <>
         <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8 }}>
-          <Avatar shape='square' size={size + 20} src={
-            <QRCode value={value} size={size} />
-          }></Avatar>
+          {view !== 'qr' && <div className='primary-text' style={{ fontSize: 20, fontWeight: 'bold' }}>
+            Code: <Typography.Text className='primary-text' copyable={{ text: value }}>
+              <Tooltip title={value}>
+                {getAbbreviatedAddress(value)}
+              </Tooltip>
+
+            </Typography.Text>
+          </div>}
+          {view === 'qr' &&
+            <Avatar shape='square' size={size + 20} src={
+              <QRCode value={value} size={size} />
+            }></Avatar>}
         </div>
-        {helperDisplay}
       </>
       }
     </div>
     {value && !hideCopyButtons && <>
       <div className='flex-center flex-wrap' style={{ marginTop: 8 }}>
-        <button className='landing-button' style={{ minWidth: 150, margin: 5 }} onClick={async () => {
+        {view === 'qr' && <button className='landing-button' style={{ minWidth: 150, margin: 5 }} onClick={async () => {
           const imageUrl = await toDataURL(value);
           handleDownload(imageUrl);
         }}>
           Save QR As Image
-        </button>
-        <button className='landing-button' style={{ minWidth: 150, margin: 5 }} onClick={async () => {
-          const imageUrl = await toDataURL(value);
-          handleCopy(imageUrl);
-        }}>
-          Copy QR As Image
-        </button>
+        </button>}
+        {view === 'qr' &&
+          <button className='landing-button' style={{ minWidth: 150, margin: 5 }} onClick={async () => {
+            const imageUrl = await toDataURL(value);
+            handleCopy(imageUrl);
+          }}>
+            Copy QR As Image
+          </button>}
         {storeLocally && authCode &&
-          <button className='landing-button' style={{ minWidth: 130, margin: 5 }} onClick={async () => {
-            handleStoreLocally();
-            notification.info({
-              message: 'Stored in Browser',
-              description: 'The QR code has been stored in your browser. You can now access it from the "Saved" tab on the QR Codes page. IMPORTANT: This is only stored in this browser on this device. If you clear your browser data, it will be lost.',
-              duration: 0
-            })
+          <button className='landing-button' style={{ minWidth: storedInBrowser ? 250 : 130, margin: 5 }} onClick={async () => {
+            if (storedInBrowser) {
+              const existingAuthCodes = localStorage.getItem('savedAuthCodes');
+              const authCodes = existingAuthCodes ? JSON.parse(existingAuthCodes) : [];
+              const newAuthCodes = authCodes.filter((x: any) => x._docId !== authCode._docId);
+              localStorage.setItem('savedAuthCodes', JSON.stringify(newAuthCodes));
+              setStoredInBrowser(false);
+              setSavedAuthCodes((savedAuthCodes ?? []).filter(x => x._docId !== authCode._docId));
+            } else {
+              handleStoreLocally();
+              notification.info({
+                message: 'Stored in Browser',
+                description: 'The code has been stored in your browser. You can now access it from the "Saved" tab on the Authentication Codes page. IMPORTANT: This is only stored in this browser on this device. If you clear your browser data, it will be lost.',
+                duration: 0
+              })
+              setStoredInBrowser(true);
+              setSavedAuthCodes([...(savedAuthCodes ?? []), authCode]);
+            }
 
           }}>
-            Store in Browser
+            {storedInBrowser ? 'Remove from Browser Storage' : 'Store in Browser'}
           </button>}
         {/* //Share as PNG */}
         {navigator.canShare && navigator.canShare({ files: [new File([], 'test.png')] }) &&
@@ -104,8 +134,8 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, hideCopyButtons, s
             const file = await fetch(imageUrl).then(r => r.blob());
             navigator.share({
               files: [new File([file], 'blockin-qr-code.png', { type: 'image/png' })],
-              title: 'Blockin QR Code',
-              text: 'Blockin QR Code',
+              title: 'BitBadges Authentication Code',
+              text: 'BitBadges Authentication Code',
             });
           }}>
             Share
@@ -113,6 +143,11 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ value, hideCopyButtons, s
         }
       </div>
     </>}
+    {authCode?.signature &&
+      <div className='flex-center'>
+
+        {helperDisplay}
+      </div>}
   </ >
 };
 

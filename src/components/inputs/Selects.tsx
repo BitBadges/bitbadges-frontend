@@ -121,6 +121,7 @@ export const CheckboxSelect = ({
   value,
   setValue,
   options,
+  disabled
 }: {
   title: string,
   value: boolean | undefined,
@@ -128,7 +129,8 @@ export const CheckboxSelect = ({
   options: {
     label: string,
     value: boolean | undefined
-  }[]
+  }[],
+  disabled?: boolean
 }) => {
   return <div className='flex' style={{ marginRight: 8, textAlign: 'start' }}>
     <div style={{ width: 200 }}>
@@ -136,6 +138,7 @@ export const CheckboxSelect = ({
     </div>
     {options.map((option, idx) => {
       return <Checkbox
+        disabled={disabled}
         className='primary-text'
         checked={value === option.value}
         onChange={(e) => {
@@ -147,7 +150,9 @@ export const CheckboxSelect = ({
         }}
         style={{ marginLeft: 8 }}
         key={idx}>
-        {option.label}
+        <div className="primary-text">
+          {option.label}
+        </div>
       </Checkbox>
     })}
   </div>

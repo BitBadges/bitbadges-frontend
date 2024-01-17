@@ -138,6 +138,7 @@ export function BalanceDisplay({
       numRecipients={numIncrements}
       timeString={timeString}
       suggestedBalances={suggestedBalances}
+      fullWidthCards={isMustOwnBadgesInput}
     />
   )
 
@@ -299,7 +300,7 @@ export function BalanceDisplay({
                                 paddingRight: 4,
                               }}
                             >
-                              {balance.mustSatisfyForAllAssets ? "Must Own All" : "Must Own One"}
+                              {balance.mustSatisfyForAllAssets ? "Must Satisfy All" : "Must Satisfy One"}
                             </td>
                           )}
                           {!isMustOwnBadgesInput && (

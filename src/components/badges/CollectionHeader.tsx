@@ -11,13 +11,14 @@ import { BadgeButtonDisplay } from '../button-displays/BadgePageButtonDisplay';
 
 const { Text } = Typography;
 
-export function CollectionHeader({ listId, collectionId, hideCollectionLink, badgeId, metadataOverride, multiDisplay }: {
+export function CollectionHeader({ codeDisplay, listId, collectionId, hideCollectionLink, badgeId, metadataOverride, multiDisplay }: {
   collectionId: bigint;
   badgeId?: bigint;
   hideCollectionLink?: boolean;
   metadataOverride?: Metadata<bigint>
   multiDisplay?: boolean,
   listId?: string
+  codeDisplay?: boolean
 }) {
   const router = useRouter();
   const collection = useCollection(collectionId)
@@ -43,7 +44,8 @@ export function CollectionHeader({ listId, collectionId, hideCollectionLink, bad
   const CollectionLink = <>
     <div className='flex-center-if-mobile'>
       <Text strong className='primary-text' style={{ fontSize: 20 }}>
-        <a onClick={() => {
+        {codeDisplay && collectionMetadata?.name + ' '}
+        {!codeDisplay && <a onClick={() => {
           if (collectionId == NEW_COLLECTION_ID) {
             notification.info({
               message: "Navigating to a preview collection is not supported.",
@@ -53,7 +55,9 @@ export function CollectionHeader({ listId, collectionId, hideCollectionLink, bad
           }
           router.push(`/collections/${collectionId}`)
         }}>
-          {collectionMetadata?.name}</a>
+          {collectionMetadata?.name}
+
+        </a>}
       </Text>
 
     </div>
@@ -97,7 +101,7 @@ export function CollectionHeader({ listId, collectionId, hideCollectionLink, bad
   </>
 
   const About = metadata?.description && <>
-    <div className='primary-text' id={'description2' + badgeId + collectionId + listId} style={{  }}>
+    <div className='primary-text' id={'description2' + badgeId + collectionId + listId} style={{}}>
       <MarkdownDisplay markdown={metadata?.description ?? ''} />
     </div>
 

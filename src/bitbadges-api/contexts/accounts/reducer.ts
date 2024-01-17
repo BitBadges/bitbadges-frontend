@@ -259,8 +259,7 @@ export const accountReducer = (
 ): AccountReducerState => {
   switch (action.type) {
     case 'UPDATE_ACCOUNTS':
-      const userInfos = action.payload
-        .userInfos as BitBadgesUserInfo<DesiredNumberType>[];
+      const userInfos = action.payload.userInfos as BitBadgesUserInfo<DesiredNumberType>[];
       return updateAccounts(state, userInfos);
     case 'FETCH_ACCOUNTS_REQUEST':
       return { ...state };
