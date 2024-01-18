@@ -157,16 +157,6 @@ function BrowsePage() {
               multiDisplay
             />
           </div>
-
-          <br />
-          <div style={{ marginTop: '1rem' }}></div>
-          <a className='text-vivid-blue' onClick={() => {
-            router.push(`/account/${profile.address}`)
-          }}
-            style={{ fontSize: 16 }}
-          >
-            See full profile
-          </a>
         </>
       </InformationDisplayCard>)
     }

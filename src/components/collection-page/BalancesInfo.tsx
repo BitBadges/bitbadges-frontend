@@ -123,7 +123,7 @@ export function BalanceOverview({ collectionId, badgeId, hideSelect, defaultAddr
         <span className='secondary-text'>Head over to the <a
           onClick={() => { setTab('transferability') }}
 
-        >Transferability</a> tab to see how this badge is distributed.</span>
+        >Transferability</a> tab to see how this badge is collected.</span>
         <br /><br />
       </>}
     </div>

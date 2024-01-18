@@ -859,6 +859,13 @@ export function MetadataForm({
                   For icons, avatars, and thumbnails, we will use the image provided above.
                 </Text>
               </div>
+              {currMetadata.video && (currMetadata.video.includes('youtube.com') || currMetadata.video.includes('youtu.be'))
+                && !currMetadata.video.includes('embed') && (
+                  <div style={{ fontSize: 12, color: 'red' }}>
+
+                    YouTube links must be embed links to work correctly (e.g. https://www.youtube.com/embed/VIDEO_ID).
+                  </div>
+                )}
             </Form.Item>
             <Form.Item
               label={

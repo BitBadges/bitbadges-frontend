@@ -1,7 +1,7 @@
-import { ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, FieldTimeOutlined, FileProtectOutlined, QrcodeOutlined } from '@ant-design/icons';
+import { ClusterOutlined, FileProtectOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Divider, Row, Typography, notification } from 'antd';
-import { useRouter } from 'next/router';
 import { SignInWithBitBadges as SignInWithBitBadgesButton } from 'blockin/dist/ui';
+import { useRouter } from 'next/router';
 import { NextPage } from 'next/types';
 import { useEffect } from 'react';
 import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collections/CollectionsContext';
@@ -60,6 +60,53 @@ const Home: NextPage = () => {
       }
     }]);
   }, []);
+
+  const SignInButton = <>
+    <SignInWithBitBadgesButton
+      onSignAndBlockinVerify={async () => {
+        if (window && window.opener) {
+          return
+        }
+        notification.success({
+          message: 'Success',
+          description: `On a site that uses Sign In with BitBadges, you would now be signed in to the website with your selected address if you met the authentication and badge ownership requirements.`
+        });
+      }}
+      props={{
+        className: 'blockin-button',
+        style: {
+          width: '100%',
+          backgroundColor: '#131233',
+          fontSize: 14, fontWeight: 600, color: 'white',
+        }
+      }}
+
+      popupParams={{
+        name: 'BitBadges Sign In Example',
+        description: 'This is just an example for signing in with BitBadges. Websites can use this to authenticate users by outsourcing all authentication logic to a Sign In with BitBadges popup.',
+        image: 'https://bitbadges.io/images/bitbadgeslogo.png',
+        allowAddressSelect: true,
+        skipVerify: true,
+        challengeParams: {
+          domain: 'https://xyz.com',
+          statement: 'This is just an example of Sign In with BitBadges. Nothing is done with this sign in attempt.',
+          address: '', //overriden by allowAddressSelect
+          uri: 'https://xyz.com',
+          nonce: 'abc123',
+          notBefore: undefined,
+          issuedAt: new Date(Date.now()).toISOString(),
+          expirationDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+          resources: [],
+          assets: [{
+            chain: 'BitBadges',
+            collectionId: 1,
+            assetIds: [{ start: 1, end: 1 }],
+            mustSatisfyForAllAssets: true,
+            mustOwnAmounts: { start: 1, end: 1 },
+          }],
+        }
+      }} />
+  </>
 
   return (
     <>
@@ -200,6 +247,8 @@ const Home: NextPage = () => {
                 {"All badges are public, meaning you can verify the authenticity and ownership of anyone's badges at any time, both digitally and in-person. "}
 
                 This is possible because BitBadges uses a public, decentralized blockchain to store badges, meaning no one can censor, forge, or fake ownership of badges.
+
+
               </Typography.Text>
               <br />
               <br />
@@ -211,10 +260,10 @@ const Home: NextPage = () => {
               <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
                 BitBadges is currently in a beta phase. This means that the platform is not yet intended for production use.
                 Bugs and issues are expected. However, we believe it is stable enough for users to start using it and providing feedback.
-                This allows us to build a better product for you!
+                This allows us to build a better product for you in the long term!
                 <br /> <br />
                 Betanet is completely free to use for users. Once mainnet launches, badges and profiles can optionally be migrated.
-                $BADGE will be redistributed via an airdrop based on betanet contributions.
+                $BADGE will be redistributed via an airdrop based on betanet contributions. Treat betanet as a subsidized testnet.
               </Typography.Text>
 
               {/* <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
@@ -379,7 +428,33 @@ const Home: NextPage = () => {
                         src={COSMOS_LOGO}
                         size={25}
                       /> users, with more to come.
+
                     </Typography.Text></>
+                }
+              />
+              <LandingCard
+                customClass='secondary-text '
+                content={
+                  <>
+                    {SignInButton}
+                    <br />
+                    <br />
+                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
+                      Authentication
+                    </Typography.Text>
+                    <br />
+                    <br />
+                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
+                      Authenticate users from any supported chain in one place and with the same badge.
+                      Prior to BitBadges, building applications for a user base from multiple chains was a nightmare.
+                      With our suite of authentication tools, multi-chain badge-based authentication is a breeze and can be
+                      done digitally (e.g. gating websites) or in-person (e.g. presenting QR codes at an event).
+                      <br />
+                      <br />
+
+
+                    </Typography.Text>
+                  </>
                 }
               />
               <LandingCard
@@ -396,165 +471,10 @@ const Home: NextPage = () => {
                     </Typography.Text>
                     <br /> <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges utilizes a scalable architecture that can eventually support millions of users and badges through
-                      outsourcing to off-chain storage where possible and batch operations.
-                    </Typography.Text>
-                  </>
-                }
-              />
-
-              <LandingCard
-                customClass='secondary-text '
-                content={
-                  <>
-                    <DatabaseOutlined
-                      className='figma-blue'
-                      style={{ fontSize: 48 }}
-                    />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Hybrid Balances
-                    </Typography.Text>
-                    <br />
-                    <br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges supports multiple methods of storing balances,
+                      BitBadges is built as a decentralized, open-source Cosmos SDK blockchain that leverages intuitive ideas to scale.
+                      Notably, BitBadges supports multiple methods of storing balances depending on the use case,
                       including storing balances off-chain where users never need to interact with the blockchain and pay gas fees.
                       Learn more about the options <a href='https://docs.bitbadges.io/overview/concepts/balances-types' target='_blank'>here</a>.
-                    </Typography.Text>
-                  </>
-                }
-              />
-
-              <LandingCard
-                customClass='secondary-text '
-                content={
-                  <>
-                    <QrcodeOutlined
-                      className='figma-blue'
-                      style={{ fontSize: 48 }}
-                    />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Seamless Authentication
-                    </Typography.Text>
-                    <br />
-                    <br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Authenticate users with badge ownership in a seamless way in-person or digitally using our suite of authentication tools.
-                      <br />
-                      <br />
-                      <SignInWithBitBadgesButton
-                        onSignAndBlockinVerify={async () => {
-                          if (window && window.opener) {
-                            return
-                          } 
-                          notification.success({
-                            message: 'Success',
-                            description: `On a site that uses Sign In with BitBadges, you would now be signed in to the website with your selected address if you met the authentication and badge ownership requirements.`
-                          });
-                        }}
-                        props={{
-                          className: 'blockin-button',
-                          style: {
-                            width: '100%',
-                            backgroundColor: '#131233',
-                            fontSize: 14, fontWeight: 600, color: 'white',
-                          }
-                        }}
-
-                        popupParams={{
-                          name: 'BitBadges Sign In Example',
-                          description: 'This is just an example for signing in with BitBadges. Websites can use this to authenticate users by outsourcing all authentication logic to a Sign In with BitBadges popup.',
-                          image: 'https://bitbadges.io/images/bitbadgeslogo.png',
-                          allowAddressSelect: true,
-                          skipVerify: true,
-                          challengeParams: {
-                            domain: 'https://xyz.com',
-                            statement: 'This is just an example of Sign In with BitBadges. Nothing is done with this sign in attempt.',
-                            address: '', //overriden by allowAddressSelect
-                            uri: 'https://xyz.com',
-                            nonce: 'abc123',
-                            notBefore: undefined,
-                            issuedAt: new Date(Date.now()).toISOString(),
-                            expirationDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
-                            resources: [],
-                            assets: [{
-                              chain: 'BitBadges',
-                              collectionId: 1,
-                              assetIds: [{ start: 1, end: 1 }],
-                              mustSatisfyForAllAssets: true,
-                              mustOwnAmounts: { start: 1, end: 1 },
-                            }],
-                          }
-                        }} />
-
-
-                    </Typography.Text>
-                  </>
-                }
-              />
-              <LandingCard
-                customClass='secondary-text '
-                content={<>
-                  <DeploymentUnitOutlined
-                    className='figma-blue'
-                    style={{ fontSize: 48 }}
-                  />
-                  <br />
-                  <br />
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                    Optional Decentralization
-                  </Typography.Text>
-                  <br />
-                  <br />
-                  <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                    BitBadges will ALWAYS provide full support for fully decentralized implementations.
-                    However, we realize most users do not care, so we also provide hybrid approaches
-                    that can be used to greatly improve user experience and scalability.
-                  </Typography.Text>
-                </>
-                }
-              />
-              <LandingCard
-                customClass='secondary-text '
-                content={
-                  <>
-                    <FieldTimeOutlined
-                      className='figma-blue'
-                      style={{ fontSize: 48 }}
-                    />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Time-Dependent Ownership
-                    </Typography.Text>
-                    <br />
-                    <br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Natively, BitBadges does its accounting in a way that supports time-dependent ownership for balances (e.g. Bob owns x1 from January to March).
-                    </Typography.Text>
-                  </>
-                }
-              />
-
-              <LandingCard
-                customClass='secondary-text '
-                content={
-                  <><ControlOutlined
-                    className='figma-blue'
-                    style={{ fontSize: 48 }}
-                  />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Custom Transferability
-                    </Typography.Text>
-                    <br /><br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Instead of badges being simply transferable or non-transferable, BitBadges supports a wide range of transferability options that can be clearly displayed to users.
                     </Typography.Text>
                   </>
                 }
@@ -569,126 +489,22 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Smart Contracts Not Needed
+                      Token Standard
                     </Typography.Text>
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      BitBadges reuses the same interface for badges as opposed to individual smart contracts.
-                      This results in increased transparency, scalability, maintainability, consistency, and security.
-                      However, smart contracts can be used for implementing advanced functionality, not natively supported.
+                      The BitBadges token (badge) standard is state-of-the-art compared to existing token standards (ERC20, ERC721, etc)
+                      and does not require smart contracts.
+                      The standard is ever-evolving and natively supports never-before-seen
+                      features like time-dependent ownership,
+                      fine-grained transferability requirements, and hybrid off-chain balances. Learn more
+                      <a href='https://docs.bitbadges.io/overview/' target='_blank'> here</a>.
+
                     </Typography.Text>
                   </>
                 }
               />
-
-
-
-
-
-              {/* <LandingCard
-                customClass='secondary-text '
-                content={
-                  <>
-                    <ContactsOutlined
-                      className='figma-blue'
-                      style={{ fontSize: 48 }}
-                    />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Incoming / Outgoing Approvals
-                    </Typography.Text>
-                    <br />
-                    <br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Approve users to transfer on your behalf (outgoing) or restrict who can transfer to you (incoming).
-                    </Typography.Text>
-                  </>
-                }
-              />   */}
-            </>
-            <>
-              {/* <LandingCard
-                customClass='secondary-text '
-                content={
-                  <><LikeOutlined
-                    className='figma-blue'
-                    style={{ fontSize: 48 }}
-                  />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Reviews
-                    </Typography.Text>
-                    <br /><br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Leave reviews on users and collections to help others identify trustworthy users and collections.
-                    </Typography.Text>
-                  </>
-                }
-              />
-
-              <LandingCard
-                customClass='secondary-text'
-                content={
-                  <><SendOutlined
-                    className='figma-blue'
-                    style={{ fontSize: 48 }}
-                  />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Batch Transfers
-                    </Typography.Text>
-                    <br /><br />
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Batch transfers can be done in a single, efficient transaction (e.g. transfer x1 of badge IDs 1-60000).
-                    </Typography.Text>
-                  </>
-                }
-              />
-
-              <LandingCard
-                customClass='secondary-text '
-                content={
-                  <><ClockCircleOutlined
-                    className='figma-blue'
-                    style={{ fontSize: 48 }}
-                  />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Time-Based Details
-                    </Typography.Text>
-                    <br /><br />
-
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Certain collection details (such as metadata) are timeline-based, meaning they can be scheduled to have different values at different times.
-                    </Typography.Text>
-                  </>
-                }
-              />
-              <LandingCard
-                customClass='secondary-text '
-                content={
-                  <><OrderedListOutlined
-                    className='figma-blue'
-                    style={{ fontSize: 48 }}
-                  />
-                    <br />
-                    <br />
-                    <Typography.Text strong className='primary-text' style={{ fontSize: 20 }}>
-                      Address Lists
-                    </Typography.Text>
-                    <br /><br />
-
-                    <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      As an alternative, address lists can be used to manage users without the complexity of badges (i.e. balances, permissions, transferability, etc.).
-                    </Typography.Text>
-                  </>
-                }
-              /> */}
             </>
           </>
         </Row>
