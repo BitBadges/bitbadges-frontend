@@ -1,9 +1,9 @@
-import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { WarningOutlined } from '@ant-design/icons';
 import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress } from 'bitbadgesjs-utils';
 import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString } from 'blockin';
 import { SignInModal } from 'blockin/dist/ui';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createAuthCode, verifySignInGeneric } from '../../bitbadges-api/api';
 import { SignChallengeResponse, useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchAccounts, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -12,7 +12,6 @@ import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { BadgeAvatarDisplay } from '../../components/badges/BadgeAvatarDisplay';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { EmptyIcon } from '../../components/common/Empty';
-import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { AuthCode } from '../account/codes';
@@ -22,7 +21,6 @@ export interface CodeGenQueryParams {
   name?: string;
   description?: string;
   image?: string;
-  generateNonce?: boolean
   allowAddressSelect?: boolean;
   callbackRequired?: boolean;
   storeInAccount?: boolean;
@@ -39,7 +37,6 @@ function BlockinCodesScreen() {
     name,
     description,
     image,
-    generateNonce,
     allowAddressSelect,
     callbackRequired,
     storeInAccount,
@@ -75,9 +72,6 @@ function BlockinCodesScreen() {
     fetchAccounts([blockinParams.address]);
   }, [blockinParams?.address]);
 
-  const randomNonce = useRef(crypto.getRandomValues(new Uint8Array(32)))
-
-
   if (!challengeParams || !blockinParams) {
     return <div style={{
       marginLeft: '3vw',
@@ -93,11 +87,6 @@ function BlockinCodesScreen() {
 
   if (allowAddressSelect) {
     blockinParams.address = address
-  }
-
-
-  if (generateNonce) {
-    blockinParams.nonce = Buffer.from(randomNonce.current).toString('base64');
   }
 
   const handleSignChallenge = async (challenge: string) => {
@@ -148,15 +137,16 @@ function BlockinCodesScreen() {
     let verificationResponse: {
       success: boolean,
       errorMessage?: string
-    } = { success: false, errorMessage: 'skipVerify is true' };
-    if (!skipVerify) {
+    } = { success: false, errorMessage: skipVerify ? 'skipVerify is true' : 'Not used for non-callback requests' };
+    if (!skipVerify && callbackRequired) {
       try {
         const chain = getChainForAddress(constructChallengeObjectFromString(signChallengeResponse.message, BigIntify).address);
         const parsedVerifyOptions = verifyOptions ? JSON.parse(verifyOptions as string) : undefined;
+
         const verifyChallengeOptions: VerifyChallengeOptions = {
           expectedChallengeParams: {
             ...parsedVerifyOptions?.expectedChallengeParams,
-            nonce: generateNonce ? blockinParams.nonce : parsedVerifyOptions?.expectedChallengeParams.nonce,
+            nonce: parsedVerifyOptions?.expectedChallengeParams.nonce,
             address: allowAddressSelect ? blockinParams.address : parsedVerifyOptions?.expectedChallengeParams.address,
           },
           // beforeVerification: parsedVerifyOptions?.beforeVerification, Don't allow this to be set
@@ -174,7 +164,8 @@ function BlockinCodesScreen() {
 
 
     if (window.opener && callbackRequired) {
-      window.opener.postMessage({ signature: signature, message: challenge, verificationResponse }, '*');
+      const targetOrigin = new URL(window.opener.location.href).origin;
+      window.opener.postMessage({ signature: signature, message: challenge, verificationResponse }, targetOrigin);
       window.close();
     }
 
@@ -237,29 +228,39 @@ function BlockinCodesScreen() {
                     {!qrCode &&
                       <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
 
-                        <AuthCode authCode={convertBlockinAuthSignatureDoc({
-                          _docId: '',
-                          signature: '',
-                          name: name as string,
-                          description: description as string,
-                          image: image as string,
-                          params: blockinParams,
-                          createdAt: Date.now(),
-                          cosmosAddress: convertToCosmosAddress(address as string),
-                        }, BigIntify)} />
-                        <Divider />
-                        <div className='secondary-text' style={{ textAlign: 'center' }}>
-                          <InfoCircleOutlined /> To be authenticated, the provider that directed you here requires you to sign a message to generate a secret authentication code.
-                          {window.opener && callbackRequired && <>
-                            {' '}<WarningOutlined style={{ color: 'orange' }} /> <span style={{ color: 'orange' }}>This code will be sent back and used by the provider that directed you here. Do not proceed if you do not trust the provider that sent you here.</span>
-                          </>}
-                        </div>
-                        <br />
-                        <div className='secondary-text' style={{ textAlign: 'center' }}>
-                          <WarningOutlined style={{ color: 'orange' }} /> Ensure all the information above is correct before signing.
-                        </div>
+                        <AuthCode
+                          onlyShowMetadata
+                          authCode={convertBlockinAuthSignatureDoc({
+                            _docId: '',
+                            signature: '',
+                            name: name as string,
+                            description: description as string,
+                            image: image as string,
+                            params: blockinParams,
+                            createdAt: Date.now(),
+                            cosmosAddress: convertToCosmosAddress(address as string),
+                          }, BigIntify)} />
                         <br />
 
+                        <br />
+                        <div className='secondary-text' style={{ textAlign: 'center' }}>
+                          <WarningOutlined style={{ color: 'orange' }} /> This sign in request is for <a href={blockinParams.domain} target='_blank' rel='noreferrer'>{blockinParams.domain}</a>.
+                          {window.opener && callbackRequired && <>
+                            {' '}If you did not navigate to this site from <a href={blockinParams.domain} target='_blank' rel='noreferrer'>{blockinParams.domain}</a>
+                            or a trusted source, do not proceed.
+                            Your secret sign-in code will be sent back to the provider that directed you here.
+                          </>}
+
+
+                          {!(window.opener && callbackRequired) && <>
+                            {' '}To be authenticated, you will sign a message to generate a secret authentication code.
+                            {storeInAccount && ' This code will be stored in your account.'}
+                            {!storeInAccount && ' This code will be only able to be viewed once.'}
+                            {' '}For authentication, you are expected to present this code to the requesting party using their preferred method.
+                          </>}
+                          {' '}Read the message carefully and ensure all the information is correct before signing.
+                        </div>
+                        <br />
                         <div className='flex-center'>
                           <button className='landing-button' onClick={() => setModalIsVisible(true)} style={{ minWidth: 222, marginTop: 16 }}>
                             Sign
@@ -300,6 +301,7 @@ function BlockinCodesScreen() {
                   <div className='flex-center primary-text img-overrides'>
                     {
                       <SignInModal
+                        customBeforeSigningWarning='BitBadges will relay your authentication code to the provider that directed you here.'
                         modalIsVisible={modalIsVisible}
                         setModalIsVisible={setModalIsVisible}
                         modalStyle={{ color: `white`, textAlign: 'start' }}
@@ -317,7 +319,7 @@ function BlockinCodesScreen() {
                             ...x,
                             name: collection?.cachedCollectionMetadata?.name ?? '',
                             // image: collection?.cachedCollectionMetadata?.image ?? '',
-                            description: 'To be granted access, you must satisfy the ownership requirements.',
+                            description: 'To protect against known scammers, we do not allow access to this site if you have the scammer badge.',
                             defaultSelected: true,
                             frozen: true,
                             additionalDisplay: x.chain === 'BitBadges' ? <div>

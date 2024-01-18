@@ -44,7 +44,7 @@ export function CollectionHeader({ codeDisplay, listId, collectionId, hideCollec
   const CollectionLink = <>
     <div className='flex-center-if-mobile'>
       <Text strong className='primary-text' style={{ fontSize: 20 }}>
-        {codeDisplay && collectionMetadata?.name + ' '}
+        {codeDisplay && metadata?.name + ' '}
         {!codeDisplay && <a onClick={() => {
           if (collectionId == NEW_COLLECTION_ID) {
             notification.info({
@@ -68,7 +68,6 @@ export function CollectionHeader({ codeDisplay, listId, collectionId, hideCollec
       {!showViewLink &&
         <Text strong className='primary-text' style={{ fontSize: 30 }}>
           {metadata?.name}
-          {/* {"kljdgfsjhdsjhfhj jdfshg fgjhklsdgjh dfsjhlkgfgjk ds jghdfskdgfjh gfdjkh fdsjhkldfsgkhgk hsfdg df hg"} */}
         </Text>}
       {(!hideCollectionLink || showViewLink) && <>
         {CollectionLink}

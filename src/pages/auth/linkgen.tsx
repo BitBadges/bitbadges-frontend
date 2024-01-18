@@ -30,7 +30,6 @@ function BlockinCodesScreen() {
     image: "ipfs://QmbG3PyyQyZTzdTBANxb3sA8zC37VgXndJhndXSBf7Sr4o",
 
     callbackRequired: false,
-    generateNonce: false,
     storeInAccount: true,
     allowAddressSelect: true,
     challengeParams: {
@@ -695,7 +694,6 @@ function BlockinCodesScreen() {
                       params: {
                         ...codeGenParams.challengeParams,
                         address: chain.address,
-                        nonce: codeGenParams.generateNonce ? 'Random numbers and letters' : codeGenParams.challengeParams.nonce,
                         // chain: chain.chain,
                       },
                       name: codeGenParams.name,

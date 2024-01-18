@@ -23,7 +23,7 @@ import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 
 const { Content } = Layout;
 
-export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAuthCodes, onlyShowCode, isPreview, notStoredInAccount, isExpected }: {
+export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAuthCodes, onlyShowCode, isPreview, notStoredInAccount, isExpected, onlyShowMetadata }: {
   savedAuthCodes?: BlockinAuthSignatureDoc<bigint>[],
 
   authCode: BlockinAuthSignatureDoc<bigint>, setSavedAuthCodes?:
@@ -31,7 +31,8 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
   onlyShowCode?: boolean
   isPreview?: boolean,
   isExpected?: boolean,
-  notStoredInAccount?: boolean
+  notStoredInAccount?: boolean,
+  onlyShowMetadata?: boolean
 }) => {
   const [currStatus, setCurrStatus] = useState({ success: false, verificationMessage: 'Loading...' });
   const [loaded, setLoaded] = useState(false);
@@ -169,7 +170,7 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
           </Typography.Text>
         </div>
       </InformationDisplayCard>}
-    {(!authCode.signature || tab === 'details') &&
+    {(!authCode.signature || tab === 'details') && !onlyShowMetadata &&
       <div className='full-width'>
 
         <InformationDisplayCard span={24} title={isExpected ? 'Expected Details' : "Details"} inheritBg noBorder>
@@ -353,12 +354,13 @@ export function AuthCodes() {
                 items={items}
                 numPerPage={1}
               />
+              {authCodes.length === 0 && <div className='flex-center flex-column'>
+                <EmptyIcon description='No codes found. Providers will give you instructions on how to create one.' />
+              </div>}
             </InformationDisplayCard>}
           </div>
 
-          {authCodes.length === 0 && <div className='flex-center flex-column'>
-            <EmptyIcon description='No codes found. Providers will give you instructions on how to create one.' />
-          </div>}
+
         </>}
       </>}
 

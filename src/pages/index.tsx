@@ -1,6 +1,7 @@
 import { ClusterOutlined, ControlOutlined, DatabaseOutlined, DeploymentUnitOutlined, FieldTimeOutlined, FileProtectOutlined, QrcodeOutlined } from '@ant-design/icons';
-import { Avatar, Button, Card, Col, Divider, Row, Typography } from 'antd';
+import { Avatar, Button, Card, Col, Divider, Row, Typography, notification } from 'antd';
 import { useRouter } from 'next/router';
+import { SignInWithBitBadges as SignInWithBitBadgesButton } from 'blockin/dist/ui';
 import { NextPage } from 'next/types';
 import { useEffect } from 'react';
 import { batchFetchAndUpdateMetadata } from '../bitbadges-api/contexts/collections/CollectionsContext';
@@ -442,8 +443,51 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Verify badge ownership at in-person events through QR codes, or verify badge ownership digitally through <a href="https://blockin.gitbook.io/blockin/" target='_blank'>Blockin</a> and our suite of
-                      authentication tools.
+                      Authenticate users with badge ownership in a seamless way in-person or digitally using our suite of authentication tools.
+                      <br />
+                      <br />
+                      <SignInWithBitBadgesButton
+                        onSignAndBlockinVerify={async () => {
+                          notification.success({
+                            message: 'Success',
+                            description: `On a site that uses Sign In with BitBadges, you would now be signed in to the website with your selected address if you met the authentication and badge ownership requirements.`
+                          });
+                        }}
+                        props={{
+                          className: 'blockin-button',
+                          style: {
+                            width: '100%',
+                            backgroundColor: '#131233',
+                            fontSize: 14, fontWeight: 600, color: 'white',
+                          }
+                        }}
+
+                        popupParams={{
+                          name: 'BitBadges Sign In Example',
+                          description: 'This is just an example for signing in with BitBadges. Websites can use this to authenticate users by outsourcing all authentication logic to a Sign In with BitBadges popup.',
+                          image: 'https://bitbadges.io/images/bitbadgeslogo.png',
+                          allowAddressSelect: true,
+                          skipVerify: true,
+                          challengeParams: {
+                            domain: 'https://xyz.com',
+                            statement: 'This is just an example of Sign In with BitBadges. Nothing is done with this sign in attempt.',
+                            address: '', //overriden by allowAddressSelect
+                            uri: 'https://xyz.com',
+                            nonce: 'abc123',
+                            notBefore: undefined,
+                            issuedAt: new Date(Date.now()).toISOString(),
+                            expirationDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+                            resources: [],
+                            assets: [{
+                              chain: 'BitBadges',
+                              collectionId: 1,
+                              assetIds: [{ start: 1, end: 1 }],
+                              mustSatisfyForAllAssets: true,
+                              mustOwnAmounts: { start: 1, end: 1 },
+                            }],
+                          }
+                        }} />
+
 
                     </Typography.Text>
                   </>
