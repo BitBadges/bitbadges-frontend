@@ -1,5 +1,5 @@
 import { Tooltip, Checkbox, Radio } from "antd";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 export const RadioGroup = ({
   label,
@@ -61,11 +61,28 @@ export const SelectWithOptions = ({
 }) => {
   const [open, setOpen] = useState(false);
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+
+
   return (
     <div className="primary-text flex-bet" style={{ margin: 4, }}>
       <div>
         <b className="text-md">{title}</b>
-        <div className="mt-2 relative">
+        <div className="mt-2 relative" ref={dropdownRef}>
           <div className="relative inline-block w-full">
             <div className="relative z-10">
               <button
