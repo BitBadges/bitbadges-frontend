@@ -61,6 +61,31 @@ function BlockinCodesScreen() {
     return JSON.parse(challengeParams as string) as ChallengeParams<NumberType>;
   }, [challengeParams]);
 
+  const displayedAssets = useMemo(() => {
+    return blockinParams?.assets?.map(x => {
+      const collection = x.chain === 'BitBadges' ? getCollection(BigInt(x.collectionId)) : undefined;
+
+      return {
+        ...x,
+        name: collection?.cachedCollectionMetadata?.name ?? '',
+        // image: collection?.cachedCollectionMetadata?.image ?? '',
+        description: 'To protect against known scammers, we do not allow access to this site if you have the scammer badge.',
+        defaultSelected: true,
+        frozen: true,
+        additionalDisplay: x.chain === 'BitBadges' ? <div>
+          <BadgeAvatarDisplay
+            collectionId={BigInt(x.collectionId)}
+            badgeIds={(x.assetIds).map(x => {
+              if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
+              return { start: BigInt(x.start), end: BigInt(x.end) };
+            })}
+            size={75}
+          />
+        </div> : undefined
+      }
+    }) ?? []
+  }, [blockinParams?.assets]);
+
   useEffect(() => {
     const collectionsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId) ?? [];
     const collectionIds = collectionsToFetch.map(x => BigInt(x.collectionId));
@@ -172,6 +197,8 @@ function BlockinCodesScreen() {
     return { ...verificationResponse, message: verificationResponse.errorMessage ?? '' };
   }
 
+
+
   const flaggedWebsites = ['https://bitbadges.io', 'https://bitbadges.io/'];
 
   return (
@@ -247,7 +274,7 @@ function BlockinCodesScreen() {
                           <WarningOutlined style={{ color: 'orange' }} /> This sign in request is for <a href={blockinParams.domain} target='_blank' rel='noreferrer'>{blockinParams.domain}</a>.
                           {window.opener && callbackRequired && <>
                             {' '}If you did not navigate to this site from <a href={blockinParams.domain} target='_blank' rel='noreferrer'>{blockinParams.domain}</a>
-                            or a trusted source, do not proceed.
+                            {' '}or a trusted source, do not proceed.
                             Your secret sign-in code will be sent back to the provider that directed you here.
                           </>}
 
@@ -311,29 +338,7 @@ function BlockinCodesScreen() {
                         selectedChainName={chain.chain}
                         signAndVerifyChallenge={signAndVerifyChallenge}
                         displayNotConnnectedWarning={false}
-                        displayedAssets={blockinParams.assets?.map(x => {
-                          console.log(x);
-                          const collection = x.chain === 'BitBadges' ? getCollection(BigInt(x.collectionId)) : undefined;
-
-                          return {
-                            ...x,
-                            name: collection?.cachedCollectionMetadata?.name ?? '',
-                            // image: collection?.cachedCollectionMetadata?.image ?? '',
-                            description: 'To protect against known scammers, we do not allow access to this site if you have the scammer badge.',
-                            defaultSelected: true,
-                            frozen: true,
-                            additionalDisplay: x.chain === 'BitBadges' ? <div>
-                              <BadgeAvatarDisplay
-                                collectionId={BigInt(x.collectionId)}
-                                badgeIds={(x.assetIds).map(x => {
-                                  if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
-                                  return { start: BigInt(x.start), end: BigInt(x.end) };
-                                })}
-                                size={75}
-                              />
-                            </div> : undefined
-                          }
-                        }) ?? []}
+                        displayedAssets={displayedAssets}
                       />
                     }
                   </div>
