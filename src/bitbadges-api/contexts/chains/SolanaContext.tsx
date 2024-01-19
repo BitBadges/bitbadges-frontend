@@ -1,6 +1,6 @@
 
 import { notification } from 'antd';
-import { SupportedChain, createTxRawEIP712, signatureToWeb3ExtensionSolana } from 'bitbadgesjs-proto';
+import { BigIntify, SupportedChain, createTxRawEIP712, signatureToWeb3ExtensionSolana } from 'bitbadgesjs-proto';
 import { Numberify, convertToCosmosAddress, solanaToCosmos } from 'bitbadgesjs-utils';
 import { Dispatch, SetStateAction, createContext, useCallback, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
@@ -9,6 +9,7 @@ import { checkIfSignedIn } from '../../api';
 import { ChainSpecificContextType } from '../ChainContext';
 import { useAccount } from '../accounts/AccountsContext';
 import { fetchDefaultViews } from './helpers';
+import { constructChallengeObjectFromString } from 'blockin';
 
 const bs58 = require('bs58');
 
@@ -27,6 +28,7 @@ export const SolanaContext = createContext<SolanaContextType>({
   signTxn: async () => { },
   selectedChainInfo: {},
   connected: false,
+  loggedInExpiration: 0,
   setConnected: () => { },
   solanaProvider: undefined,
   setSolanaProvider: () => { },
@@ -47,7 +49,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
   const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
   const [solanaProvider, setSolanaProvider] = useState<any>();
   const [pubKey, setPubKey] = useState<string>('');
-
+  const [loggedInExpiration, setLoggedInExpiration] = useState<number>(0);
   const [address, setAddress] = useState<string>('');
   const cosmosAddress = convertToCosmosAddress(address);
   const connected = address ? true : false;
@@ -73,7 +75,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
     abbreviation: 'SOL',
     getAddressExplorerUrl: (address: string) => `https://explorer.solana.com/address/${address}`,
   }
-  
+
   const connect = async () => {
     await connectAndPopulate(address ?? '', cookies.blockincookie);
   }
@@ -102,6 +104,10 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
           const signedInRes = await checkIfSignedIn({});
           setLoggedIn(signedInRes.signedIn);
           loggedIn = signedInRes.signedIn;
+          if (signedInRes.message) {
+            const params = constructChallengeObjectFromString(signedInRes.message, BigIntify)
+            setLoggedInExpiration(params.expirationDate ? new Date(params.expirationDate).getTime() : 0);
+          }
         } else {
           setLoggedIn(false);
         }
@@ -138,7 +144,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
         display: "utf8",
       },
     });
-    
+
     return { message: message, signature: signedMessage.signature };
   }
 
@@ -188,6 +194,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
     connected,
     setConnected,
     connect,
+    loggedInExpiration,
     disconnect,
     selectedChainInfo,
     signChallenge,

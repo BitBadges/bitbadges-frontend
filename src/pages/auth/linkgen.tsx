@@ -48,6 +48,7 @@ function BlockinCodesScreen() {
     },
     skipVerify: false,
     verifyOptions: {},
+    expectVerifySuccess: false,
   });
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -613,7 +614,36 @@ function BlockinCodesScreen() {
                         Requires you to have technical knowledge and have a frontend site to handle the callback (see <a href="https://docs.bitbadges.io/for-developers/badge-verification/generating-auth-qr-codes" target="_blank" rel="noopener noreferrer">here</a>).
                         If enabled, we will not store the code in their account.
                       </div>
+                      <br />
+                      <div className='flex'>
+                        <CheckboxSelect
+                          title='Expect success at sign time?'
+                          value={codeGenParams.expectVerifySuccess}
+                          setValue={(checked) => {
+                            setCodeGenParams({
+                              ...codeGenParams,
+                              expectVerifySuccess: checked === true
+                            });
+                          }}
+                          options={[
+                            {
+                              label: 'Yes',
+                              value: true,
+                            },
+                            {
+                              label: 'No',
+                              value: false,
+                            },
+                          ]}
+                        />
+                      </div>
+                      <div className='secondary-text' style={{ textAlign: 'start' }}>
+                        <InfoCircleOutlined /> When users navigate to the URL and sign, is verification expected to pass instantly?
+                        If so, we can optimize the expeirence by catching errors earlier (before they sign) and warn
+                        to enhance their experience.
+                      </div>
                     </div>
+
                   </Form.Item>
                 </>}
 

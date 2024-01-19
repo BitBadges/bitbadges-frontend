@@ -42,7 +42,7 @@ async function handleApiError(error: any): Promise<void> {
   } else {
     notification.error({
       message: "Oops! We ran into an error!",
-      description: error.message ? error.message : "Unknown error: " + error,
+      description: error.errorMessage ? error.errorMessage : error.message ? error.message : "Unknown error: " + error,
     });
   }
 

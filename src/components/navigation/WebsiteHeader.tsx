@@ -122,6 +122,7 @@ export function WalletHeader() {
           {account.balance?.amount.toString()} $BADGE
         </> : ''}
 
+
         <br />
         <div className='flex-center full-width' style={{ padding: '10', marginTop: 8 }}>
           <Tooltip
@@ -163,6 +164,7 @@ export function WalletHeader() {
     <div className='dark'>
       <div className='flex-center full-width primary-text my-3' style={{ padding: '10' }}>
         <BlockOutlined style={{ marginRight: 4 }} /> Block #{status.status.block.height.toString()} ({new Date(Number(status.status.block.timestamp)).toLocaleString()})
+
       </div>
     </div>
 
@@ -207,7 +209,13 @@ export function WalletHeader() {
         signOut();
         _setCookie('blockincookie', '', { path: '/' });
         chain.disconnect();
-      }}>Disconnect and Sign Out</Menu.Item>
+      }}>Disconnect and Sign Out
+
+        {chain.loggedInExpiration > 0 ? <div className='secondary-text text-xs my-1'>
+
+          Logged in until {new Date(chain.loggedInExpiration).toLocaleString()}
+        </div> : ''}
+      </Menu.Item>
     </>}
   </Menu>
 

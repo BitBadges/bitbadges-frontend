@@ -8,6 +8,7 @@ import { useWeb3Modal } from "@web3modal/wagmi/react"
 
 import { notification } from "antd"
 import {
+  BigIntify,
   SupportedChain,
   createTxRawEIP712,
   signatureToWeb3Extension,
@@ -31,6 +32,7 @@ import { checkIfSignedIn } from "../../api"
 import { ChainSpecificContextType } from "../ChainContext"
 import { setPublicKey, useAccount } from "../accounts/AccountsContext"
 import { fetchDefaultViews } from "./helpers"
+import { constructChallengeObjectFromString } from "blockin"
 
 export type EthereumContextType = ChainSpecificContextType & {
   signer?: ethers.providers.JsonRpcSigner
@@ -41,24 +43,25 @@ export type EthereumContextType = ChainSpecificContextType & {
 
 export const EthereumContext = createContext<EthereumContextType>({
   address: "",
-  connect: async () => {},
-  disconnect: async () => {},
+  connect: async () => { },
+  disconnect: async () => { },
   signChallenge: async () => {
     return { message: "", signature: "" }
   },
+  loggedInExpiration: 0,
   getPublicKey: async () => {
     return ""
   },
-  signTxn: async () => {},
+  signTxn: async () => { },
   selectedChainInfo: {},
   connected: false,
-  setConnected: () => {},
+  setConnected: () => { },
   signer: undefined,
-  setSigner: () => {},
+  setSigner: () => { },
   loggedIn: false,
-  setLoggedIn: () => {},
+  setLoggedIn: () => { },
   lastSeenActivity: 0,
-  setLastSeenActivity: () => {},
+  setLastSeenActivity: () => { },
 })
 
 type Props = {
@@ -75,7 +78,8 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
   const address = web3AccountContext.address || ""
   const cosmosAddress = convertToCosmosAddress(address)
   const connected = web3AccountContext.address ? true : false
-  const setConnected = () => {}
+  const [loggedInExpiration, setLoggedInExpiration] = useState<number>(0)
+  const setConnected = () => { }
   const account = useAccount(cosmosAddress)
 
   const selectedChainInfo = {}
@@ -105,6 +109,10 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
           const signedInRes = await checkIfSignedIn({})
           setLoggedIn(signedInRes.signedIn)
           loggedIn = signedInRes.signedIn
+          if (signedInRes.message) {
+            const params = constructChallengeObjectFromString(signedInRes.message, BigIntify)
+            setLoggedInExpiration(params.expirationDate ? new Date(params.expirationDate).getTime() : 0);
+          }
         } else {
           setLoggedIn(false)
         }
@@ -246,6 +254,7 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     setLoggedIn,
     lastSeenActivity,
     setLastSeenActivity,
+    loggedInExpiration,
   }
 
   return (

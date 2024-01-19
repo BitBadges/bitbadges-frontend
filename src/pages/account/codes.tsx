@@ -3,7 +3,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, WarningOutlined } from '@ant-design/icons';
 import { BigIntify, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
-import { constructChallengeStringFromChallengeObject } from 'blockin';
+import { createChallenge } from 'blockin';
 import { useEffect, useState } from 'react';
 import { deleteAuthCode, getAuthCode } from '../../bitbadges-api/api';
 import { getAuthCodesView, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -165,7 +165,7 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
     {authCode.signature && tab === 'details' &&
       <InformationDisplayCard span={24} title='Message' inheritBg noBorder>
         <div className='secondary-text' style={{ fontSize: 16, textAlign: 'center', alignItems: 'center' }}>
-          <Typography.Text className='secondary-text' copyable={{ text: constructChallengeStringFromChallengeObject(authCode.params) }}>
+          <Typography.Text className='secondary-text' copyable={{ text: createChallenge(authCode.params) }}>
             Copy Original Message
           </Typography.Text>
         </div>

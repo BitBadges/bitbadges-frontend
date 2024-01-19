@@ -1,10 +1,12 @@
 import { notification } from 'antd';
 import {
+  BigIntify,
   SupportedChain,
   createTxRawEIP712,
   signatureToWeb3ExtensionBitcoin,
 } from 'bitbadgesjs-proto';
 import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { constructChallengeObjectFromString } from 'blockin';
 import {
   Dispatch,
   SetStateAction,
@@ -35,6 +37,7 @@ export const BitcoinContext = createContext<BitcoinContextType>({
   getPublicKey: async () => {
     return '';
   },
+  loggedInExpiration: 0,
   signTxn: async () => { },
   selectedChainInfo: {},
   connected: false,
@@ -55,6 +58,7 @@ export const BitcoinContextProvider: React.FC<Props> = ({ children }) => {
   const [cookies, setCookies] = useCookies(['blockincookie', 'pub_key']);
 
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [loggedInExpiration, setLoggedInExpiration] = useState<number>(0);
   const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
   const [bitcoinProvider, setBitcoinProvider] = useState<any>();
   const [pubKey, setPubKey] = useState<string>('');
@@ -127,6 +131,10 @@ export const BitcoinContextProvider: React.FC<Props> = ({ children }) => {
             const signedInRes = await checkIfSignedIn({});
             setLoggedIn(signedInRes.signedIn);
             loggedIn = signedInRes.signedIn;
+            if (signedInRes.message) {
+              const params = constructChallengeObjectFromString(signedInRes.message, BigIntify)
+              setLoggedInExpiration(params.expirationDate ? new Date(params.expirationDate).getTime() : 0);
+            }
           } else {
             setLoggedIn(false);
           }
@@ -211,6 +219,7 @@ export const BitcoinContextProvider: React.FC<Props> = ({ children }) => {
     setConnected,
     connect,
     disconnect,
+    loggedInExpiration,
     selectedChainInfo,
     signChallenge,
     signTxn,

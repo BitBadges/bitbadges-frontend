@@ -27,6 +27,8 @@ export type ChainSpecificContextType = {
   loggedIn: boolean,
   setLoggedIn: Dispatch<SetStateAction<boolean>>,
 
+  loggedInExpiration: number,
+
   //Chain Specific
   connected: boolean,
   setConnected: Dispatch<SetStateAction<boolean>>,
@@ -48,6 +50,7 @@ const ChainContext = createContext<ChainContextType>({
   connected: false,
   setConnected: () => { },
   loggedIn: false,
+  loggedInExpiration: 0,
   cosmosAddress: '',
   setLoggedIn: () => { },
   connect: async () => { },

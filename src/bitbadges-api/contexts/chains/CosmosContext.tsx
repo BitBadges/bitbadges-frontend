@@ -4,8 +4,8 @@ import {
 import { verifyADR36Amino } from '@keplr-wallet/cosmos';
 import { AccountData, Window as KeplrWindow } from "@keplr-wallet/types";
 import { createTxRaw } from 'bitbadgesjs-proto';
-import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
-import { SupportedChainMetadata } from 'blockin';
+import { BigIntify, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
@@ -87,6 +87,7 @@ export const CosmosContext = createContext<CosmosContextType>({
   setLoggedIn: () => { },
   lastSeenActivity: 0,
   setLastSeenActivity: () => { },
+  loggedInExpiration: 0,
 })
 
 
@@ -104,6 +105,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
+  const [loggedInExpiration, setLoggedInExpiration] = useState<number>(0);
   const account = useAccount(address)
 
   const selectedChainInfo: SupportedChainMetadata = {
@@ -124,6 +126,10 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
           const signedInRes = await checkIfSignedIn({});
           setLoggedIn(signedInRes.signedIn);
           loggedIn = signedInRes.signedIn;
+          if (signedInRes.message) {
+            const params = constructChallengeObjectFromString(signedInRes.message, BigIntify)
+            setLoggedInExpiration(params.expirationDate ? new Date(params.expirationDate).getTime() : 0);
+          }
         }
 
 
@@ -147,7 +153,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
       alert("Please install Keplr to continue with Cosmos")
       return
     }
-    
+
     await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
     const offlineSigner = window.getOfflineSigner(chainId);
     const signingClient = await SigningStargateClient.connectWithSigner(
@@ -268,6 +274,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     setLoggedIn,
     lastSeenActivity,
     setLastSeenActivity,
+    loggedInExpiration,
   };
 
 

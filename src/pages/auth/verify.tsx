@@ -2,7 +2,7 @@ import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleOutline
 import { Input, InputNumber, Spin, Switch } from 'antd';
 import { AddressList, convertUintRange } from 'bitbadgesjs-proto';
 import { BigIntify, BlockinAuthSignatureDoc, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, getReservedAddressList, isInAddressList } from 'bitbadgesjs-utils';
-import { ChallengeParams, constructChallengeObjectFromString, constructChallengeStringFromChallengeObject, convertChallengeParams } from 'blockin';
+import { ChallengeParams, constructChallengeObjectFromString, createChallenge, convertChallengeParams } from 'blockin';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { getAuthCode, verifySignInGeneric } from '../../bitbadges-api/api';
@@ -182,7 +182,7 @@ function BlockinCodesScreen() {
       if (!storeInAccount) {
         params = constructChallengeObjectFromString(message, BigIntify);
 
-        const newMessage = constructChallengeStringFromChallengeObject(params)
+        const newMessage = createChallenge(params)
 
         const res = await verifySignInGeneric({
           message: newMessage,
@@ -205,8 +205,6 @@ function BlockinCodesScreen() {
         if (!res.verificationResponse.success) {
           throw new Error(res.verificationResponse.errorMessage);
         }
-        console.log("RES", res);
-
         params = constructChallengeObjectFromString(res.message, BigIntify);
       }
 

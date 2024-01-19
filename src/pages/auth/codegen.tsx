@@ -1,9 +1,9 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Spin, Tooltip } from 'antd';
 import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress, getMetadataForBadgeId, getTotalNumberOfBadgeIds } from 'bitbadgesjs-utils';
-import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString, constructChallengeStringFromChallengeObject } from 'blockin';
+import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString, createChallenge, convertChallengeParams } from 'blockin';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createAuthCode, verifySignInGeneric } from '../../bitbadges-api/api';
 import { SignChallengeResponse, useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchAccounts, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -28,6 +28,8 @@ export interface CodeGenQueryParams {
 
   skipVerify?: boolean;
   verifyOptions?: VerifyChallengeOptions;
+
+  expectVerifySuccess?: boolean;
 }
 
 function BlockinCodesScreen() {
@@ -43,6 +45,7 @@ function BlockinCodesScreen() {
     storeInAccount,
     skipVerify,
     verifyOptions,
+    expectVerifySuccess,
   } = router.query;
 
 
@@ -54,12 +57,13 @@ function BlockinCodesScreen() {
   const [qrCode, setQrCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [simulationMessage, setSimulationMessage] = useState('');
 
   const currAccount = useAccount(address);
 
   const blockinParams = useMemo(() => {
     if (!challengeParams) return undefined;
-    return JSON.parse(challengeParams as string) as ChallengeParams<NumberType>;
+    return convertChallengeParams(JSON.parse(challengeParams as string) as ChallengeParams<NumberType>, BigIntify);
   }, [challengeParams]);
 
   useEffect(() => {
@@ -72,6 +76,40 @@ function BlockinCodesScreen() {
     if (!blockinParams?.address) return;
     fetchAccounts([blockinParams.address]);
   }, [blockinParams?.address]);
+
+  const simulateVerification = useCallback(async (challenge: string) => {
+    try {
+      setSimulationMessage('');
+      const blockinParams = constructChallengeObjectFromString(challenge, BigIntify)
+      const chain = getChainForAddress(constructChallengeObjectFromString(challenge, BigIntify).address);
+      const parsedVerifyOptions = verifyOptions ? JSON.parse(verifyOptions as string) : undefined;
+
+      const verifyChallengeOptions: VerifyChallengeOptions = {
+        expectedChallengeParams: {
+          ...parsedVerifyOptions?.expectedChallengeParams,
+          nonce: parsedVerifyOptions?.expectedChallengeParams.nonce,
+          address: allowAddressSelect ? blockinParams.address : parsedVerifyOptions?.expectedChallengeParams.address,
+        },
+        // beforeVerification: parsedVerifyOptions?.beforeVerification, Don't allow this to be set
+        balancesSnapshot: parsedVerifyOptions?.balancesSnapshot,
+        skipTimestampVerification: parsedVerifyOptions?.skipTimestampVerification,
+        skipAssetVerification: parsedVerifyOptions?.skipAssetVerification,
+
+        skipSignatureVerification: true
+      }
+
+      await verifySignInGeneric({ message: challenge, chain: chain, signature: '', options: verifyChallengeOptions });
+    } catch (e: any) {
+      setSimulationMessage(`We ran into an error simulating this sign-in attempt: ${e.errorMessage ?? e.message}`);
+      console.log(e);
+    }
+  }, [allowAddressSelect, verifyOptions]);
+
+  useEffect(() => {
+    if (expectVerifySuccess && blockinParams) {
+      simulateVerification(createChallenge(blockinParams));
+    }
+  }, [blockinParams, expectVerifySuccess, simulateVerification]);
 
 
   if (!challengeParams || !blockinParams) {
@@ -386,10 +424,13 @@ function BlockinCodesScreen() {
                             disabled={loading}
                             onClick={async () => {
                               setLoading(true)
+                              setErrorMessage('');
                               try {
-                                await signAndVerifyChallenge(constructChallengeStringFromChallengeObject(blockinParams));
+                                console.log(blockinParams);
+                                await signAndVerifyChallenge(createChallenge(blockinParams));
                                 setLoading(false)
                               } catch (e: any) {
+                                console.log(e);
                                 setLoading(false)
                                 setErrorMessage(e.errorMessage ?? e.message);
                               }
@@ -399,6 +440,7 @@ function BlockinCodesScreen() {
 
                         </div>
                         <br />
+                        {simulationMessage && <ErrDisplay err={simulationMessage} warning />}
                         {errorMessage && <ErrDisplay err={errorMessage} />}
                       </InformationDisplayCard>
                     }
