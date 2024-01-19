@@ -34,6 +34,7 @@ import { WalletHeader } from '../components/navigation/WebsiteHeader';
 // 2. Create wagmiConfig
 const metadata = {
   name: 'BitBadges',
+  description: 'BitBadges Web App',
   url: 'https://bitbadges.io',
   icons: ['https://avatars.githubusercontent.com/u/86890740']
 }
@@ -248,6 +249,7 @@ const App = ({ Component, pageProps }: AppProps) => {
                           <link rel="apple-touch-icon" href="/logo192.png" />
                           <link rel="manifest" href="/manifest.json" />
                           <title>BitBadges</title>
+
                         </Head>
 
                         <div className="">
