@@ -118,7 +118,7 @@ export const CookiePopup = ({ visible, onClose, placement }: {
           flexWrap: 'wrap'
         }}>
           This website uses cookies to ensure you get the best experience.
-          By continuing to use this website, you agree to our 
+          By continuing to use this website, you agree to our
           <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Cookies%20Policy')}><a className='text-vivid-blue'>cookie policy</a></p>,
           <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Privacy%20Policy.pdf')}><a className='text-vivid-blue'>privacy policy</a></p>, and
           <p style={{ marginLeft: 3 }} onClick={() => router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Terms%20of%20Service.pdf')}><a className='text-vivid-blue'>terms of service</a></p>.
@@ -226,30 +226,34 @@ const App = ({ Component, pageProps }: AppProps) => {
     <WagmiConfig config={wagmiConfig}>
       <Provider store={store}>
         <BitcoinContextProvider>
-        <CosmosContextProvider>
-          <EthereumContextProvider>
-            <SolanaContextProvider>
-              <ChainContextProvider>
-                <BrowseContextProvider>
-                  <StatusContextProvider>
-                    <TxTimelineContextProvider>
-                      <Head>
+          <CosmosContextProvider>
+            <EthereumContextProvider>
+              <SolanaContextProvider>
+                <ChainContextProvider>
+                  <BrowseContextProvider>
+                    <StatusContextProvider>
+                      <TxTimelineContextProvider>
+                        <Head>
 
-                        <meta property="og:title" content="BitBadges" />
-                        <meta property="og:image" content="/logo192.png" />
-                        <meta
-                          name="description"
-                          content="BitBadges is the all-in-one platform for creating, maintaining, displaying ,and verifying digital blockchain badges."
-                        />
-                        <link rel="apple-touch-icon" href="/logo192.png" />
-                        <link rel="manifest" href="/manifest.json" />
-                        <title>BitBadges</title>
-                      </Head>
+                          <meta property="og:title" content="BitBadges" />
+                          <meta property="og:image" content="/logo192.png" />
+                          <meta property="og:description" content="BitBadges is the all-in-one platform for creating, maintaining, displaying, and verifying digital blockchain badges." />
 
-                      <div className="">
-                        <div className="layout gradient-bg">
-                          <WalletHeader />
-                          {/* {topPopupIsVisible &&
+                          <meta name='title' content='BitBadges' />
+                          <meta
+                            name="description"
+                            content="BitBadges is the all-in-one platform for creating, maintaining, displaying, and verifying digital blockchain badges."
+                          />
+                          <meta name="keywords" content="BitBadges, badges, blockchain, NFT, non-fungible token, digital badges, digital credentials, digital certificates, digital certificates, digital certificates, digital certificates" />
+                          <link rel="apple-touch-icon" href="/logo192.png" />
+                          <link rel="manifest" href="/manifest.json" />
+                          <title>BitBadges</title>
+                        </Head>
+
+                        <div className="">
+                          <div className="layout gradient-bg">
+                            <WalletHeader />
+                            {/* {topPopupIsVisible &&
                           <PopupContent>
                             <div style={{ textAlign: 'center' }}>Important announcement</div>
                            
@@ -257,18 +261,18 @@ const App = ({ Component, pageProps }: AppProps) => {
                               Close
                             </Button>
                           </PopupContent>} */}
-                          <Component {...pageProps} />
-                          <CookiePopup visible={myCookieValue !== 'accepted'} onClose={() => handleCookieResponse(true)} placement='bottom' />
-                          <WalletFooter />
+                            <Component {...pageProps} />
+                            <CookiePopup visible={myCookieValue !== 'accepted'} onClose={() => handleCookieResponse(true)} placement='bottom' />
+                            <WalletFooter />
+                          </div>
                         </div>
-                      </div>
-                    </TxTimelineContextProvider>
-                  </StatusContextProvider>
-                </BrowseContextProvider>
-              </ChainContextProvider>
-            </SolanaContextProvider>
-          </EthereumContextProvider>
-        </CosmosContextProvider>
+                      </TxTimelineContextProvider>
+                    </StatusContextProvider>
+                  </BrowseContextProvider>
+                </ChainContextProvider>
+              </SolanaContextProvider>
+            </EthereumContextProvider>
+          </CosmosContextProvider>
         </BitcoinContextProvider>
       </Provider>
     </WagmiConfig >
