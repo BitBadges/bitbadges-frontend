@@ -69,7 +69,7 @@ export function ClaimAlertDisplay({
   return (
     <div className='primary-text full-width'>
       <Row style={{ width: '100%', display: 'flex', alignItems: ' center' }}>
-        <Col md={12} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
+        <Col md={24} sm={24} xs={24} className='primary-text' style={{ alignItems: 'center', flexDirection: 'column', textAlign: 'left' }}>
           {collectionToDisplay &&
             <div className='flex-center' style={{ alignItems: 'center', justifyContent: 'start' }} >
               <BadgeAvatar
@@ -89,46 +89,46 @@ export function ClaimAlertDisplay({
                 </div>
               </Tooltip>
             </div>}
-          {showToAddress && <AddressDisplayList users={claimAlert.cosmosAddresses} />}
+          {showToAddress && <AddressDisplayList center={false} users={claimAlert.cosmosAddresses} />}
 
 
-          <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
+          <Typography.Text strong className='primary-text' style={{ fontSize: 18, textAlign: 'left', margin: 4 }}>
             {new Date(Number(claimAlert.timestamp)).toLocaleDateString() + ' '}
             {new Date(Number(claimAlert.timestamp)).toLocaleTimeString()}
           </Typography.Text>
 
+
+          <div className='flex-between full-width primary-text'>
+
+            <div className='flex-between full-width primary-text'>
+              <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', margin: 4 }}>
+                {/* replace all links with <a> */}
+                {claimAlert.message?.split(' ').map((word, index) => {
+                  const isUri = word.includes('://');
+                  let abbreviatedUri = word.slice(0, 50);
+                  if (abbreviatedUri.length < word.length) abbreviatedUri += '.....';
+                  //append last 5 chars if there
+                  if (abbreviatedUri.length < word.length) abbreviatedUri += word.slice(word.length - 5, word.length);
+
+                  if (isUri) {
+                    return <Tooltip title={word} placement="bottom" key={index}>
+                      <a
+                        href={word}
+                        target='_blank'
+                        rel="noopener noreferrer"
+                      >
+                        {abbreviatedUri}
+                      </a>
+                    </Tooltip>
+                  } else {
+                    return word + ' ';
+                  }
+                })}
+              </Typography.Text>
+            </div>
+          </div>
         </Col>
       </Row>
-
-      <div className='flex-between full-width primary-text'>
-
-        <div className='flex-between full-width primary-text'>
-          <Typography.Text className='primary-text' style={{ fontSize: 18, textAlign: 'left', marginRight: 8 }}>
-            {/* replace all links with <a> */}
-            {claimAlert.message?.split(' ').map((word, index) => {
-              const isUri = word.includes('://');
-              let abbreviatedUri = word.slice(0, 50);
-              if (abbreviatedUri.length < word.length) abbreviatedUri += '.....';
-              //append last 5 chars if there
-              if (abbreviatedUri.length < word.length) abbreviatedUri += word.slice(word.length - 5, word.length);
-
-              if (isUri) {
-                return <Tooltip title={word} placement="bottom" key={index}>
-                  <a
-                    href={word}
-                    target='_blank'
-                    rel="noopener noreferrer"
-                  >
-                    {abbreviatedUri}
-                  </a>
-                </Tooltip>
-              } else {
-                return word + ' ';
-              }
-            })}
-          </Typography.Text>
-        </div>
-      </div>
       <Divider />
     </div>
   )

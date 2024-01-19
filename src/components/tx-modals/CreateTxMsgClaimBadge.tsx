@@ -1,7 +1,7 @@
 import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
 import { Input, Typography } from 'antd';
 import { MsgTransferBadges } from 'bitbadgesjs-proto';
-import { CollectionApprovalWithDetails, convertToCosmosAddress, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { CollectionApprovalWithDetails, applyIncrementsToBalances, convertToCosmosAddress, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-utils';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import { useRouter } from 'next/router';
@@ -15,11 +15,10 @@ import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { PredeterminedCard } from '../collection-page/transferability/PredeterminedCard';
 import { ErrDisplay } from '../common/ErrDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TxModal } from './TxModal';
-import { applyIncrementsToBalances } from 'bitbadgesjs-utils';
-import { PredeterminedCard } from '../collection-page/transferability/PredeterminedCard';
 
 
 //Claim badge is exclusively used for predetermined balances
@@ -151,6 +150,11 @@ export function CreateTxMsgClaimBadgeModal(
 
   useEffect(() => {
     if (claimItem && approval.details?.hasPassword) {
+      const timeout = setTimeout(() => {
+        fetchCodeForPassword();
+      }, 900);
+
+      return () => clearTimeout(timeout);
 
     } else {
       setPasswordCodeToSubmit(code);
@@ -256,25 +260,34 @@ export function CreateTxMsgClaimBadgeModal(
       description: <div>
 
         <div className='flex flex-wrap'>
-          <InformationDisplayCard md={12} xs={24} sm={24} title='Details' style={{ textAlign: 'center' }} subtitle={'Enter details for this claim, such as the recipient or enter claim codes, if applicable.'}>
-            <br />
+          <InformationDisplayCard md={12} xs={24} sm={24} title='Details' style={{ textAlign: 'center' }} subtitle={''}>
+
+            {errorMessage ? <>
+              <ErrDisplay err={errorMessage} />
+            </> : <>
+              <br />
+
+            </>}
             <div className="flex-center full-width">
               <div style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ alignItems: 'center', justifyContent: 'center' }} >
                   <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
+
                     {notConnected ? <>
 
                       <div>
                         <BlockinDisplay hideLogo hideLogin={!(claim && claim.root && details?.hasPassword)} />
                       </div>
                     </> : <>
+
                       {isMint && claim && claim.root && !claim.useCreatorAddressAsLeaf && setCode ?
-                        <div className='full-width' style={{ alignItems: 'center' }}>
+                        <div className='full-width' style={{ textAlign: 'center' }}>
                           {
                             <>
-                              <Typography.Text strong className='primary-text' style={{ fontSize: 18, marginBottom: 12 }}>
-                                {details?.hasPassword ? 'Password' : 'Code'}</Typography.Text>
-
+                              <div style={{ textAlign: 'start' }}>
+                                <Typography.Text strong className='primary-text' style={{ marginBottom: 12, textAlign: 'start' }}>
+                                  {details?.hasPassword ? 'Password' : 'Code'}</Typography.Text>
+                              </div>
                               <Input
                                 placeholder={`Enter ${details?.hasPassword ? 'Password' : 'Code'}`}
                                 value={code}
@@ -285,7 +298,7 @@ export function CreateTxMsgClaimBadgeModal(
                                   }
                                 }
                                 }
-                                className="primary-text inherit-bg"
+                                className="primary-text inherit-bg full-width"
                                 style={{
                                   textAlign: 'center',
                                   width: '100%',
@@ -293,12 +306,7 @@ export function CreateTxMsgClaimBadgeModal(
                                 }}
                               />
                               {details?.hasPassword && <>
-                                <br />
-                                <br />
-                                {!passwordCodeToSubmit &&
-                                  <div className='flex-center'>
-                                    <button className='landing-button' disabled={!!passwordCodeToSubmit} onClick={fetchCodeForPassword} style={{ width: '100%' }}>Check</button>
-                                  </div>}
+
                                 {!passwordCodeToSubmit && <>
                                   <div className='secondary-text'>
                                     <InfoCircleOutlined /> {`If correct, this will count as a use of the password (1 per address, ${details?.challengeDetails?.leavesDetails?.leaves.length - (leafIndex + 1)} total).`}
@@ -332,12 +340,14 @@ export function CreateTxMsgClaimBadgeModal(
 
                         </div> : <></>}
                     </>}
-
-                    {isMint && hasPredetermined && chain.connected && <InformationDisplayCard md={24} xs={24} sm={24} title='' noBorder inheritBg>
-
-
+                    <br />
+                    {isMint && hasPredetermined && chain.connected && <div className='full-width' style={{ textAlign: 'center' }}>
                       {<>
-                        <Typography.Text strong className='primary-text' style={{ fontSize: 18, marginBottom: 12 }}> Recipient</Typography.Text>
+                        <br />
+                        <div style={{ textAlign: 'start' }}>
+
+                          <Typography.Text strong className='primary-text' style={{ marginBottom: 12 }}> Recipient</Typography.Text>
+                        </div>
 
                         <AddressSelect switchable defaultValue={chain.address} onUserSelect={(val) => {
                           if (setRecipient) setRecipient(val);
@@ -351,24 +361,18 @@ export function CreateTxMsgClaimBadgeModal(
                           This address has been reserved claim #{leafIndex + 1}.
                         </Typography.Text>
                       </> : <></>}
-                    </InformationDisplayCard>}
+                    </div>}
                   </div>
 
 
 
-                  {errorMessage ? <>
-                    <br />
-                    <ErrDisplay err={errorMessage} />
-                  </> : <>
-                    <br />
 
-                  </>}
                 </div>
               </div>
 
             </div >
           </InformationDisplayCard>
-          <InformationDisplayCard md={12} xs={24} sm={24} title='Badges to Receive' style={{ textAlign: 'center' }} subtitle={'Below, you can determine which badges you will receive for this claim.'}>
+          <InformationDisplayCard md={12} xs={24} sm={24} title='Badges to Receive' style={{ textAlign: 'center' }} subtitle={''}>
             <br />
             {reservedCode || reservedAddress ? <>
               <BalanceDisplay
@@ -383,14 +387,14 @@ export function CreateTxMsgClaimBadgeModal(
               />
             </>}
           </InformationDisplayCard>
-        </div>
-        <br />
+        </div >
+        {/* <br />
         <div className='secondary-text' style={{ textAlign: 'center' }}>
           <InfoCircleOutlined /> These are the details for this claim.
           All claims have a parent approval from which they are derived (which is the one you clicked to get here). All criteria in the parent approval must be satisfied in order to claim,
           and once the claim is processed, it will increment the counters in the parent approval.
-        </div>
-        <br />
+        </div> */}
+        < br />
       </div >
     }
   ]

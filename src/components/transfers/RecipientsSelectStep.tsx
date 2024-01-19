@@ -49,19 +49,21 @@ export function RecipientsSelectStep({
 
   return {
     title: `Recipients (${toAddresses.length})`,
-    description: <div className="flex-center"><Col className='' md={12} xs={24} >
-      <BatchAddressSelect
-        users={toAddresses}
-        setUsers={setToAddresses}
-        invalidUsers={forbiddenUsersMap}
-      />
+    description: <> <div className="flex-center full-width">
+      <Col className='' md={12} xs={24} >
+        <BatchAddressSelect
+          users={toAddresses}
+          setUsers={setToAddresses}
+          invalidUsers={forbiddenUsersMap}
+        />
+      </Col>
+    </div>
       {showApprovalsMessage && <>
         <Divider />
-        <Typography.Text className='secondary-text' style={{ fontSize: 16 }}>
+        <Typography.Text className='secondary-text full-width' style={{ fontSize: 16 }}>
           <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, the sender's outgoing approvals, and the recipient's incoming approvals (if applicable)."}
         </Typography.Text></>}
-    </Col>
-    </div>,
+    </>,
     disabled: !canTransfer || toAddresses.length === 0,
   }
 }

@@ -1,4 +1,4 @@
-import { BookOutlined, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined } from '@ant-design/icons';
+import { BookOutlined, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, GiftOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined } from '@ant-design/icons';
 import { Spin, Tag, Typography, notification } from 'antd';
 import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
 import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, getCurrentValueForTimeline, searchUintRangesForId } from 'bitbadgesjs-utils';
@@ -373,9 +373,12 @@ export function TransferabilityDisplay({
                   {!editable && !onDelete && !hideActions && !disapproved &&
                     <IconButton
 
-                      secondary
+                      secondary={!isPasswordClaim && !isCodeClaim}
                       src={
-                        refreshing ? <Spin /> : <SwapOutlined size={40} />}
+                        refreshing ? <Spin /> :
+                          isPasswordClaim || isCodeClaim ? <GiftOutlined /> :
+
+                            <SwapOutlined size={40} />}
                       onClick={async () => {
                         if (!hideActions) await refreshTrackers();
                         setTransferIsVisible(!transferIsVisible)

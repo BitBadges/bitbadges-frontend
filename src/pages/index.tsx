@@ -415,7 +415,8 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      The same badge can be owned by users from different blockchain ecosystems. We currently support Ethereum  <Avatar
+                      One interface for all chains.
+                      The same badge can be owned by Ethereum  <Avatar
                         src={ETH_LOGO}
                         size={25}
                       />, Solana <Avatar
@@ -427,7 +428,9 @@ const Home: NextPage = () => {
                       />, and Cosmos <Avatar
                         src={COSMOS_LOGO}
                         size={25}
-                      /> users, with more to come.
+                      /> users.
+                      {` Prior to BitBadges, building multi-chain applications (espcially if token-gated) was a nightmare
+                      due to needing to support each chain\'s preferred tooling and infrastructure. Now, it is all in one place!`}
 
                     </Typography.Text></>
                 }
@@ -445,10 +448,9 @@ const Home: NextPage = () => {
                     <br />
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
-                      Authenticate users from any supported chain in one place and with the same badge.
-                      Prior to BitBadges, building applications for a user base from multiple chains was a nightmare.
-                      With our suite of authentication tools, multi-chain badge-based authentication is a breeze and can be
-                      done digitally (e.g. gating websites) or in-person (e.g. presenting QR codes at an event).
+                      Using our suite of authentication tools, you can authenticate users
+                      from any supported chain all in one place and with the same badge.
+                      This can be done digitally (e.g. gating websites with the the Sign In with BitBadges button as seen above) or in-person (e.g. presenting QR codes at an event).
                       <br />
                       <br />
 

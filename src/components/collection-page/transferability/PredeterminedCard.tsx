@@ -100,12 +100,9 @@ export const PredeterminedCard = ({ transfer, collectionId, address, setAddress 
                       <>{"Claim number starts at 1 for each unique approver (approved address) and increments by 1 every transfer approver that address."}</>
                       : <>{'Unknown'}</>
             }
-              {!calculationMethod?.usePerInitiatedByAddressNumTransfers && !calculationMethod?.useMerkleChallengeLeafIndex && <>
 
-                <WarningOutlined style={{ color: '#FF5733', margin: 4 }} /> The claim number and badges to be received are calculated at processing time. They are subject to change according to the rules below if other claims are processed before your claim.
-
-              </>}
             </li>
+
             {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0 && (<li>
               Each claim number increments the badge IDs by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy.toString()}
 
@@ -113,6 +110,13 @@ export const PredeterminedCard = ({ transfer, collectionId, address, setAddress 
             {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy > 0 && (<li>
               Each claim number increments the ownership times by {transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy.toString()}
             </li>)}
+            <li>
+              {!calculationMethod?.usePerInitiatedByAddressNumTransfers && !calculationMethod?.useMerkleChallengeLeafIndex && <>
+
+                <WarningOutlined style={{ color: '#FF5733', margin: 4 }} /> Claim number and badges to receive are calculated at processing time.
+
+              </>}
+            </li>
             {calculationMethod?.useMerkleChallengeLeafIndex ? <></> : <div className='flex-center flex-column full-width'><br />
 
 
@@ -136,9 +140,12 @@ export const PredeterminedCard = ({ transfer, collectionId, address, setAddress 
         </ul>
         <div className='flex-center inherit-bg primary-text'>
           <div>
+
+
+
             {hasIncrements ? <>
               <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>
-                Balances for Claim #
+                Claim #
               </Typography.Text>
 
 
@@ -165,23 +172,24 @@ export const PredeterminedCard = ({ transfer, collectionId, address, setAddress 
               </>}
               <br />
             </> : <></>}
-
+            {hasIncrements && <> <Typography.Text className="secondary-text" style={{ fontSize: 14, marginTop: 12 }} strong>
+              {`Current - Claim #${BigInt(numIncrements) + 1n}`}
+            </Typography.Text>
+              <br /><br /></>}
             {!hasIncrements ? <>
+
               {transfer.approvalCriteria && transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
-                {hasIncrements && <> <Typography.Text className="secondary-text" style={{ fontSize: 14 }} strong>
-                  {`Current - Claim #${BigInt(numIncrements) + 1n}`}
-                </Typography.Text>
-                  <br /><br /></>}
+
                 <BalanceDisplay
-                  message={hasIncrements ? `` : 'Balances - All or Nothing'}
-                  hideMessage={hasIncrements}
+                  // message={hasIncrements ? `` : 'Balances - All or Nothing'}
+                  hideMessage={true}
                   balances={hasOverlap ? incrementedBalances : []}
                   collectionId={collectionId}
                 />
                 {!hasIncrements && <>
                   <br />
                   <div className='secondary-text' style={{ fontSize: 14 }}>
-                    <InfoCircleOutlined style={{ marginRight: 4 }} /> All or nothing means that all the specified badges must be transferred to be successful.
+                    <InfoCircleOutlined style={{ marginRight: 4 }} /> This claim is all or nothing, meaning that all the specified badges must be transferred together to be successful.
                   </div>
                 </>}
 
@@ -196,8 +204,8 @@ export const PredeterminedCard = ({ transfer, collectionId, address, setAddress 
             </div> : <>
               {transfer.approvalCriteria && transfer.approvalCriteria?.predeterminedBalances && transfer.approvalCriteria?.predeterminedBalances.incrementedBalances.startBalances.length > 0 && (<>
                 <BalanceDisplay
-                  message={hasIncrements ? `` : 'Balances - All or Nothing'}
-                  hideMessage={hasIncrements}
+                  // message={hasIncrements ? `` : 'Balances - All or Nothing'}
+                  hideMessage={true}
                   balances={hasOverlap ? incrementedBalances : []}
                   collectionId={collectionId}
                 />

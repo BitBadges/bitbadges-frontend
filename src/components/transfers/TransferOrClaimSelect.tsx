@@ -1,5 +1,5 @@
 import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Col, Empty, Row, StepProps, Steps, Tooltip } from 'antd';
+import { Button, Col, Empty, Row, StepProps, Steps } from 'antd';
 import { Balance, BigIntify, convertBalance } from 'bitbadgesjs-proto';
 import { TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
 import { useEffect, useState } from 'react';
@@ -325,26 +325,40 @@ export function TransferSelect({
             }
 
             {
-              addTransferIsVisible || setVisible ?
-                <InformationDisplayCard title='Add Transfer' style={{ alignItems: 'normal' }} md={24} sm={24} xs={24}>
-                  <div className='flex-between' >
-                    <div></div>
-                    <div>
-                      <Tooltip title='Cancel' placement='bottom'>
-                        <CloseOutlined
+              addTransferIsVisible || setVisible ? <>
+                <br />
+                <div className='flex-center flex-wrap'>
+                  <div>
+                    {plusButton ? <div className='flex-center'>
+                      <IconButton
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setAddTransferIsVisible(false);
+                        }}
+                        src={<CloseOutlined />}
+                        text='Close'
+                      >
+                      </IconButton>
+                    </div> :
+                      <div className='flex-center'>
+                        <Button
+                          type='primary'
                           onClick={() => {
-                            setAddTransferIsVisible(false);
-                            if (setVisible) setVisible(false);
+                            setAddTransferIsVisible(true);
                           }}
-                          style={{ fontSize: 20, cursor: 'pointer' }} className='primary-text'
-                        />
-                      </Tooltip>
-                    </div>
+                          style={{ marginTop: 20, width: '100%' }}
+                        >
+                          Add New Transfer
+                        </Button>
+                      </div>}
                   </div>
+                </div>
+                <br />
+                <InformationDisplayCard title='Add Transfer' style={{ alignItems: 'normal' }} md={24} sm={24} xs={24}>
+
                   <Steps
                     current={currentStep}
                     onChange={onStepChange}
-                    type='navigation'
                     className='full-width'
                   >
                     {steps.map((item, index) => (
@@ -363,6 +377,7 @@ export function TransferSelect({
                     </div>
                   ))}
                 </InformationDisplayCard>
+              </>
                 : <>
                   <div className='flex-center flex-wrap'>
                     <div>

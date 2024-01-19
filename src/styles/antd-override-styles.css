@@ -84,6 +84,9 @@
   height: 20px;
 }
 
+.ant-statistic-content {
+  color: inherit;
+}
 
 .ant-switch {
   background-color: grey;

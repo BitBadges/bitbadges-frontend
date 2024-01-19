@@ -827,7 +827,6 @@ export function TxModal(
       <Steps
         current={currentStep}
         onChange={onStepChange}
-        type='navigation'
         className='primary-texxt'
       >
         {msgSteps && [...msgSteps, finalSubmitStep].map((item, index) => (

@@ -1,7 +1,7 @@
 import { FormOutlined, InfoCircleOutlined, LockOutlined, WarningOutlined } from '@ant-design/icons';
 import { Col, Input, Row, Switch, Tooltip, Typography, notification } from 'antd';
-import { AddressList, ApprovalAmounts, Balance, MustOwnBadges, UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, Numberify, TransferWithIncrements, checkIfUintRangesOverlap, convertToCosmosAddress, getReservedAddressList, isAddressListEmpty, isFullUintRanges, isInAddressList, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
+import { AddressList, ApprovalAmounts, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-proto';
+import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, Numberify, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBadgeIdsToBeTransferred, getReservedAddressList, isAddressListEmpty, isFullUintRanges, isInAddressList, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -59,41 +59,7 @@ const minNonZeroValue = (values: bigint[]) => {
 }
 
 
-export const getAllBadgeIdsToBeTransferred = (transfers: TransferWithIncrements<bigint>[]) => {
-  const allBadgeIds: UintRange<bigint>[] = [];
-  for (const transfer of transfers) {
-    for (const balance of transfer.balances) {
 
-      //toAddressesLength takes priority
-      const _numRecipients = transfer.toAddressesLength ? transfer.toAddressesLength : transfer.toAddresses ? transfer.toAddresses.length : 0;
-      const numRecipients = BigInt(_numRecipients);
-
-      const badgeIds = deepCopy(balance.badgeIds);
-      const ownershipTimes = deepCopy(balance.ownershipTimes);
-
-      //If incrementIdsBy is not set, then we are not incrementing badgeIds and we can just batch calculate the balance
-      if (!transfer.incrementBadgeIdsBy && !transfer.incrementOwnershipTimesBy) {
-        allBadgeIds.push(...deepCopy(badgeIds))
-      } else {
-        for (let i = 0; i < numRecipients; i++) {
-          allBadgeIds.push(...deepCopy(badgeIds))
-
-          for (const badgeId of badgeIds) {
-            badgeId.start += transfer.incrementBadgeIdsBy || 0n;
-            badgeId.end += transfer.incrementBadgeIdsBy || 0n;
-          }
-
-          for (const ownershipTime of ownershipTimes) {
-            ownershipTime.start += transfer.incrementOwnershipTimesBy || 0n;
-            ownershipTime.end += transfer.incrementOwnershipTimesBy || 0n;
-          }
-        }
-      }
-    }
-  }
-
-  return allBadgeIds;
-}
 
 //Gets the max increments applied to the approval
 //Basicallly, it is the minimum value set for overall max uses and the selected usePer max uses (where applicable)
@@ -135,6 +101,7 @@ export const getAllApprovedBadges = (
         incrementOwnershipTimesBy: 0n,
       }
     ]);
+    console.log("APPROVVED", approvalToAdd.badgeIds, allApprovedBadges)
     return allApprovedBadges;
   }
 }

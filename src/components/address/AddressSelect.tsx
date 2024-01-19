@@ -79,7 +79,7 @@ export function AddressSelect({
     <div className='full-width'>
       {switchable &&
         <div className='flex-center flex-wrap primary-text'>
-          <AddressDisplay addressOrUsername={latestAddress ?? ''} fontSize={fontSize} /> <IconButton disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <EditOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => {
+          <AddressDisplay addressOrUsername={latestAddress ?? ''} fontSize={fontSize} /> <IconButton secondary disabled={disabled} hideText src={showSelect ? <MinusOutlined /> : <EditOutlined />} style={{ marginLeft: 4 }} text='Switch' onClick={() => {
 
             setShowSelect(!showSelect)
           }} />
