@@ -75,7 +75,7 @@ export function CollectionDisplayWithBadges({
       md={span ?? 8}
       xs={span ?? 24}
       sm={span ?? 24}
-      noBorder={!browseDisplay}
+      // noBorder={!browseDisplay}
       inheritBg={!browseDisplay}
     >
       <Tooltip
@@ -84,6 +84,10 @@ export function CollectionDisplayWithBadges({
         placement="bottom"
       >
         {browseDisplay && <CollectionHeader collectionId={collectionId} multiDisplay hideCollectionLink={hideCollectionLink} />}
+        {!browseDisplay && <div className="primary-text my-2" style={{ fontSize: 24, fontWeight: 'bold' }}>
+
+          {collection?.cachedCollectionMetadata?.name}
+        </div>}
         {collection && !hideAddress && (
           <div className="flex-center">
             <Typography.Text

@@ -1,7 +1,7 @@
-import { WarningOutlined } from '@ant-design/icons';
-import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress } from 'bitbadgesjs-utils';
-import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString } from 'blockin';
-import { SignInModal } from 'blockin/dist/ui';
+import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { Spin, Tooltip } from 'antd';
+import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress, getMetadataForBadgeId, getTotalNumberOfBadgeIds } from 'bitbadgesjs-utils';
+import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString, constructChallengeStringFromChallengeObject } from 'blockin';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { createAuthCode, verifySignInGeneric } from '../../bitbadges-api/api';
@@ -12,6 +12,7 @@ import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { BadgeAvatarDisplay } from '../../components/badges/BadgeAvatarDisplay';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { EmptyIcon } from '../../components/common/Empty';
+import { ErrDisplay } from '../../components/common/ErrDisplay';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { AuthCode } from '../account/codes';
@@ -47,12 +48,12 @@ function BlockinCodesScreen() {
 
   const {
     address,
-    selectedChainInfo,
     signChallenge,
   } = chain;
 
-  const [modalIsVisible, setModalIsVisible] = useState(false);
   const [qrCode, setQrCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const currAccount = useAccount(address);
 
@@ -60,31 +61,6 @@ function BlockinCodesScreen() {
     if (!challengeParams) return undefined;
     return JSON.parse(challengeParams as string) as ChallengeParams<NumberType>;
   }, [challengeParams]);
-
-  const displayedAssets = useMemo(() => {
-    return blockinParams?.assets?.map(x => {
-      const collection = x.chain === 'BitBadges' ? getCollection(BigInt(x.collectionId)) : undefined;
-
-      return {
-        ...x,
-        name: collection?.cachedCollectionMetadata?.name ?? '',
-        // image: collection?.cachedCollectionMetadata?.image ?? '',
-        description: 'To protect against known scammers, we do not allow access to this site if you have the scammer badge.',
-        defaultSelected: true,
-        frozen: true,
-        additionalDisplay: x.chain === 'BitBadges' ? <div>
-          <BadgeAvatarDisplay
-            collectionId={BigInt(x.collectionId)}
-            badgeIds={(x.assetIds).map(x => {
-              if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
-              return { start: BigInt(x.start), end: BigInt(x.end) };
-            })}
-            size={75}
-          />
-        </div> : undefined
-      }
-    }) ?? []
-  }, [blockinParams?.assets]);
 
   useEffect(() => {
     const collectionsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId) ?? [];
@@ -96,6 +72,7 @@ function BlockinCodesScreen() {
     if (!blockinParams?.address) return;
     fetchAccounts([blockinParams.address]);
   }, [blockinParams?.address]);
+
 
   if (!challengeParams || !blockinParams) {
     return <div style={{
@@ -118,7 +95,6 @@ function BlockinCodesScreen() {
     const response = await signChallenge(challenge);
     return response;
   }
-
 
   const signAndVerifyChallenge = async (challenge: string) => {
     const signChallengeResponse: SignChallengeResponse = await handleSignChallenge(challenge);
@@ -200,6 +176,31 @@ function BlockinCodesScreen() {
 
 
   const flaggedWebsites = ['https://bitbadges.io', 'https://bitbadges.io/'];
+  const authCode = convertBlockinAuthSignatureDoc({
+    _docId: '',
+    signature: '',
+    name: name as string,
+    description: description as string,
+    image: image as string,
+    params: blockinParams,
+    createdAt: Date.now(),
+    cosmosAddress: convertToCosmosAddress(address as string),
+  }, BigIntify)
+
+  const generateHumanReadableTimeDetails = (notBefore?: string, expirationDate?: string) => {
+    if (!notBefore && !expirationDate) {
+      return 'This sign-in will always be valid (no expiration date).';
+    } else if (notBefore && !expirationDate) {
+      return `This sign-in will have no expiration date but will not be valid until ${new Date(notBefore).toLocaleString()}.`
+    }
+    else if (!notBefore && expirationDate) {
+      return `This sign-in will expire at ${new Date(expirationDate).toLocaleString()}.`
+    } else if (notBefore && expirationDate) {
+      return `This sign-in will expire at ${new Date(expirationDate).toLocaleString()} and will not be valid until ${new Date(notBefore).toLocaleString()}.`
+    } else {
+      throw 'Error: Invalid time details.'
+    }
+  }
 
   return (
     <DisconnectedWrapper
@@ -254,23 +255,110 @@ function BlockinCodesScreen() {
                   <div className='flex-center'>
                     {!qrCode &&
                       <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
+                        <InformationDisplayCard span={24} title={""} inheritBg noBorder>
+                          {/* const paramKeyOrder = [ 'statement', 'nonce', 'signature', 'description']; */}
 
-                        <AuthCode
-                          onlyShowMetadata
-                          authCode={convertBlockinAuthSignatureDoc({
-                            _docId: '',
-                            signature: '',
-                            name: name as string,
-                            description: description as string,
-                            image: image as string,
-                            params: blockinParams,
-                            createdAt: Date.now(),
-                            cosmosAddress: convertToCosmosAddress(address as string),
-                          }, BigIntify)} />
+                          <AuthCode
+                            onlyShowMetadata
+                            authCode={authCode}
+                          />
+                          <br />
+                          <div className='' style={{ textAlign: 'center', fontSize: 16 }}>
+                            Sign-In Request: <a href={authCode.params.domain} target='_blank' rel="noreferrer">{authCode.params.domain}</a> {
+                              authCode.params.domain !== authCode.params.uri && <>(<a href={authCode.params.uri} target='_blank' rel="noreferrer">{authCode.params.uri}</a>)</>
+                            }<br />
+                            <div className='flex-center'>
+                              <AddressDisplay addressOrUsername={authCode.params.address} />
+                            </div>
+                            <br />
+
+                            {authCode.params.statement}
+                            <br /><br />
+                            {generateHumanReadableTimeDetails(authCode.params.notBefore, authCode.params.expirationDate)}
+                            <br /><br />
+                            {/* {authCode.params.resources && !!authCode.params.resources.length ? <TableRow label={'Resources'} value={authCode.params.resources.join(', ')} labelSpan={8} valueSpan={16} /> : <></>} */}
+
+                            {authCode.params.assets?.map((asset, i) => {
+                              const chainName = asset.chain;
+                              const badgeIds = asset.assetIds.map(x => {
+                                if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
+                                return { start: BigInt(x.start), end: BigInt(x.end) };
+                              });
+                              const hasMoreThanOneBadge = getTotalNumberOfBadgeIds(badgeIds) > 1;
+                              const collection = getCollection(BigInt(asset.collectionId));
+                              const badgeMetadata = !hasMoreThanOneBadge ? getMetadataForBadgeId(
+                                badgeIds[0].start,
+                                collection?.cachedBadgeMetadata ?? [],
+                              ) : undefined
+                              const assetsText = hasMoreThanOneBadge ? <>{
+                                asset.assetIds.map((assetId, index) => {
+                                  if (typeof assetId !== 'object') {
+                                    return <>{"ID: " + assetId.toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+                                  } else {
+                                    if (assetId.start === assetId.end) {
+                                      return <>ID {BigInt(assetId.start).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+                                    }
+                                    return <>IDs {BigInt(assetId.start).toString()}-{BigInt(assetId.end).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+                                  }
+                                })
+                              }</> : <>
+                                <Tooltip title={`Badge ID ${badgeIds[0].start.toString()}`}>
+                                  <a onClick={() => { }}>{badgeMetadata?.name ?? 'Unknown Badge'}</a>
+                                </Tooltip>
+                                {' from '}
+                                <Tooltip title={`Collection ID ${asset.collectionId.toString()}`}>
+                                  <a onClick={() => { }}>{collection?.cachedCollectionMetadata?.name ?? 'Unknown Collection'}</a>
+                                </Tooltip>
+
+                              </>
+
+                              const amountsText = <>{[asset.mustOwnAmounts].map(amount => {
+                                if (typeof amount !== 'object') {
+                                  return 'x' + BigInt(amount).toString();
+                                } else {
+                                  if (amount.start === amount.end) {
+                                    return `x${BigInt(amount.start).toString()}`
+                                  }
+                                  return `x${BigInt(amount.start).toString()}-${BigInt(amount.end).toString()}`
+                                }
+                              }).join(', ')}</>
+
+
+                              return <div key={i}>
+                                {hasMoreThanOneBadge && <>
+                                  For {asset.mustSatisfyForAllAssets ? 'all' : 'one'} of the specified badges ({assetsText} from {chainName + " Collection: " + asset.collectionId.toString()}), you must own {amountsText}
+                                </>}
+                                {!hasMoreThanOneBadge && <>
+                                  You must own {amountsText} of the specified badges ({assetsText})
+                                </>}
+
+                                {' '}{asset.ownershipTimes ? 'from ' +
+                                  asset.ownershipTimes.map(time => {
+                                    if (typeof time === 'string') {
+                                      return new Date(time).toLocaleString();
+                                    } else if (typeof time !== 'object') {
+                                      return new Date(Number(BigInt(time))).toLocaleString();
+                                    } else {
+                                      return `${new Date(Number(BigInt(time.start))).toLocaleString()} until ${new Date(Number(BigInt(time.end))).toLocaleString()}`
+                                    }
+                                  }).join(', ') : 'at the time of sign in'} to be approved.
+                                <br />
+                                <br />
+                                <BadgeAvatarDisplay
+                                  cardView={!hasMoreThanOneBadge}
+                                  collectionId={BigInt(asset.collectionId)} badgeIds={asset.assetIds.map(x => {
+                                    if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
+                                    return { start: BigInt(x.start), end: BigInt(x.end) };
+                                  })} size={75}
+                                />
+                              </div>
+
+                            })}
+                          </div>
+                        </InformationDisplayCard>
                         <br />
 
-                        <br />
-                        <div className='secondary-text' style={{ textAlign: 'center' }}>
+                        <div className='secondary-text' style={{ textAlign: 'start' }}>
                           <WarningOutlined style={{ color: 'orange' }} /> This sign in request is for <a href={blockinParams.domain} target='_blank' rel='noreferrer'>{blockinParams.domain}</a>.
                           {window.opener && callbackRequired && <>
                             {' '}If you did not navigate to this site from <a href={blockinParams.domain} target='_blank' rel='noreferrer'>{blockinParams.domain}</a>
@@ -288,12 +376,33 @@ function BlockinCodesScreen() {
                           {' '}Read the message carefully and ensure all the information is correct before signing.
                         </div>
                         <br />
-                        <div className='flex-center'>
-                          <button className='landing-button' onClick={() => setModalIsVisible(true)} style={{ minWidth: 222, marginTop: 16 }}>
-                            Sign
-                          </button>
-                        </div>
+                        <div className='secondary-text' style={{ textAlign: 'start' }}>
 
+                          <InfoCircleOutlined style={{ color: 'orange' }} /> Upon clicking the button below,
+                          this site will send a signature request to your connected address.
+
+                          This is a simple message signature. It is not a transaction and is free of charge. The signature of this message is your secret authentication code.
+                        </div>
+                        <br />
+                        <div className='flex-center'>
+                          <button className='landing-button'
+                            disabled={loading}
+                            onClick={async () => {
+                              setLoading(true)
+                              try {
+                                await signAndVerifyChallenge(constructChallengeStringFromChallengeObject(blockinParams));
+                                setLoading(false)
+                              } catch (e: any) {
+                                setLoading(false)
+                                setErrorMessage(e.errorMessage ?? e.message);
+                              }
+                            }} style={{ minWidth: 222, marginTop: 16 }}>
+                            Sign {loading && <Spin />}
+                          </button>
+
+                        </div>
+                        <br />
+                        {errorMessage && <ErrDisplay err={errorMessage} />}
                       </InformationDisplayCard>
                     }
                     {qrCode &&
@@ -325,7 +434,7 @@ function BlockinCodesScreen() {
                       </InformationDisplayCard>
                     }
                   </div>
-                  <div className='flex-center primary-text img-overrides'>
+                  {/* <div className='flex-center primary-text img-overrides'>
                     {
                       <SignInModal
                         customBeforeSigningWarning='BitBadges will relay your authentication code to the provider that directed you here.'
@@ -341,11 +450,11 @@ function BlockinCodesScreen() {
                         displayedAssets={displayedAssets}
                       />
                     }
-                  </div>
+                  </div> */}
                 </>}
 
           </div>
-        </div>
+        </ div>
       }
     />
   );

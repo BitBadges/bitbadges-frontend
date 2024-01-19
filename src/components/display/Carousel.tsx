@@ -49,6 +49,8 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
     });
   }).filter(x => x).flat();
 
+  const hasNoItems = itemsToDisplay.length === 0;
+
   return (
     <div className="primary-text">
 
@@ -56,41 +58,43 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({ title, items, page, set
         {/* centered title if xs */}
         {title}
         <div className="carousel-arrows flex-center collapse sm:visible" style={{ float: 'right', marginTop: 10 }}>
-          <Button
-            className='bg-vivid-blue hover:opacity-75 text-white border-0'
-            type="primary"
-            shape="circle"
-            style={{ margin: 4 }}
-            icon={<LeftOutlined />}
-            onClick={() => {
-              if (currPage === 0) {
-                if (setPage) setPage((total ? total - 1 : groupedItems.length - 1));
-                setCurrPage((total ? total - 1 : groupedItems.length - 1));
-              } else {
-                if (setPage) setPage(currPage - 1);
-                setCurrPage(currPage - 1);
-              }
-            }}
-          />
-          <Button
-            className='bg-vivid-blue hover:opacity-75 text-white border-0 '
-            type="primary"
-            shape="circle"
-            style={{ margin: 4 }}
-            icon={<RightOutlined />}
-            onClick={() => {
-              if (currPage === (total ? total - 1 : groupedItems.length - 1)) {
-                if (setPage) setPage(0);
-                setCurrPage(0);
-              } else {
-                if (setPage) setPage(currPage + 1);
-                setCurrPage(currPage + 1);
-              }
-            }}
-          />
+          {!hasNoItems && <>
+            <Button
+              className='bg-vivid-blue hover:opacity-75 text-white border-0'
+              type="primary"
+              shape="circle"
+              style={{ margin: 4 }}
+              icon={<LeftOutlined />}
+              onClick={() => {
+                if (currPage === 0) {
+                  if (setPage) setPage((total ? total - 1 : groupedItems.length - 1));
+                  setCurrPage((total ? total - 1 : groupedItems.length - 1));
+                } else {
+                  if (setPage) setPage(currPage - 1);
+                  setCurrPage(currPage - 1);
+                }
+              }}
+            />
+            <Button
+              className='bg-vivid-blue hover:opacity-75 text-white border-0 '
+              type="primary"
+              shape="circle"
+              style={{ margin: 4 }}
+              icon={<RightOutlined />}
+              onClick={() => {
+                if (currPage === (total ? total - 1 : groupedItems.length - 1)) {
+                  if (setPage) setPage(0);
+                  setCurrPage(0);
+                } else {
+                  if (setPage) setPage(currPage + 1);
+                  setCurrPage(currPage + 1);
+                }
+              }}
+            />
+          </>}
           <div className='secondary-text' style={{ marginLeft: '1rem', fontSize: 18, fontWeight: 'bolder' }}>
-
-            {page ?? currPage + 1}/{total ?? groupedItems.length}
+            {hasNoItems ? '0/0' : <>
+              {page ?? currPage + 1}/{total ?? groupedItems.length}</>}
           </div>
         </div>
       </div>}

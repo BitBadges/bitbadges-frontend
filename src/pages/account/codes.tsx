@@ -175,6 +175,9 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
 
         <InformationDisplayCard span={24} title={isExpected ? 'Expected Details' : "Details"} inheritBg noBorder>
           {/* const paramKeyOrder = [ 'statement', 'nonce', 'signature', 'description']; */}
+          
+
+
           {authCode.signature && <TableRow label={'Code'} value={<Tooltip title={authCode.signature}><div style={{ float: 'right' }}>{getAbbreviatedAddress(authCode.signature)}</div></Tooltip>} labelSpan={8} valueSpan={16} />}
           {authCode.params.address && <TableRow label={'Address'} value={<div style={{ float: 'right' }}><AddressDisplay addressOrUsername={authCode.params.address} /></div>} labelSpan={8} valueSpan={16} />}
           <TableRow label={'Domain'} value={<a href={authCode.params.domain} target='_blank' rel="noreferrer">{authCode.params.domain}</a>} labelSpan={8} valueSpan={16} />

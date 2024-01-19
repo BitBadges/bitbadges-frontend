@@ -892,7 +892,7 @@ export function TxModal(
       destroyOnClose={true}
     >
       <DisconnectedWrapper
-        message={`Please connect ${requireRegistration ? 'and sign in' : ''} to submit a transaction.`}
+        message={`Please connect ${requireRegistration ? 'and sign in' : ''}.`}
         node={
           <Row>
             <Col md={24} xs={24} sm={24}>
