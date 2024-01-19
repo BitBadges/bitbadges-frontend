@@ -162,11 +162,8 @@ function BlockinCodesScreen() {
         verificationResponse = { success: false, errorMessage: e.errorMessage ?? e.message };
       }
     }
-
-
     if (window.opener && callbackRequired) {
-      const targetOrigin = new URL(window.opener.location.href).origin;
-      window.opener.postMessage({ signature: signature, message: challenge, verificationResponse }, targetOrigin);
+      window.opener.postMessage({ signature: signature, message: challenge, verificationResponse }, '*');
       window.close();
     }
 

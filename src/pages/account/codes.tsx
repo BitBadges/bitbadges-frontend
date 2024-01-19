@@ -62,7 +62,7 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
 
       try {
         const res = await getAuthCode({ signature: authCode.signature, options: {} });
-        setCurrStatus({ success: res.verification.success, verificationMessage: res.verification.response });
+        setCurrStatus({ success: res.verificationResponse.success, verificationMessage: res.verificationResponse.errorMessage ?? '' });
       } catch (e: any) {
         setCurrStatus({ success: false, verificationMessage: e.message });
       }
@@ -175,7 +175,7 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
 
         <InformationDisplayCard span={24} title={isExpected ? 'Expected Details' : "Details"} inheritBg noBorder>
           {/* const paramKeyOrder = [ 'statement', 'nonce', 'signature', 'description']; */}
-          
+
 
 
           {authCode.signature && <TableRow label={'Code'} value={<Tooltip title={authCode.signature}><div style={{ float: 'right' }}>{getAbbreviatedAddress(authCode.signature)}</div></Tooltip>} labelSpan={8} valueSpan={16} />}

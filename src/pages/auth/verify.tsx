@@ -202,8 +202,8 @@ function BlockinCodesScreen() {
             expectedChallengeParams: expectedChallengeParams,
           }
         });
-        if (!res.verification.success) {
-          throw new Error(res.verification.response);
+        if (!res.verificationResponse.success) {
+          throw new Error(res.verificationResponse.errorMessage);
         }
         console.log("RES", res);
 
