@@ -1,4 +1,4 @@
-import { CheckCircleFilled, FullscreenExitOutlined, FullscreenOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { FullscreenExitOutlined, FullscreenOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { BLANK_USER_INFO, BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-utils';
@@ -21,7 +21,6 @@ import { INFINITE_LOOP_MODE } from '../../../constants';
 import "@uiw/react-markdown-preview/markdown.css";
 import "@uiw/react-md-editor/markdown-editor.css";
 import IconButton from '../../../components/display/IconButton';
-import { CheckboxSelect } from '../../../components/inputs/Selects';
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -131,7 +130,7 @@ export function AccountSettings() {
   const setTelegram = (telegram: string) => { setNewAccount({ ...newAccount, telegram }) };
   const setReadme = (readme: string) => { setNewAccount({ ...newAccount, readme }) };
   const setCustomLinks = (customLinks: any[]) => { setNewAccount({ ...newAccount, customLinks }) };
-  const setNotifications = (notifications: any) => { setNewAccount({ ...newAccount, notifications }) }
+  // const setNotifications = (notifications: any) => { setNewAccount({ ...newAccount, notifications }) }
 
   const hiddenBadges = newAccount?.hiddenBadges ? newAccount.hiddenBadges : [];
   const customPages = newAccount?.customPages ? newAccount.customPages : {
@@ -461,6 +460,7 @@ export function AccountSettings() {
                     </div>
 
                   </Form.Item>
+                  {/*
                   <Divider />
                   <b className='primary-text' style={{ fontSize: 24, textAlign: 'center' }}>Notifications</b>
                   <Form.Item
@@ -538,7 +538,7 @@ export function AccountSettings() {
                       We will provide this code in all notification emails sent to you.
                     </div>
 
-                  </Form.Item>
+                    </Form.Item>*/}
                 </div>
               </ Form>
               <Divider />

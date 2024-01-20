@@ -56,6 +56,7 @@ function BlockinCodesScreen() {
     signChallenge,
   } = chain;
 
+
   const [qrCode, setQrCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -66,8 +67,12 @@ function BlockinCodesScreen() {
 
   const blockinParams = useMemo(() => {
     if (!challengeParams) return undefined;
-    return convertChallengeParams(JSON.parse(challengeParams as string) as ChallengeParams<NumberType>, BigIntify);
-  }, [challengeParams]);
+    const params = { ...convertChallengeParams(JSON.parse(challengeParams as string) as ChallengeParams<NumberType>, BigIntify), }
+    return {
+      ...params,
+      address: allowAddressSelect ? address : params.address,
+    }
+  }, [challengeParams, allowAddressSelect, address]);
 
   useEffect(() => {
     const collectionsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId && x.collectionId !== "BitBadges Lists") ?? [];
@@ -91,6 +96,8 @@ function BlockinCodesScreen() {
     try {
       setSimulationMessage('');
       const blockinParams = constructChallengeObjectFromString(challenge, BigIntify)
+      if (!blockinParams.address) return;
+
       const chain = getChainForAddress(constructChallengeObjectFromString(challenge, BigIntify).address);
       const parsedVerifyOptions = verifyOptions ? JSON.parse(verifyOptions as string) : undefined;
 
@@ -135,9 +142,7 @@ function BlockinCodesScreen() {
     </div>
   }
 
-  if (allowAddressSelect) {
-    blockinParams.address = address
-  }
+
 
   const handleSignChallenge = async (challenge: string) => {
     const response = await signChallenge(challenge);
@@ -433,7 +438,7 @@ function BlockinCodesScreen() {
                             {!storeInAccount && ' This code will be only able to be viewed once.'}
                             {' '}For authentication, you are expected to present this code to the requesting party using their preferred method.
                           </>}
-                          {' '}Read the message carefully and ensure all the information is correct before signing.
+                          {' '}Ensure all information is correct before signing.
                         </div>
                         <br />
                         <div className='secondary-text' style={{ textAlign: 'start' }}>
@@ -451,7 +456,6 @@ function BlockinCodesScreen() {
                               setLoading(true)
                               setErrorMessage('');
                               try {
-                                console.log(blockinParams);
                                 await signAndVerifyChallenge(createChallenge(blockinParams));
                                 setLoading(false)
                               } catch (e: any) {
