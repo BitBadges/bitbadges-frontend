@@ -57,13 +57,13 @@ export const BlockinDisplay = ({
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: blockin display');
     async function updateChallengeParams() {
-      if (address) {
+      if (address && connected) {
         const res = await getSignInChallenge({ chain, address });
         setChallengeParams(res.params);
       }
     }
 
-    if (address) {
+    if (address && connected) {
       updateChallengeParams();
     }
 

@@ -92,12 +92,12 @@ function BlockinCodesScreen() {
     fetchAccounts([blockinParams.address]);
   }, [blockinParams?.address]);
 
-  const simulateVerification = useCallback(async (challenge: string) => {
+  const simulateVerification = useCallback(async (params: ChallengeParams<bigint>) => {
     try {
       setSimulationMessage('');
-      const blockinParams = constructChallengeObjectFromString(challenge, BigIntify)
+      const blockinParams = params;
       if (!blockinParams.address) return;
-
+      const challenge = createChallenge(blockinParams);
       const chain = getChainForAddress(constructChallengeObjectFromString(challenge, BigIntify).address);
       const parsedVerifyOptions = verifyOptions ? JSON.parse(verifyOptions as string) : undefined;
 
@@ -124,7 +124,7 @@ function BlockinCodesScreen() {
 
   useEffect(() => {
     if (expectVerifySuccess && blockinParams) {
-      simulateVerification(createChallenge(blockinParams));
+      simulateVerification(blockinParams);
     }
   }, [blockinParams, expectVerifySuccess, simulateVerification]);
 

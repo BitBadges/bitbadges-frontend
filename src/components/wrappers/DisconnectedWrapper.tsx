@@ -4,10 +4,10 @@ import ConnectScreen from '../../pages/connect';
 
 export function DisconnectedWrapper({ node, message, requireLogin }: { node: JSX.Element, message?: string, requireLogin?: boolean }) {
   const chain = useChainContext();
-  const address = chain.address;
+  const connected = chain.connected;
   const loggedIn = chain.loggedIn;
 
-  const needToConnect = requireLogin ? !loggedIn || !address : !address;
+  const needToConnect = requireLogin ? !loggedIn || !connected : !connected;
 
   return (
     <>
