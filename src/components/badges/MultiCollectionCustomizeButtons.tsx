@@ -1,7 +1,8 @@
-import { EyeOutlined } from "@ant-design/icons";
+import { EyeOutlined, MenuUnfoldOutlined, MinusOutlined } from "@ant-design/icons";
 import { notification } from "antd";
 import { UintRange, deepCopy } from "bitbadgesjs-proto";
 import { BatchBadgeDetails, BitBadgesUserInfo, CustomPage, addToBatchArray as addTobatchArrayImported, allInBatchArray, removeFromBatchArray as removeFromBatchArrayImported } from "bitbadgesjs-utils";
+import { useState } from "react";
 import { updateAccountInfo } from "../../bitbadges-api/api";
 import { updateAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { GO_MAX_UINT_64 } from "../../utils/dates";
@@ -20,6 +21,8 @@ export const CustomizeButtons = ({ accountInfo, badgeIdObj, badgeId, onlyShowCol
 }) => {
   const isHidden = allInBatchArray(accountInfo?.hiddenBadges ?? [], { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: badgeId, end: badgeId }] });
   const isCollectionHidden = allInBatchArray(accountInfo?.hiddenBadges ?? [], { collectionId: badgeIdObj.collectionId, badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }] });
+  const [toShowHidden, setToShowHidden] = useState<boolean>(false);
+  const [toShowPages, setToShowPages] = useState<boolean>(false);
 
   //Just wrappers for the imported functions auto-adding badgeIdObj.collectionId
   //Should change these in future
@@ -36,135 +39,159 @@ export const CustomizeButtons = ({ accountInfo, badgeIdObj, badgeId, onlyShowCol
   }
 
   const pages = isWatchlist ? accountInfo?.watchlists?.badges ?? [] : accountInfo?.customPages?.badges ?? [];
-
+  const toShow = toShowHidden || toShowPages;
   return <>{
     showCustomizeButtons &&
     <>
       <div className="">
-        {accountInfo &&
-          <div className='flex-center flex-column' style={{ alignItems: 'center', justifyContent: 'center' }}>
-
-            {!onlyShowCollectionOptions && !isWatchlist && <b>Hidden</b>}
-            <div className="flex-center">
-
-              {!onlyShowCollectionOptions && !isWatchlist && <>
-                <IconButton
-                  secondary
-                  src={!isHidden ? <EyeOutlined style={{ fontSize: 18 }} />
-                    : <EyeOutlined style={{ color: 'red', fontSize: 18 }} />}
-                  text={'Badge'}
-                  tooltipMessage={!isHidden ? 'Hide this badge from your profile.' : 'Show this badge on your profile.'}
-                  onClick={async () => {
-                    const hiddenBadge = !isHidden ? addToBatchArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]) : removeFromBatchArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]);
-
-                    await updateAccountInfo(deepCopy({
-                      ...accountInfo,
-                      hiddenBadges: hiddenBadge
-                    }));
-
-                    updateAccount(deepCopy({
-                      ...accountInfo,
-                      hiddenBadges: hiddenBadge,
-                    }))
-
-                    notification.success({
-                      message: "This badge will now be" + (!isHidden ? ' hidden' : ' shown') + " for your profile.",
-                      description: "A page refresh may be required to see the changes."
-                    })
-                  }}
-                />
-              </>}
-
-              {!isWatchlist && <>
-                <IconButton
-                  secondary
-                  src={!isCollectionHidden ? <EyeOutlined style={{ fontSize: 18 }} />
-                    : <EyeOutlined style={{ color: 'red', fontSize: 18 }} />}
-                  text={'Collection'}
-                  tooltipMessage={!isCollectionHidden ? 'Hide all badges from this collection from your profile.' : 'Show all badges from this collection on your profile.'}
-                  onClick={async () => {
-                    const hiddenBadge = !isCollectionHidden ? addToBatchArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : removeFromBatchArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
-
-                    await updateAccountInfo(deepCopy({
-                      ...accountInfo,
-                      hiddenBadges: hiddenBadge
-                    }));
-
-                    updateAccount(deepCopy({
-                      ...accountInfo,
-                      hiddenBadges: hiddenBadge,
-                    }))
-
-                    notification.success({
-                      message: "All badges from this collection will now be" + (!isCollectionHidden ? ' hidden' : ' shown') + " for your profile.",
-                      description: "A page refresh may be required to see the changes."
-                    })
-                  }}
-                />
-
-              </>}
-            </div>
-          </div>
-        }
-        {pages.length > 0 && <>
-          <b>Pages</b>
-          {(pages ?? [])?.length == 0 && <EmptyIcon description='No created pages yet.' />}
+        {accountInfo && <>
 
           <div className="flex-center flex-wrap">
-            {pages?.map((x, idx) => {
-              const pageName = x.title;
-              const addedToPage = isOnPage(pageName, pages);
-              return <div
-                key={idx}
-                className='flex-center flex-column primary-text' style={{ alignItems: 'center', }}>
-                <IconButton
-                  secondary
-                  src={addedToPage ? <EyeOutlined style={{ fontSize: 18 }} />
-                    : <EyeOutlined style={{ color: 'red', fontSize: 18 }} />}
-                  text={pageName}
-                  tooltipMessage={addedToPage ? 'Remove this badge from this page.' : 'Add this badge to this page.'}
-                  onClick={async () => {
-                    const deepCopiedPages = deepCopy(pages);
-                    if (!addedToPage) {
-                      const newBadgeIds = addToBatchArray(deepCopy(x.items), [{ start: badgeId, end: badgeId }]);
-                      deepCopiedPages[idx].items = newBadgeIds;
-                    } else {
-                      const newBadgeIds = removeFromBatchArray(deepCopy(x.items), [{ start: badgeId, end: badgeId }]);
-                      deepCopiedPages[idx].items = newBadgeIds;
-                    }
-
-                    if (!accountInfo) return;
-
-                    await updateAccountInfo({
-                      customPages: isWatchlist ? accountInfo.customPages : {
-                        lists: accountInfo.customPages?.lists ?? [],
-                        badges: deepCopiedPages,
-                      },
-                      watchlists: isWatchlist ? {
-                        badges: deepCopiedPages,
-                        lists: accountInfo.watchlists?.lists ?? []
-                      } : accountInfo.watchlists
-                    });
-
-                    updateAccount(deepCopy({
-                      ...accountInfo,
-                      customPages: isWatchlist ? accountInfo.customPages : {
-                        lists: accountInfo.customPages?.lists ?? [],
-                        badges: deepCopiedPages,
-                      },
-                      watchlists: isWatchlist ? {
-                        badges: deepCopiedPages,
-                        lists: accountInfo.watchlists?.lists ?? []
-                      } : accountInfo.watchlists
-                    }))
-                  }}
-                />
-              </div>
-            }
-            )}
+            {!toShowPages && <IconButton
+              secondary
+              text={!toShowHidden ? 'Hidden' : ''}
+              src={toShowHidden ? <MinusOutlined style={{ fontSize: 18 }} />
+                : <MenuUnfoldOutlined style={{ fontSize: 18 }} />}
+              tooltipMessage={'Add or remove this badge from certain pages on your portfolio.'}
+              onClick={() => setToShowHidden(!toShowHidden)}
+            />}
+            {pages.length > 0 && !toShowHidden && <>
+              <IconButton
+                secondary
+                text={!toShowPages ? 'Pages' : ''}
+                src={toShowPages ? <MinusOutlined style={{ fontSize: 18 }} />
+                  : <MenuUnfoldOutlined style={{ fontSize: 18 }} />}
+                tooltipMessage={'Add or remove this badge from certain pages on your portfolio.'}
+                onClick={() => setToShowPages(!toShowPages)}
+              />
+            </>}
           </div>
-        </>}
+          {toShow && <>
+            <div className='flex-center flex-column' style={{ alignItems: 'center', justifyContent: 'center' }}>
+              {toShowHidden && <>
+                {!onlyShowCollectionOptions && !isWatchlist && <b>Hidden</b>}
+                <div className="flex-center">
 
+                  {!onlyShowCollectionOptions && !isWatchlist && <>
+                    <IconButton
+                      secondary
+                      src={!isHidden ? <EyeOutlined style={{ fontSize: 18 }} />
+                        : <EyeOutlined style={{ color: 'red', fontSize: 18 }} />}
+                      text={'Badge'}
+                      tooltipMessage={!isHidden ? 'Hide this badge from your profile.' : 'Show this badge on your profile.'}
+                      onClick={async () => {
+                        const hiddenBadge = !isHidden ? addToBatchArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]) : removeFromBatchArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: badgeId, end: badgeId }]);
+
+                        await updateAccountInfo(deepCopy({
+                          ...accountInfo,
+                          hiddenBadges: hiddenBadge
+                        }));
+
+                        updateAccount(deepCopy({
+                          ...accountInfo,
+                          hiddenBadges: hiddenBadge,
+                        }))
+
+                        notification.success({
+                          message: "This badge will now be" + (!isHidden ? ' hidden' : ' shown') + " for your profile.",
+                          description: "A page refresh may be required to see the changes."
+                        })
+                      }}
+                    />
+                  </>}
+
+                  {!isWatchlist && <>
+                    <IconButton
+                      secondary
+                      src={!isCollectionHidden ? <EyeOutlined style={{ fontSize: 18 }} />
+                        : <EyeOutlined style={{ color: 'red', fontSize: 18 }} />}
+                      text={'Collection'}
+                      tooltipMessage={!isCollectionHidden ? 'Hide all badges from this collection from your profile.' : 'Show all badges from this collection on your profile.'}
+                      onClick={async () => {
+                        const hiddenBadge = !isCollectionHidden ? addToBatchArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]) : removeFromBatchArray(deepCopy(accountInfo.hiddenBadges ?? []), [{ start: 1n, end: GO_MAX_UINT_64 }]);
+
+                        await updateAccountInfo(deepCopy({
+                          ...accountInfo,
+                          hiddenBadges: hiddenBadge
+                        }));
+
+                        updateAccount(deepCopy({
+                          ...accountInfo,
+                          hiddenBadges: hiddenBadge,
+                        }))
+
+                        notification.success({
+                          message: "All badges from this collection will now be" + (!isCollectionHidden ? ' hidden' : ' shown') + " for your profile.",
+                          description: "A page refresh may be required to see the changes."
+                        })
+                      }}
+                    />
+
+                  </>}
+                </div>
+              </>}
+            </div>
+
+            {pages.length > 0 && toShowPages && <>
+              <b>Pages</b>
+              {(pages ?? [])?.length == 0 && <EmptyIcon description='No created pages yet.' />}
+
+              <div className="flex-center flex-wrap">
+                {pages?.map((x, idx) => {
+                  const pageName = x.title;
+                  const addedToPage = isOnPage(pageName, pages);
+                  return <div
+                    key={idx}
+                    className='flex-center flex-column primary-text' style={{ alignItems: 'center', }}>
+                    <IconButton
+                      secondary
+                      src={addedToPage ? <EyeOutlined style={{ fontSize: 18 }} />
+                        : <EyeOutlined style={{ color: 'red', fontSize: 18 }} />}
+                      text={pageName}
+                      tooltipMessage={addedToPage ? 'Remove this badge from this page.' : 'Add this badge to this page.'}
+                      onClick={async () => {
+                        const deepCopiedPages = deepCopy(pages);
+                        if (!addedToPage) {
+                          const newBadgeIds = addToBatchArray(deepCopy(x.items), [{ start: badgeId, end: badgeId }]);
+                          deepCopiedPages[idx].items = newBadgeIds;
+                        } else {
+                          const newBadgeIds = removeFromBatchArray(deepCopy(x.items), [{ start: badgeId, end: badgeId }]);
+                          deepCopiedPages[idx].items = newBadgeIds;
+                        }
+
+                        if (!accountInfo) return;
+
+                        await updateAccountInfo({
+                          customPages: isWatchlist ? accountInfo.customPages : {
+                            lists: accountInfo.customPages?.lists ?? [],
+                            badges: deepCopiedPages,
+                          },
+                          watchlists: isWatchlist ? {
+                            badges: deepCopiedPages,
+                            lists: accountInfo.watchlists?.lists ?? []
+                          } : accountInfo.watchlists
+                        });
+
+                        updateAccount(deepCopy({
+                          ...accountInfo,
+                          customPages: isWatchlist ? accountInfo.customPages : {
+                            lists: accountInfo.customPages?.lists ?? [],
+                            badges: deepCopiedPages,
+                          },
+                          watchlists: isWatchlist ? {
+                            badges: deepCopiedPages,
+                            lists: accountInfo.watchlists?.lists ?? []
+                          } : accountInfo.watchlists
+                        }))
+                      }}
+                    />
+                  </div>
+                }
+                )}
+              </div>
+            </>}
+          </>}
+        </>}
       </div>
     </>
   }

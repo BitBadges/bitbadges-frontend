@@ -9,7 +9,12 @@ import IconButton from '../display/IconButton';
 
 
 
-export const DateSelectWithSwitch = ({ timeRanges, setTimeRanges }: { timeRanges: UintRange<bigint>[], setTimeRanges: (timeRanges: UintRange<bigint>[]) => void }) => {
+export const DateSelectWithSwitch = ({ timeRanges, setTimeRanges, helperMessage, suggestedTimeRanges
+}: {
+  helperMessage?: string,
+  suggestedTimeRanges?: UintRange<bigint>[],
+  timeRanges: UintRange<bigint>[], setTimeRanges: (timeRanges: UintRange<bigint>[]) => void
+}) => {
   return <>
     <br />
     <div className="flex-center flex-column" style={{ textAlign: 'center' }}>
@@ -30,8 +35,10 @@ export const DateSelectWithSwitch = ({ timeRanges, setTimeRanges }: { timeRanges
         <br /><br />
         <div className="secondary-text">
           <InfoCircleOutlined />{' '}
-          {isFullUintRanges(timeRanges) && "All times are selected."}
-          {!isFullUintRanges(timeRanges) && "Custom times are selected."}
+          {helperMessage ?? <>
+            {isFullUintRanges(timeRanges) && "All times are selected."}
+            {!isFullUintRanges(timeRanges) && "Custom times are selected."}
+          </>}
         </div>
         <br />
         <>
@@ -42,6 +49,7 @@ export const DateSelectWithSwitch = ({ timeRanges, setTimeRanges }: { timeRanges
               setTimeRanges={(timeRanges) => {
                 setTimeRanges(timeRanges);
               }}
+              suggestedTimeRanges={suggestedTimeRanges}
             />
           </>}</>
       </div>

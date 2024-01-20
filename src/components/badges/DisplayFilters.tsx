@@ -1,5 +1,6 @@
 import {
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  EditOutlined
 } from "@ant-design/icons"
 import {
   Dropdown,
@@ -263,14 +264,27 @@ export const OptionsSelects = ({
   const CustomizeSelect = (
     <>
       {chain.address === accountInfo.address && (
-        <SelectWithOptions title='Mode' value={editMode ? 'edit' : 'none'} setValue={(e) => {
-          setEditMode(e === 'edit')
-          setCardView(true)
-        }} options={[{ label: 'Normal', value: 'none' }, {
-          label: 'Customize', value: 'edit',
-          disabledReason: !chain.loggedIn ? 'Please sign in to go into customize mode' : undefined,
-          disabled: !chain.loggedIn
-        },]} />
+        <>
+          <SelectWithOptions
+            type='button'
+            title='' value={editMode ? 'edit' : 'none'} setValue={(e) => {
+              setEditMode(e === 'edit')
+              setCardView(true)
+            }} options={[{
+              label:
+                <Tooltip title='Customize your profile'>
+                  <EditOutlined />
+                </Tooltip>, value: 'none'
+            }, {
+              label: <Tooltip title='Close customize mode'>
+                <EditOutlined />
+              </Tooltip>, value: 'edit',
+              disabledReason: !chain.loggedIn ? 'Please sign in to go into customize mode' : undefined,
+              disabled: !chain.loggedIn
+            },]} />
+
+
+        </>
       )}
     </>
   )

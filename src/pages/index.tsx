@@ -449,8 +449,8 @@ const Home: NextPage = () => {
                     <br />
                     <Typography.Text className='secondary-text' style={{ fontSize: 14, marginTop: 8 }}>
                       Using our suite of authentication tools, you can authenticate users
-                      from any supported chain all in one place and with the same badge.
-                      This can be done digitally (e.g. gating websites with the the Sign In with BitBadges button as seen above) or in-person (e.g. presenting QR codes at an event).
+                      from any supported chain all in one place and all with the same badge.
+                      This can be done digitally (e.g. gating websites with the the Sign In with BitBadges button as seen above) or in-person (e.g. presenting QR codes at an event - Authentication Codes tab).
                       <br />
                       <br />
 

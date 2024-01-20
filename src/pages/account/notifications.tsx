@@ -72,22 +72,22 @@ export function Notifications() {
       if (seenAnnouncements) return
       setTimeout(() => {
         setSeenAnnouncements(true);
-      }, 5000);
+      }, 30000);
     } else if (tab === 'claimAlerts') {
       if (seenClaimAlerts) return
       setTimeout(() => {
         setSeenClaimAlerts(true);
-      }, 5000);
+      }, 30000);
     } else if (tab === 'transferActivity') {
       if (seenTransferActivity) return
       setTimeout(() => {
         setSeenTransferActivity(true);
-      }, 5000);
+      }, 30000);
     } else if (tab === 'listsActivity') {
       if (seenAddressLists) return
       setTimeout(() => {
         setSeenAddressLists(true);
-      }, 5000);
+      }, 30000);
     }
   }, [tab, seenAnnouncements, seenClaimAlerts, seenTransferActivity, seenAddressLists]);
 

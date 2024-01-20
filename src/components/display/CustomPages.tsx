@@ -219,6 +219,7 @@ export const CustomizeAddRemoveListFromPage = ({
                 await onAdd(selectedList)
 
                 setSelectedList("")
+                setVisible(false)
               }}
             >
               Add
@@ -232,6 +233,7 @@ export const CustomizeAddRemoveListFromPage = ({
                 await onRemove(selectedList)
 
                 setSelectedList("")
+                setVisible(false)
               }}
             >
               Remove
@@ -370,6 +372,7 @@ export const CustomizeAddRemoveBadgeFromPage = ({
                   await onRemove(selectedBadge)
 
                   setSelectedBadge(null)
+                  setVisible(false)
                 }}
               >
                 Remove
@@ -383,6 +386,7 @@ export const CustomizeAddRemoveBadgeFromPage = ({
                   await onAdd(selectedBadge)
 
                   setSelectedBadge(null)
+                  setVisible(false)
                 }}
               >
                 Add

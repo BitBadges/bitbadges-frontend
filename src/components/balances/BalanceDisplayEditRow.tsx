@@ -2,7 +2,7 @@ import {
   DeleteOutlined,
   InfoCircleOutlined,
   MinusOutlined,
-  PlusOutlined,
+  PlusOutlined
 } from "@ant-design/icons"
 import { Row, Switch } from "antd"
 import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto"
@@ -10,20 +10,19 @@ import {
   checkIfUintRangesOverlap,
   getTotalNumberOfBadgeIds,
   invertUintRanges,
-  isFullUintRanges,
-  sortUintRangesAndMergeIfNecessary,
+  sortUintRangesAndMergeIfNecessary
 } from "bitbadgesjs-utils"
 import { ReactNode, useState } from "react"
 
 import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getBadgeIdsString } from "../../utils/badgeIds"
-import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates"
+import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { ErrDisplay } from "../common/ErrDisplay"
 import IconButton from "../display/IconButton"
 import { InformationDisplayCard } from "../display/InformationDisplayCard"
 import { BadgeIdRangesInput } from "../inputs/BadgeIdRangesInput"
-import { DateRangeInput } from "../inputs/DateRangeInput"
+import { DateSelectWithSwitch } from "../inputs/DateRangeInput"
 import { NumberInput } from "../inputs/NumberInput"
 import { SwitchForm } from "../tx-timelines/form-items/SwitchForm"
 import { BalanceDisplay } from "./BalanceDisplay"
@@ -36,7 +35,6 @@ export function BalanceDisplayEditRow({
   isMustOwnBadgesInput,
   message,
   defaultBalancesToShow,
-  hideOwnershipTimeSelect,
   onRemoveAll,
   sequentialOnly,
   fullWidthCards,
@@ -50,7 +48,6 @@ export function BalanceDisplayEditRow({
   numIncrements?: bigint
   incrementBadgeIdsBy?: bigint
   incrementOwnershipTimesBy?: bigint
-  hideOwnershipTimeSelect?: boolean
   numRecipients?: bigint
 
   message?: string | ReactNode
@@ -66,7 +63,8 @@ export function BalanceDisplayEditRow({
     balances: Balance<bigint>,
     amountRange?: UintRange<bigint>,
     collectionId?: bigint,
-    mustSatisfyForAllAssets?: boolean
+    mustSatisfyForAllAssets?: boolean,
+    overrideWithCurrentTime?: boolean
   ) => void
   defaultBalancesToShow?: Balance<bigint>[]
   onRemoveAll?: () => void
@@ -88,6 +86,8 @@ export function BalanceDisplayEditRow({
 
   const collection = useCollection(collectionId)
   const selectedCollection = useCollection(selectedCollectionId)
+
+  const [customOwnershipTimes, setCustomOwnershipTimes] = useState<boolean>(isMustOwnBadgesInput ? false : true)
 
   const currTimeNextHour = new Date()
   currTimeNextHour.setHours(currTimeNextHour.getHours())
@@ -326,78 +326,49 @@ export function BalanceDisplayEditRow({
               title={"Ownership Times"}
             >
               <br />
-              {isMustOwnBadgesInput ? (
-                timeString ?? "Transfer Time"
-              ) : hideOwnershipTimeSelect ? (
+              {isMustOwnBadgesInput && <>
+                <Switch
+                  checked={!customOwnershipTimes}
+                  checkedChildren={timeString ?? "Transfer Time"}
+                  unCheckedChildren="Specific Times"
+                  onChange={(checked) => {
+                    setCustomOwnershipTimes(!checked)
+                  }}
+                />
+                <br />
+              </>}
+
+              {customOwnershipTimes && (
                 <>
-                  <b>Select Ownership Times</b>
-                  <br />
-                  {getTimeRangesElement(currentSupply.ownershipTimes, "", true)}
-                </>
-              ) : (
-                <>
-                  <b>Select Ownership Times</b>
-                  <div>
-                    <Switch
-                      checked={isFullUintRanges(currentSupply.ownershipTimes)}
-                      checkedChildren="All Times"
-                      unCheckedChildren="Custom"
-                      onChange={(checked) => {
-                        if (checked) {
-                          setCurrentSupply({
-                            ...currentSupply,
-                            ownershipTimes: [
-                              { start: 1n, end: GO_MAX_UINT_64 },
-                            ],
-                          })
-                        } else {
-                          setCurrentSupply({
-                            ...currentSupply,
-                            ownershipTimes: [],
-                          })
-                        }
-                      }}
-                    />
-                    <br />
-                    <br />
-                    <div className="secondary-text">
-                      <InfoCircleOutlined />{" "}
-                      {isFullUintRanges(currentSupply.ownershipTimes) &&
-                        (message == "Circulating Supplys"
-                          ? "Badges are ownable (circulating) at all times."
-                          : "Ownership of the selected badges is to be transferred for all times.")}
-                      {!isFullUintRanges(currentSupply.ownershipTimes) &&
-                        (message == "Circulating Supplys"
-                          ? "Badges are ownable (circulating) only at custom times."
-                          : "Ownership of the selected badges is to be transferred only for custom times.")}
-                    </div>
-                    <br />
-                    <>
-                      {isFullUintRanges(currentSupply.ownershipTimes) ? (
-                        <></>
-                      ) : (
-                        <>
-                          <DateRangeInput
-                            timeRanges={currentSupply.ownershipTimes}
-                            setTimeRanges={(timeRanges) => {
-                              setCurrentSupply({
-                                ...currentSupply,
-                                ownershipTimes: timeRanges,
-                              })
-                            }}
-                            suggestedTimeRanges={[
-                              ...(suggestedBalances ?? []),
-                              ...(defaultBalancesToShow ?? []),
-                            ]
-                              ?.map((x) => x.ownershipTimes)
-                              .flat()}
-                          />
-                        </>
-                      )}
-                    </>
-                  </div>
+                  <DateSelectWithSwitch
+                    timeRanges={currentSupply.ownershipTimes}
+                    setTimeRanges={(timeRanges) => {
+                      setCurrentSupply({
+                        ...currentSupply,
+                        ownershipTimes: timeRanges,
+                      })
+                    }}
+                    suggestedTimeRanges={[
+                      ...(suggestedBalances ?? []),
+                      ...(defaultBalancesToShow ?? []),
+                    ]
+                      ?.map((x) => x.ownershipTimes)
+                      .flat()}
+                    helperMessage={
+                      message == "Circulating Supplys"
+                        ? "Badges are ownable (circulating) at all times."
+                        : "Ownership of the selected badges is to be transferred for all times."
+                    }
+                  />
                 </>
               )}
+              {isMustOwnBadgesInput && <>
+                <br />
+                <div className="secondary-text">
+                  <InfoCircleOutlined style={{ color: 'orange' }} /> Be mindful of the possibility of flash ownership attacks. For example, one user
+                  is successful then immediately transfers the badge to another user who is also successful. See here to <a href="https://blockin.gitbook.io/blockin/developer-docs/core-concepts#security-flash-ownership-attacks" target="_blank">learn more</a>.
+                </div>
+              </>}
             </InformationDisplayCard>
           </Row>
 
@@ -471,7 +442,6 @@ export function BalanceDisplayEditRow({
                   collectionId={collectionId}
                   balances={!isDisabled ? deepCopy([currentSupply]) : []}
                   message={"Badges to Add"}
-                  hideOwnershipTimeSelect={hideOwnershipTimeSelect}
                   isMustOwnBadgesInput={isMustOwnBadgesInput}
                   editable={false}
                   incrementBadgeIdsBy={incrementBadgeIdsBy}
@@ -499,7 +469,8 @@ export function BalanceDisplayEditRow({
                   //rest are ignored unless mustOwnBadges input
                   selectedAmountRange,
                   selectedCollectionId,
-                  mustSatisfyForAllAssets
+                  mustSatisfyForAllAssets,
+                  !customOwnershipTimes
                 )
 
                 setCurrentSupply({

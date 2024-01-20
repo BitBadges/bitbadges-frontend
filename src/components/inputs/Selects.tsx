@@ -48,6 +48,7 @@ export const SelectWithOptions = ({
   value,
   setValue,
   options,
+  type
 }: {
   title: string;
   value: string | undefined;
@@ -55,11 +56,13 @@ export const SelectWithOptions = ({
   options: {
     disabled?: boolean;
     disabledReason?: string;
-    label: string;
+    label: string | ReactNode;
     value: string | undefined;
   }[];
+  type?: 'button'
 }) => {
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -76,8 +79,6 @@ export const SelectWithOptions = ({
     };
   }, []);
 
-
-
   return (
     <div className="primary-text flex-bet" style={{ margin: 4, }}>
       <div>
@@ -85,20 +86,56 @@ export const SelectWithOptions = ({
         <div className="mt-2 relative" ref={dropdownRef}>
           <div className="relative inline-block w-full">
             <div className="relative z-10">
-              <button
+              {type === 'button' && <button
+                data-dropdown-toggle={"dropdown" + title}
+                type="button"
+                className="styled-button-normal rounded-lg w-full py-2 px-4 text-center cursor-pointer shadow-sm focus:outline-none sm:text-sm"
+                style={{
+                  borderWidth: 1, fontWeight: 'bold',
+                  border: type === 'button' ? selected ? '2px solid #1890ff' : '1px solid #D1D5DB' : undefined,
+                  color: type === 'button' ? selected ? '#1890ff' : undefined : undefined,
+                }}
+                onClick={() => {
+                  if (type === 'button') {
+                    setSelected(!selected)
+
+                    setValue(options.find((option) => option.value !== value)?.value);
+                  } else {
+                    setOpen(!open)
+                  }
+                }}
+              >
+                {(
+                  options.find((option) => option.value === value)?.label
+                )}
+              </button>}
+
+              {type !== 'button' && <button
                 data-dropdown-toggle={"dropdown" + title}
                 type="button"
                 className="styled-button-normal rounded-lg w-full py-2 px-4 text-center cursor-pointer border-gray-300 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                style={{ borderWidth: 1, fontWeight: 'bold' }}
-                onClick={() => setOpen(!open)}
+                style={{
+                  borderWidth: 1, fontWeight: 'bold',
+                }}
+                onClick={() => {
+                  if (type === 'button') {
+                    setSelected(!selected)
+
+                    setValue(options.find((option) => option.value !== value)?.value);
+                  } else {
+                    setOpen(!open)
+                  }
+                }}
               >
                 {value ? (
                   options.find((option) => option.value === value)?.label
                 ) : (
                   <span className="text-gray-400">Select an option</span>
                 )}
-              </button>
+              </button>}
             </div>
+
+
             {open &&
               <div id={"dropdown" + title} className="full-width absolute z-20">
                 {(

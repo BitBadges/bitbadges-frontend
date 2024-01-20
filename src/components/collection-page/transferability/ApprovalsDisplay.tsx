@@ -190,6 +190,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
   const [address, setAddress] = useState<string>(chain.address);
   const [filterByBadgeId, setFilterByBadgeId] = useState<boolean>(!!badgeId);
   const deletedApprovals = startingApprovals?.filter(x => !approvals.find(y => compareObjects(x, y)));
+  const [showUserApprovalsOnly, setShowUserApprovalsOnly] = useState<boolean>(false);
 
   //Initial cleansing
   approvals = approvals.filter((x, i) => approvals.findIndex(y => y.approvalId === x.approvalId) === i); //filter approvals to only take first time an approvalId is seen (used for duplicates "self-initiated-incoming" and "self-initiated-outgoing")
@@ -217,6 +218,11 @@ const FullApprovalsDisplay: FC<FullProps> = ({
         fromListId: 'Mint',
       }
     })
+  }
+
+  if (showUserApprovalsOnly) {
+    approvals = approvals.filter(x => isInAddressList(x.initiatedByList, chain.cosmosAddress))
+    disapproved = disapproved.filter(x => isInAddressList(x.initiatedByList, chain.cosmosAddress))
   }
 
   //Three levels of rows (current, grayed out (deleted), and disapproved)
@@ -308,18 +314,26 @@ const FullApprovalsDisplay: FC<FullProps> = ({
 
         {!!badgeId && <Switch
           style={{ margin: 10 }}
-          checkedChildren={`Filter by Badge ID ${badgeId}`}
-          unCheckedChildren="Show All"
+          checkedChildren={`Filter by Badge ID ${badgeId}?`}
+          unCheckedChildren={`Filter by Badge ID ${badgeId}?`}
           checked={filterByBadgeId}
           onChange={(checked) => setFilterByBadgeId(checked)}
         />}
 
         <Switch
-          checkedChildren="Show Approvals Only"
-          unCheckedChildren="Show All"
+          checkedChildren="Hide Disapprovals?"
+          unCheckedChildren="Hide Disapprovals?"
           checked={!showHidden}
           onChange={(checked) => setShowHidden(!checked)}
         />
+
+        {chain.address && chain.connected && <Switch
+          style={{ margin: 10 }}
+          checkedChildren="My Approvals Only?"
+          unCheckedChildren="My Approvals Only?"
+          checked={showUserApprovalsOnly}
+          onChange={(checked) => setShowUserApprovalsOnly(checked)}
+        />}
       </div>
       <br />
       <div>

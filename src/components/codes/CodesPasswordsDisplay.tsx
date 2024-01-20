@@ -50,7 +50,6 @@ export function CodesDisplay({
   const claimAlertAccount = useAccount(claimAlertAddress);
 
   const [claimAlertAddresses, setClaimAlertAddresses] = useState<string[]>([]);
-  const [showIndividualClaimAlert, setShowIndiviudalClaimAlert] = useState<boolean>(false);
   const [startCodeIdx, setStartCodeIdx] = useState<number>(0);
 
   const [claimAlerts, setClaimAlerts] = useState<ClaimAlertDoc<bigint>[]>([]);
@@ -76,63 +75,80 @@ export function CodesDisplay({
     }
   }, [tab])
 
+  const NewCollectionWarning = <>
+    {cantShowUrl && <>
+      <div className="secondary-text" style={{ textAlign: 'center' }}>
+        <WarningOutlined style={{ color: 'orange' }} /> Since this is a new collection, we do not have the collection ID yet.
+        As a result, we cannot generate certain QR codes or send claim alerts yet. If you choose URLs now, you will need to replace the ADD_COLLECTION_ID_HERE placeholder
+        with the collection ID once the collection is created.
+
+        All features will be fully supported once the collection is officially created.
+        However, note that moving forward, codes are only ever viewable to the current manager.
+      </div>
+      <br />
+    </>}
+  </>
+
+  const AllInOneJson = <>
+    <button
+      onClick={() => {
+        if (!codes) return;
+
+        const today = new Date();
+
+        const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+        const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
+
+        downloadJson({
+          prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=ADD_CODE_HERE',
+          codes,
+          claimLinkUrls: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x),
+          saveForLaterUrls: codes.map(x => WEBSITE_HOSTNAME + '/saveforlater?value=' + x)
+        }, `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.json`);
+      }}
+      className="landing-button primary-text" style={{ width: 100 }}
+    >
+      JSON <DownloadOutlined />
+    </button>
+  </>
+
   return <>
 
     <Row className='flex-center primary-text' style={{ textAlign: 'center', width: '100%' }}>
       <InformationDisplayCard md={24} xs={24} sm={24} title=''>
-        {hasPassword && <>
-          <div style={{ color: '#FF5733' }}>
-            <WarningOutlined /> Anyone with the password can claim the badge!
-          </div>
-          <br />
-        </>}
-        {codes && codes.length > 0 && !hasPassword && <>
-          <div style={{ color: '#FF5733' }}>
-            <WarningOutlined /> Keep these codes safe and secure! Anyone with the code can claim the badge! Codes can only be used once.
-          </div>
-          <br />
-        </>}
-        {codes && codes.length > 0 && !hasPassword && <>
-          <div className="flex-center flex-column" style={{ margin: 8, fontSize: 24 }}>
-            <b>Distribution Options</b>
-          </div>
-          <div className="flex-center secondary-text" style={{ textAlign: 'start' }}>
 
-            <ul className="list-disc list-inside">
-              <li><b>Manual</b>: Distribute the code(s) / password to your users, and they can enter them manually on the claim page.</li>
-              <li><b>Claim Links</b>: Generate unique claim URLs for your code(s) / password. Anyone with the URL can claim the badge by navigating to it. URLs can be distributed manually, via QR codes, claim alerts, or any way you prefer. Note that claiming requires signing a transaction, so wallets must be handy.</li>
-              <li><b>Save for Later Links</b>: Generate unique save for later URLs for your code(s) / password. When a user navigates to the URL, they will be able to save the code / password for later using different methods (e.g. email, copy, etc.). They can then use the code / password at a later time to claim the badge when they have acces to their wallet.</li>
-              <li><b>Claim Alerts</b>: This is an in-app notification that will be sent to the user. The notification will contain the code / password and a link to the claim page.</li>
-            </ul>
 
-          </div>
-          {cantShowUrl && <>
-            <br />
-            <div className="secondary-text" style={{ textAlign: 'center' }}>
-              <WarningOutlined style={{ color: 'orange' }} /> Since this is a new collection, we do not have the collection ID yet.
-              As a result, we cannot generate the QR codes or send claim alerts yet. If you choose URLs now, you will need to replace the ADD_COLLECTION_ID_HERE placeholder
-              with the collection ID once the collection is created.
-
-              All features will be fully supported once the collection is officially created.
-              However, note that moving forward, codes are only ever viewable to the current manager.
-            </div>
-            <br />
-          </>}
-        </>}
         <div className="flex-center flex-column" style={{ margin: 8, fontSize: 24 }}>
-          <b>Distribution Method</b>
+          <b>Distribution</b>
         </div>
         <div className="secondary-text" style={{ textAlign: 'center' }}>
+          To be able to claim, users will need to go to the claim page and enter the code / password and sign the claim transaction.{' '}
+          <InfoCircleOutlined style={{ color: 'orange' }} /> So, note that wallets must be handy at claim time.
 
-          Ultimately, we leave the distribution method up to you (i.e. how will you notify your users / send them the details?). You know your users best.
+
+          Distribution can be facilitated in a variety of way
+          according to your application requirements. You know your users best.
           Codes / passwords are not crypto-native, so you can use any method you prefer to distribute them,
           such as via email, social media sites, SMS, or even physical printouts.
-
-          Consider using widely-used tools such as <a href="https://www.mailchimp.com" target="_blank" rel="noopener noreferrer">Mailchimp</a> (email) or <a href="https://www.twilio.com" target="_blank" rel="noopener noreferrer">Twilio</a> (SMS) to help you distribute your codes.
+          We also support claim alerts which are in-app notifications that alert the user to claim with a link to the claim page.
           {' '}<WarningOutlined style={{ color: 'orange' }} />  However, always use third-party services at your own risk.
+
+          <br /><br />
+
           {<>
-            <br /><br />
-            {hasPassword && <>Note that passwords are reusable, so if leaked, unwanted parties can claim the badge.</>}
+            {hasPassword && <>
+              <span style={{ color: '#FF5733' }}>
+                <WarningOutlined /> Anyone with the password can claim the badge!
+              </span>
+            </>}
+            {codes && codes.length > 0 && !hasPassword && <>
+              <span style={{ color: '#FF5733' }}>
+                <WarningOutlined /> Keep these codes safe and secure! Anyone with the code can claim the badge! Codes can only be used once.
+              </span>
+            </>}
+            {' '}
+            If leaked, unwanted parties can claim the badge.
             Use best practices to prevent spam and leaks, such as short claim windows, only sending to trusted parties,
             and using secure communication methods.
           </>}
@@ -169,281 +185,299 @@ export function CodesDisplay({
               <div>
                 <br />
                 <div style={{ textAlign: 'center' }}>
-                  <br /><br />
-                  <div className="flex-center flex-wrap">
-                    <button
-                      onClick={() => {
-                        const today = new Date();
+                  <br />
 
-                        const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                        const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
-                        const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
-
-                        downloadJson({
-                          prefixUrl: WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=ADD_CODE_HERE',
-                          codes,
-                          claimLinkUrls: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x),
-                          saveForLaterUrls: codes.map(x => WEBSITE_HOSTNAME + '/saveforlater?value=' + x)
-                        }, `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.json`);
-                      }}
-                      className="landing-button primary-text" style={{ width: 100 }}
-                    >
-                      JSON <DownloadOutlined />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const today = new Date();
-
-                        const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                        const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
-
-                        downloadTxt(codes.join('\n'), `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
-                      }}
-                      className="landing-button primary-text" style={{ width: 150, margin: 2 }}
-                    >
-                      Codes .txt  <DownloadOutlined />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (cantShowUrl) {
-                          notification.warn({
-                            duration: 0,
-                            message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
-                          });
-                        }
-
-                        const today = new Date();
-
-                        const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                        const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
-
-                        const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
-
-                        downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
-                      }}
-                      className="landing-button primary-text" style={{ width: 150, margin: 2 }}
-                    >
-                      Claim URLs .txt <DownloadOutlined />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const today = new Date();
-
-                        const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                        const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
-
-                        downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/saveforlater?value=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
-                      }}
-                      className="landing-button primary-text" style={{ width: 200, margin: 2 }}
-                    >
-                      Save for Later URLs .txt <DownloadOutlined />
-                    </button>
-                    <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
-                      onClick={() => {
-                        navigator.clipboard.writeText(codes.join('\n'));
-                        notification.success({
-                          message: 'Copied!',
-                          description: 'We have copied the codes to your clipboard.'
-                        })
-                      }}
-                    >
-                      Copy Codes
-                      <CopyOutlined />
-                    </button>
-                    <button className="landing-button primary-text" style={{ width: 175, margin: 2 }}
-                      onClick={() => {
-                        const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
-
-                        if (cantShowUrl) {
-                          notification.warn({
-                            duration: 0,
-                            message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
-                          });
-                        }
-
-                        navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'));
-                        notification.success({
-                          message: 'Copied!',
-                          description: 'We have copied the URLs to your clipboard.'
-                        })
-                      }}
-                    >
-                      Copy Claim URLs  <CopyOutlined />
-                    </button>
-                    <button className="landing-button primary-text" style={{ width: 222, margin: 2 }}
-                      onClick={() => {
-                        navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/saveforlater?value=' + x).join('\n'));
-                        notification.success({
-                          message: 'Copied!',
-                          description: 'We have copied the URLs to your clipboard.'
-                        })
-                      }}
-                    >
-                      Copy Save for Later URLs  <CopyOutlined />
-                    </button>
-                    {!!global.navigator.canShare && global.navigator.canShare({
-                      title: 'Claim Badge',
-                      text: `test`,
-                    }) && <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
-                      onClick={async () => {
-
-                        await navigator.share({
-                          title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
-                          text: codes.join('\n'),
-                        });
-                      }}
-                    >
-                        Share Codes
-                      </button>}
-                    {/* //share text */}
-                    {!!global.navigator.canShare && global.navigator.canShare({
-                      title: 'Claim Badge',
-                      text: `test`,
-                    }) && <button className="landing-button primary-text" style={{ width: 175, margin: 2 }}
-                      onClick={async () => {
-
-                        await navigator.share({
-                          title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
-                          text: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'),
-                        });
-                      }}
-                    >
-                        Share Claim URLs
-                      </button>}
-                    {!!global.navigator.canShare && global.navigator.canShare({
-                      title: 'Claim Badge',
-                      text: `test`,
-                    }) && <button className="landing-button primary-text" style={{ width: 222, margin: 2 }}
-                      onClick={async () => {
-
-                        await navigator.share({
-                          title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
-                          text: codes.map(x => WEBSITE_HOSTNAME + '/saveforlater?value=' + x).join('\n'),
-                        });
-                      }}
-                    >
-                        Share Save for Later URLs
-                      </button>}
-
-
+                  <div className='secondary-text'>
+                    <InfoCircleOutlined /> You can use a service like <a href="https://qrexplore.com/generate/" target="_blank" rel="noopener noreferrer">this QR code generator</a> to generate QR codes in batch for URLs.
                   </div>
                   <br />
-                  <div className='secondary-text'>
-                    <InfoCircleOutlined /> You can use a service like <a href="https://qrexplore.com/generate/" target="_blank" rel="noopener noreferrer">this QR code generator</a> to generate QR codes in batch for each unique URL.
+                  <div className="flex flex-wrap">
+                    <InformationDisplayCard md={12} xs={24} sm={24} title='Codes' subtitle='Download/share/copy the plaintext codes.'>
+                      <br />
+                      <div className="flex-center">
+
+                        {AllInOneJson}
+
+                        <button
+                          onClick={() => {
+                            const today = new Date();
+
+                            const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                            const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+                            downloadTxt(codes.join('\n'), `codes-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
+                          }}
+                          className="landing-button primary-text" style={{ width: 150, margin: 2 }}
+                        >
+                          Codes .txt  <DownloadOutlined />
+                        </button>
+
+                        <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
+                          onClick={() => {
+                            navigator.clipboard.writeText(codes.join('\n'));
+                            notification.success({
+                              message: 'Copied!',
+                              description: 'We have copied the codes to your clipboard.'
+                            })
+                          }}
+                        >
+                          Copy Codes
+                          <CopyOutlined />
+                        </button>
+                        {!!global.navigator.canShare && global.navigator.canShare({
+                          title: 'Claim Badge',
+                          text: `test`,
+                        }) && <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
+                          onClick={async () => {
+
+                            await navigator.share({
+                              title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
+                              text: codes.join('\n'),
+                            });
+                          }}
+                        >
+                            Share Codes
+                          </button>}
+                      </div>
+                    </InformationDisplayCard>
+                    <InformationDisplayCard md={12} xs={24} sm={24} title='Unique Claim Links' subtitle='When users navigate to this link, they will be taken directly to the claim page with everything auto-populated for them. Note claiming requires a wallet, so users are expected to have wallets handy.'>
+                      <br />
+                      <div className="flex-center">
+                        {AllInOneJson}
+                        <button
+                          onClick={() => {
+                            if (cantShowUrl) {
+                              notification.warn({
+                                duration: 0,
+                                message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
+                              });
+                            }
+
+                            const today = new Date();
+
+                            const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                            const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+                            const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
+
+                            downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
+                          }}
+                          className="landing-button primary-text" style={{ width: 150, margin: 2 }}
+                        >
+                          Claim URLs .txt <DownloadOutlined />
+                        </button>
+
+                        <button className="landing-button primary-text" style={{ width: 175, margin: 2 }}
+                          onClick={() => {
+                            const collectionIdStr = cantShowUrl ? 'ADD_COLLECTION_ID_HERE' : collectionId.toString();
+
+                            if (cantShowUrl) {
+                              notification.warn({
+                                duration: 0,
+                                message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
+                              });
+                            }
+
+                            navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'));
+                            notification.success({
+                              message: 'Copied!',
+                              description: 'We have copied the URLs to your clipboard.'
+                            })
+                          }}
+                        >
+                          Copy Claim URLs  <CopyOutlined />
+                        </button>
+                        {/* //share text */}
+                        {!!global.navigator.canShare && global.navigator.canShare({
+                          title: 'Claim Badge',
+                          text: `test`,
+                        }) && <button className="landing-button primary-text" style={{ width: 175, margin: 2 }}
+                          onClick={async () => {
+
+                            await navigator.share({
+                              title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
+                              text: codes.map(x => WEBSITE_HOSTNAME + '/collections/' + collectionIdStr + '?approvalId=' + approvalId + '&code=' + x).join('\n'),
+                            });
+                          }}
+                        >
+                            Share Claim URLs
+                          </button>}
+
+                      </div>
+                      <br />
+                      {NewCollectionWarning}
+                    </InformationDisplayCard>
+                    <InformationDisplayCard md={12} xs={24} sm={24} title='Save for Later Links' subtitle='When users navigate to this link, they will be taken directly to the claim page with everything auto-populated for them. Note claiming requires a wallet, so users are expected to have wallets handy.'>
+                      <br />
+                      <div className="flex-center">
+                        {AllInOneJson}
+                        <button
+                          onClick={() => {
+                            const today = new Date();
+
+                            const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                            const timeString = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+                            downloadTxt(codes.map(x => WEBSITE_HOSTNAME + '/saveforlater?value=' + x).join('\n'), `code-urls-${collection?.cachedCollectionMetadata?.name}-approvalId=${approvalId}-${dateString}-${timeString}.txt`);
+                          }}
+                          className="landing-button primary-text" style={{ width: 200, margin: 2 }}
+                        >
+                          Save for Later URLs .txt <DownloadOutlined />
+                        </button>
+                        <button className="landing-button primary-text" style={{ width: 222, margin: 2 }}
+                          onClick={() => {
+                            navigator.clipboard.writeText(codes.map(x => WEBSITE_HOSTNAME + '/saveforlater?value=' + x).join('\n'));
+                            notification.success({
+                              message: 'Copied!',
+                              description: 'We have copied the URLs to your clipboard.'
+                            })
+                          }}
+                        >
+                          Copy Save for Later URLs  <CopyOutlined />
+                        </button>
+
+
+                        {!!global.navigator.canShare && global.navigator.canShare({
+                          title: 'Claim Badge',
+                          text: `test`,
+                        }) && <button className="landing-button primary-text" style={{ width: 222, margin: 2 }}
+                          onClick={async () => {
+
+                            await navigator.share({
+                              title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
+                              text: codes.map(x => WEBSITE_HOSTNAME + '/saveforlater?value=' + x).join('\n'),
+                            });
+                          }}
+                        >
+                            Share Save for Later URLs
+                          </button>}
+
+
+
+                      </div>
+                    </InformationDisplayCard>
+                    {<>
+                      <InformationDisplayCard md={12} xs={24} sm={24} title='Claim Alerts' subtitle='Send claim alerts to users. The selected addresses will receive a BitBadges notification with the respective code / password and a link to claim.'>
+
+                        <div className="flex-center">
+                          <div className="flex-center flex-column" style={{ maxWidth: 750 }}>
+                            {cantShowUrl && <>
+                              <div className="secondary-text" style={{ textAlign: 'center' }}>
+                                <WarningOutlined style={{ color: 'orange' }} /> Claim alerts require the collection ID, which we currently do not have.
+                                They will be fully supported once the collection is officially created.
+                                However, note that claim alerts can only be sent by the current manager.
+                              </div>
+                            </>}
+
+                            {!cantShowUrl && <>
+                              <div className="full-width" style={{ margin: 8, }}>
+                                <BatchAddressSelect users={claimAlertAddresses} setUsers={setClaimAlertAddresses} />
+                              </div>
+                              {!hasPassword && claimAlertAddresses.length > 0 && <>
+                                <div className=" flex-center">
+                                  <div className="flex-center flex-column" style={{ margin: 8 }}>
+                                    <b>Start Code #</b>
+                                    <NumberInput
+                                      value={startCodeIdx + 1}
+                                      setValue={(val) => {
+                                        setStartCodeIdx(val - 1);
+                                      }}
+                                      min={1}
+                                      max={codes.length}
+                                    />
+                                  </div>
+                                  <div className="flex-center flex-column" style={{ margin: 8 }}>
+                                    <b>End Code #</b>
+                                    <NumberInput
+                                      value={startCodeIdx + 1 + claimAlertAddresses.length - 1}
+                                      setValue={() => { }}
+                                      min={0}
+                                      max={codes.length}
+                                      disabled
+                                    />
+                                  </div>
+                                </div><Divider /></>}
+
+
+                              <button className="landing-button primary-text" style={{ width: '100%' }}
+                                disabled={loading || claimAlertAddresses.length == 0 || (hasPassword && !claimPassword) || (!hasPassword && (codes.length !== claimAlertAddresses.length))}
+                                onClick={async () => {
+                                  setLoading(true);
+                                  const password = claimPassword ?? '';
+
+
+                                  const convertedClaimAlertAddresses = claimAlertAddresses.map(x => convertToCosmosAddress(x));
+                                  if (convertedClaimAlertAddresses.some(x => !isAddressValid(x))) {
+                                    notification.error({
+                                      message: 'Invalid address(es)',
+                                    });
+
+                                  }
+
+                                  const codesToDistribute = codes.slice(startCodeIdx, startCodeIdx + claimAlertAddresses.length);
+                                  if (codesToDistribute.some(x => !x)) {
+                                    notification.error({
+                                      message: 'Invalid code(s)',
+                                    });
+                                  }
+
+                                  //If already used
+                                  if (codesToDistribute.some(x => challengeTracker && (challengeTracker.usedLeafIndices?.find(y => y == BigInt(codes?.indexOf(x) ?? -1)) ?? -1) >= 0)) {
+                                    notification.error({
+                                      message: 'One or more codes have already been used.',
+                                    });
+                                  }
+
+                                  const claimAlerts = [];
+                                  for (let i = 0; i < convertedClaimAlertAddresses.length; i++) {
+                                    const claimAlertAddress = convertedClaimAlertAddresses[i];
+                                    if (hasPassword) {
+                                      const message = `You are able to claim badges from collection ${collectionId}! To claim, go to ${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&password=${password}`;
+                                      claimAlerts.push({
+                                        collectionId,
+                                        recipientAddress: claimAlertAddress,
+                                        message,
+                                      });
+
+                                    } else {
+                                      const code = codes?.[startCodeIdx + i] ?? '';
+                                      const message = `You are able to claim badges from collection ${collectionId}! To claim, go to ${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&code=${code}`;
+                                      claimAlerts.push({
+                                        collectionId,
+                                        recipientAddress: claimAlertAddress,
+                                        message,
+                                      });
+                                    }
+                                  }
+
+                                  await sendClaimAlert({
+                                    claimAlerts
+                                  });
+                                  notification.success({
+                                    message: 'Claim Alerts Sent!',
+                                    description: 'We have sent the claim alerts to the selected addresses.'
+                                  })
+
+                                  setClaimAlertAddresses([]);
+
+                                  setLoading(false);
+
+                                }
+                                } >Send {loading && <Spin />}</button>
+                              {!hasPassword && codes && <div className="secondary-text">
+                                <InfoCircleOutlined />  We will send claim alerts for the codes {startCodeIdx + 1} to {startCodeIdx + 1 + claimAlertAddresses.length - 1} to the selected addresses ({claimAlertAddresses.length}) in the order they were entered, respectively.
+                              </div>}
+                            </>}
+                          </div>
+                        </div>
+                      </InformationDisplayCard>
+                    </>}
+
                   </div>
+
                 </div>
                 <br />
-                {!cantShowUrl && <>
-                  <Typography.Text strong className='primary-text' style={{ fontSize: 18 }}>Batch Send Claim Alerts</Typography.Text>
-                  <div className="flex-center">
-                    <div className="flex-center flex-column" style={{ maxWidth: 750 }}>
-                      {!cantShowUrl && <>
-                        <div className='secondary-text'>
-                          <InfoCircleOutlined /> The selected addresses will receive a BitBadges notification with the respective code / password and a link to claim.
 
-                        </div>
-
-                        <div className="full-width" style={{ margin: 8, }}>
-                          <BatchAddressSelect users={claimAlertAddresses} setUsers={setClaimAlertAddresses} />
-                        </div>
-                        {!hasPassword && claimAlertAddresses.length > 0 && <>
-                          <div className=" flex-center">
-                            <div className="flex-center flex-column" style={{ margin: 8 }}>
-                              <b>Start Code #</b>
-                              <NumberInput
-                                value={startCodeIdx + 1}
-                                setValue={(val) => {
-                                  setStartCodeIdx(val - 1);
-                                }}
-                                min={1}
-                                max={codes.length}
-                              />
-                            </div>
-                            <div className="flex-center flex-column" style={{ margin: 8 }}>
-                              <b>End Code #</b>
-                              <NumberInput
-                                value={startCodeIdx + 1 + claimAlertAddresses.length - 1}
-                                setValue={() => { }}
-                                min={0}
-                                max={codes.length}
-                                disabled
-                              />
-                            </div>
-                          </div><Divider /></>}
-
-
-                        <button className="landing-button primary-text" style={{ width: '100%' }}
-                          disabled={loading || claimAlertAddresses.length == 0 || (hasPassword && !claimPassword) || (!hasPassword && (codes.length !== claimAlertAddresses.length))}
-                          onClick={async () => {
-                            setLoading(true);
-                            const password = claimPassword ?? '';
-
-
-                            const convertedClaimAlertAddresses = claimAlertAddresses.map(x => convertToCosmosAddress(x));
-                            if (convertedClaimAlertAddresses.some(x => !isAddressValid(x))) {
-                              notification.error({
-                                message: 'Invalid address(es)',
-                              });
-
-                            }
-
-                            const codesToDistribute = codes.slice(startCodeIdx, startCodeIdx + claimAlertAddresses.length);
-                            if (codesToDistribute.some(x => !x)) {
-                              notification.error({
-                                message: 'Invalid code(s)',
-                              });
-                            }
-
-                            //If already used
-                            if (codesToDistribute.some(x => challengeTracker && (challengeTracker.usedLeafIndices?.find(y => y == BigInt(codes?.indexOf(x) ?? -1)) ?? -1) >= 0)) {
-                              notification.error({
-                                message: 'One or more codes have already been used.',
-                              });
-                            }
-
-                            const claimAlerts = [];
-                            for (let i = 0; i < convertedClaimAlertAddresses.length; i++) {
-                              const claimAlertAddress = convertedClaimAlertAddresses[i];
-                              if (hasPassword) {
-                                const message = `You are able to claim badges from collection ${collectionId}! To claim, go to ${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&password=${password}`;
-                                claimAlerts.push({
-                                  collectionId,
-                                  recipientAddress: claimAlertAddress,
-                                  message,
-                                });
-
-                              } else {
-                                const code = codes?.[startCodeIdx + i] ?? '';
-                                const message = `You are able to claim badges from collection ${collectionId}! To claim, go to ${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&code=${code}`;
-                                claimAlerts.push({
-                                  collectionId,
-                                  recipientAddress: claimAlertAddress,
-                                  message,
-                                });
-                              }
-                            }
-
-                            await sendClaimAlert({
-                              claimAlerts
-                            });
-                            notification.success({
-                              message: 'Claim Alerts Sent!',
-                              description: 'We have sent the claim alerts to the selected addresses.'
-                            })
-
-                            setClaimAlertAddresses([]);
-
-                            setLoading(false);
-
-                          }
-                          } >Send {loading && <Spin />}</button>
-                        {!hasPassword && codes && <div className="secondary-text">
-                          <InfoCircleOutlined />  We will send claim alerts for the codes {startCodeIdx + 1} to {startCodeIdx + 1 + claimAlertAddresses.length - 1} to the selected addresses ({claimAlertAddresses.length}) in the order they were entered, respectively.
-                        </div>}
-                      </>}
-                    </div>
-                  </div>
-                </>}
                 <Divider />
               </div>
             </>
@@ -509,121 +543,60 @@ export function CodesDisplay({
                 >
                     Share {printStr[0].toUpperCase() + printStr.slice(1)}
                   </button>}
-                {!cantShowUrl &&
-                  <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`}>
-                    <button className="landing-button primary-text" style={{ width: 190 }}
-                      onClick={() => {
-                        setShowIndiviudalClaimAlert(!showIndividualClaimAlert);
-                      }}
-                    >
-                      {showIndividualClaimAlert ? 'Hide' : 'Show'} Claim Alert Form
-                    </button>
-                  </Tooltip>}
               </div>
 
-              {showIndividualClaimAlert && !cantShowUrl && <Divider />}
-              {showIndividualClaimAlert && !cantShowUrl &&
-                <div className="flex-center">
-
-                  <InformationDisplayCard title='Send Claim Alert'>
-                    {!cantShowUrl && <>
-
-                      <div className='secondary-text'>
-                        <InfoCircleOutlined /> The selected address will receive a BitBadges in-app notification with the code / password and a link to claim.
-                      </div>
-                      <AddressSelect onUserSelect={(address) => {
-                        setClaimAlertAddress(address);
-                      }} />
-                      <div className="flex-center">
-                        <button className="landing-button primary-text " style={{ width: 150, margin: 2 }}
-                          disabled={loading || !claimAlertAddress || !claimAlertAccount || (hasPassword && !claimPassword) || (!hasPassword && (!(codes?.[codePage - 1] ?? '')))}
-                          onClick={async () => {
-                            setLoading(true);
-                            const code = codes?.[codePage - 1] ?? '';
-                            const password = claimPassword ?? '';
-                            //// You have been whitelisted to claim badges from collection ${collectionDoc.collectionId}! ${orderMatters ? `You have been reserved specific badges which are only claimable to you. Your claim number is #${idx + 1}` : ''}`,
-
-                            if (claimAlertAddress && claimAlertAccount) {
-                              if (hasPassword) {
-                                const message = `You are able to claim badges from collection ${collectionId}! To claim, go to ${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&password=${password}`;
-
-                                await sendClaimAlert({
-                                  claimAlerts: [{
-                                    collectionId,
-                                    recipientAddress: claimAlertAccount.address,
-                                    message,
-                                  }]
-                                });
-                              } else {
-                                const message = `You are able to claim badges from collection ${collectionId}! To claim, go to ${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&code=${code}`;
-                                await sendClaimAlert({
-                                  claimAlerts: [{
-                                    collectionId,
-                                    recipientAddress: claimAlertAccount.address,
-                                    message,
-                                  }]
-                                });
-                              }
-
-                              notification.success({
-                                message: 'Claim Alert Sent!',
-                                description: 'We have sent the claim alert to the selected address.'
-                              })
-
-                              setClaimAlertAddress('');
-                            }
-                            setShowIndiviudalClaimAlert(false);
-                            setLoading(false);
-
-                          }} >Send {loading && <Spin />}</button>
-                      </div>
-                    </>}
-                  </InformationDisplayCard></div>
-              }
-              <br />
             </>
             }
           </>}
           <div className="flex flex-wrap">
 
-            <InformationDisplayCard md={12} xs={24} sm={24} title='Unique Claim Link' subtitle='When users navigate to this link, they will be taken directly to the claim page with everything auto-populated for them. Note claiming rqeuires a wallet, so users are expected to have wallets handy.'>
+            <InformationDisplayCard md={12} xs={24} sm={24} title='Unique Claim Link' subtitle='When users navigate to this link, they will be taken directly to the claim page with everything auto-populated for them. Note claiming requires a wallet, so users are expected to have wallets handy.'>
               <br />
               {cantShowUrl ? <>
-                <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`}>
-                  <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
-                    onClick={() => {
+                <div className="flex-center flex-wrap">
+                  <Tooltip color="black" title={`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`}>
+                    <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
+                      onClick={() => {
 
-                      if (cantShowUrl) {
-                        notification.warn({
-                          duration: 0,
-                          message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
-                        });
-                      }
+                        if (cantShowUrl) {
+                          notification.warn({
+                            duration: 0,
+                            message: 'Since this is a new collection, we do not have the collection ID yet. You will need to manually replace ADD_COLLECTION_ID_HERE with the collection ID once the collection is created.'
+                          });
+                        }
 
-                      navigator.clipboard.writeText(`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`);
-                      notification.success({
-                        message: 'Copied!',
-                        description: 'We have copied the URL to your clipboard.'
-                      })
+                        navigator.clipboard.writeText(`${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`);
+                        notification.success({
+                          message: 'Copied!',
+                          description: 'We have copied the URL to your clipboard.'
+                        })
+                      }}
+                    >
+                      Copy URL
+                    </button>
+                  </Tooltip>
+                  {!!global.navigator.canShare && global.navigator.canShare({
+                    title: 'Claim Badge',
+                    text: `test`,
+                  }) && <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
+                    onClick={async () => {
+
+                      await navigator.share({
+                        title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
+                        text: `${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`,
+                      });
                     }}
                   >
-                    Copy URL
-                  </button>
-                </Tooltip>
-                {!!global.navigator.canShare && global.navigator.canShare({
-                  title: 'Claim Badge',
-                  text: `test`,
-                }) && <button className="landing-button primary-text" style={{ width: 150, margin: 2 }}
-                  onClick={async () => {
+                      Share URL
+                    </button>}
 
-                    await navigator.share({
-                      title: `BitBadges Claim ${printStr[0].toUpperCase() + printStr.slice(1)}`,
-                      text: `${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&${urlSuffix}`,
-                    });
-                  }}
-                >
-                    Share URL
-                  </button>}
+
+                </div>
+                <br />
+                {codes && codes.length > 0 && !hasPassword && <>
+
+                  {NewCollectionWarning}
+                </>}
               </> : <>
                 <QrCodeDisplay
                   isUrl
@@ -637,6 +610,63 @@ export function CodesDisplay({
                 isUrl
                 size={256} value={`https://bitbadges.io/saveforlater?value=${hasPassword ? claimPassword : codes?.[codePage - 1] ?? ''}`}
               />
+            </InformationDisplayCard>
+            <InformationDisplayCard md={12} xs={24} sm={24} title='Claim Alert' subtitle='Send a claim alert to a user. The selected address will receive a BitBadges notification with the code / password and a link to claim.'>
+              <br />
+              {cantShowUrl && <>
+                <div className="secondary-text" style={{ textAlign: 'center' }}>
+                  <WarningOutlined style={{ color: 'orange' }} /> Claim alerts require the collection ID, which we currently do not have.
+                  They will be fully supported once the collection is officially created.
+                  However, note that claim alerts can only be sent by the current manager.
+                </div>
+              </>}
+              {!cantShowUrl && <>
+                <AddressSelect onUserSelect={(address) => {
+                  setClaimAlertAddress(address);
+                }} />
+                <div className="flex-center">
+                  <button className="landing-button primary-text " style={{ width: 150, margin: 2 }}
+                    disabled={loading || !claimAlertAddress || !claimAlertAccount || (hasPassword && !claimPassword) || (!hasPassword && (!(codes?.[codePage - 1] ?? '')))}
+                    onClick={async () => {
+                      setLoading(true);
+                      const code = codes?.[codePage - 1] ?? '';
+                      const password = claimPassword ?? '';
+                      //// You have been whitelisted to claim badges from collection ${collectionDoc.collectionId}! ${orderMatters ? `You have been reserved specific badges which are only claimable to you. Your claim number is #${idx + 1}` : ''}`,
+
+                      if (claimAlertAddress && claimAlertAccount) {
+                        if (hasPassword) {
+                          const message = `You are able to claim badges from collection ${collectionId}! To claim, go to ${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&password=${password}`;
+
+                          await sendClaimAlert({
+                            claimAlerts: [{
+                              collectionId,
+                              recipientAddress: claimAlertAccount.address,
+                              message,
+                            }]
+                          });
+                        } else {
+                          const message = `You are able to claim badges from collection ${collectionId}! To claim, go to ${WEBSITE_HOSTNAME}/collections/${collectionIdStr}?approvalId=${approvalId}&code=${code}`;
+                          await sendClaimAlert({
+                            claimAlerts: [{
+                              collectionId,
+                              recipientAddress: claimAlertAccount.address,
+                              message,
+                            }]
+                          });
+                        }
+
+                        notification.success({
+                          message: 'Claim Alert Sent!',
+                          description: 'We have sent the claim alert to the selected address.'
+                        })
+
+                        setClaimAlertAddress('');
+                      }
+                      setLoading(false);
+
+                    }} >Send {loading && <Spin />}</button>
+                </div>
+              </>}
             </InformationDisplayCard>
           </div>
 

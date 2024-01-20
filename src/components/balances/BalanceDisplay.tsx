@@ -21,7 +21,6 @@ export function BalanceDisplay({
   numIncrements = 0n,
   incrementBadgeIdsBy = 0n,
   incrementOwnershipTimesBy = 0n,
-  hideOwnershipTimeSelect,
   mustOwnBadges,
   noOffChainBalances,
   cardView,
@@ -44,7 +43,6 @@ export function BalanceDisplay({
   numIncrements?: bigint
   incrementBadgeIdsBy?: bigint
   incrementOwnershipTimesBy?: bigint
-  hideOwnershipTimeSelect?: boolean
   message?: string | ReactNode
   size?: number
   showingSupplyPreview?: boolean
@@ -61,7 +59,8 @@ export function BalanceDisplay({
     balance: Balance<bigint>,
     amountRange?: UintRange<bigint>,
     collectionId?: bigint,
-    mustSatisfyForAllAssets?: boolean
+    mustSatisfyForAllAssets?: boolean,
+    overrideWithCurrentTime?: boolean
   ) => void
   setBalances?: (balances: Balance<bigint>[]) => void
   onRemoveAll?: () => void
@@ -128,7 +127,6 @@ export function BalanceDisplay({
       isMustOwnBadgesInput={isMustOwnBadgesInput}
       noOffChainBalances={noOffChainBalances}
       onAddBadges={onAddBadges}
-      hideOwnershipTimeSelect={hideOwnershipTimeSelect}
       message={message}
       defaultBalancesToShow={defaultBalancesToShow}
       onRemoveAll={onRemoveAll}
@@ -275,6 +273,7 @@ export function BalanceDisplay({
                       const collectionId = balance.collectionId
                       const badgeIds = balance.badgeIds
                       const ownershipTimes = balance.ownershipTimes
+                      const overrideWithCurrentTime = balance.ownershipTimes.length === 0
 
                       const NormalRowComponent = (
                         <tr
@@ -343,7 +342,7 @@ export function BalanceDisplay({
                               paddingLeft: 4,
                             }}
                           >
-                            {isMustOwnBadgesInput
+                            {isMustOwnBadgesInput && overrideWithCurrentTime
                               ? timeString ?? "Transfer Time"
                               : getTimeRangesElement(ownershipTimes, "", true)}
                           </td>

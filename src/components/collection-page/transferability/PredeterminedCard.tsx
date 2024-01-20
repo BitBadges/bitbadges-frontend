@@ -140,15 +140,10 @@ export const PredeterminedCard = ({ transfer, collectionId, address, setAddress 
         </ul>
         <div className='flex-center inherit-bg primary-text'>
           <div>
-
-
-
             {hasIncrements ? <>
               <Typography.Text strong style={{ fontSize: 16 }} className='primary-text'>
                 Claim #
               </Typography.Text>
-
-
 
               <InputNumber
                 style={{ width: 100 }}

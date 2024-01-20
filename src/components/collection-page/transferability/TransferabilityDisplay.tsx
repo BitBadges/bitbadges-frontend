@@ -1,7 +1,7 @@
 import { BookOutlined, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, GiftOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined } from '@ant-design/icons';
 import { Spin, Tag, Typography, notification } from 'antd';
 import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
-import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, getCurrentValueForTimeline, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, getCurrentValueForTimeline, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
@@ -276,6 +276,15 @@ export function TransferabilityDisplay({
   const isPasswordClaim = approval.approvalCriteria?.merkleChallenge?.root && approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria) && approval.details?.hasPassword;
   const isCodeClaim = approval.approvalCriteria?.merkleChallenge?.root && approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria) && !approval.details?.hasPassword;
 
+  let isCurrentlyValid = isPasswordClaim || isCodeClaim;
+  if (chain.cosmosAddress && !isInAddressList(approval.initiatedByList, chain.cosmosAddress)) {
+    isCurrentlyValid = false;
+  }
+  const [_, found] = searchUintRangesForId(BigInt(Date.now()), approval.transferTimes);
+  if (!found) {
+    isCurrentlyValid = false;
+  }
+
   return <>
     <div style={{ textAlign: 'center' }}>
       {collection && <>
@@ -372,8 +381,6 @@ export function TransferabilityDisplay({
                     />}
                   {!editable && !onDelete && !hideActions && !disapproved &&
                     <IconButton
-
-                      secondary={!isPasswordClaim && !isCodeClaim}
                       src={
                         refreshing ? <Spin /> :
                           isPasswordClaim || isCodeClaim ? <GiftOutlined /> :
@@ -383,7 +390,7 @@ export function TransferabilityDisplay({
                         if (!hideActions) await refreshTrackers();
                         setTransferIsVisible(!transferIsVisible)
                       }}
-                      disabled={refreshing}
+                      disabled={refreshing || !isCurrentlyValid}
                       text={isPasswordClaim || isCodeClaim ? 'Claim' : 'Transfer'}
                       tooltipMessage={
                         isPasswordClaim ? 'Claim by entering the password for this approval.' :

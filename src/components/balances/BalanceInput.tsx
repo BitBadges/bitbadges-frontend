@@ -9,7 +9,6 @@ export function BalanceInput({
   onRemoveAll,
   collectionId,
   message,
-  hideOwnershipTimes,
   isMustOwnBadgesInput,
   setBalances,
   hideDisplay,
@@ -24,11 +23,10 @@ export function BalanceInput({
   noOffChainBalances
 }: {
   balancesToShow: Balance<bigint>[],
-  onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint, mustSatisfyForAllAssets?: boolean) => void,
+  onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint, mustSatisfyForAllAssets?: boolean, overrideWithCurrentTime?: boolean) => void,
   onRemoveAll?: () => void,
   collectionId?: bigint,
   message?: string,
-  hideOwnershipTimes?: boolean
   isMustOwnBadgesInput?: boolean,
   setBalances?: (balances: Balance<bigint>[]) => void,
   hideDisplay?: boolean
@@ -61,8 +59,6 @@ export function BalanceInput({
       //Edit props
       onAddBadges={onAddBadges}
       noOffChainBalances={noOffChainBalances}
-
-      hideOwnershipTimeSelect={hideOwnershipTimes}
       editable
       onRemoveAll={onRemoveAll}
       setBalances={setBalances}

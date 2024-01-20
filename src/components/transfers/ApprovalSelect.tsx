@@ -741,7 +741,6 @@ export function ApprovalSelect({
                   isMustOwnBadgesInput
                   noOffChainBalances
                   message="Must Own Badges"
-                  hideOwnershipTimes
                   balancesToShow={mustOwnBadges.map(x => {
                     return {
                       ...x,
@@ -750,15 +749,15 @@ export function ApprovalSelect({
                     }
                   })}
                   mustOwnBadges={mustOwnBadges}
-                  onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets) => {
+                  onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets, overrideWithCurrentTime) => {
                     if (!collectionId || !amountRange) return;
 
                     setMustOwnBadges([...mustOwnBadges, {
                       collectionId: collectionId,
-                      overrideWithCurrentTime: true,
+                      overrideWithCurrentTime: !!overrideWithCurrentTime,
                       amountRange: amountRange,
                       badgeIds: balance.badgeIds,
-                      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                      ownershipTimes: balance.ownershipTimes,
                       mustSatisfyForAllAssets: !!mustSatisfyForAllAssets
                     }]);
                   }}

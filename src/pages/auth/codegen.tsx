@@ -1,20 +1,22 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Spin, Tooltip } from 'antd';
-import { BigIntify, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress, getMetadataForBadgeId, getTotalNumberOfBadgeIds } from 'bitbadgesjs-utils';
-import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString, createChallenge, convertChallengeParams } from 'blockin';
+import { BigIntify, BitBadgesAddressList, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress, getMetadataForBadgeId, getTotalNumberOfBadgeIds } from 'bitbadgesjs-utils';
+import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString, convertChallengeParams, createChallenge } from 'blockin';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createAuthCode, verifySignInGeneric } from '../../bitbadges-api/api';
+import { createAuthCode, getAddressLists, verifySignInGeneric } from '../../bitbadges-api/api';
 import { SignChallengeResponse, useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchAccounts, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchCollections, getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { BadgeAvatarDisplay } from '../../components/badges/BadgeAvatarDisplay';
+import { ListInfiniteScroll } from '../../components/badges/ListInfiniteScroll';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
 import { EmptyIcon } from '../../components/common/Empty';
 import { ErrDisplay } from '../../components/common/ErrDisplay';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
+import { getTimeRangesString } from '../../utils/dates';
 import { AuthCode } from '../account/codes';
 
 export interface CodeGenQueryParams {
@@ -58,6 +60,7 @@ function BlockinCodesScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [simulationMessage, setSimulationMessage] = useState('');
+  const [lists, setLists] = useState<BitBadgesAddressList<bigint>[]>([]);
 
   const currAccount = useAccount(address);
 
@@ -67,9 +70,16 @@ function BlockinCodesScreen() {
   }, [challengeParams]);
 
   useEffect(() => {
-    const collectionsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId) ?? [];
+    const collectionsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId && x.collectionId !== "BitBadges Lists") ?? [];
     const collectionIds = collectionsToFetch.map(x => BigInt(x.collectionId));
     fetchCollections(collectionIds);
+
+    const listsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId === "BitBadges Lists") ?? [];
+    if (listsToFetch.length) {
+      getAddressLists({ listsToFetch: listsToFetch.map(x => { return { listId: x.assetIds[0] as string } }) }).then(lists => {
+        setLists(lists.addressLists);
+      })
+    }
   }, [blockinParams]);
 
   useEffect(() => {
@@ -314,9 +324,23 @@ function BlockinCodesScreen() {
                             {/* {authCode.params.resources && !!authCode.params.resources.length ? <TableRow label={'Resources'} value={authCode.params.resources.join(', ')} labelSpan={8} valueSpan={16} /> : <></>} */}
 
                             {authCode.params.assets?.map((asset, i) => {
+                              if (asset.collectionId === 'BitBadges Lists') {
+                                const includedInList = asset.mustOwnAmounts.start === 1n;
+
+                                return <div key={i}>
+                                  You must be {includedInList ? 'included in' : 'excluded from'} all of the following lists:
+                                  <br />
+                                  <ListInfiniteScroll
+                                    addressOrUsername={address}
+                                    hasMore={false}
+                                    fetchMore={async () => { }}
+                                    listsView={lists}
+                                  />
+                                </div>
+                              }
                               const chainName = asset.chain;
                               const badgeIds = asset.assetIds.map(x => {
-                                if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
+                                if (typeof x === 'string') return { start: 1n, end: 1n }; //List
                                 return { start: BigInt(x.start), end: BigInt(x.end) };
                               });
                               const hasMoreThanOneBadge = getTotalNumberOfBadgeIds(badgeIds) > 1;
@@ -347,6 +371,8 @@ function BlockinCodesScreen() {
 
                               </>
 
+
+
                               const amountsText = <>{[asset.mustOwnAmounts].map(amount => {
                                 if (typeof amount !== 'object') {
                                   return 'x' + BigInt(amount).toString();
@@ -367,20 +393,19 @@ function BlockinCodesScreen() {
                                   You must own {amountsText} of the specified badges ({assetsText})
                                 </>}
 
-                                {' '}{asset.ownershipTimes ? 'from ' +
-                                  asset.ownershipTimes.map(time => {
+                                {' '}{(asset.ownershipTimes ?? []).length > 0 ? 'during the times (' +
+                                  asset.ownershipTimes?.map(time => {
                                     if (typeof time === 'string') {
                                       return new Date(time).toLocaleString();
                                     } else if (typeof time !== 'object') {
                                       return new Date(Number(BigInt(time))).toLocaleString();
                                     } else {
-                                      return `${new Date(Number(BigInt(time.start))).toLocaleString()} until ${new Date(Number(BigInt(time.end))).toLocaleString()}`
+                                      return getTimeRangesString([time], '', true);
                                     }
-                                  }).join(', ') : 'at the time of sign in'} to be approved.
+                                  }).join(', ') + ')' : 'at the time of sign in'} to be approved.
                                 <br />
                                 <br />
                                 <BadgeAvatarDisplay
-                                  cardView={!hasMoreThanOneBadge}
                                   collectionId={BigInt(asset.collectionId)} badgeIds={asset.assetIds.map(x => {
                                     if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
                                     return { start: BigInt(x.start), end: BigInt(x.end) };
@@ -441,6 +466,7 @@ function BlockinCodesScreen() {
                         </div>
                         <br />
                         {simulationMessage && <ErrDisplay err={simulationMessage} warning />}
+                        {errorMessage && simulationMessage && <br />}
                         {errorMessage && <ErrDisplay err={errorMessage} />}
                       </InformationDisplayCard>
                     }

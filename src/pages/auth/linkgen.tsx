@@ -1,18 +1,15 @@
-import { InfoCircleOutlined, MenuUnfoldOutlined, MinusOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, DatePicker, Form, Input, Tooltip, Typography, message } from 'antd';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { addMetadataToIpfs, fetchMetadataDirectly } from '../../bitbadges-api/api';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { BalanceInput } from '../../components/balances/BalanceInput';
 import { Divider } from '../../components/display/Divider';
-import IconButton from '../../components/display/IconButton';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { CheckboxSelect } from '../../components/inputs/Selects';
 import { ImageSelect } from '../../components/tx-timelines/form-items/MetadataForm';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
-import { AuthCode } from '../account/codes';
 import { CodeGenQueryParams } from './codegen';
 const { Text } = Typography;
 
@@ -20,9 +17,7 @@ function BlockinCodesScreen() {
   const [messageType, setMessageType] = useState<'blockin' | 'custom'>('blockin');
   console.log(!!setMessageType);
 
-  const chain = useChainContext();
   const [customMessage, setCustomMessage] = useState<string>('');
-  const [showPreview, setShowPreview] = useState<boolean>(false);
   const [image, setImage] = useState<string>('');
   const [codeGenParams, setCodeGenParams] = useState<Required<CodeGenQueryParams>>({
     name: "",
@@ -489,7 +484,6 @@ function BlockinCodesScreen() {
                         isMustOwnBadgesInput
                         message="Must Own Badges"
                         timeString="Authentication Time"
-                        hideOwnershipTimes
                         balancesToShow={codeGenParams.challengeParams.assets?.map(x => {
                           const badgeIds = [];
                           for (const asset of x.assetIds) {
@@ -514,14 +508,14 @@ function BlockinCodesScreen() {
                           }
                           return {
                             collectionId: BigInt(x.collectionId),
-                            overrideWithCurrentTime: true,
+                            overrideWithCurrentTime: (x.ownershipTimes ?? []).length === 0,
                             amountRange: x.mustOwnAmounts,
                             badgeIds: badgeIds,
-                            ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                            ownershipTimes: x.ownershipTimes ?? [],
                             mustSatisfyForAllAssets: true
                           }
                         }) ?? []}
-                        onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets) => {
+                        onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets, overrideWithCurrentTime) => {
                           if (!collectionId || !amountRange) return;
 
                           const newAssets = codeGenParams.challengeParams.assets ? [...codeGenParams.challengeParams.assets] : [];
@@ -531,7 +525,8 @@ function BlockinCodesScreen() {
                             mustOwnAmounts: amountRange,
                             chain: 'BitBadges',
                             mustSatisfyForAllAssets: !!mustSatisfyForAllAssets,
-                            //no ownership times = auth time
+                            ownershipTimes: overrideWithCurrentTime ? undefined : balance.ownershipTimes,
+
                           });
                           setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, assets: newAssets } });
 
@@ -687,63 +682,7 @@ function BlockinCodesScreen() {
                       </a>
                     </Typography.Text>
                   </Tooltip>
-                  <IconButton
-                    src={!showPreview ? <MenuUnfoldOutlined /> : <MinusOutlined />}
-                    text='Preview'
-                    onClick={() => {
-                      setShowPreview(!showPreview);
-                    }}
-                  />
-
-
                 </div>
-                <br />
-                {showPreview && <>
-                  <hr />
-                  <br />
-                  <b className='primary-text' style={{ textAlign: 'center' }}>
-                    Preview
-                  </b>
-
-
-                  <AuthCode
-                    isPreview
-                    notStoredInAccount={!codeGenParams.storeInAccount}
-                    authCode={{
-
-                      //                 signature: string;
-                      // name: string;
-                      // description: string;
-                      // image: string;
-                      // cosmosAddress: string;
-                      // params: ChallengeParams<T>;
-                      // createdAt: T;
-
-                      _docId: '',
-                      ...codeGenParams.challengeParams,
-                      params: {
-                        ...codeGenParams.challengeParams,
-                        address: chain.address,
-                        // chain: chain.chain,
-                      },
-                      name: codeGenParams.name,
-                      description: codeGenParams.description,
-                      image: codeGenParams.image,
-                      createdAt: BigInt(Date.now()),
-                      signature: '0x08eb26ce592af9ea3d734a1d73c491d67f32d2a67515202de05255ef9c52472edb0918c64bb85f7b0fd774aee2ddd997449330b1c',
-                      cosmosAddress: chain.cosmosAddress,
-                    }}
-                  />
-
-                  {/* <button className='landing-button full-width' style={{ margin: 5, width: '100%' }} onClick={() => {
-                  notification.info({
-                    message: 'Preview',
-                    description: 'This is just a previe of what users will see.'
-                  })
-                }}>
-                  Sign
-                </button> */}
-                </>}
               </>}
               {<>
                 <Divider />
@@ -784,14 +723,20 @@ function BlockinCodesScreen() {
 
                       The link will walk them through the process of authenticating via signing the message.
                       The signature of the message will then become their secret authentication code.
-                      The message and code / signature will be stored in their BitBadges account,
-                      but they will have the option to store it elsewhere as well (e.g. in their browser, email, copy to clipboard, etc.).
+                      {codeGenParams.storeInAccount && <>
+                        You have selected that the message and code / signature will be stored in their BitBadges account.
+                        It will be stored there, but they will have the option to store it elsewhere as well (e.g. in their browser, email, copy to clipboard, etc.).
+                      </>}
+                      {!codeGenParams.storeInAccount && <>
+                        You have selected that the message and code / signature will not be stored in their BitBadges account.
+                        The code will be one-time view only, and they must store it elsewhere (e.g. in their browser, email, copy to clipboard, etc.).
+                      </>}
                       <br />
                       <br />
                       Users will need to present their secret authentication code to you.
                       This can be done according to your preferred method.
                       Some examples include email, text, or in-person via QR code.
-                      We leave this step up to you. You know your users best.
+                      We leave this step up to you. You know your users and your application best.
                       Consider providing instructions in the description denoting which format you expect to receive the codes in.
                     </div>
                     <br />
@@ -804,7 +749,7 @@ function BlockinCodesScreen() {
 
                   <div className='secondary-text'>
                     3) {messageType === 'blockin' && <>
-                      {' '}Once the code is received, it needs to be verified with Blockin. Consider using the helper URL below. This is for a helper tool created by us to verify the codes directly in your browser.
+                      {' '}Once the code is received, it needs to be verified with Blockin. For simple use cases, consider using the helper URL below. This is for a helper tool created by us to verify the codes directly in your browser.
                       Or, see here for <a href='https://docs.bitbadges.io/for-developers/badge-verification' target='_blank' rel="noopener noreferrer">more information on how to verify programmatically with Blockin</a>.
                     </>}
                     {messageType !== 'blockin' && <>
@@ -832,7 +777,7 @@ function BlockinCodesScreen() {
                     4) {messageType === 'blockin' && <>
                       {` Blockin handles checking the user's signature and verifying ownership of specified badges (if any).
                       Any other custom requirements need to be handled by you separately (e.g. stamping users hands, checking IDs, etc.).
-                      It is also critical that you prevent replay attacks and man-in-the-middle attacks. We strongly recommend codes being one-time use only to prevent these.`}
+                      It is also critical that you prevent replay attacks, man-in-the-middle attacks, and flash ownership attacks (if verifying with assets). We strongly recommend codes, assets, and addresses being one-time use only to prevent these.`}
                     </>}
                     {messageType !== 'blockin' && <>
                       {' '}Step 4 only checks the signature is correct. Any other custom requirements need to be handled by you separately (e.g. stamping users hands, checking IDs, etc.).
