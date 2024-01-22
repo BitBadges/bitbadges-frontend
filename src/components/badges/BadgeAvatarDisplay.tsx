@@ -67,7 +67,7 @@ export function BadgeAvatarDisplay({
   const inRangeBadgeIds = filterGreaterThanMax ? remaining : badgeIds
   const userBalance = balance
   const [currPage, setCurrPage] = useState<number>(1)
-  const pageSize = defaultPageSize ?? (cardView ? 2 : 10)
+  const pageSize = defaultPageSize ?? (cardView ? 1 : 10)
 
   const total = useMemo(() => {
     return getTotalNumberOfBadgeIds(inRangeBadgeIds)

@@ -35,7 +35,7 @@ export function ChooseBadgeTypeStepItem() {
             },
             {
               title: 'Badge Collection',
-              message: 'Create a collection of badges (tokens) which can be owned, transferred, and traded. Each badge can be customized to have its own unique properties.',
+              message: 'Create a collection of badges (tokens) which can be owned and transferred. Each badge can be customized to have its own unique properties like transferability, metadata, supply, and more.',
               isSelected: mintType === MintType.BitBadge,
               additionalNode: () => <>
                 <b>Example</b> <BadgeAvatarDisplay collectionId={1n} badgeIds={[{ start: 1n, end: 10n }]} showIds />

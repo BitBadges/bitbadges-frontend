@@ -49,7 +49,7 @@ export const CustomizeButtons = ({ accountInfo, badgeIdObj, badgeId, onlyShowCol
           <div className="flex-center flex-wrap">
             {!toShowPages && <IconButton
               secondary
-              text={!toShowHidden ? 'Hidden' : ''}
+              text={!toShowHidden ? 'Hidden?' : ''}
               src={toShowHidden ? <MinusOutlined style={{ fontSize: 18 }} />
                 : <MenuUnfoldOutlined style={{ fontSize: 18 }} />}
               tooltipMessage={'Add or remove this badge from certain pages on your portfolio.'}

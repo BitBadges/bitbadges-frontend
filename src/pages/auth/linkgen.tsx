@@ -1,9 +1,15 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, DatePicker, Form, Input, Tooltip, Typography, message } from 'antd';
+import { UintRange } from 'bitbadgesjs-proto';
+import { BitBadgesAddressList } from 'bitbadgesjs-utils';
+import { AndGroup, OwnershipRequirements } from 'blockin/dist/types/verify.types';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { addMetadataToIpfs, fetchMetadataDirectly } from '../../bitbadges-api/api';
+import { addMetadataToIpfs, fetchMetadataDirectly, getAddressLists } from '../../bitbadges-api/api';
+import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
+import { ListInfiniteScroll } from '../../components/badges/ListInfiniteScroll';
 import { BalanceInput } from '../../components/balances/BalanceInput';
+import { CustomizeAddRemoveListFromPage } from '../../components/display/CustomPages';
 import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
 import { CheckboxSelect } from '../../components/inputs/Selects';
@@ -16,9 +22,11 @@ const { Text } = Typography;
 function BlockinCodesScreen() {
   const [messageType, setMessageType] = useState<'blockin' | 'custom'>('blockin');
   console.log(!!setMessageType);
-
+  const chain = useChainContext();
   const [customMessage, setCustomMessage] = useState<string>('');
   const [image, setImage] = useState<string>('');
+  const [lists, setLists] = useState<BitBadgesAddressList<bigint>[]>([]);
+  const [selectedLists, setSelectedLists] = useState<string[]>([]);
   const [codeGenParams, setCodeGenParams] = useState<Required<CodeGenQueryParams>>({
     name: "",
     description: "",
@@ -39,7 +47,9 @@ function BlockinCodesScreen() {
       expirationDate: '',
       notBefore: '',
       resources: [],
-      assets: [],
+      assetOwnershipRequirements: {
+        $and: [],
+      }
     },
     skipVerify: false,
     verifyOptions: {},
@@ -139,7 +149,7 @@ function BlockinCodesScreen() {
         >
           <br />
           <div className="primary-text" style={{ fontSize: 25, textAlign: 'center', fontWeight: 'bolder' }}>
-            Authentication Provider
+            Generating Auth Codes - Provider
           </div>
           <div className="secondary-text" style={{ fontSize: 15, textAlign: 'center' }}>
             <a href="https://docs.bitbadges.io/for-developers/badge-verification/generating-auth-qr-codes" target="_blank" rel="noopener noreferrer">Documentation</a>
@@ -482,63 +492,155 @@ function BlockinCodesScreen() {
                       <BalanceInput
                         fullWidthCards
                         isMustOwnBadgesInput
-                        message="Must Own Badges"
+                        message="Badge Requirements"
                         timeString="Authentication Time"
-                        balancesToShow={codeGenParams.challengeParams.assets?.map(x => {
-                          const badgeIds = [];
-                          for (const asset of x.assetIds) {
-                            if (typeof asset !== 'string') {
-                              badgeIds.push(asset);
+                        balancesToShow={(codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>)?.$and.map(item => {
+                          const assetGroup = item as OwnershipRequirements<bigint>;
+
+                          return assetGroup.assets.map(x => {
+                            const badgeIds: UintRange<bigint>[] = [];
+                            for (const asset of x.assetIds) {
+                              if (typeof asset !== 'string') {
+                                badgeIds.push(asset);
+                              }
                             }
-                          }
-                          return {
-                            ...x,
-                            mustOwnAmounts: x.mustOwnAmounts,
-                            amount: x.mustOwnAmounts.start,
-                            badgeIds: badgeIds,
-                            ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                          }
-                        }) ?? []}
-                        mustOwnBadges={codeGenParams.challengeParams.assets?.map(x => {
-                          const badgeIds = [];
-                          for (const asset of x.assetIds) {
-                            if (typeof asset !== 'string') {
-                              badgeIds.push(asset);
+                            return {
+                              ...x,
+                              mustOwnAmounts: x.mustOwnAmounts,
+                              amount: x.mustOwnAmounts.start,
+                              badgeIds: badgeIds,
+                              ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                              mustSatisfyForAllAssets: true,
                             }
-                          }
-                          return {
-                            collectionId: BigInt(x.collectionId),
-                            overrideWithCurrentTime: (x.ownershipTimes ?? []).length === 0,
-                            amountRange: x.mustOwnAmounts,
-                            badgeIds: badgeIds,
-                            ownershipTimes: x.ownershipTimes ?? [],
-                            mustSatisfyForAllAssets: true
-                          }
-                        }) ?? []}
+                          }) ?? []
+                        }).flat() ?? []}
+                        mustOwnBadges={(codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>)?.$and.map(item => {
+                          const assetGroup = item as OwnershipRequirements<bigint>;
+
+                          return assetGroup.assets.filter(x => x.collectionId !== 'BitBadges Lists').map(x => {
+                            const badgeIds = [];
+                            for (const asset of x.assetIds) {
+                              if (typeof asset !== 'string') {
+                                badgeIds.push(asset);
+                              }
+                            }
+                            return {
+                              collectionId: BigInt(x.collectionId),
+                              overrideWithCurrentTime: (x.ownershipTimes ?? []).length === 0,
+                              amountRange: x.mustOwnAmounts,
+                              badgeIds: badgeIds,
+                              ownershipTimes: x.ownershipTimes ?? [],
+                              mustSatisfyForAllAssets: !assetGroup.options?.numMatchesForVerification || assetGroup.options?.numMatchesForVerification === 0n,
+                            }
+                          }) ?? []
+                        }).flat() ?? []}
                         onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets, overrideWithCurrentTime) => {
                           if (!collectionId || !amountRange) return;
 
-                          const newAssets = codeGenParams.challengeParams.assets ? [...codeGenParams.challengeParams.assets] : [];
-                          newAssets.push({
-                            assetIds: balance.badgeIds,
-                            collectionId: collectionId,
-                            mustOwnAmounts: amountRange,
-                            chain: 'BitBadges',
-                            mustSatisfyForAllAssets: !!mustSatisfyForAllAssets,
-                            ownershipTimes: overrideWithCurrentTime ? undefined : balance.ownershipTimes,
-
+                          const currAssets = (codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>);
+                          currAssets.$and.push({
+                            assets: [{
+                              assetIds: balance.badgeIds,
+                              collectionId: collectionId,
+                              mustOwnAmounts: amountRange,
+                              chain: 'BitBadges',
+                              ownershipTimes: overrideWithCurrentTime ? [] : balance.ownershipTimes,
+                            }],
+                            options: {
+                              numMatchesForVerification: mustSatisfyForAllAssets ? undefined : 1n,
+                            }
                           });
-                          setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, assets: newAssets } });
 
+                          // mustSatisfyForAllAssets: !!mustSatisfyForAllAssets,
+                          setCodeGenParams({
+                            ...codeGenParams, challengeParams: {
+                              ...codeGenParams.challengeParams,
+                              assetOwnershipRequirements: {
+                                ...codeGenParams.challengeParams.assetOwnershipRequirements,
+                                $and: currAssets.$and,
+                              }
+                            }
+                          });
                         }}
                         onRemoveAll={() => {
-                          setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, assets: [] } });
+                          setCodeGenParams({ ...codeGenParams, challengeParams: { ...codeGenParams.challengeParams, assetOwnershipRequirements: { $and: [] } } });
                         }}
                         // setBalances={setBalances}
                         collectionId={0n}
                       />
                     </div>
+                    <br />
+                    <div className='flex-center'>
+                      <b className='primary-text' style={{ fontSize: 20 }}>List Requirements</b>
 
+                    </div>
+
+                    <CustomizeAddRemoveListFromPage
+                      span={24}
+                      addressOrUsername={chain.address}
+                      currItems={selectedLists}
+                      showIncludeExclude
+                      onAdd={async (listId, onList) => {
+                        if (selectedLists.includes(listId)) return;
+                        setSelectedLists([...selectedLists, listId]);
+
+                        const res = await getAddressLists({ listsToFetch: [{ listId }] });
+                        const list = res.addressLists[0];
+                        if (!list) return;
+
+                        setLists([...lists, list]);
+
+                        const currAssets = (codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>);
+
+                        currAssets.$and.push({
+                          assets: [{
+                            assetIds: [listId],
+                            collectionId: 'BitBadges Lists',
+                            mustOwnAmounts: { start: onList ? 1n : 0n, end: onList ? 1n : 0n, },
+                            chain: 'BitBadges',
+                            ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                          }],
+                          options: {
+                            numMatchesForVerification: undefined, //must satisfy all
+                          }
+                        });
+
+                        setCodeGenParams({
+                          ...codeGenParams, challengeParams: {
+                            ...codeGenParams.challengeParams,
+                            assetOwnershipRequirements: {
+                              ...codeGenParams.challengeParams.assetOwnershipRequirements,
+                              $and: currAssets.$and,
+                            }
+                          }
+                        });
+                      }}
+                      onRemove={async (listId) => {
+                        setSelectedLists(selectedLists.filter(x => x !== listId));
+
+
+
+                        setCodeGenParams({
+                          ...codeGenParams, challengeParams: {
+                            ...codeGenParams.challengeParams,
+                            assetOwnershipRequirements: {
+                              ...codeGenParams.challengeParams.assetOwnershipRequirements,
+                              $and: (codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>).$and.filter(x => {
+                                const assetGroup = x as OwnershipRequirements<bigint>;
+                                return assetGroup.assets.filter(y => y.assetIds.includes(listId)).length === 0;
+                              }),
+                            }
+                          }
+                        });
+                      }}
+                    />
+                    <ListInfiniteScroll
+                      hasMore={false}
+                      fetchMore={async () => { }}
+                      listsView={selectedLists.map(x => lists.find(y => y.listId === x)).filter(x => !!x) as BitBadgesAddressList<bigint>[]}
+                      addressOrUsername={''}
+                      showInclusionDisplay={false}
+                    />
                   </Form.Item>
                   <Form.Item
                     label={
@@ -551,35 +653,6 @@ function BlockinCodesScreen() {
                     }
                   >
                     <div className='primary-text'>
-                      <div className='flex'>
-                        <CheckboxSelect
-                          title='Store in BitBadges Account?'
-                          value={codeGenParams.storeInAccount}
-                          disabled={codeGenParams.callbackRequired}
-                          setValue={(checked) => {
-                            setCodeGenParams({ ...codeGenParams, storeInAccount: checked === true });
-                          }}
-                          options={[
-                            {
-                              label: 'Yes',
-                              value: true,
-                            },
-                            {
-                              label: 'No',
-                              value: false,
-                            },
-                          ]}
-                        />
-                      </div>
-                      <div className='secondary-text' style={{ textAlign: 'start' }}>
-                        <InfoCircleOutlined /> Should the code be stored in their BitBadges account?
-                        If so, they can access it if signed in and export it to other locations (e.g. email, clipboard, etc.).
-                        The code is to be manually presented to you (e.g. QR code) at authentication time.
-                        If not selected and callback is not required, the code will be one-time view only.
-                        If callback is required, the code will not be stored in their account, and the user will actually never see the code.
-                        It is to be handled by the callback.
-                      </div>
-                      <br />
                       <div className='flex'>
                         <CheckboxSelect
                           title='Callback?'
@@ -612,6 +685,36 @@ function BlockinCodesScreen() {
                       <br />
                       <div className='flex'>
                         <CheckboxSelect
+                          title='Store in BitBadges Account?'
+                          value={codeGenParams.storeInAccount}
+                          disabled={codeGenParams.callbackRequired}
+                          setValue={(checked) => {
+                            setCodeGenParams({ ...codeGenParams, storeInAccount: checked === true });
+                          }}
+                          options={[
+                            {
+                              label: 'Yes',
+                              value: true,
+                            },
+                            {
+                              label: 'No',
+                              value: false,
+                            },
+                          ]}
+                        />
+                      </div>
+                      <div className='secondary-text' style={{ textAlign: 'start' }}>
+                        <InfoCircleOutlined /> Should the code be stored in their BitBadges account?
+                        If so, they can access it if signed in and export it to other locations (e.g. email, clipboard, etc.).
+                        The code is to be manually presented to you (e.g. QR code) at authentication time.
+                        If not selected and callback is not required, the code will be one-time view only.
+                        If callback is required, the code will not be stored in their account, and the user will actually never see the code.
+                        It is to be handled by the callback.
+                      </div>
+                      <br />
+
+                      <div className='flex'>
+                        <CheckboxSelect
                           title='Expect success at sign time?'
                           value={codeGenParams.expectVerifySuccess}
                           setValue={(checked) => {
@@ -636,6 +739,8 @@ function BlockinCodesScreen() {
                         <InfoCircleOutlined /> When users navigate to the URL and sign, is verification expected to pass instantly?
                         If so, we can optimize the expeirence by catching errors earlier (before they sign) and warn
                         to enhance their experience.
+                        An example where it may not is if you have not distributed the badges yet, or the authentication times
+                        are not yet valid.
                       </div>
                     </div>
 
@@ -712,7 +817,7 @@ function BlockinCodesScreen() {
                       The link will walk them through the process of authenticating via signing the message.
                       The signature of the message will then become their secret authentication code.
                       The code / signature will be shared back to you via a callback.
-                      See <a href="https://docs.bitbadges.io/for-developers/badge-verification/generating-auth-qr-codes" target="_blank" rel="noopener noreferrer">here</a> for more information on how to handle the callback.
+                      See <a href="https://blockin.gitbook.io/blockin/developer-docs/getting-started/sign-in-with-bitbadges" target="_blank" rel="noopener noreferrer">here</a> for more information on how to handle the callback.
 
                     </div>
                     <br />
@@ -750,7 +855,7 @@ function BlockinCodesScreen() {
                   <div className='secondary-text'>
                     3) {messageType === 'blockin' && <>
                       {' '}Once the code is received, it needs to be verified with Blockin. For simple use cases, consider using the helper URL below. This is for a helper tool created by us to verify the codes directly in your browser.
-                      Or, see here for <a href='https://docs.bitbadges.io/for-developers/badge-verification' target='_blank' rel="noopener noreferrer">more information on how to verify programmatically with Blockin</a>.
+                      Or, see here for <a href='https://blockin.gitbook.io/blockin/developer-docs/getting-started/sign-in-with-bitbadges' target='_blank' rel="noopener noreferrer">more information on how to verify programmatically with Blockin</a>.
                     </>}
                     {messageType !== 'blockin' && <>
                       {' '}Once the code is received, it needs to be verified. Use <a href="https://bitbadges.io/auth/verify" target="_blank" rel="noopener noreferrer">this tool</a> created by us to verify the code directly in your browser.

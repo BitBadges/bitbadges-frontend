@@ -97,13 +97,15 @@ const Home: NextPage = () => {
           issuedAt: new Date(Date.now()).toISOString(),
           expirationDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
           resources: [],
-          assets: [{
-            chain: 'BitBadges',
-            collectionId: 1,
-            assetIds: [{ start: 1, end: 1 }],
-            mustSatisfyForAllAssets: true,
-            mustOwnAmounts: { start: 1, end: 1 },
-          }],
+          assetOwnershipRequirements: {
+            assets: [{
+              chain: 'BitBadges',
+              collectionId: 1,
+              assetIds: [{ start: 1, end: 1 }],
+              mustOwnAmounts: { start: 1, end: 1 },
+              ownershipTimes: [],
+            }],
+          }
         }
       }} />
   </>
@@ -381,7 +383,7 @@ const Home: NextPage = () => {
                 customClass='secondary-text '
                 content={
                   <>
-                    <div className='flex' style={{ alignItems: 'center' }}>
+                    <div className='flex flex-wrap' style={{ alignItems: 'center' }}>
                       <Avatar
                         src={ETH_LOGO}
                         size={48}

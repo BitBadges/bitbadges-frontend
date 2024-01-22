@@ -47,6 +47,7 @@ export const SelectWithOptions = ({
   title,
   value,
   setValue,
+  selected,
   options,
   type
 }: {
@@ -59,10 +60,10 @@ export const SelectWithOptions = ({
     label: string | ReactNode;
     value: string | undefined;
   }[];
+  selected?: boolean; //for button type
   type?: 'button'
 }) => {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +98,6 @@ export const SelectWithOptions = ({
                 }}
                 onClick={() => {
                   if (type === 'button') {
-                    setSelected(!selected)
 
                     setValue(options.find((option) => option.value !== value)?.value);
                   } else {
@@ -119,8 +119,6 @@ export const SelectWithOptions = ({
                 }}
                 onClick={() => {
                   if (type === 'button') {
-                    setSelected(!selected)
-
                     setValue(options.find((option) => option.value !== value)?.value);
                   } else {
                     setOpen(!open)

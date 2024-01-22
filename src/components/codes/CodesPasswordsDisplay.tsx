@@ -124,7 +124,8 @@ export function CodesDisplay({
         </div>
         <div className="secondary-text" style={{ textAlign: 'center' }}>
           To be able to claim, users will need to go to the claim page and enter the code / password and sign the claim transaction.{' '}
-          <InfoCircleOutlined style={{ color: 'orange' }} /> So, note that wallets must be handy at claim time.
+          <InfoCircleOutlined style={{ color: 'orange' }} /> Thus, wallets are expected to be handy at claim time. Consider this when 
+          selecting your method of distribution.
 
 
           Distribution can be facilitated in a variety of way
@@ -307,7 +308,7 @@ export function CodesDisplay({
                       <br />
                       {NewCollectionWarning}
                     </InformationDisplayCard>
-                    <InformationDisplayCard md={12} xs={24} sm={24} title='Save for Later Links' subtitle='When users navigate to this link, they will be taken directly to the claim page with everything auto-populated for them. Note claiming requires a wallet, so users are expected to have wallets handy.'>
+                    <InformationDisplayCard md={12} xs={24} sm={24} title='Save for Later Links' subtitle='This QR code will direct users to a site similar to this where they can save the code or password for later in different formats (text, emailing to themselves, copy, etc).'>
                       <br />
                       <div className="flex-center">
                         {AllInOneJson}

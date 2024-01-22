@@ -44,8 +44,7 @@ export function PermissionSelect({
     toList: getReservedAddressList("All"),
     fromList: getReservedAddressList("All"),
     initiatedByList: getReservedAddressList("All"),
-    amountTrackerIdList: getReservedAddressList("All"),
-    challengeTrackerIdList: getReservedAddressList("All"),
+    approvalIdList: getReservedAddressList("All"),
     arbitraryValue: undefined,
   });
 
@@ -174,25 +173,14 @@ export function PermissionSelect({
             }} /></div>
         </InformationDisplayCard>}
 
-        {usedFlags.usesAmountTrackerIdList && <InformationDisplayCard title={'Amount Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which amount tracker IDs does this permission apply to?'}>
+        {usedFlags.usesApprovalIdList && <InformationDisplayCard title={'Approval ID'} md={12} xs={24} sm={24} subtitle={'Which approval IDs does this permission apply to?'}>
           <br /><div className='flex-center'>
             <AddressListSelect
               isIdSelect
-              addressList={newPermissionToAdd.amountTrackerIdList} setAddressList={(x) => {
+              addressList={newPermissionToAdd.approvalIdList} setAddressList={(x) => {
                 setNewPermissionToAdd({
                   ...newPermissionToAdd,
-                  amountTrackerIdList: x
-                })
-              }} /></div>
-        </InformationDisplayCard>}
-        {usedFlags.usesChallengeTrackerIdList && <InformationDisplayCard title={'Challenge Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which challenge tracker IDs does this permission apply to?'}>
-          <br /><div className='flex-center'>
-            <AddressListSelect
-              isIdSelect
-              addressList={newPermissionToAdd.challengeTrackerIdList} setAddressList={(x) => {
-                setNewPermissionToAdd({
-                  ...newPermissionToAdd,
-                  challengeTrackerIdList: x
+                  approvalIdList: x
                 })
               }} /></div>
         </InformationDisplayCard>}
@@ -208,8 +196,7 @@ export function PermissionSelect({
           (usedFlags.usesToList && (!newPermissionToAdd.toList || isAddressListEmpty(newPermissionToAdd.toList))) ||
           (usedFlags.usesFromList && (!newPermissionToAdd.fromList || isAddressListEmpty(newPermissionToAdd.fromList))) ||
           (usedFlags.usesInitiatedByList && (!newPermissionToAdd.initiatedByList || isAddressListEmpty(newPermissionToAdd.initiatedByList))) ||
-          (usedFlags.usesAmountTrackerIdList && (!newPermissionToAdd.amountTrackerIdList || isAddressListEmpty(newPermissionToAdd.amountTrackerIdList))) ||
-          (usedFlags.usesChallengeTrackerIdList && (!newPermissionToAdd.challengeTrackerIdList || isAddressListEmpty(newPermissionToAdd.challengeTrackerIdList))) ||
+          (usedFlags.usesApprovalIdList && (!newPermissionToAdd.approvalIdList || isAddressListEmpty(newPermissionToAdd.approvalIdList))) ||
           selectedTimes.length == 0
         }
         onClick={() => {
@@ -222,14 +209,12 @@ export function PermissionSelect({
             toListId: usedFlags.usesToList ? newPermissionToAdd.toList.listId : undefined,
             fromListId: usedFlags.usesFromList ? newPermissionToAdd.fromList.listId : undefined,
             initiatedByListId: usedFlags.usesInitiatedByList ? newPermissionToAdd.initiatedByList.listId : undefined,
-            amountTrackerId: usedFlags.usesAmountTrackerIdList ? newPermissionToAdd.amountTrackerIdList.listId : undefined,
-            challengeTrackerId: usedFlags.usesChallengeTrackerIdList ? newPermissionToAdd.challengeTrackerIdList.listId : undefined,
+            amountTrackerId: usedFlags.usesApprovalIdList ? newPermissionToAdd.approvalIdList.listId : undefined,
 
             toList: usedFlags.usesToList ? newPermissionToAdd.toList : undefined,
             fromList: usedFlags.usesFromList ? newPermissionToAdd.fromList : undefined,
             initiatedByList: usedFlags.usesInitiatedByList ? newPermissionToAdd.initiatedByList : undefined,
-            amountTrackerIdList: usedFlags.usesAmountTrackerIdList ? newPermissionToAdd.amountTrackerIdList : undefined,
-            challengeTrackerIdList: usedFlags.usesChallengeTrackerIdList ? newPermissionToAdd.challengeTrackerIdList : undefined,
+            approvalIdList: usedFlags.usesApprovalIdList ? newPermissionToAdd.approvalIdList : undefined,
             permanentlyPermittedTimes: allowed ? selectedTimes : [],
             permanentlyForbiddenTimes: allowed ? [] : selectedTimes,
           } as GenericCollectionPermissionWithDetails, ...value]);

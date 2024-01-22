@@ -92,7 +92,7 @@ export function Notifications() {
   }, [tab, seenAnnouncements, seenClaimAlerts, seenTransferActivity, seenAddressLists]);
 
   const TabComponent = ({ title, count }: { title: string, count: number }) => {
-    const toShow = (title === 'Announcements' && !seenAnnouncements) || (title === 'Claim Alerts' && !seenClaimAlerts) || (title === 'Transfer Activity' && !seenTransferActivity) || (title === 'Lists' && !seenAddressLists);
+    const toShow = (title === 'Announcements' && !seenAnnouncements) || (title === 'Claim Alerts' && !seenClaimAlerts) || (title === 'Transfer Activity' && !seenTransferActivity) || (title === 'List Activity' && !seenAddressLists);
 
     return <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} >
       {title}

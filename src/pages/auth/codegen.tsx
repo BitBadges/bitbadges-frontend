@@ -1,7 +1,7 @@
-import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { Spin, Tooltip } from 'antd';
+import { CheckCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { Progress, Spin, Tooltip } from 'antd';
 import { BigIntify, BitBadgesAddressList, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress, getMetadataForBadgeId, getTotalNumberOfBadgeIds } from 'bitbadgesjs-utils';
-import { ChallengeParams, VerifyChallengeOptions, constructChallengeObjectFromString, convertChallengeParams, createChallenge } from 'blockin';
+import { AndGroup, AssetConditionGroup, ChallengeParams, OrGroup, OwnershipRequirements, VerifyChallengeOptions, constructChallengeObjectFromString, convertChallengeParams, createChallenge } from 'blockin';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createAuthCode, getAddressLists, verifySignInGeneric } from '../../bitbadges-api/api';
@@ -34,6 +34,171 @@ export interface CodeGenQueryParams {
   expectVerifySuccess?: boolean;
 }
 
+export const AssetConditionGroupUI = (
+  { assetConditionGroup, depth = 0, bulletNumber, parentBullet, lists,
+    address
+  }: {
+    assetConditionGroup: AssetConditionGroup<bigint>,
+    depth?: number,
+    bulletNumber: number,
+    parentBullet: number,
+    lists: BitBadgesAddressList<bigint>[];
+    address: string;
+  }
+) => {
+
+  const andItem = assetConditionGroup as AndGroup<bigint>;
+  const orItem = assetConditionGroup as OrGroup<bigint>;
+  const ownershipRequirements = assetConditionGroup as OwnershipRequirements<bigint>;
+
+  const depthLetter = String.fromCharCode(65 + depth);
+  const nextDepthLetter = String.fromCharCode(65 + depth + 1);
+  const requirementNode = <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start', marginLeft: depth * 16 }}>
+    <b>{`${depthLetter}${parentBullet}-${bulletNumber}: `}</b>{`Must satisfy ${andItem.$and ? 'all' : orItem.$or ? 'one of' : 'any'
+      } ${nextDepthLetter}${bulletNumber}`}
+  </div>
+
+
+  if (andItem['$and'] !== undefined) {
+    return <>
+      {requirementNode}
+      {andItem['$and'].map((item, index) => {
+        return <div key={index}>
+          <AssetConditionGroupUI
+            assetConditionGroup={item}
+            depth={depth + 1}
+            bulletNumber={index + 1}
+            parentBullet={bulletNumber}
+            lists={lists}
+            address={address}
+          />
+        </div>
+      })}
+    </>
+  } else if (orItem['$or'] !== undefined) {
+    return <>
+      {requirementNode}
+      {orItem['$or'].map((item, index) => {
+        return <div key={index}>
+          <AssetConditionGroupUI
+            assetConditionGroup={item}
+            depth={depth + 1}
+            bulletNumber={index + 1}
+            parentBullet={bulletNumber}
+            lists={lists}
+            address={address}
+          />
+        </div>
+      })}
+    </>
+  } else {
+    const containsList = ownershipRequirements.assets.some(asset => asset.collectionId === 'BitBadges Lists');
+    const containsBadges = ownershipRequirements.assets.some(asset => asset.collectionId !== 'BitBadges Lists');
+    const listsBadgesStr = containsList && containsBadges ? 'badges / lists' : containsList ? 'lists' : 'badges';
+    const normalRequirementNode = <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start', marginLeft: depth * 16 }}>
+      <b>{`${depthLetter}${parentBullet}-${bulletNumber}: `}</b>{`${ownershipRequirements.options?.numMatchesForVerification ? `Must satisfy criteria for ${ownershipRequirements.options.numMatchesForVerification}+ ${listsBadgesStr} below` : `Must satisfy for all ${listsBadgesStr} below`}`}
+    </div>
+
+
+    return <>
+      {normalRequirementNode}
+
+      <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start', marginLeft: (depth + 1) * 16, borderLeft: '1px solid gray', paddingLeft: 8 }}>
+
+        {ownershipRequirements.assets.map((asset, index) => {
+          if (asset.collectionId === 'BitBadges Lists') {
+            const includedInList = asset.mustOwnAmounts.start === 1n;
+
+            return <div key={index}>
+              You must {includedInList ? 'not be on' : 'be on'} the following lists: {lists.map(list => list.listId).join(', ')}
+              <br />
+              <ListInfiniteScroll
+                addressOrUsername={address}
+                hasMore={false}
+                fetchMore={async () => { }}
+                listsView={lists}
+              />
+            </div>
+          }
+          const badgeIds = asset.assetIds.map(x => {
+            if (typeof x === 'string') return { start: 1n, end: 1n }; //List
+            return { start: BigInt(x.start), end: BigInt(x.end) };
+          });
+          const hasMoreThanOneBadge = getTotalNumberOfBadgeIds(badgeIds) > 1;
+          const collection = getCollection(BigInt(asset.collectionId));
+          const badgeMetadata = !hasMoreThanOneBadge ? getMetadataForBadgeId(
+            badgeIds[0].start,
+            collection?.cachedBadgeMetadata ?? [],
+          ) : undefined
+          const assetsText = hasMoreThanOneBadge ? <>{
+            asset.assetIds.map((assetId, index) => {
+              if (typeof assetId !== 'object') {
+                return <>{"ID: " + assetId.toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+              } else {
+                if (assetId.start === assetId.end) {
+                  return <>ID {BigInt(assetId.start).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+                }
+                return <>IDs {BigInt(assetId.start).toString()}-{BigInt(assetId.end).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
+              }
+            })
+
+          } {'from '}
+            <Tooltip title={`Collection ID ${asset.collectionId.toString()}`}>
+              <a onClick={() => { }}>{collection?.cachedCollectionMetadata?.name ?? 'Unknown Collection'}</a>
+            </Tooltip></> : <>
+            <Tooltip title={`Badge ID ${badgeIds[0].start.toString()}`}>
+              <a onClick={() => { }}>{badgeMetadata?.name ?? 'Unknown Badge'}</a>
+            </Tooltip>
+            {' from '}
+            <Tooltip title={`Collection ID ${asset.collectionId.toString()}`}>
+              <a onClick={() => { }}>{collection?.cachedCollectionMetadata?.name ?? 'Unknown Collection'}</a>
+            </Tooltip>
+
+          </>
+          const amountsText = <>{[asset.mustOwnAmounts].map(amount => {
+            if (typeof amount !== 'object') {
+              return 'x' + BigInt(amount).toString();
+            } else {
+              if (amount.start === amount.end) {
+                return `x${BigInt(amount.start).toString()}`
+              }
+              return `x${BigInt(amount.start).toString()}-${BigInt(amount.end).toString()}`
+            }
+          }).join(', ')}</>
+
+          return <div key={index} style={{ fontSize: 14 }}>
+            {/* <b>Criteria {index + 1}</b> */}
+
+            {<>
+              For the badges ({assetsText}), <CheckCircleFilled style={{ color: 'green' }} />{' '}if you own {amountsText}
+            </>}
+
+            {' '}{(asset.ownershipTimes ?? []).length > 0 ? 'from ' +
+              asset.ownershipTimes?.map(time => {
+                if (typeof time === 'string') {
+                  return new Date(time).toLocaleString();
+                } else if (typeof time !== 'object') {
+                  return new Date(Number(BigInt(time))).toLocaleString();
+                } else {
+                  return getTimeRangesString([time], '', true);
+                }
+              }).join(', ') + '' : 'at the time of sign in'}.
+            < br />
+            <br />
+            <BadgeAvatarDisplay
+              collectionId={BigInt(asset.collectionId)} badgeIds={asset.assetIds.map(x => {
+                if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
+                return { start: BigInt(x.start), end: BigInt(x.end) };
+              })} size={75}
+            />
+            <br />
+          </div>
+        })}
+      </div >
+    </>
+  }
+}
+
 function BlockinCodesScreen() {
   const router = useRouter();
   const chain = useChainContext();
@@ -62,6 +227,7 @@ function BlockinCodesScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [simulationMessage, setSimulationMessage] = useState('');
   const [lists, setLists] = useState<BitBadgesAddressList<bigint>[]>([]);
+  console.log(lists);
 
   const currAccount = useAccount(address);
 
@@ -75,13 +241,47 @@ function BlockinCodesScreen() {
   }, [challengeParams, allowAddressSelect, address]);
 
   useEffect(() => {
-    const collectionsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId && x.collectionId !== "BitBadges Lists") ?? [];
-    const collectionIds = collectionsToFetch.map(x => BigInt(x.collectionId));
-    fetchCollections(collectionIds);
+    function getCollectionIds(assetConditionGroup: AssetConditionGroup<bigint>, collectionIds: bigint[], listIds: string[] = []) {
+      const andItem = assetConditionGroup as AndGroup<bigint>;
+      const orItem = assetConditionGroup as OrGroup<bigint>;
+      const normalItem = assetConditionGroup as OwnershipRequirements<bigint>;
 
-    const listsToFetch = blockinParams?.assets?.filter(x => x.chain === "BitBadges" && x.collectionId === "BitBadges Lists") ?? [];
-    if (listsToFetch.length) {
-      getAddressLists({ listsToFetch: listsToFetch.map(x => { return { listId: x.assetIds[0] as string } }) }).then(lists => {
+      if (andItem.$and) {
+        for (const item of andItem.$and) {
+          getCollectionIds(item, collectionIds, listIds);
+        }
+      } else if (orItem.$or) {
+        for (const item of orItem.$or) {
+          getCollectionIds(item, collectionIds, listIds);
+        }
+      } else {
+        for (const asset of normalItem.assets) {
+          if (asset.collectionId) {
+            if (asset.collectionId === 'BitBadges Lists') {
+              listIds.push(asset.assetIds[0] as string);
+            } else {
+              collectionIds.push(BigInt(asset.collectionId));
+            }
+          }
+        }
+      }
+
+    }
+
+
+    const listIds: string[] = [];
+    const collectionIdsToFetch: bigint[] = [];
+    if (blockinParams?.assetOwnershipRequirements) {
+      getCollectionIds(blockinParams?.assetOwnershipRequirements ?? {}, collectionIdsToFetch, listIds);
+    }
+
+
+    if (collectionIdsToFetch.length) {
+      fetchCollections(collectionIdsToFetch);
+    }
+
+    if (listIds.length) {
+      getAddressLists({ listsToFetch: listIds.map(x => { return { listId: x } }) }).then(lists => {
         setLists(lists.addressLists);
       })
     }
@@ -92,6 +292,24 @@ function BlockinCodesScreen() {
     fetchAccounts([blockinParams.address]);
   }, [blockinParams?.address]);
 
+  const parsedVerifyOptions = useMemo(() => {
+    return verifyOptions ? JSON.parse(verifyOptions as string) as VerifyChallengeOptions : undefined;
+  }, [verifyOptions]);
+
+  const [progressPercent, setProgressPercent] = useState(0);
+
+  //update every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (parsedVerifyOptions?.issuedAtTimeWindowMs) {
+        const progressPercent = Math.floor(100 * (Date.now() - new Date(blockinParams?.issuedAt ?? Date.now()).getTime()) / parsedVerifyOptions?.issuedAtTimeWindowMs)
+        setProgressPercent(progressPercent);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [blockinParams?.issuedAt, parsedVerifyOptions?.issuedAtTimeWindowMs]);
+
+
   const simulateVerification = useCallback(async (params: ChallengeParams<bigint>) => {
     try {
       setSimulationMessage('');
@@ -99,14 +317,15 @@ function BlockinCodesScreen() {
       if (!blockinParams.address) return;
       const challenge = createChallenge(blockinParams);
       const chain = getChainForAddress(constructChallengeObjectFromString(challenge, BigIntify).address);
-      const parsedVerifyOptions = verifyOptions ? JSON.parse(verifyOptions as string) : undefined;
 
       const verifyChallengeOptions: VerifyChallengeOptions = {
         expectedChallengeParams: {
           ...parsedVerifyOptions?.expectedChallengeParams,
-          nonce: parsedVerifyOptions?.expectedChallengeParams.nonce,
-          address: allowAddressSelect ? blockinParams.address : parsedVerifyOptions?.expectedChallengeParams.address,
+          nonce: parsedVerifyOptions?.expectedChallengeParams?.nonce,
+          address: allowAddressSelect ? blockinParams.address : parsedVerifyOptions?.expectedChallengeParams?.address,
         },
+        issuedAtTimeWindowMs: parsedVerifyOptions?.issuedAtTimeWindowMs,
+        earliestIssuedAt: parsedVerifyOptions?.earliestIssuedAt,
         // beforeVerification: parsedVerifyOptions?.beforeVerification, Don't allow this to be set
         balancesSnapshot: parsedVerifyOptions?.balancesSnapshot,
         skipTimestampVerification: parsedVerifyOptions?.skipTimestampVerification,
@@ -120,7 +339,7 @@ function BlockinCodesScreen() {
       setSimulationMessage(`We ran into an error simulating this sign-in attempt: ${e.errorMessage ?? e.message}`);
       console.log(e);
     }
-  }, [allowAddressSelect, verifyOptions]);
+  }, [allowAddressSelect, parsedVerifyOptions]);
 
   useEffect(() => {
     if (expectVerifySuccess && blockinParams) {
@@ -142,8 +361,6 @@ function BlockinCodesScreen() {
     </div>
   }
 
-
-
   const handleSignChallenge = async (challenge: string) => {
     const response = await signChallenge(challenge);
     return response;
@@ -157,7 +374,9 @@ function BlockinCodesScreen() {
     }
 
     const signature = signChallengeResponse.signature;
-    setQrCode(signature);
+    if (!callbackRequired) {
+      setQrCode(signature);
+    }
 
     if (storeInAccount) {
       await createAuthCode({
@@ -239,14 +458,14 @@ function BlockinCodesScreen() {
 
   const generateHumanReadableTimeDetails = (notBefore?: string, expirationDate?: string) => {
     if (!notBefore && !expirationDate) {
-      return 'This sign-in will always be valid (no expiration date).';
+      return 'You will be authenticated forever (no expiration date).';
     } else if (notBefore && !expirationDate) {
-      return `This sign-in will have no expiration date but will not be valid until ${new Date(notBefore).toLocaleString()}.`
+      return `Your authentication will have no expiration date but will not be valid until ${new Date(notBefore).toLocaleString()}.`
     }
     else if (!notBefore && expirationDate) {
-      return `This sign-in will expire at ${new Date(expirationDate).toLocaleString()}.`
+      return `Your authentication will expire at ${new Date(expirationDate).toLocaleString()}.`
     } else if (notBefore && expirationDate) {
-      return `This sign-in will expire at ${new Date(expirationDate).toLocaleString()} and will not be valid until ${new Date(notBefore).toLocaleString()}.`
+      return `Your authentication will expire at ${new Date(expirationDate).toLocaleString()} and will not be valid until ${new Date(notBefore).toLocaleString()}.`
     } else {
       throw 'Error: Invalid time details.'
     }
@@ -326,99 +545,23 @@ function BlockinCodesScreen() {
                             <br /><br />
                             {generateHumanReadableTimeDetails(authCode.params.notBefore, authCode.params.expirationDate)}
                             <br /><br />
-                            {/* {authCode.params.resources && !!authCode.params.resources.length ? <TableRow label={'Resources'} value={authCode.params.resources.join(', ')} labelSpan={8} valueSpan={16} /> : <></>} */}
-
-                            {authCode.params.assets?.map((asset, i) => {
-                              if (asset.collectionId === 'BitBadges Lists') {
-                                const includedInList = asset.mustOwnAmounts.start === 1n;
-
-                                return <div key={i}>
-                                  You must be {includedInList ? 'included in' : 'excluded from'} all of the following lists:
-                                  <br />
-                                  <ListInfiniteScroll
-                                    addressOrUsername={address}
-                                    hasMore={false}
-                                    fetchMore={async () => { }}
-                                    listsView={lists}
-                                  />
-                                </div>
-                              }
-                              const chainName = asset.chain;
-                              const badgeIds = asset.assetIds.map(x => {
-                                if (typeof x === 'string') return { start: 1n, end: 1n }; //List
-                                return { start: BigInt(x.start), end: BigInt(x.end) };
-                              });
-                              const hasMoreThanOneBadge = getTotalNumberOfBadgeIds(badgeIds) > 1;
-                              const collection = getCollection(BigInt(asset.collectionId));
-                              const badgeMetadata = !hasMoreThanOneBadge ? getMetadataForBadgeId(
-                                badgeIds[0].start,
-                                collection?.cachedBadgeMetadata ?? [],
-                              ) : undefined
-                              const assetsText = hasMoreThanOneBadge ? <>{
-                                asset.assetIds.map((assetId, index) => {
-                                  if (typeof assetId !== 'object') {
-                                    return <>{"ID: " + assetId.toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
-                                  } else {
-                                    if (assetId.start === assetId.end) {
-                                      return <>ID {BigInt(assetId.start).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
-                                    }
-                                    return <>IDs {BigInt(assetId.start).toString()}-{BigInt(assetId.end).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
-                                  }
-                                })
-                              }</> : <>
-                                <Tooltip title={`Badge ID ${badgeIds[0].start.toString()}`}>
-                                  <a onClick={() => { }}>{badgeMetadata?.name ?? 'Unknown Badge'}</a>
-                                </Tooltip>
-                                {' from '}
-                                <Tooltip title={`Collection ID ${asset.collectionId.toString()}`}>
-                                  <a onClick={() => { }}>{collection?.cachedCollectionMetadata?.name ?? 'Unknown Collection'}</a>
-                                </Tooltip>
-
-                              </>
-
-
-
-                              const amountsText = <>{[asset.mustOwnAmounts].map(amount => {
-                                if (typeof amount !== 'object') {
-                                  return 'x' + BigInt(amount).toString();
-                                } else {
-                                  if (amount.start === amount.end) {
-                                    return `x${BigInt(amount.start).toString()}`
-                                  }
-                                  return `x${BigInt(amount.start).toString()}-${BigInt(amount.end).toString()}`
-                                }
-                              }).join(', ')}</>
-
-
-                              return <div key={i}>
-                                {hasMoreThanOneBadge && <>
-                                  For {asset.mustSatisfyForAllAssets ? 'all' : 'one'} of the specified badges ({assetsText} from {chainName + " Collection: " + asset.collectionId.toString()}), you must own {amountsText}
-                                </>}
-                                {!hasMoreThanOneBadge && <>
-                                  You must own {amountsText} of the specified badges ({assetsText})
-                                </>}
-
-                                {' '}{(asset.ownershipTimes ?? []).length > 0 ? 'during the times (' +
-                                  asset.ownershipTimes?.map(time => {
-                                    if (typeof time === 'string') {
-                                      return new Date(time).toLocaleString();
-                                    } else if (typeof time !== 'object') {
-                                      return new Date(Number(BigInt(time))).toLocaleString();
-                                    } else {
-                                      return getTimeRangesString([time], '', true);
-                                    }
-                                  }).join(', ') + ')' : 'at the time of sign in'} to be approved.
-                                <br />
-                                <br />
-                                <BadgeAvatarDisplay
-                                  collectionId={BigInt(asset.collectionId)} badgeIds={asset.assetIds.map(x => {
-                                    if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
-                                    return { start: BigInt(x.start), end: BigInt(x.end) };
-                                  })} size={75}
-                                />
+                            {authCode.params.assetOwnershipRequirements && <>
+                              <b>Requirements</b>
+                              <div className='secondary-text' style={{ textAlign: 'center', fontSize: 12 }}>
+                                <InfoCircleOutlined /> To be approved, you must satisfy all A level requirements, which may require you to satisfy B level requirements, and so on.
                               </div>
+                              <br />
+                              <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start' }}>
+                                <AssetConditionGroupUI
+                                  assetConditionGroup={authCode.params.assetOwnershipRequirements}
+                                  bulletNumber={1}
+                                  parentBullet={1}
+                                  lists={lists}
+                                  address={address as string}
+                                />
 
-                            })}
+                              </div>
+                            </>}
                           </div>
                         </InformationDisplayCard>
                         <br />
@@ -449,6 +592,18 @@ function BlockinCodesScreen() {
                           This is a simple message signature. It is not a transaction and is free of charge. The signature of this message is your secret authentication code.
                         </div>
                         <br />
+                        {parsedVerifyOptions?.issuedAtTimeWindowMs && blockinParams.issuedAt && <>
+
+                          <div className='secondary-text' style={{ textAlign: 'start' }}>
+                            <InfoCircleOutlined style={{ color: 'orange' }} /> This sign-in request must be redeemed by {new Date(new Date(blockinParams.issuedAt).getTime() + parsedVerifyOptions?.issuedAtTimeWindowMs).toLocaleTimeString()} to be valid.
+                          </div>
+                          <Progress
+                            percent={progressPercent}
+                            status={progressPercent >= 100 ? 'exception' : 'active'}
+                            showInfo={false}
+                          />
+                          < br />
+                        </>}
                         <div className='flex-center'>
                           <button className='landing-button'
                             disabled={loading}
@@ -468,7 +623,7 @@ function BlockinCodesScreen() {
                           </button>
 
                         </div>
-                        <br />
+
                         {simulationMessage && <ErrDisplay err={simulationMessage} warning />}
                         {errorMessage && simulationMessage && <br />}
                         {errorMessage && <ErrDisplay err={errorMessage} />}

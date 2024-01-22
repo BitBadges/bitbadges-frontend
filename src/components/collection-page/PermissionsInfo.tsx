@@ -159,21 +159,10 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
 
 
     {
-      y.amountTrackerIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+      y.approvalIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
         <AddressDisplayList
-          users={y.amountTrackerIdList.addresses}
-          allExcept={!y.amountTrackerIdList.whitelist}
-          filterMint
-          trackerIdList
-        />
-      </td>
-    }
-
-    {
-      y.challengeTrackerIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
-        <AddressDisplayList
-          users={y.challengeTrackerIdList.addresses}
-          allExcept={!y.challengeTrackerIdList.whitelist}
+          users={y.approvalIdList.addresses}
+          allExcept={!y.approvalIdList.whitelist}
           filterMint
           trackerIdList
         />
@@ -330,12 +319,12 @@ export const PermissionDisplayTable = (
 
 
       {
-        columns.find(x => x.key === 'amountTrackerIdList' || x.key === 'challengeTrackerIdList') &&
+        columns.find(x => x.key === 'approvalIdList') &&
         <>
           <br />
           <div className="full-width secondary-text">
 
-            <InfoCircleOutlined style={{ marginRight: 4 }} /> Amount tracker IDs and the challenge tracker ID are used for locking specific approvals / transferability.
+            <InfoCircleOutlined style={{ marginRight: 4 }} /> Approvals IDs are used for locking specific approvals / transferability.
           </div>
         </>
       }

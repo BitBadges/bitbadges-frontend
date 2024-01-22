@@ -276,7 +276,7 @@ export function TransferabilityDisplay({
   const isPasswordClaim = approval.approvalCriteria?.merkleChallenge?.root && approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria) && approval.details?.hasPassword;
   const isCodeClaim = approval.approvalCriteria?.merkleChallenge?.root && approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria) && !approval.details?.hasPassword;
 
-  let isCurrentlyValid = isPasswordClaim || isCodeClaim;
+  let isCurrentlyValid = true;
   if (chain.cosmosAddress && !isInAddressList(approval.initiatedByList, chain.cosmosAddress)) {
     isCurrentlyValid = false;
   }

@@ -267,6 +267,7 @@ export const OptionsSelects = ({
         <>
           <SelectWithOptions
             type='button'
+            selected={editMode}
             title='' value={editMode ? 'edit' : 'none'} setValue={(e) => {
               setEditMode(e === 'edit')
               setCardView(true)

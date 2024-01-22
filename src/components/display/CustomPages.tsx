@@ -1,17 +1,13 @@
-import { Col, Input, Dropdown } from "antd"
-import { BitBadgesAddressList, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
-import { useState, useEffect } from "react"
+import { Col, Dropdown, Input, Switch } from "antd"
+import { BatchBadgeDetails, BitBadgesAddressList, allInBatchArray, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
+import { useEffect, useState } from "react"
 import { getAddressLists } from "../../bitbadges-api/api"
-import { BatchBadgeDetails } from "bitbadgesjs-utils"
+import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { AddressListCard } from "../badges/AddressListCard"
-import { InformationDisplayCard } from "./InformationDisplayCard"
-import { SearchDropdown } from "../navigation/SearchDropdown"
 import { BatchBadgeDetailsTag } from "../badges/DisplayFilters"
-import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
-import IconButton from "./IconButton"
-import { MinusOutlined, SearchOutlined } from "@ant-design/icons"
-import { allInBatchArray } from "bitbadgesjs-utils"
+import { SearchDropdown } from "../navigation/SearchDropdown"
+import { InformationDisplayCard } from "./InformationDisplayCard"
 
 export const NewPageInputForm = ({
   visible,
@@ -92,20 +88,25 @@ export const CustomizeAddRemoveListFromPage = ({
   addressOrUsername,
   onAdd,
   onRemove,
-  currItems
+  currItems,
+  span,
+  showIncludeExclude
 }: {
   addressOrUsername: string
-  onAdd: (listId: string) => Promise<void>
+  onAdd: (listId: string, onList?: boolean) => Promise<void>
   onRemove: (listId: string) => Promise<void>
   currItems: string[]
+  showIncludeExclude?: boolean
+  span?: number
 }) => {
   const accountInfo = useAccount(addressOrUsername)
 
-  const [visible, setVisible] = useState<boolean>(false)
   const [customizeSearchListValue, setCustomizeSearchListValue] =
     useState<string>("")
   const [selectedList, setSelectedList] = useState<string>("")
   const [selectedListList, setSelectedListList] = useState<BitBadgesAddressList<bigint> | null>(null)
+
+  const [onList, setOnList] = useState<boolean>(true)
 
   useEffect(() => {
     if (!selectedList) return
@@ -176,23 +177,13 @@ export const CustomizeAddRemoveListFromPage = ({
 
   return (
     <InformationDisplayCard
-
-      md={12}
-      xs={24}
+      md={span ?? 8}
+      xs={span ?? 24}
       style={{ marginBottom: 8 }}
-      noBorder={!selectedList}
-      inheritBg={!selectedList}
+      noBorder
+      inheritBg
     >
-      <IconButton
-        secondary
-        src={visible ? <MinusOutlined /> : <SearchOutlined />}
-        onClick={() => {
-          setVisible(!visible)
-        }}
-        text='Add / remove via search'
-      />
-
-      {visible && <>
+      {<>
 
         <div className="flex">{CustomizeSearchListDropdown}</div>
 
@@ -203,11 +194,24 @@ export const CustomizeAddRemoveListFromPage = ({
               <AddressListCard
                 addressList={selectedListList}
                 addressOrUsername={accountInfo.address}
+                hideInclusionDisplay
               />
             </div>
             <br />
           </>
         )}
+        {selectedList && showIncludeExclude && !added && <>
+          <Switch
+            checkedChildren="Must Be On List"
+            unCheckedChildren="Must Be Off List"
+            checked={onList}
+            onChange={(checked) => {
+              setOnList(checked)
+            }}
+          />
+          <br />
+          <br />
+        </>}
 
         {selectedList && (
           <div className="flex-center flex-wrap">
@@ -216,10 +220,9 @@ export const CustomizeAddRemoveListFromPage = ({
               onClick={async () => {
                 if (!selectedList) return
 
-                await onAdd(selectedList)
+                await onAdd(selectedList, onList)
 
                 setSelectedList("")
-                setVisible(false)
               }}
             >
               Add
@@ -233,7 +236,6 @@ export const CustomizeAddRemoveListFromPage = ({
                 await onRemove(selectedList)
 
                 setSelectedList("")
-                setVisible(false)
               }}
             >
               Remove
@@ -263,7 +265,6 @@ export const CustomizeAddRemoveBadgeFromPage = ({
 }) => {
   const [selectedBadge, setSelectedBadge] = useState<BatchBadgeDetails<bigint> | null>(null)
   const [customizeSearchValue, setCustomizeSearchValue] = useState<string>("")
-  const [visible, setVisible] = useState<boolean>(false)
 
   const CustomizeSearchBar = (
     <Input
@@ -327,22 +328,14 @@ export const CustomizeAddRemoveBadgeFromPage = ({
   return (
     <>
       <InformationDisplayCard
-        md={12}
+        md={8}
         xs={24}
         style={{ marginBottom: 8 }}
-        noBorder={!selectedBadge}
-        inheritBg={!selectedBadge}
+        noBorder
+        inheritBg
         noPadding
       >
-        <IconButton
-          secondary
-          src={visible ? <MinusOutlined /> : <SearchOutlined />}
-          onClick={() => {
-            setVisible(!visible)
-          }}
-          text='Add / remove via search'
-        />
-        {visible && <>
+        {<>
           <div className="flex">{CustomizeSearchDropdown}</div>
 
           {selectedBadge && (
@@ -372,7 +365,6 @@ export const CustomizeAddRemoveBadgeFromPage = ({
                   await onRemove(selectedBadge)
 
                   setSelectedBadge(null)
-                  setVisible(false)
                 }}
               >
                 Remove
@@ -386,7 +378,6 @@ export const CustomizeAddRemoveBadgeFromPage = ({
                   await onAdd(selectedBadge)
 
                   setSelectedBadge(null)
-                  setVisible(false)
                 }}
               >
                 Add

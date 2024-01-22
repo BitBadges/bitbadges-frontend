@@ -74,7 +74,7 @@ function CollectionPage({
   if (isNonIndexedBalances) {
     tabInfo = tabInfo.filter(tab => tab.key !== 'approvals' && tab.key !== 'activity' && tab.key !== 'owners');
   }
-
+  
   //Get collection information
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch collection ,collection page');

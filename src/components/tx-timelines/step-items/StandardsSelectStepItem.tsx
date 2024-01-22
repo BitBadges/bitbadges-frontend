@@ -63,11 +63,12 @@ export function StandardsSelectStepItem() {
                 }
 
                 setCustomStandards(e.target.value.split(","))
+                const currStandards = collection.standardsTimeline.length ? collection.standardsTimeline[0].standards : [];
                 updateCollection({
                   collectionId: NEW_COLLECTION_ID,
                   standardsTimeline: [{
                     timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                    standards: [...collection.standardsTimeline[0].standards, ...e.target.value.split(",")],
+                    standards: [...currStandards, ...e.target.value.split(",")],
                   }]
                 });
               }}

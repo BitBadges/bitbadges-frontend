@@ -129,7 +129,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
             <div className='flex-center flex-column' style={{ textAlign: 'center' }}>
               {addressOrUsername && <>
                 {accountInfo?.cosmosAddress === chain.cosmosAddress && <><div className='secondary-text'>
-                  <InfoCircleOutlined /> To follow a user, send them the follow badge from your respective collection.
+                  <InfoCircleOutlined /> To follow a user, send them the follow badge from your follow collection.
                 </div><br /></>}
                 <div className='flex-center  flex-column full-width'>
 

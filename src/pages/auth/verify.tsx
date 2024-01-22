@@ -2,7 +2,7 @@ import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleOutline
 import { Input, InputNumber, Spin, Switch } from 'antd';
 import { AddressList, convertUintRange } from 'bitbadgesjs-proto';
 import { BigIntify, BlockinAuthSignatureDoc, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, getReservedAddressList, isInAddressList } from 'bitbadgesjs-utils';
-import { ChallengeParams, constructChallengeObjectFromString, createChallenge, convertChallengeParams } from 'blockin';
+import { ChallengeParams, constructChallengeObjectFromString, convertAssetConditionGroup, convertChallengeParams, createChallenge } from 'blockin';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { getAuthCode, verifySignInGeneric } from '../../bitbadges-api/api';
@@ -156,19 +156,7 @@ function BlockinCodesScreen() {
         uri: params?.uri || undefined,
         statement: params?.statement || undefined,
         nonce: generateNonce ? undefined : params?.nonce || undefined,
-        assets: params?.assets?.map((x) => {
-          return {
-            ...x,
-            collectionId: BigInt(x.collectionId),
-            assetIds: x.assetIds?.map((x) => {
-              if (typeof x === 'object') {
-                return convertUintRange(x, BigIntify)
-              } else {
-                return x
-              }
-            }),
-          }
-        }) ?? undefined,
+        assetOwnershipRequirements: params?.assetOwnershipRequirements || undefined,
       };
     } catch (e) {
       return {}
@@ -412,19 +400,8 @@ function BlockinCodesScreen() {
                     statement: expectedChallengeParams.statement ?? '',
                     nonce: expectedChallengeParams.nonce ?? '',
                     resources: expectedChallengeParams.resources ?? [],
-                    assets: expectedChallengeParams.assets?.map((x) => {
-                      return {
-                        ...x,
-                        collectionId: BigInt(x.collectionId),
-                        assetIds: x.assetIds?.map((x) => {
-                          if (typeof x === 'object') {
-                            return convertUintRange(x, BigIntify)
-                          } else {
-                            return x
-                          }
-                        }),
-                      }
-                    }) ?? [],
+                    assetOwnershipRequirements: expectedChallengeParams.assetOwnershipRequirements ?
+                      convertAssetConditionGroup(expectedChallengeParams.assetOwnershipRequirements, BigIntify) : undefined,
                   },
                 }}
               />

@@ -45,6 +45,10 @@ function BrowsePage() {
     })
   }, [signedInAccountInfo?.cosmosAddress]);
 
+  useEffect(() => {
+    browseContext.updateBrowse();
+  }, []);
+
   useLayoutEffect(() => {
     const handleResize = () => {
       const container = document.querySelector('.profile-carousel') as HTMLElement;

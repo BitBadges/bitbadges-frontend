@@ -75,8 +75,8 @@ export function CollectionDisplayWithBadges({
       md={span ?? 8}
       xs={span ?? 24}
       sm={span ?? 24}
-      // noBorder={!browseDisplay}
-      inheritBg={!browseDisplay}
+    // noBorder={!browseDisplay}
+    // inheritBg={!browseDisplay}
     >
       <Tooltip
         color="black"
@@ -87,6 +87,10 @@ export function CollectionDisplayWithBadges({
         {!browseDisplay && <div className="primary-text my-2" style={{ fontSize: 24, fontWeight: 'bold' }}>
 
           {collection?.cachedCollectionMetadata?.name}
+          <br />
+          <div className="secondary-text" style={{ fontSize: 16, fontWeight: 'normal' }}>
+            Collection ID {collection?.collectionId.toString()}
+          </div>
         </div>}
         {collection && !hideAddress && (
           <div className="flex-center">

@@ -72,7 +72,7 @@ function WatchlistPage() {
 
   const [cardView, setCardView] = useState(true)
   const [onlySpecificCollections, setOnlySpecificCollections] = useState<BatchBadgeDetails<bigint>[]>([])
-  const [groupByCollection, setGroupByCollection] = useState(false)
+  const [groupByCollection, setGroupByCollection] = useState(true)
 
   const [editMode, setEditMode] = useState(false)
   const [listsTab, setListsTab] = useState<string>(

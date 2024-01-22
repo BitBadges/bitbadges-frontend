@@ -179,29 +179,35 @@ export const BlockinDisplay = ({
             setLoggedIn(false);
           }}
           selectedChainName={chain}
-          displayedAssets={[
+          displayedAssetGroups={[
             {
-              collectionId: 1,
-              mustSatisfyForAllAssets: true,
-              chain: 'BitBadges',
-              assetIds: [{ start: 9, end: 9 }],
-              mustOwnAmounts: { start: 0, end: 0 },
+              assetConditionGroup: {
+                assets: [{
+                  collectionId: 1,
+                  chain: 'BitBadges',
+                  assetIds: [{ start: 9, end: 9 }],
+                  ownershipTimes: [],
+                  mustOwnAmounts: { start: 0, end: 0 },
+                }],
+              },
               name: 'General Access',
-              description: 'To protect against known scammers and unwanted visitors, we do not allow access to this site if you have the scammer badge.',
+              description: <>To protect against known scammers and unwanted visitors, we do not allow access to this site if you have the scammer badge.,
+                <div className="dark">
+                  <BadgeAvatarDisplay
+                    collectionId={1n}
+                    badgeIds={[{ start: 9n, end: 9n }]}
+                    size={100}
+                    showSupplys
+                    balance={[{
+                      amount: 0n,
+                      badgeIds: [{ start: 9n, end: 9n }],
+                      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+                    }]}
+                  /></div>
+              </>,
+              image: '/images/bitbadgeslogo.png',
               frozen: true,
               defaultSelected: true,
-              additionalDisplay: <div className="dark">
-                <BadgeAvatarDisplay
-                  collectionId={1n}
-                  badgeIds={[{ start: 9n, end: 9n }]}
-                  size={100}
-                  showSupplys
-                  balance={[{
-                    amount: 0n,
-                    badgeIds: [{ start: 9n, end: 9n }],
-                    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                  }]}
-                /></div>
             },
           ]}
           signAndVerifyChallenge={signAndVerifyChallenge}

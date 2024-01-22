@@ -13,8 +13,7 @@ export interface CleanedPermissionDetails {
   toList?: AddressList,
   fromList?: AddressList,
   initiatedByList?: AddressList,
-  amountTrackerIdList?: AddressList,
-  challengeTrackerIdList?: AddressList,
+  approvalIdList?: AddressList,
   forbidden: boolean,
   permitted: boolean,
   permissionTimes: UintRange<bigint>[],
@@ -38,7 +37,7 @@ export function getDetailsForPermission(
   const usedFlags = flags;
   const permissions = castFunction(_permissions);
 
-  const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToList, usesFromList, usesInitiatedByList, usesOwnershipTimes, usesAmountTrackerIdList, usesChallengeTrackerIdList } = usedFlags;
+  const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToList, usesFromList, usesInitiatedByList, usesOwnershipTimes, usesApprovalIdList } = usedFlags;
   const hideIfFull = true;
   let columns = [{
     title: 'Allowed?',
@@ -117,22 +116,13 @@ export function getDetailsForPermission(
 
 
 
-  if (usesAmountTrackerIdList) {
+  if (usesApprovalIdList) {
     columns.push({
-      title: 'Amount Tracker ID',
-      dataIndex: 'amountTrackerId',
-      key: 'amountTrackerIdList',
+      title: 'Approval ID',
+      dataIndex: 'approvalId',
+      key: 'approvalIdList',
     })
   }
-
-  if (usesChallengeTrackerIdList) {
-    columns.push({
-      title: 'Challenge Tracker ID',
-      dataIndex: 'challengeTrackerId',
-      key: 'challengeTrackerIdList',
-    })
-  }
-
 
   let hasNeutralTimes = false;
   let hasPermanentlyPermittedTimes = false;
@@ -145,8 +135,7 @@ export function getDetailsForPermission(
       fromList: getReservedAddressList("All") as AddressList,
       toList: getReservedAddressList("All") as AddressList,
       initiatedByList: getReservedAddressList("All") as AddressList,
-      amountTrackerIdList: getReservedAddressList("All") as AddressList,
-      challengeTrackerIdList: getReservedAddressList("All") as AddressList,
+      approvalIdList: getReservedAddressList("All") as AddressList,
       transferTimes: [{ start: 1n, end: 18446744073709551615n }],
       badgeIds: [{ start: 1n, end: 18446744073709551615n }],
       ownershipTimes: [{ start: 1n, end: 18446744073709551615n }],
@@ -171,8 +160,7 @@ export function getDetailsForPermission(
       const toList = GetListWithOptions(permission.toList, permission.usesToList);
       const fromList = GetListWithOptions(permission.fromList, permission.usesFromList);
       const initiatedByList = GetListWithOptions(permission.initiatedByList, permission.usesInitiatedByList);
-      const amountTrackerIdList = GetListWithOptions(permission.amountTrackerIdList, permission.usesAmountTrackerIdList);
-      const challengeTrackerIdList = GetListWithOptions(permission.challengeTrackerIdList, permission.usesChallengeTrackerIdList);
+      const approvalIdList = GetListWithOptions(permission.approvalIdList, permission.usesApprovalIdList);
 
 
       for (const badgeId of badgeIds) {
@@ -187,8 +175,7 @@ export function getDetailsForPermission(
                 toList: toList,
                 fromList: fromList,
                 initiatedByList: initiatedByList,
-                amountTrackerIdList: amountTrackerIdList,
-                challengeTrackerIdList: challengeTrackerIdList,
+                approvalIdList: approvalIdList,
 
                 permanentlyPermittedTimes: permanentlyPermittedTimes,
                 permanentlyForbiddenTimes: permanentlyForbiddenTimes,
@@ -247,8 +234,7 @@ export function getDetailsForPermission(
         toList: usesToList ? match.toList : undefined,
         fromList: usesFromList ? match.fromList : undefined,
         initiatedByList: usesInitiatedByList ? match.initiatedByList : undefined,
-        amountTrackerIdList: usesAmountTrackerIdList ? match.amountTrackerIdList : undefined,
-        challengeTrackerIdList: usesChallengeTrackerIdList ? match.challengeTrackerIdList : undefined,
+        approvalIdList: usesApprovalIdList ? match.approvalIdList : undefined,
       }
 
       if (neutralTimeRanges.length > 0) {

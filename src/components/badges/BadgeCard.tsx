@@ -63,7 +63,7 @@ export function BadgeCard({
 
   const isMobile = window.innerWidth < 768
   const oneVW = window.innerWidth / 100
-  const withinCard = groupedByCollection && isMobile ? 32 : 0
+  const withinCard = isMobile ? 32 : 0
   const maxWidth = isMobile ? (window.innerWidth - 32 - 4 * (oneVW * 4) - withinCard) / 2 : 200
 
   return (
@@ -72,9 +72,10 @@ export function BadgeCard({
       style={{
         margin: 8,
         textAlign: "center",
+
         //we want 2 per row so calc padding based on that (3vw margin, 1vw padding) + 8px margin either side of card
-        maxWidth: maxWidth,
-        width: isMobile ? undefined : 200,
+        maxWidth: !groupedByCollection ? maxWidth : 200,
+        width: isMobile && !groupedByCollection ? maxWidth : 200,
       }}
       hoverable={hoverable ? hoverable : true}
       bodyStyle={{ padding: 8 }}

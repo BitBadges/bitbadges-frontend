@@ -2,10 +2,10 @@ import { Layout, Tooltip, Typography } from 'antd';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, WarningOutlined } from '@ant-design/icons';
-import { BigIntify, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
-import { createChallenge } from 'blockin';
+import { BigIntify, BitBadgesAddressList, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { AndGroup, AssetConditionGroup, OrGroup, OwnershipRequirements, createChallenge } from 'blockin';
 import { useEffect, useState } from 'react';
-import { deleteAuthCode, getAuthCode } from '../../bitbadges-api/api';
+import { deleteAuthCode, getAddressLists, getAuthCode } from '../../bitbadges-api/api';
 import { getAuthCodesView, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
@@ -19,6 +19,8 @@ import QrCodeDisplay from '../../components/display/QrCodeDisplay';
 import { TableRow } from '../../components/display/TableRow';
 import { Tabs } from '../../components/navigation/Tabs';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
+import { AssetConditionGroupUI } from '../auth/codegen';
+import { fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 const { Content } = Layout;
@@ -39,7 +41,55 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
 
   const [view, setView] = useState('qr');
   const [tab, setTab] = useState(onlyShowDetails ? 'details' : 'code');
+  const [lists, setLists] = useState<BitBadgesAddressList<bigint>[]>([]);
 
+
+  useEffect(() => {
+    function getCollectionIds(assetConditionGroup: AssetConditionGroup<bigint>, collectionIds: bigint[], listIds: string[] = []) {
+      const andItem = assetConditionGroup as AndGroup<bigint>;
+      const orItem = assetConditionGroup as OrGroup<bigint>;
+      const normalItem = assetConditionGroup as OwnershipRequirements<bigint>;
+
+      if (andItem.$and) {
+        for (const item of andItem.$and) {
+          getCollectionIds(item, collectionIds, listIds);
+        }
+      } else if (orItem.$or) {
+        for (const item of orItem.$or) {
+          getCollectionIds(item, collectionIds, listIds);
+        }
+      } else {
+        for (const asset of normalItem.assets) {
+          if (asset.collectionId) {
+            if (asset.collectionId === 'BitBadges Lists') {
+              listIds.push(asset.assetIds[0] as string);
+            } else {
+              collectionIds.push(BigInt(asset.collectionId));
+            }
+          }
+        }
+      }
+
+    }
+
+
+    const listIds: string[] = [];
+    const collectionIdsToFetch: bigint[] = [];
+    if (authCode.params?.assetOwnershipRequirements) {
+      getCollectionIds(authCode.params?.assetOwnershipRequirements ?? {}, collectionIdsToFetch, listIds);
+    }
+
+
+    if (collectionIdsToFetch.length) {
+      fetchCollections(collectionIdsToFetch);
+    }
+
+    if (listIds.length) {
+      getAddressLists({ listsToFetch: listIds.map(x => { return { listId: x } }) }).then(lists => {
+        setLists(lists.addressLists);
+      })
+    }
+  }, [authCode.params]);
 
   useEffect(() => {
     (async () => {
@@ -139,7 +189,7 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
                     <WarningOutlined style={{}} /> This code is only displayed once. It will not be stored in your BitBadges account. Please save it somewhere safe.
                   </div>
                 </> : <>
-                  <WarningOutlined style={{ color: 'orange', marginRight: 8 }} />  Codes are stored in your BitBadges account and can be accessed under the Authentication Codes page if signed in.
+                  <WarningOutlined style={{ color: 'orange', marginRight: 8 }} />  This code is stored in your BitBadges account and can be accessed under the Authentication Codes page if signed in.
                   Note that signing in requires access to your crypto wallet. If you will not have access to your wallet at authentication time,
                   we recommend storing the code elsewhere.
                 </>}
@@ -192,41 +242,21 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
           {authCode.params.chainId && <TableRow label={'Chain ID'} value={authCode.params.chainId} labelSpan={8} valueSpan={16} />}
           {authCode.params.version && <TableRow label={'Version'} value={authCode.params.version} labelSpan={8} valueSpan={16} />}
           {authCode.params.resources && !!authCode.params.resources.length ? <TableRow label={'Resources'} value={authCode.params.resources.join(', ')} labelSpan={8} valueSpan={16} /> : <></>}
-          {authCode.params.assets && !!authCode.params.assets.length ? <TableRow label={'Ownership Requirements'} value={authCode.params.assets.map((asset, i) => {
-            const chainName = asset.chain;
+          {authCode.params.assetOwnershipRequirements && <>
+            <TableRow label={'Ownership Requirements'} value={<></>} labelSpan={24} valueSpan={0} />
+            <TableRow label={<div className='my-4'>
 
-            return <div key={i}>
-              For {asset.mustSatisfyForAllAssets ? 'all' : 'one'} of the specified assets ({asset.assetIds.map((assetId, index) => {
-                if (typeof assetId !== 'object') {
-                  return <>{"ID: " + assetId.toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
-                } else {
-                  if (assetId.start === assetId.end) {
-                    return <>ID {BigInt(assetId.start).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
-                  }
-                  return <>IDs {BigInt(assetId.start).toString()}-{BigInt(assetId.end).toString()}{index !== asset.assetIds.length - 1 ? ', ' : ''}</>
-                }
-              })}), you must own {[asset.mustOwnAmounts].map(amount => {
-                if (typeof amount !== 'object') {
-                  return 'x' + BigInt(amount).toString();
-                } else {
-                  if (amount.start === amount.end) {
-                    return `x${BigInt(amount.start).toString()}`
-                  }
-                  return `x${BigInt(amount.start).toString()}-${BigInt(amount.end).toString()}`
-                }
-              }).join(', ')} from {chainName + " Collection: " + asset.collectionId.toString()} {asset.ownershipTimes ? 'from ' +
-                asset.ownershipTimes.map(time => {
-                  if (typeof time === 'string') {
-                    return new Date(time).toLocaleString();
-                  } else if (typeof time !== 'object') {
-                    return new Date(Number(BigInt(time))).toLocaleString();
-                  } else {
-                    return `${new Date(Number(BigInt(time.start))).toLocaleString()} until ${new Date(Number(BigInt(time.end))).toLocaleString()}`
-                  }
-                }).join(', ') : 'at the time of sign-in'} to be approved.
-            </div>
+              <AssetConditionGroupUI
+                assetConditionGroup={authCode.params.assetOwnershipRequirements}
+                bulletNumber={1}
+                parentBullet={1}
+                lists={lists}
+                address={authCode.params.address}
+              />
+            </div>} value={<></>} labelSpan={24} valueSpan={0} />
 
-          })} labelSpan={8} valueSpan={16} /> : <></>}
+
+          </>}
         </InformationDisplayCard>
 
       </div>}

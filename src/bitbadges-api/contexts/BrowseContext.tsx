@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { INFINITE_LOOP_MODE } from '../../constants';
+import { createContext, useContext, useState } from 'react';
 import { DesiredNumberType, getBrowseCollections } from '../api';
 import { updateAccount } from './accounts/AccountsContext';
 import { updateCollection } from './collections/CollectionsContext';
@@ -63,13 +61,6 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
     return browseInfo;
   }
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) {
-      console.log('useEffect: browse page, get collections');
-    }
-    getCollectionsAndUpdateBrowse();
-  }, []);
 
 
   const updateBrowse = async () => {

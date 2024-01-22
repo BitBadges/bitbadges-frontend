@@ -19,8 +19,7 @@ const EverythingElsePermanentlyPermittedPermission: CollectionApprovalPermission
   toListId: "All",
   initiatedByList: getReservedAddressList("All"),
   initiatedByListId: "All",
-  amountTrackerId: "All",
-  challengeTrackerId: "All",
+  approvalId: "All",
   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -35,8 +34,7 @@ const AlwaysLockedPermission: CollectionApprovalPermissionWithDetails<bigint> = 
   toListId: "All",
   initiatedByList: getReservedAddressList("All"),
   initiatedByListId: "All",
-  amountTrackerId: "All",
-  challengeTrackerId: "All",
+  approvalId: "All",
   transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
   badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
   ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
@@ -49,10 +47,9 @@ export function FreezeSelectStepItem() {
   const txTimelineContext = useTxTimelineContext();
   const [checked, setChecked] = useState<boolean>(!txTimelineContext.existingCollectionId);
   const [err, setErr] = useState<Error | null>(null);
-  const allMintAmountTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.amountTrackerId) : [];
-  const allMintChallengeTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.challengeTrackerId) : [];
-  const allNonMintAmountTrackerIds = collection ? getNonMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.amountTrackerId) : [];
-  const allNonMintChallengeTrackerIds = collection ? getNonMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.challengeTrackerId) : [];
+  const allMintAmountTrackerIds = collection ? getMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.approvalId) : [];
+  const allNonMintAmountTrackerIds = collection ? getNonMintApprovals(deepCopy(collection.collectionApprovals)).map(x => x.approvalId) : [];
+
 
   const getPermissionsToSet = (idx: number, locked?: boolean) => {
     const permissions = idx >= 0 && idx <= 2 ? [{
@@ -69,22 +66,11 @@ export function FreezeSelectStepItem() {
       for (const id of allNonMintAmountTrackerIds) {
         permissions.push({
           ...AlwaysLockedPermission,
-          amountTrackerId: id,
+          approvalId: id,
         })
 
         if (allMintAmountTrackerIds.find(x => x === id)) {
           setErr(new Error(`You have selected to freeze the transferability of all non-mint, but you also have a mint approval with the same amount tracker ID (${id}).`))
-        }
-      }
-
-      for (const id of allNonMintChallengeTrackerIds) {
-        permissions.push({
-          ...AlwaysLockedPermission,
-          challengeTrackerId: id,
-        })
-
-        if (allMintChallengeTrackerIds.find(x => x === id)) {
-          setErr(new Error(`You have selected to freeze the transferability of all non-mint, but you also have a mint approval with the same challenge tracker ID (${id}).`))
         }
       }
     }
@@ -93,22 +79,11 @@ export function FreezeSelectStepItem() {
       for (const id of allMintAmountTrackerIds) {
         permissions.push({
           ...AlwaysLockedPermission,
-          amountTrackerId: id,
+          approvalId: id,
         })
 
         if (allNonMintAmountTrackerIds.find(x => x === id)) {
           setErr(new Error(`You have selected to freeze the transferability of all mint, but you also have a non-mint approval with the same amount tracker ID (${id}).`))
-        }
-      }
-
-      for (const id of allMintChallengeTrackerIds) {
-        permissions.push({
-          ...AlwaysLockedPermission,
-          challengeTrackerId: id,
-        })
-
-        if (allNonMintChallengeTrackerIds.find(x => x === id)) {
-          setErr(new Error(`You have selected to freeze the transferability of all mint, but you also have a non-mint approval with the same challenge tracker ID (${id}).`))
         }
       }
     }

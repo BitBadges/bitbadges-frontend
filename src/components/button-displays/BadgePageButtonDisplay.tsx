@@ -13,6 +13,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { ReportModal } from '../tx-modals/ReportModal';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 
 export function BadgeButtonDisplay({
   website,
@@ -119,14 +120,14 @@ export function BadgeButtonDisplay({
           </a>
         )}
 
-        {signedInAccount && chain.address && chain.loggedIn && !listId && !!collectionId && !!badgeId && <a
+        {signedInAccount && chain.address && chain.loggedIn && !listId && !!collectionId && <a
           onClick={isPreview ? undefined : async () => {
 
             const mainWatchlistPage = signedInAccount?.watchlists?.badges.find(x => x.title === 'Main') ?? { title: 'Main', description: '', items: [] };
 
             const newBadges = addToBatchArray(mainWatchlistPage.items, [{
               collectionId: collectionId,
-              badgeIds: [{ start: badgeId, end: badgeId }],
+              badgeIds: !!badgeId ? [{ start: badgeId, end: badgeId }] : [{ start: 1n, end: GO_MAX_UINT_64 }],
             }]);
 
             //Update or append
