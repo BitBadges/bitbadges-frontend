@@ -45,6 +45,8 @@ export function PermissionSelect({
     fromList: getReservedAddressList("All"),
     initiatedByList: getReservedAddressList("All"),
     approvalIdList: getReservedAddressList("All"),
+    amountTrackerIdList: getReservedAddressList("All"),
+    challengeTrackerIdList: getReservedAddressList("All"),
     arbitraryValue: undefined,
   });
 
@@ -184,6 +186,32 @@ export function PermissionSelect({
                 })
               }} /></div>
         </InformationDisplayCard>}
+
+        {usedFlags.usesAmountTrackerIdList && <InformationDisplayCard title={'Amount Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which amount tracker IDs does this permission apply to?'}>
+          <br /><div className='flex-center'>
+            <AddressListSelect
+              isIdSelect
+              addressList={newPermissionToAdd.amountTrackerIdList} setAddressList={(x) => {
+                setNewPermissionToAdd({
+                  ...newPermissionToAdd,
+                  amountTrackerIdList: x
+                })
+              }} /></div>
+
+        </InformationDisplayCard>}
+
+        {usedFlags.usesChallengeTrackerIdList && <InformationDisplayCard title={'Challenge Tracker ID'} md={12} xs={24} sm={24} subtitle={'Which challenge tracker IDs does this permission apply to?'}>
+          <br /><div className='flex-center'>
+            <AddressListSelect
+              isIdSelect
+              addressList={newPermissionToAdd.challengeTrackerIdList} setAddressList={(x) => {
+                setNewPermissionToAdd({
+                  ...newPermissionToAdd,
+                  challengeTrackerIdList: x
+                })
+              }} /></div>
+        </InformationDisplayCard>}
+
       </div>
       <Divider />
       <button className="landing-button"
@@ -197,6 +225,8 @@ export function PermissionSelect({
           (usedFlags.usesFromList && (!newPermissionToAdd.fromList || isAddressListEmpty(newPermissionToAdd.fromList))) ||
           (usedFlags.usesInitiatedByList && (!newPermissionToAdd.initiatedByList || isAddressListEmpty(newPermissionToAdd.initiatedByList))) ||
           (usedFlags.usesApprovalIdList && (!newPermissionToAdd.approvalIdList || isAddressListEmpty(newPermissionToAdd.approvalIdList))) ||
+          (usedFlags.usesAmountTrackerIdList && (!newPermissionToAdd.amountTrackerIdList || isAddressListEmpty(newPermissionToAdd.amountTrackerIdList))) ||
+          (usedFlags.usesChallengeTrackerIdList && (!newPermissionToAdd.challengeTrackerIdList || isAddressListEmpty(newPermissionToAdd.challengeTrackerIdList))) ||
           selectedTimes.length == 0
         }
         onClick={() => {
@@ -209,7 +239,8 @@ export function PermissionSelect({
             toListId: usedFlags.usesToList ? newPermissionToAdd.toList.listId : undefined,
             fromListId: usedFlags.usesFromList ? newPermissionToAdd.fromList.listId : undefined,
             initiatedByListId: usedFlags.usesInitiatedByList ? newPermissionToAdd.initiatedByList.listId : undefined,
-            amountTrackerId: usedFlags.usesApprovalIdList ? newPermissionToAdd.approvalIdList.listId : undefined,
+            amountTrackerId: usedFlags.usesAmountTrackerIdList ? newPermissionToAdd.amountTrackerIdList.listId : undefined,
+            challengeTrackerId: usedFlags.usesChallengeTrackerIdList ? newPermissionToAdd.challengeTrackerIdList.listId : undefined,
 
             toList: usedFlags.usesToList ? newPermissionToAdd.toList : undefined,
             fromList: usedFlags.usesFromList ? newPermissionToAdd.fromList : undefined,

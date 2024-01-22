@@ -168,6 +168,28 @@ const PermissionTableRow = ({ permission, columns, onFreezePermitted, setPermiss
         />
       </td>
     }
+
+    {
+      y.amountTrackerIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+        <AddressDisplayList
+          users={y.amountTrackerIdList.addresses}
+          allExcept={!y.amountTrackerIdList.whitelist}
+          filterMint
+          trackerIdList
+        />
+      </td>
+    }
+
+    {
+      y.challengeTrackerIdList && <td style={{ padding: 8, fontWeight: 'bold', fontSize: 16 }}>
+        <AddressDisplayList
+          users={y.challengeTrackerIdList.addresses}
+          allExcept={!y.challengeTrackerIdList.whitelist}
+          filterMint
+          trackerIdList
+        />
+      </td>
+    }
   </tr >
 }
 
@@ -319,12 +341,12 @@ export const PermissionDisplayTable = (
 
 
       {
-        columns.find(x => x.key === 'approvalIdList') &&
+        columns.find(x => x.key === 'approvalIdList' || x.key === 'amountTrackerIdList' || x.key === 'challengeTrackerIdList') &&
         <>
           <br />
           <div className="full-width secondary-text">
 
-            <InfoCircleOutlined style={{ marginRight: 4 }} /> Approvals IDs are used for locking specific approvals / transferability.
+            <InfoCircleOutlined style={{ marginRight: 4 }} /> IDs are used for locking specific approvals / transferability.
           </div>
         </>
       }

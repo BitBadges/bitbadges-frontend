@@ -14,6 +14,8 @@ export interface CleanedPermissionDetails {
   fromList?: AddressList,
   initiatedByList?: AddressList,
   approvalIdList?: AddressList,
+  amountTrackerIdList?: AddressList,
+  challengeTrackerIdList?: AddressList,
   forbidden: boolean,
   permitted: boolean,
   permissionTimes: UintRange<bigint>[],
@@ -37,7 +39,7 @@ export function getDetailsForPermission(
   const usedFlags = flags;
   const permissions = castFunction(_permissions);
 
-  const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToList, usesFromList, usesInitiatedByList, usesOwnershipTimes, usesApprovalIdList } = usedFlags;
+  const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToList, usesFromList, usesInitiatedByList, usesOwnershipTimes, usesApprovalIdList, usesAmountTrackerIdList, usesChallengeTrackerIdList } = usedFlags;
   const hideIfFull = true;
   let columns = [{
     title: 'Allowed?',
@@ -124,6 +126,23 @@ export function getDetailsForPermission(
     })
   }
 
+  if (usesAmountTrackerIdList) {
+    columns.push({
+      title: 'Amount Tracker ID',
+      dataIndex: 'amountTrackerId',
+      key: 'amountTrackerIdList',
+    })
+  }
+
+  if (usesChallengeTrackerIdList) {
+    columns.push({
+      title: 'Challenge Tracker ID',
+      dataIndex: 'challengeTrackerId',
+      key: 'challengeTrackerIdList',
+    })
+  }
+
+
   let hasNeutralTimes = false;
   let hasPermanentlyPermittedTimes = false;
   let hasPermanentlyForbiddenTimes = false;
@@ -136,6 +155,8 @@ export function getDetailsForPermission(
       toList: getReservedAddressList("All") as AddressList,
       initiatedByList: getReservedAddressList("All") as AddressList,
       approvalIdList: getReservedAddressList("All") as AddressList,
+      amountTrackerIdList: getReservedAddressList("All") as AddressList,
+      challengeTrackerIdList: getReservedAddressList("All") as AddressList,
       transferTimes: [{ start: 1n, end: 18446744073709551615n }],
       badgeIds: [{ start: 1n, end: 18446744073709551615n }],
       ownershipTimes: [{ start: 1n, end: 18446744073709551615n }],
@@ -161,6 +182,8 @@ export function getDetailsForPermission(
       const fromList = GetListWithOptions(permission.fromList, permission.usesFromList);
       const initiatedByList = GetListWithOptions(permission.initiatedByList, permission.usesInitiatedByList);
       const approvalIdList = GetListWithOptions(permission.approvalIdList, permission.usesApprovalIdList);
+      const amountTrackerIdList = GetListWithOptions(permission.amountTrackerIdList, permission.usesAmountTrackerIdList);
+      const challengeTrackerIdList = GetListWithOptions(permission.challengeTrackerIdList, permission.usesChallengeTrackerIdList);
 
 
       for (const badgeId of badgeIds) {
@@ -176,6 +199,8 @@ export function getDetailsForPermission(
                 fromList: fromList,
                 initiatedByList: initiatedByList,
                 approvalIdList: approvalIdList,
+                amountTrackerIdList: amountTrackerIdList,
+                challengeTrackerIdList: challengeTrackerIdList,
 
                 permanentlyPermittedTimes: permanentlyPermittedTimes,
                 permanentlyForbiddenTimes: permanentlyForbiddenTimes,
@@ -235,6 +260,8 @@ export function getDetailsForPermission(
         fromList: usesFromList ? match.fromList : undefined,
         initiatedByList: usesInitiatedByList ? match.initiatedByList : undefined,
         approvalIdList: usesApprovalIdList ? match.approvalIdList : undefined,
+        amountTrackerIdList: usesAmountTrackerIdList ? match.amountTrackerIdList : undefined,
+        challengeTrackerIdList: usesChallengeTrackerIdList ? match.challengeTrackerIdList : undefined,
       }
 
       if (neutralTimeRanges.length > 0) {
