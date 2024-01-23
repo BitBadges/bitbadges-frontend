@@ -77,7 +77,7 @@ export function AccountButtonDisplay({
   useEffect(() => {
     if (!signedInAccountInfo?.cosmosAddress) return;
     getFollowDetails({ cosmosAddress: signedInAccountInfo.cosmosAddress }).then(setFollowDetails);
-    
+
   }, [signedInAccountInfo?.cosmosAddress]);
 
   useEffect(() => {
@@ -332,8 +332,13 @@ export function AccountButtonDisplay({
             </Avatar>
           </Tooltip>
         )}
-        {!onlySocials &&
-          <Tooltip title={<>
+        {!onlySocials && <>
+
+          {!(global.navigator && global.navigator.canShare && global.navigator.canShare(
+            {
+              url: window.location.href,
+            }
+          )) ? <Tooltip title={<>
             <div style={{ textAlign: 'center' }}>
               <b>Share</b>
               <Tooltip title="Copy Link" placement="left">
@@ -370,14 +375,33 @@ export function AccountButtonDisplay({
                 </Avatar>
               </Tooltip>
             </div>
+
           </>} placement="bottom">
             <Avatar
-              size={mobile ? undefined : 'large'}
+              style={{ cursor: 'pointer' }}
+              size="large"
               className="styled-button-normal account-socials-button"
             >
               <ShareAltOutlined />
             </Avatar>
+          </Tooltip> : <Tooltip title={<>
+            Share
+          </>} placement="bottom">
+            <Avatar
+              style={{ cursor: 'pointer' }}
+              size="large"
+              className="styled-button-normal account-socials-button"
+              onClick={() => {
+                navigator.share({
+                  url: window.location.href,
+                });
+              }}
+            >
+              <ShareAltOutlined />
+            </Avatar>
           </Tooltip>}
+        </>}
+
 
         {!onlySocials &&
           <Tooltip title={<>

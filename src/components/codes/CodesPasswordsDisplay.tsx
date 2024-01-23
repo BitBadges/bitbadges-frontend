@@ -195,7 +195,7 @@ export function CodesDisplay({
                   <div className="flex flex-wrap">
                     <InformationDisplayCard md={12} xs={24} sm={24} title='Codes' subtitle='Download/share/copy the plaintext codes.'>
                       <br />
-                      <div className="flex-center">
+                      <div className="flex-center flex-wrap">
 
                         {AllInOneJson}
 
@@ -243,7 +243,7 @@ export function CodesDisplay({
                     </InformationDisplayCard>
                     <InformationDisplayCard md={12} xs={24} sm={24} title='Unique Claim Links' subtitle='When users navigate to this link, they will be taken directly to the claim page with everything auto-populated for them. Note claiming requires a wallet, so users are expected to have wallets handy.'>
                       <br />
-                      <div className="flex-center">
+                      <div className="flex-center flex-wrap">
                         {AllInOneJson}
                         <button
                           onClick={() => {
@@ -310,7 +310,7 @@ export function CodesDisplay({
                     </InformationDisplayCard>
                     <InformationDisplayCard md={12} xs={24} sm={24} title='Save for Later Links' subtitle='This QR code will direct users to a site similar to this where they can save the code or password for later in different formats (text, emailing to themselves, copy, etc).'>
                       <br />
-                      <div className="flex-center">
+                      <div className="flex-center flex-wrap">
                         {AllInOneJson}
                         <button
                           onClick={() => {
@@ -360,7 +360,7 @@ export function CodesDisplay({
                     {<>
                       <InformationDisplayCard md={12} xs={24} sm={24} title='Claim Alerts' subtitle='Send claim alerts to users. The selected addresses will receive a BitBadges notification with the respective code / password and a link to claim.'>
 
-                        <div className="flex-center">
+                        <div className="flex-center flex-wrap">
                           <div className="flex-center flex-column" style={{ maxWidth: 750 }}>
                             {cantShowUrl && <>
                               <div className="secondary-text" style={{ textAlign: 'center' }}>
@@ -625,7 +625,7 @@ export function CodesDisplay({
                 <AddressSelect onUserSelect={(address) => {
                   setClaimAlertAddress(address);
                 }} />
-                <div className="flex-center">
+                <div className="flex-center flex-wrap">
                   <button className="landing-button primary-text " style={{ width: 150, margin: 2 }}
                     disabled={loading || !claimAlertAddress || !claimAlertAccount || (hasPassword && !claimPassword) || (!hasPassword && (!(codes?.[codePage - 1] ?? '')))}
                     onClick={async () => {

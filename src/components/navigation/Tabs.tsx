@@ -86,13 +86,13 @@ export function Tabs({
   }
 
 
-  const tabs = tabInfoFiltered.map((tab,) => {
+  const tabs = tabInfoFiltered.map((tab, idx) => {
     const menuItem = (
       <Menu.Item
         disabled={tab.disabled}
         style={{
-          marginLeft: 1,
-          marginRight: 1,
+          marginLeft: idx == 0 ? 0 : 1,
+          marginRight: idx == tabInfoFiltered.length - 1 ? 0 : 1,
           width: widthPerTab,
           minWidth: 'fit-content',
           textAlign: 'center',

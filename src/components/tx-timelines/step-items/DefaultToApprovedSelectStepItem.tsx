@@ -31,7 +31,6 @@ export const DefaultApprovedDisplay = ({ address }: { address: string }) => {
       <table className="table-auto w-full overflow-x-scroll">
         <thead>
           <tr className="">
-            <th className="p-2"><b>From</b></th>
             <th className="p-2"><b>To</b></th>
             <th className="p-2"><b>Initiator</b></th>
             <th className="p-2"></th>
@@ -39,9 +38,6 @@ export const DefaultApprovedDisplay = ({ address }: { address: string }) => {
         </thead>
         <tbody>
           <tr className="text-center">
-            <td className="p-2">
-              <AddressDisplayList users={[]} allExcept={true} />
-            </td>
             <td className="p-2">
               <AddressDisplayList users={[address]} allExcept={false} />
             </td>
@@ -64,7 +60,6 @@ export const DefaultOptInDisplay = ({ address }: { address: string }) => {
       <table className="table-auto w-full overflow-x-scroll">
         <thead>
           <tr className="">
-            <th className="p-2"><b>From</b></th>
             <th className="p-2"><b>To</b></th>
             <th className="p-2"><b>Initiator</b></th>
             <th className="p-2"></th>
@@ -72,9 +67,6 @@ export const DefaultOptInDisplay = ({ address }: { address: string }) => {
         </thead>
         <tbody>
           <tr className="text-center">
-            <td className="p-2">
-              <AddressDisplayList users={[]} allExcept={true} />
-            </td>
             <td className="p-2">
               <AddressDisplayList users={[address]} allExcept={false} />
             </td>
@@ -86,9 +78,6 @@ export const DefaultOptInDisplay = ({ address }: { address: string }) => {
             </td>
           </tr>
           <tr className="text-center">
-            <td className="p-2">
-              <AddressDisplayList users={[]} allExcept={true} />
-            </td>
             <td className="p-2">
               <AddressDisplayList users={[address]} allExcept={false} />
             </td>

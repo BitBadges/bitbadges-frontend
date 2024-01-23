@@ -11,14 +11,12 @@ import { fetchCollectionsWithOptions, useCollection } from '../../../bitbadges-a
 import { approvalCriteriaHasNoAmountRestrictions, approvalCriteriaUsesPredeterminedBalances } from '../../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/settings';
-import { compareObjects } from '../../../utils/compare';
 import { Divider } from '../../display/Divider';
 import IconButton from '../../display/IconButton';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { CreateTxMsgClaimBadgeModal } from '../../tx-modals/CreateTxMsgClaimBadge';
 import { CreateTxMsgTransferBadgesModal } from '../../tx-modals/CreateTxMsgTransferBadges';
 import { FetchCodesModal } from '../../tx-modals/FetchCodesModal';
-import { transferableApproval } from '../../tx-timelines/step-items/TransferabilitySelectStepItem';
 import { ApprovalBalancesCard } from './ApprovalBalancesCard';
 import { ApprovalSelectWrapper } from './ApprovalsDisplay';
 import { DetailsCard } from './DetailsCard';
@@ -259,20 +257,6 @@ export function TransferabilityDisplay({
       </div>}
 
   </td>
-
-  if (!approval.details && compareObjects(transferableApproval, approval)) {
-    approval.details = {
-      name: 'Transferable',
-      description: 'Excluding transfers from the Mint address, this approval allows any address to transfer any badge to any address.',
-      challengeDetails: {
-        leavesDetails: {
-          leaves: [],
-          isHashed: false,
-        }
-      },
-    }
-  }
-
   const isPasswordClaim = approval.approvalCriteria?.merkleChallenge?.root && approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria) && approval.details?.hasPassword;
   const isCodeClaim = approval.approvalCriteria?.merkleChallenge?.root && approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria) && !approval.details?.hasPassword;
 
@@ -305,7 +289,10 @@ export function TransferabilityDisplay({
               />
 
               {showMoreIsVisible && !disapproved && <>
-                {approval.details?.description && <><Divider /><div className='flex-center'><MarkdownDisplay markdown={approval.details?.description ?? ''} /></div> <br /></>}
+                {approval.details?.description && <><Divider />
+                  <div className='flex-center'>
+                    <MarkdownDisplay markdown={approval.details?.description ?? ''} />
+                  </div> <br /></>}
 
                 <div className='flex-center flex-wrap full-width' style={{ alignItems: 'normal', fontSize: 16 }}>
                   <DetailsCard isEdit={!!onDelete || editable}

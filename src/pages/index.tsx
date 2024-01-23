@@ -64,9 +64,6 @@ const Home: NextPage = () => {
   const SignInButton = <>
     <SignInWithBitBadgesButton
       onSignAndBlockinVerify={async () => {
-        if (window && window.opener) {
-          return
-        }
         notification.success({
           message: 'Success',
           description: `On a site that uses Sign In with BitBadges, you would now be signed in to the website with your selected address if you met the authentication and badge ownership requirements.`

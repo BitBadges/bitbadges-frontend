@@ -145,7 +145,7 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
       },
     });
 
-    return { message: message, signature: signedMessage.signature };
+    return { message: message, signature: signedMessage.signature.toString('hex') };
   }
 
   const signTxn = async (txn: any, simulate: boolean) => {

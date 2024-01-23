@@ -82,7 +82,7 @@ export const MarkdownDisplay = ({ markdown, showMoreHeight = 300 }: { markdown: 
 
   const mode = darkMode ? 'dark' : 'light';
 
-  return <div className='primary-text full-width'>
+  return <div className='primary-text'>
     <div data-color-mode={mode} style={{
       textAlign: 'start',
       overflow: !showMore ? 'hidden' : undefined,
