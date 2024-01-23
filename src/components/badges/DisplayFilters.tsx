@@ -27,6 +27,57 @@ import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { SelectWithOptions } from "../inputs/Selects"
 import { SearchDropdown } from "../navigation/SearchDropdown"
 import { BadgeAvatar } from "./BadgeAvatar"
+import { AddressDisplay } from "../address/AddressDisplay"
+
+export const AccountFilterSearchBar = ({
+  searchValue,
+  setSearchValue,
+  onSearch,
+}: {
+  searchValue: string
+  setSearchValue: (searchValue: string) => void
+  onSearch: (
+    searchValue: any,
+    isAccount?: boolean | undefined,
+    isCollection?: boolean | undefined,
+    isBadge?: boolean | undefined
+  ) => Promise<void>
+}) => {
+  const SearchBar = (
+    <Input
+      defaultValue=""
+      placeholder="Search an account"
+      value={searchValue}
+      onChange={async (e) => {
+        setSearchValue(e.target.value)
+      }}
+      className="form-input rounded-lg p-1 px-2"
+      //styled-button-normal rounded-lg p-1 focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer
+      style={{ height: 38 }}
+    />
+  )
+
+  const FilterSearchDropdown = (
+    <Dropdown
+      open={searchValue !== ""}
+      placement="bottom"
+      overlay={
+        <SearchDropdown
+          onlyAddresses
+          onSearch={onSearch}
+          searchValue={searchValue}
+        />
+      }
+      overlayClassName="primary-text inherit-bg"
+      className="inherit-bg"
+      trigger={["hover", "click"]}
+    >
+      {SearchBar}
+    </Dropdown>
+  )
+
+  return FilterSearchDropdown
+}
 
 
 export const ListFilterSearchBar = ({
@@ -135,6 +186,54 @@ export const CollectionsFilterSearchBar = ({
   return FilterSearchDropdown
 }
 
+export const AccountDetailsTag = ({
+  addressOrUsername,
+  onClose,
+}: {
+  addressOrUsername: string
+  onClose?: () => void
+}) => {
+  const accountInfo = useAccount(addressOrUsername)
+
+  if (!accountInfo) return <></>
+
+  return (
+    <Tag
+      className="primary-text inherit-bg flex-between"
+      style={{ alignItems: "center", marginBottom: 8 }}
+      closable
+      closeIcon={
+        onClose ? (
+          <CloseCircleOutlined
+            className="primary-text styled-button-normal flex-center"
+            style={{
+              border: "none",
+              fontSize: 16,
+              alignContent: "center",
+              marginLeft: 5,
+            }}
+            size={100}
+          />
+        ) : (
+          <></>
+        )
+      }
+      onClose={onClose}
+    >
+      <div
+        className="primary-text inherit-bg"
+        style={{ alignItems: "center", marginRight: 4, maxWidth: 280, }}
+      >
+        <div
+          className="flex-center"
+          style={{ alignItems: "center", maxWidth: 280, minHeight: 50 }}
+        >
+          <AddressDisplay addressOrUsername={addressOrUsername} />
+        </div>
+      </div>
+    </Tag>
+  )
+}
 
 export const BatchBadgeDetailsTag = ({
   badgeIdObj,

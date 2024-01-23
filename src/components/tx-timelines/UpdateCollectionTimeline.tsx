@@ -218,7 +218,7 @@ export function UpdateCollectionTimeline() {
         toShowUpdateStandardsAction
           ? StandardsSelectStep
           : EmptyStepItem,
-        toShowCanUpdateStandardsPermission
+        !completeControl && toShowCanUpdateStandardsPermission
           ? CanUpdateStandardsSelectStep
           : EmptyStepItem,
         !noBalancesStandard ? BalanceTypeSelect : EmptyStepItem,

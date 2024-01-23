@@ -7,6 +7,7 @@ import { AndGroup, AssetConditionGroup, OrGroup, OwnershipRequirements, createCh
 import { useEffect, useState } from 'react';
 import { deleteAuthCode, getAddressLists, getAuthCode } from '../../bitbadges-api/api';
 import { getAuthCodesView, updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { AddressDisplay } from '../../components/address/AddressDisplay';
 import { CollectionHeader } from '../../components/badges/CollectionHeader';
 import { BlockinDisplay } from '../../components/blockin/BlockinDisplay';
@@ -20,22 +21,24 @@ import { TableRow } from '../../components/display/TableRow';
 import { Tabs } from '../../components/navigation/Tabs';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { AssetConditionGroupUI } from '../auth/codegen';
-import { fetchCollections } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 
 
 const { Content } = Layout;
 
-export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAuthCodes, onlyShowCode, isPreview, notStoredInAccount, isExpected, onlyShowMetadata }: {
-  savedAuthCodes?: BlockinAuthSignatureDoc<bigint>[],
+export const AuthCode = ({
+  ported,
+  authCode, setSavedAuthCodes, onlyShowDetails, savedAuthCodes, onlyShowCode, isPreview, notStoredInAccount, isExpected, onlyShowMetadata }: {
+    savedAuthCodes?: BlockinAuthSignatureDoc<bigint>[],
+    ported?: boolean,
 
-  authCode: BlockinAuthSignatureDoc<bigint>, setSavedAuthCodes?:
-  (codes: BlockinAuthSignatureDoc<bigint>[]) => void, onlyShowDetails?: boolean
-  onlyShowCode?: boolean
-  isPreview?: boolean,
-  isExpected?: boolean,
-  notStoredInAccount?: boolean,
-  onlyShowMetadata?: boolean
-}) => {
+    authCode: BlockinAuthSignatureDoc<bigint>, setSavedAuthCodes?:
+    (codes: BlockinAuthSignatureDoc<bigint>[]) => void, onlyShowDetails?: boolean
+    onlyShowCode?: boolean
+    isPreview?: boolean,
+    isExpected?: boolean,
+    notStoredInAccount?: boolean,
+    onlyShowMetadata?: boolean
+  }) => {
   const [currStatus, setCurrStatus] = useState({ success: false, verificationMessage: 'Loading...' });
   const [loaded, setLoaded] = useState(false);
 
@@ -111,12 +114,20 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
       if (tab !== 'details') return;
 
       try {
+
         const res = await getAuthCode({ signature: authCode.signature, options: {} });
-        setCurrStatus({ success: res.verificationResponse.success, verificationMessage: res.verificationResponse.errorMessage ?? '' });
+
+        setCurrStatus({
+          success: res.verificationResponse.success, verificationMessage:
+            res.verificationResponse.success ? 'Successfully verified.' : res.verificationResponse.errorMessage ?? ''
+        });
       } catch (e: any) {
+        console.log("ERR", e);
         setCurrStatus({ success: false, verificationMessage: e.message });
       }
+
       setLoaded(true);
+
     })();
   }, [authCode.signature, loaded, onlyShowCode, isPreview, tab]);
 
@@ -138,6 +149,7 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
         multiDisplay
 
       />
+
       <div className='flex-center flex-column full-width'>
         <div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
           {authCode.description}
@@ -180,18 +192,21 @@ export const AuthCode = ({ authCode, setSavedAuthCodes, onlyShowDetails, savedAu
               setSavedAuthCodes={setSavedAuthCodes}
               savedAuthCodes={savedAuthCodes}
               authCode={authCode}
+
               helperDisplay={<div className='secondary-text' style={{ fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
                 <WarningOutlined style={{ color: 'orange', marginRight: 8 }} /> Anyone with this code can authenticate as you. Keep it safe and secret.
-                <br />
-                <br />
-                {notStoredInAccount ? <>
-                  <div className='' style={{ textAlign: 'center', color: 'orange', fontSize: 16 }}>
-                    <WarningOutlined style={{}} /> This code is only displayed once. It will not be stored in your BitBadges account. Please save it somewhere safe.
-                  </div>
-                </> : <>
-                  <WarningOutlined style={{ color: 'orange', marginRight: 8 }} />  This code is stored in your BitBadges account and can be accessed under the Authentication Codes page if signed in.
-                  Note that signing in requires access to your crypto wallet. If you will not have access to your wallet at authentication time,
-                  we recommend storing the code elsewhere.
+                {!ported && <>
+                  <br />
+                  <br />
+                  {notStoredInAccount ? <>
+                    <div className='' style={{ textAlign: 'center', color: 'orange', fontSize: 16 }}>
+                      <WarningOutlined style={{}} /> This code is only displayed once. It will not be stored in your BitBadges account. Please save it somewhere safe.
+                    </div>
+                  </> : <>
+                    <WarningOutlined style={{ color: 'orange', marginRight: 8 }} />  This code is stored in your BitBadges account and can be accessed under the Authentication Codes page if signed in.
+                    Note that signing in requires access to your crypto wallet. If you will not have access to your wallet at authentication time,
+                    we recommend storing the code elsewhere.
+                  </>}
                 </>}
 
               </div>}

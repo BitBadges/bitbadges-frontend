@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, DatePicker, Form, Input, Tooltip, Typography, message } from 'antd';
 import { UintRange } from 'bitbadgesjs-proto';
 import { BitBadgesAddressList } from 'bitbadgesjs-utils';
-import { AndGroup, OwnershipRequirements } from 'blockin/dist/types/verify.types';
+import { AndGroup, ChallengeParams, OwnershipRequirements } from 'blockin/dist/types/verify.types';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { addMetadataToIpfs, fetchMetadataDirectly, getAddressLists } from '../../bitbadges-api/api';
@@ -82,7 +82,16 @@ function BlockinCodesScreen() {
   // const FRONTEND_URL = "https://bitbadges.io"
   const FRONTEND_URL = "http://localhost:3000"
   let url = FRONTEND_URL + '/auth/codegen?';
-  for (const [key, value] of Object.entries(codeGenParams)) {
+  for (let [key, value] of Object.entries(codeGenParams)) {
+    if (key === 'challengeParams') {
+      if (((value as ChallengeParams<bigint>).assetOwnershipRequirements as AndGroup<bigint>).$and.length === 0) {
+        value = {
+          ...(value as ChallengeParams<bigint>) ?? {},
+          assetOwnershipRequirements: undefined
+        };
+      }
+    }
+
     if (value) {
       if (typeof value === 'object') {
         const valueString = JSON.stringify(value);

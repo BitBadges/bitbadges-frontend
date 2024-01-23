@@ -64,8 +64,11 @@ export function CollectionDisplayWithBadges({
   //In the parent display, if we haven't fetched the collection yet
   //and wnat to display all badges in the collection, we do 1-MAXUINT64 and
   //here, we filter out once we get the collection to only include in range badge IDs
+
   if (collection) {
     const [remaining] = removeUintRangesFromUintRanges([{ start: getMaxBadgeIdForCollection(collection) + 1n, end: GO_MAX_UINT_64 }], badgeObj.badgeIds);
+    console.log(remaining);
+    console.log(getMaxBadgeIdForCollection(collection));
     badgeObj = { ...badgeObj, badgeIds: remaining }
   }
 

@@ -35,6 +35,7 @@ export function SubmitMsgCreateAddressList() {
   const collection = useCollection(NEW_COLLECTION_ID);
 
   const [privateMode, setPrivateMode] = useState<boolean>(false);
+  const [viewableWithLink, setViewableWithLink] = useState<boolean>(false);
   const [editKeys, setEditKeys] = useState<AddressListEditKey<bigint>[]>(addressList.editKeys ?? []);
 
   useEffect(() => {
@@ -83,11 +84,11 @@ export function SubmitMsgCreateAddressList() {
                 {clicked && !onChainStorage &&
                   <>{!isUpdateAddressList && <Divider />}
                     <div className='flex-center full-width' style={{ textAlign: 'start' }}>
-                      <InformationDisplayCard md={24} xs={24} sm={24} title='Additional Options' subtitle='These options are only applicable to off-chain lists.'>
-                        <TableRow label='Public?' value={<Switch
+                      <InformationDisplayCard md={24} xs={24} sm={24} title='Additional Options' subtitle=''>
+                        <TableRow label='Show in search results?' value={<Switch
                           checked={!privateMode}
-                          checkedChildren="Public"
-                          unCheckedChildren="Private"
+                          checkedChildren="Yes"
+                          unCheckedChildren="No"
                           onChange={(checked) => {
                             setPrivateMode(!checked);
                           }}
@@ -96,8 +97,23 @@ export function SubmitMsgCreateAddressList() {
                           valueSpan={12}
                         />
                         <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
-                          <InfoCircleOutlined /> {privateMode ? 'Only you will be able to see the list.' : 'The list will be public and will show up in search results.'}
+                          <InfoCircleOutlined /> {privateMode ? 'The list will not show up in search results.' : 'The list will be public and will show up in search results.'}
                         </div>
+
+                        {privateMode && <><TableRow label='Viewable with link?' value={<Switch
+                          checked={viewableWithLink}
+                          checkedChildren="Viewable with Link"
+                          unCheckedChildren="Private to You Only"
+                          onChange={(checked) => {
+                            setViewableWithLink(checked);
+                          }}
+                        />}
+                          labelSpan={12}
+                          valueSpan={12}
+                        /> <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
+                            <InfoCircleOutlined /> {viewableWithLink ? 'Those who have the list ID can see the list (e.g. navigating to list page directly). If this option is selected, it is important to not leak the list ID to unwanted parties.' : 'Only you will be able to view the list when signed in.'}
+                          </div>
+                        </>}
                         <TableRow label='Survey Mode?' value={<Switch
                           checked={editKeys.length > 0}
                           checkedChildren="Survey Mode"
@@ -115,6 +131,9 @@ export function SubmitMsgCreateAddressList() {
                         />
                         <div className='secondary-text' style={{ fontSize: 14, marginLeft: 10 }}>
                           <InfoCircleOutlined /> {editKeys.length > 0 ? 'You can update and delete, but also, others can add to the list, according to the criteria specified.' : 'Only you will be able to update and delete the list.'}
+                          {viewableWithLink && editKeys.length > 0 && <><br />
+                            <InfoCircleOutlined /> Survey links will contain the list ID, so since you selected viewable with link, anyone with the link can not only add to the list, but also view the list. If you want to keep the list private, please unselect viewable with link.</>}
+
                         </div>
 
                         {editKeys.length > 0 && <>
@@ -188,7 +207,8 @@ export function SubmitMsgCreateAddressList() {
                           </div>
                         </>}
                       </InformationDisplayCard>
-                    </div></>}
+                    </div></>
+                }
               </>}
             </>
           },

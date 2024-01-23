@@ -65,6 +65,7 @@ import { INFINITE_LOOP_MODE } from "../../constants"
 import { compareObjects } from "../../utils/compare"
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { GlobalReduxState } from "../_app"
+import { ExperiencesProtocolDisplay } from "../../components/display/ExperiencesProtocol"
 
 
 const { Content } = Layout
@@ -1205,7 +1206,11 @@ function PortfolioPage() {
 
               {tab === 'protocols' && (
                 <>
-                  <FollowProtocolDisplay addressOrUsername={accountInfo.address} />
+                  <br />
+                  <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
+                    <FollowProtocolDisplay addressOrUsername={accountInfo.address} />
+                    <ExperiencesProtocolDisplay addressOrUsername={accountInfo.address} />
+                  </div>
                 </>
               )}
 

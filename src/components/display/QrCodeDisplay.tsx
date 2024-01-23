@@ -1,4 +1,5 @@
-import { Avatar, Tooltip, Typography, notification } from 'antd';
+import { CloseOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { Avatar, Modal, Tooltip, Typography, notification } from 'antd';
 import { BlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
 import { toDataURL } from 'qrcode';
 import React, { ReactNode, useEffect } from 'react';
@@ -20,7 +21,7 @@ interface QrCodeDisplayProps {
 const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ isUrl,
   value, hideCopyButtons, size = 256, label, helperDisplay, savedAuthCodes, setSavedAuthCodes, authCode, view = 'qr' }) => {
   const storeLocally = !!setSavedAuthCodes;
-
+  const [portModalIsVisible, setPortModalIsVisible] = React.useState(false);
   const handleDownload = (imageUrl: string) => {
     const link = document.createElement('a');
     link.href = imageUrl;
@@ -53,6 +54,10 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ isUrl,
     img.src = imageUrl;
   }
 
+  let portUrl = 'https://bitbadges.io/code?code=' + authCode?.signature;
+  if (authCode?.name) portUrl += '&name=' + authCode?.name;
+  if (authCode?.description) portUrl += '&description=' + authCode?.description;
+  if (authCode?.image) portUrl += '&image=' + authCode?.image;
 
   const handleStoreLocally = () => {
     const existingAuthCodes = localStorage.getItem('savedAuthCodes');
@@ -118,7 +123,7 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ isUrl,
             Copy QR Image
           </button>}
 
-        {storeLocally && authCode &&
+        {storeLocally && authCode && <>
           <button className='landing-button' style={{ minWidth: storedInBrowser ? 250 : 130, margin: 5 }} onClick={async () => {
             if (storedInBrowser) {
               const existingAuthCodes = localStorage.getItem('savedAuthCodes');
@@ -140,7 +145,44 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ isUrl,
 
           }}>
             {storedInBrowser ? 'Remove from Browser Storage' : 'Store in Browser'}
-          </button>}
+          </button>
+          <button className='landing-button' style={{ minWidth: 210, margin: 5 }} onClick={async () => {
+            setPortModalIsVisible(true);
+          }}>
+            {'View on Different Device'}
+          </button>
+          <Modal
+            title={<div className='primary-text inherit-bg'><b>{'View on Different Device'}</b></div>}
+            open={portModalIsVisible}
+
+            footer={null}
+            closeIcon={<div className='primary-text inherit-bg'>{<CloseOutlined />}</div>}
+            bodyStyle={{
+              paddingTop: 8,
+            }}
+            onCancel={() => setPortModalIsVisible(false)}
+            destroyOnClose={true}
+          >
+            <div className='secondary-text'>
+              <InfoCircleOutlined />{' '}
+              If you want to view your secret code on a different device, you can scan the QR code below.
+              This will open a similar screen on the other device which will allow you to save the code there.{' '}
+              <span style={{ color: 'orange' }}>
+                <WarningOutlined style={{ color: 'orange' }} />{' '}The QR code below is not the same as your secret authentication QR code.
+              </span>
+            </div>
+            <br />
+            <div className='flex-center'>
+              <QRCode value={portUrl} size={size} />
+            </div>
+            <br />
+            <div className='flex-center'>
+              <a href={portUrl} target='_blank' style={{}}>
+                Go to URL
+              </a>
+            </div>
+          </Modal>
+        </>}
 
         {navigator.canShare && navigator.canShare({ files: [new File([], 'test.png')] }) &&
           <button className='landing-button' style={{ minWidth: 130, margin: 5 }} onClick={async () => {

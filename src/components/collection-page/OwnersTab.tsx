@@ -6,9 +6,10 @@ import { getOwnersForBadge } from '../../bitbadges-api/api';
 
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { fetchNextForCollectionViews, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { fetchBalanceForUser, fetchNextForCollectionViews, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
+import { AccountDetailsTag, AccountFilterSearchBar } from '../badges/DisplayFilters';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
@@ -38,13 +39,19 @@ function BalanceInfiniteScroll({
   const isPreview = collectionId === NEW_COLLECTION_ID;
 
   const [numShown, setNumShown] = useState(25);
+  const [searchAddress, setSearchAddress] = useState('');
+  const [searchedBalanceDocs, setSearchedBalanceDocs] = useState<BalanceDoc<bigint>[]>([]);
 
   const toShow = owners.slice(0, numShown);
 
   return <>
     <div className='flex-between'>
       <div></div>
-      <div className='flex flex-wrap'>
+      <div
+        className="flex-wrap full-width flex"
+        style={{ flexDirection: "row-reverse", alignItems: "flex-end", marginTop: 12 }}
+      >
+
         <SelectWithOptions
           title='View'
           value={cardView ? 'Card' : 'Table'}
@@ -73,11 +80,42 @@ function BalanceInfiniteScroll({
             value: 'No',
           }]}
         />
+        {(
+          <div style={{ marginBottom: 4, flexGrow: 1 }}> {/* Add this style to make it grow */}
+            <AccountFilterSearchBar
+              searchValue={searchAddress}
+              setSearchValue={setSearchAddress}
+              onSearch={async (address: string) => {
+
+                const res = await fetchBalanceForUser(collectionId, address);
+                setSearchedBalanceDocs([...searchedBalanceDocs ?? [], res]);
+                setSearchAddress('');
+              }} />
+          </div>
+        )}
       </div>
     </div >
     <br />
+    {searchedBalanceDocs.length > 0 && <div className='flex-center flex-wrap full-width'>
+      {searchedBalanceDocs.map((owner, idx) => {
+        return <AccountDetailsTag
+          key={idx}
+          addressOrUsername={owner.cosmosAddress} onClose={() => {
+            setSearchedBalanceDocs(searchedBalanceDocs.filter(x => x.cosmosAddress !== owner.cosmosAddress));
+            setSearchAddress('');
+          }} />
+      })}
+
+    </div>}
+    <br />
     <div className='primary-text flex-center flex-wrap full-width'>
-      {toShow.length > 0 && <>
+      {searchedBalanceDocs.length > 0 && <>
+        {searchedBalanceDocs.map((owner, idx) => {
+          return <BalanceCard key={idx} collectionId={collectionId} owner={owner} hideBadges={!showBadges} />
+        })}</>}
+
+
+      {toShow.length > 0 && searchedBalanceDocs.length === 0 && <>
         <InfiniteScroll
           dataLength={toShow.length}
           next={() => {
@@ -133,13 +171,14 @@ function BalanceInfiniteScroll({
             </div>
           </>}
         </InfiniteScroll>
-      </>}
 
-      {!pagination.hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
+      </>}
+      {searchedBalanceDocs.length === 0 && !pagination.hasMore && owners?.filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total').length === 0 && <Empty //<= 2 because of Mint and Total always being there
         description={isPreview ? "This feature is not supported for previews." : "No owners found for this badge."}
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         className='primary-text'
       />}
+
     </div >
   </>
 }
