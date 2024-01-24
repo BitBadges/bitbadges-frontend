@@ -264,7 +264,7 @@ export const AuthCode = ({
               <AssetConditionGroupUI
                 assetConditionGroup={authCode.params.assetOwnershipRequirements}
                 bulletNumber={1}
-                parentBullet={1}
+                parentBullet={''}
                 lists={lists}
                 address={authCode.params.address}
               />

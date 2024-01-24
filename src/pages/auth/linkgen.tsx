@@ -79,8 +79,8 @@ function BlockinCodesScreen() {
     }
   }, [codeGenParams]);
 
-  // const FRONTEND_URL = "https://bitbadges.io"
-  const FRONTEND_URL = "http://localhost:3000"
+  const FRONTEND_URL = "https://bitbadges.io"
+  // const FRONTEND_URL = "http://localhost:3000"
   let url = FRONTEND_URL + '/auth/codegen?';
   for (let [key, value] of Object.entries(codeGenParams)) {
     if (key === 'challengeParams') {

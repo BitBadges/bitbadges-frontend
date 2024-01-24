@@ -1,5 +1,6 @@
 import { CheckCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { Progress, Spin, Tooltip } from 'antd';
+import { Collapse, Progress, Spin, Tooltip } from 'antd';
+import { UintRange } from 'bitbadgesjs-proto';
 import { BigIntify, BitBadgesAddressList, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress, getMetadataForBadgeId, getTotalNumberOfBadgeIds } from 'bitbadgesjs-utils';
 import { AndGroup, AssetConditionGroup, ChallengeParams, OrGroup, OwnershipRequirements, VerifyChallengeOptions, constructChallengeObjectFromString, convertChallengeParams, createChallenge } from 'blockin';
 import { useRouter } from 'next/router';
@@ -41,7 +42,7 @@ export const AssetConditionGroupUI = (
     assetConditionGroup: AssetConditionGroup<bigint>,
     depth?: number,
     bulletNumber: number,
-    parentBullet: number,
+    parentBullet: string,
     lists: BitBadgesAddressList<bigint>[];
     address: string;
   }
@@ -53,57 +54,143 @@ export const AssetConditionGroupUI = (
 
   const depthLetter = String.fromCharCode(65 + depth);
   const nextDepthLetter = String.fromCharCode(65 + depth + 1);
-  const requirementNode = <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start', marginLeft: depth * 16 }}>
-    <b>{`${depthLetter}${parentBullet}-${bulletNumber}: `}</b>{`Must satisfy ${andItem.$and ? 'all' : orItem.$or ? 'one of' : 'any'
-      } ${nextDepthLetter}${bulletNumber}`}
+  const requirementNode = <div style={{ whiteSpace: 'pre-wrap', textAlign: 'center', fontSize: 12 }} className='secondary-text'>
+    <br />
+    <InfoCircleOutlined /> To satisfy requirement {parentBullet ? parentBullet + '.' : ''}{bulletNumber}, {andItem.$and ? `ALL of the following must be satisfied.` : orItem.$or ? `ONE of the following must be satisfied.` : 'any'}
+    <br /><br />
+  </div >
+
+  const panelHeader = <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start', }} className='primary-text'>
+    <b>Requirement {<>{parentBullet ? parentBullet + '.' : ''}{bulletNumber}</>}</b>
   </div>
 
 
+
   if (andItem['$and'] !== undefined) {
-    return <>
-      {requirementNode}
+    const innerContent = <>
       {andItem['$and'].map((item, index) => {
-        return <div key={index}>
+        //If top level AND, we dont show the requirement node and shift everything over -16 bc it is not shown
+        return <div key={index} style={{}}>
           <AssetConditionGroupUI
+
             assetConditionGroup={item}
             depth={depth + 1}
             bulletNumber={index + 1}
-            parentBullet={bulletNumber}
+            parentBullet={depth == 0 ? '' : `${parentBullet ? parentBullet + '.' : ''}${bulletNumber}`}
             lists={lists}
             address={address}
           />
+          {index !== andItem['$and'].length - 1 && <div className='secondary-text' style={{ textAlign: 'center', fontSize: 12 }}>
+            AND
+          </div>}
         </div>
       })}
     </>
-  } else if (orItem['$or'] !== undefined) {
+
     return <>
-      {requirementNode}
+      {/* Top level ands can be removed bc that is the assumed behavior */}
+
+      {depth > 0 &&
+        <Collapse
+          defaultActiveKey={depth == 0 ? bulletNumber + depthLetter + parentBullet + nextDepthLetter : undefined}
+          className='primary-text m-2'
+          style={{ alignItems: 'center' }}
+          expandIconPosition='start'
+        >
+          <Collapse.Panel
+            className='full-width card-bg'
+            key={bulletNumber + depthLetter + parentBullet + nextDepthLetter}
+            header={panelHeader}>
+            {requirementNode}
+            {innerContent}
+          </Collapse.Panel>
+
+        </Collapse>
+      }
+      {depth == 0 && innerContent}
+
+    </>
+  } else if (orItem['$or'] !== undefined) {
+    const innerContent = <>
       {orItem['$or'].map((item, index) => {
         return <div key={index}>
           <AssetConditionGroupUI
             assetConditionGroup={item}
             depth={depth + 1}
             bulletNumber={index + 1}
-            parentBullet={bulletNumber}
+            parentBullet={depth == 0 ? '' : `${parentBullet ? parentBullet + '.' : ''}${bulletNumber}`}
             lists={lists}
             address={address}
           />
+          {index !== orItem['$or'].length - 1 && <div className='secondary-text' style={{ textAlign: 'center', fontSize: 12 }}>
+            OR
+          </div>}
+
         </div>
       })}
+    </>
+
+    return <>
+      {depth > 0 &&
+        <Collapse
+          defaultActiveKey={depth == 0 ? bulletNumber + depthLetter + parentBullet + nextDepthLetter : undefined}
+          className='primary-text m-2'
+          style={{ alignItems: 'center' }}
+          expandIconPosition='start'
+        >
+          <Collapse.Panel
+            className='full-width card-bg'
+            key={bulletNumber + depthLetter + parentBullet + nextDepthLetter}
+            header={panelHeader}>
+            {requirementNode}
+
+            {orItem['$or'].map((item, index) => {
+              return <div key={index}>
+                <AssetConditionGroupUI
+                  assetConditionGroup={item}
+                  depth={depth + 1}
+                  bulletNumber={index + 1}
+                  parentBullet={depth == 0 ? '' : `${parentBullet ? parentBullet + '.' : ''}${bulletNumber}`}
+                  lists={lists}
+                  address={address}
+                />
+                {index !== orItem['$or'].length - 1 && <div className='secondary-text' style={{ textAlign: 'center', fontSize: 12 }}>
+                  OR
+                </div>}
+
+              </div>
+            })}
+
+          </Collapse.Panel>
+
+        </Collapse>
+      }
+      {depth == 0 && innerContent}
     </>
   } else {
     const containsList = ownershipRequirements.assets.some(asset => asset.collectionId === 'BitBadges Lists');
     const containsBadges = ownershipRequirements.assets.some(asset => asset.collectionId !== 'BitBadges Lists');
     const listsBadgesStr = containsList && containsBadges ? 'badges / lists' : containsList ? 'lists' : 'badges';
-    const normalRequirementNode = <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start', marginLeft: depth * 16 }}>
-      <b>{`${depthLetter}${parentBullet}-${bulletNumber}: `}</b>{`${ownershipRequirements.options?.numMatchesForVerification ? `Must satisfy criteria for ${ownershipRequirements.options.numMatchesForVerification}+ ${listsBadgesStr} below` : `Must satisfy for all ${listsBadgesStr} below`}`}
+    let totalNumAssets = 0n;
+    for (const asset of ownershipRequirements.assets) {
+      if (asset.collectionId !== 'BitBadges Lists') {
+        totalNumAssets += getTotalNumberOfBadgeIds(asset.assetIds as UintRange<bigint>[]);
+      } else {
+        totalNumAssets += BigInt(asset.assetIds.length);
+      }
+    }
+    const normalRequirementNode = <div style={{ whiteSpace: 'pre-wrap', textAlign: 'center', }} className='secondary-text'> <br />
+      <InfoCircleOutlined /> {ownershipRequirements.options?.numMatchesForVerification
+        ? `Must satisfy for ${ownershipRequirements.options.numMatchesForVerification}/${totalNumAssets} ${listsBadgesStr}`
+        : `Must satisfy for ${totalNumAssets}/${totalNumAssets} ${listsBadgesStr}`
+      } below
+      <br /><br />
     </div>
 
-
-    return <>
+    const innerContent = <>
       {normalRequirementNode}
 
-      <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start', marginLeft: (depth + 1) * 16, borderLeft: '1px solid gray', paddingLeft: 8 }}>
+      <div style={{ whiteSpace: 'pre-wrap', textAlign: 'center', marginBottom: 16 }} className='primary-text'>
 
         {ownershipRequirements.assets.map((asset, index) => {
           if (asset.collectionId === 'BitBadges Lists') {
@@ -116,7 +203,9 @@ export const AssetConditionGroupUI = (
                 addressOrUsername={address}
                 hasMore={false}
                 fetchMore={async () => { }}
-                listsView={lists}
+                listsView={ownershipRequirements.assets.filter(x => x.collectionId === 'BitBadges Lists').map(x => {
+                  return x.assetIds.map(y => lists.find(z => z.listId === y) ?? []).filter(x => x) as BitBadgesAddressList<bigint>[];
+                }).flat()}
               />
             </div>
           }
@@ -166,11 +255,13 @@ export const AssetConditionGroupUI = (
             }
           }).join(', ')}</>
 
-          return <div key={index} style={{ fontSize: 14 }}>
+          return <><div key={index} style={{ fontSize: 14, }}>
             {/* <b>Criteria {index + 1}</b> */}
 
             {<>
-              For the badges ({assetsText}), <CheckCircleFilled style={{ color: 'green' }} />{' '}if you own {amountsText}
+              {/* For the badges ({assetsText}),  */}
+              <CheckCircleFilled style={{ color: 'green' }} />{' '}if {amountsText}{' '}
+              of {assetsText} is owned
             </>}
 
             {' '}{(asset.ownershipTimes ?? []).length > 0 ? 'from ' +
@@ -182,7 +273,7 @@ export const AssetConditionGroupUI = (
                 } else {
                   return getTimeRangesString([time], '', true);
                 }
-              }).join(', ') + '' : 'at the time of sign in'}.
+              }).join(', ') + '' : 'at the time of sign in'}
             < br />
             <br />
             <BadgeAvatarDisplay
@@ -191,10 +282,37 @@ export const AssetConditionGroupUI = (
                 return { start: BigInt(x.start), end: BigInt(x.end) };
               })} size={75}
             />
-            <br />
+
           </div>
+            <br />
+          </>
         })}
       </div >
+    </>
+
+    return <>
+      {depth > 0 &&
+        <Collapse
+          defaultActiveKey={depth == 0 ? bulletNumber + depthLetter + parentBullet + nextDepthLetter : undefined}
+          className='primary-text m-2'
+          style={{ alignItems: 'center' }}
+          expandIconPosition='start'
+        >
+          <Collapse.Panel
+            className='full-width card-bg'
+
+            key={bulletNumber + depthLetter + parentBullet + nextDepthLetter}
+            header={panelHeader}
+          >
+            {innerContent}
+          </Collapse.Panel>
+
+        </Collapse>
+      }
+
+      {depth == 0 && innerContent}
+
+
     </>
   }
 }
@@ -548,18 +666,17 @@ function BlockinCodesScreen() {
                             {authCode.params.assetOwnershipRequirements && <>
                               <b>Requirements</b>
                               <div className='secondary-text' style={{ textAlign: 'center', fontSize: 12 }}>
-                                <InfoCircleOutlined /> To be approved, you must satisfy all A level requirements, which may require you to satisfy B level requirements, and so on.
+                                <InfoCircleOutlined /> To be approved, you must meet some criteria.
                               </div>
-                              <br />
-                              <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start' }}>
+
+                              <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start' }} className='my-4'>
                                 <AssetConditionGroupUI
                                   assetConditionGroup={authCode.params.assetOwnershipRequirements}
                                   bulletNumber={1}
-                                  parentBullet={1}
+                                  parentBullet={''}
                                   lists={lists}
                                   address={address as string}
                                 />
-
                               </div>
                             </>}
                           </div>

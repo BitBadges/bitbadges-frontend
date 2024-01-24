@@ -54,7 +54,7 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({ isUrl,
     img.src = imageUrl;
   }
 
-  let portUrl = 'https://bitbadges.io/code?code=' + authCode?.signature;
+  let portUrl = 'https://bitbadges.io/auth/code?code=' + authCode?.signature;
   if (authCode?.name) portUrl += '&name=' + authCode?.name;
   if (authCode?.description) portUrl += '&description=' + authCode?.description;
   if (authCode?.image) portUrl += '&image=' + authCode?.image;
