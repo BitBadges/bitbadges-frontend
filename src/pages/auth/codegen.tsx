@@ -92,7 +92,7 @@ export const AssetConditionGroupUI = (
 
       {depth > 0 &&
         <Collapse
-          defaultActiveKey={depth == 0 ? bulletNumber + depthLetter + parentBullet + nextDepthLetter : undefined}
+
           className='primary-text m-2'
           style={{ alignItems: 'center' }}
           expandIconPosition='start'
@@ -133,7 +133,7 @@ export const AssetConditionGroupUI = (
     return <>
       {depth > 0 &&
         <Collapse
-          defaultActiveKey={depth == 0 ? bulletNumber + depthLetter + parentBullet + nextDepthLetter : undefined}
+
           className='primary-text m-2'
           style={{ alignItems: 'center' }}
           expandIconPosition='start'
@@ -291,26 +291,22 @@ export const AssetConditionGroupUI = (
     </>
 
     return <>
-      {depth > 0 &&
-        <Collapse
-          defaultActiveKey={depth == 0 ? bulletNumber + depthLetter + parentBullet + nextDepthLetter : undefined}
-          className='primary-text m-2'
-          style={{ alignItems: 'center' }}
-          expandIconPosition='start'
+      <Collapse
+
+        className='primary-text m-2'
+        style={{ alignItems: 'center' }}
+        expandIconPosition='start'
+      >
+        <Collapse.Panel
+          className='full-width card-bg'
+
+          key={bulletNumber + depthLetter + parentBullet + nextDepthLetter}
+          header={panelHeader}
         >
-          <Collapse.Panel
-            className='full-width card-bg'
+          {innerContent}
+        </Collapse.Panel>
 
-            key={bulletNumber + depthLetter + parentBullet + nextDepthLetter}
-            header={panelHeader}
-          >
-            {innerContent}
-          </Collapse.Panel>
-
-        </Collapse>
-      }
-
-      {depth == 0 && innerContent}
+      </Collapse>
 
 
     </>
@@ -562,7 +558,7 @@ function BlockinCodesScreen() {
 
 
 
-  const flaggedWebsites = ['https://bitbadges.io', 'https://bitbadges.io/'];
+  const flaggedWebsites: string[] = []; //'https://bitbadges.io', 'https://bitbadges.io/'
   const authCode = convertBlockinAuthSignatureDoc({
     _docId: '',
     signature: '',
