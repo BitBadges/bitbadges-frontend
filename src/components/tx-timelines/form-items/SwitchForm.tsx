@@ -16,13 +16,15 @@ export function SwitchForm({
   options,
   helperMessage,
   showCustomOption,
-  fullWidthCards
+  fullWidthCards,
+  numCardsPerRow,
 }: {
   onSwitchChange: (selectedIdx: number) => void;
   options: (SwitchFormOption | undefined)[];
   helperMessage?: string;
   showCustomOption?: boolean;
   fullWidthCards?: boolean;
+  numCardsPerRow?: number;
 }) {
   const filteredOptions = options.filter(x => x) as SwitchFormOption[];
   let customValueIdx = -1;
@@ -47,7 +49,9 @@ export function SwitchForm({
           }}
         >
           {filteredOptions.map((option, index) => {
-            return <Col md={fullWidthCards ? 24 : 12} sm={24} xs={24} key={index} className='flex' style={{ padding: 8 }}>
+            return <Col md={fullWidthCards ? 24 :
+              numCardsPerRow ? 24 / numCardsPerRow :
+                12} sm={24} xs={24} key={index} className='flex' style={{ padding: 8 }}>
               <Card
                 key={index}
                 hoverable

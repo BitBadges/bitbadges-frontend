@@ -1,12 +1,18 @@
 import { CheckCircleFilled, CloseCircleFilled, InfoCircleOutlined, WarningOutlined } from "@ant-design/icons"
-import { Col, Tag, Tooltip } from "antd"
+import { faSnowflake } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Col, Popover, Tag, Tooltip } from "antd"
 import { CollectionApprovalWithDetails } from "bitbadgesjs-utils"
+import { useMemo } from "react"
+import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
 import { approvalCriteriaHasNoAmountRestrictions, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from "../../../bitbadges-api/utils/claims"
+import { neverHasManager } from "../../../bitbadges-api/utils/manager"
 import { getBadgeIdsString } from "../../../utils/badgeIds"
 import { getTimeRangesElement } from "../../../utils/dates"
 import { AddressDisplayList } from "../../address/AddressDisplayList"
 import { TableRow } from "../../display/TableRow"
-import { useMemo } from "react"
+import { isApprovalNonUpdatableAndExpectsSameValue } from "../../tx-timelines/step-items/CanUpdateCollectionApprovals"
+import { PermissionDisplayTable } from "../PermissionsInfo"
 
 export const TableHeader = () => {
   return <tr >
@@ -55,6 +61,7 @@ interface TransferabilityInfoProps {
   startingApprovals?: CollectionApprovalWithDetails<bigint>[],
   disapproved?: boolean,
   editable?: boolean,
+  collectionId: bigint,
 }
 
 interface TransferabilityInfoDisplayProps extends TransferabilityInfoProps {
@@ -152,8 +159,9 @@ const RowContentDetails = ({
   initiatedByAddresses,
   hasSameChallengeTrackerId,
   hasSameTrackerId,
+  collectionId,
 }: TransferabilityInfoDisplayProps & { mobile?: boolean }) => {
-
+  const collection = useCollection(collectionId);
   const FromValue = <AddressDisplayList
     users={approval.fromList.addresses}
     allExcept={!approval.fromList.whitelist}
@@ -210,6 +218,19 @@ const RowContentDetails = ({
         color='#1890ff'
         className='primary-text'
       >No Amount Restrictions</Tag>}
+      {collection && (isApprovalNonUpdatableAndExpectsSameValue(approval, collection) || neverHasManager(collection)) && <Popover
+        color="black"
+        content={<div className="dark primary-text">
+          <PermissionDisplayTable permissions={collection.collectionPermissions.canUpdateCollectionApprovals} permissionName={'canUpdateCollectionApprovals'} neverHasManager={neverHasManager(collection)} />
+        </div>}
+      >
+
+        <Tag
+          style={{ margin: 4, backgroundColor: 'black', textAlign: 'center', color: 'white', alignItems: 'center' }}
+
+          className='primary-text '
+        ><FontAwesomeIcon icon={faSnowflake} /> Frozen</Tag>
+      </Popover>}
       {approval.approvalCriteria?.merkleChallenge?.root && approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf && <Tag
         style={{ margin: 4, backgroundColor: '#1890ff' }}
         color='#1890ff'

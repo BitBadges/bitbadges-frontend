@@ -1,5 +1,5 @@
 import { BookOutlined, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, GiftOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined } from '@ant-design/icons';
-import { Spin, Tag, Typography, notification } from 'antd';
+import { Spin, Tag, Tooltip, Typography, notification } from 'antd';
 import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
 import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, getCurrentValueForTimeline, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-utils';
 import { useRouter } from 'next/router';
@@ -232,6 +232,7 @@ export function TransferabilityDisplay({
             if (!hideActions) await refreshTrackers();
             setEditIsVisible(!editIsVisible);
             setShowMoreIsVisible(false);
+
           }}
           text={editIsVisible ? 'Cancel Edit' : 'Edit'}
           size={40}
@@ -278,6 +279,7 @@ export function TransferabilityDisplay({
 
             <InformationDisplayCard noPadding title={approval.details?.name ?? ''} md={24} xs={24} sm={24} >
               <TransferabilityInfoDisplay
+                collectionId={collectionId}
                 approval={approval}
                 filterFromMint={filterFromMint}
                 grayedOut={grayedOut}
@@ -348,12 +350,15 @@ export function TransferabilityDisplay({
 
                         setShowMoreIsVisible(!showMoreIsVisible)
                         setEditIsVisible(false);
+
+
                       }}
                       disabled={editIsVisible || refreshing}
                       text={showMoreIsVisible ? 'Hide Details' : 'Details'}
                       tooltipMessage={showMoreIsVisible ? 'Hide Details' : 'Details'}
                       size={40}
                     />}
+
                   {!disapproved && collectionId !== NEW_COLLECTION_ID &&
                     <IconButton
 
@@ -388,6 +393,17 @@ export function TransferabilityDisplay({
                   {EditableValue}
                   {OnRestoreValue}
                   {OnDeleteValue}
+                </div>
+                <div className='secondary-text' style={{ textAlign: 'center', fontSize: 10 }}>
+                  Approval ID: <Tooltip title={approval.approvalId}><span>{approval.approvalId.length > 25 ? approval.approvalId.substring(0, 25) + '...' : approval.approvalId}</span></Tooltip>
+                  {approval.amountTrackerId !== approval.approvalId && <>
+                    <br />
+                    Tracker ID: <Tooltip title={approval.amountTrackerId}><span>{approval.amountTrackerId.length > 25 ? approval.amountTrackerId.substring(0, 25) + '...' : approval.amountTrackerId}</span></Tooltip>
+                  </>}
+                  {approval.challengeTrackerId !== approval.approvalId && <>
+                    <br />
+                    Challenge ID: <Tooltip title={approval.challengeTrackerId}><span>{approval.challengeTrackerId.length > 25 ? approval.challengeTrackerId.substring(0, 25) + '...' : approval.challengeTrackerId}</span></Tooltip>
+                  </>}
                 </div>
 
                 {
@@ -449,7 +465,6 @@ export function TransferabilityDisplay({
                         <Typography.Text strong className='primary-text' style={{ fontSize: 24 }}>
                           Editing Approval
                         </Typography.Text>
-
                       </div>
                       <ApprovalSelectWrapper
                         collection={collection}

@@ -1,5 +1,5 @@
 import { CollectionPermissions, NumberType, UintRange, deepCopy } from 'bitbadgesjs-proto';
-import { AnnouncementDoc, ApprovalTrackerDoc, BadgeMetadataDetails, BalanceDoc, BigIntify, BitBadgesCollection, CollectionViewKey, DefaultPlaceholderMetadata, GetAdditionalCollectionDetailsRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeDoc, MetadataFetchOptions, ReviewDoc, TransferActivityDoc, convertBitBadgesCollection } from 'bitbadgesjs-utils';
+import { AnnouncementDoc, ApprovalTrackerDoc, BadgeMetadataDetails, BalanceDoc, BigIntify, BitBadgesCollection, CollectionPermissionsWithDetails, CollectionViewKey, DefaultPlaceholderMetadata, GetAdditionalCollectionDetailsRequestBody, GetMetadataForCollectionRequestBody, MerkleChallengeDoc, MetadataFetchOptions, ReviewDoc, TransferActivityDoc, convertBitBadgesCollection } from 'bitbadgesjs-utils';
 import { useSelector } from 'react-redux';
 import { CollectionReducerState, GlobalReduxState, dispatch, store } from '../../../pages/_app';
 import { DesiredNumberType, getBadgeBalanceByAddress, refreshMetadata } from '../../api';
@@ -60,7 +60,7 @@ export const setCollection = (collection: Partial<BitBadgesCollection<DesiredNum
   dispatch(setCollectionRedux(collection));
 }
 
-export const updateCollection = (newCollection: Partial<BitBadgesCollection<DesiredNumberType> | { collectionPermissions?: Partial<CollectionPermissions<bigint>> }> & { collectionId: DesiredNumberType }) => {
+export const updateCollection = (newCollection: Partial<BitBadgesCollection<DesiredNumberType> | { collectionPermissions?: Partial<CollectionPermissionsWithDetails<bigint>> }> & { collectionId: DesiredNumberType }) => {
   dispatch(updateCollectionsRedux(newCollection, true));
 }
 

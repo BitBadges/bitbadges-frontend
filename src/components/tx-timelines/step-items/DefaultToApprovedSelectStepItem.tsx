@@ -31,21 +31,22 @@ export const DefaultApprovedDisplay = ({ address }: { address: string }) => {
       <table className="table-auto w-full overflow-x-scroll">
         <thead>
           <tr className="">
+            <th className="p-2"></th>
             <th className="p-2"><b>To</b></th>
             <th className="p-2"><b>Initiator</b></th>
-            <th className="p-2"></th>
           </tr>
         </thead>
         <tbody>
           <tr className="text-center">
+
+            <td className="p-2">
+              <CheckCircleFilled style={{ fontSize: 20, color: 'green' }} />
+            </td>
             <td className="p-2">
               <AddressDisplayList users={[address]} allExcept={false} />
             </td>
             <td className="p-2">
               <AddressDisplayList users={[]} allExcept={true} />
-            </td>
-            <td className="p-2">
-              <CheckCircleFilled style={{ fontSize: 20, color: 'green' }} />
             </td>
           </tr>
         </tbody>
@@ -60,32 +61,35 @@ export const DefaultOptInDisplay = ({ address }: { address: string }) => {
       <table className="table-auto w-full overflow-x-scroll">
         <thead>
           <tr className="">
+
+            <th className="p-2"></th>
             <th className="p-2"><b>To</b></th>
             <th className="p-2"><b>Initiator</b></th>
-            <th className="p-2"></th>
           </tr>
         </thead>
         <tbody>
           <tr className="text-center">
-            <td className="p-2">
-              <AddressDisplayList users={[address]} allExcept={false} />
-            </td>
-            <td className="p-2">
-              <AddressDisplayList users={[address]} allExcept={false} />
-            </td>
+
             <td className="p-2">
               <CheckCircleFilled style={{ fontSize: 20, color: 'green' }} />
             </td>
+            <td className="p-2">
+              <AddressDisplayList users={[address]} allExcept={false} />
+            </td>
+            <td className="p-2">
+              <AddressDisplayList users={[address]} allExcept={false} />
+            </td>
           </tr>
           <tr className="text-center">
+
+            <td className="p-2">
+              <CloseCircleFilled style={{ fontSize: 20, color: 'red' }} />
+            </td>
             <td className="p-2">
               <AddressDisplayList users={[address]} allExcept={false} />
             </td>
             <td className="p-2">
               <AddressDisplayList users={[address]} allExcept={true} />
-            </td>
-            <td className="p-2">
-              <CloseCircleFilled style={{ fontSize: 20, color: 'red' }} />
             </td>
           </tr>
         </tbody>

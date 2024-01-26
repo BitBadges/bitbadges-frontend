@@ -3,15 +3,18 @@ import { useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimeline
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { EditableApprovalsDisplay } from './ApprovalsDisplay';
 
-export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, onlyShowNotFromMint, hideHelperMessage, showDeletedGrayedOut, editable }: {
-  collectionId: bigint,
-  badgeId?: bigint,
-  onlyShowFromMint?: boolean,
-  onlyShowNotFromMint?: boolean,
-  hideHelperMessage?: boolean,
-  editable?: boolean,
-  showDeletedGrayedOut?: boolean
-}) {
+export function TransferabilityTab({
+  hideActions,
+  collectionId, badgeId, onlyShowFromMint, onlyShowNotFromMint, hideHelperMessage, showDeletedGrayedOut, editable }: {
+    collectionId: bigint,
+    badgeId?: bigint,
+    onlyShowFromMint?: boolean,
+    onlyShowNotFromMint?: boolean,
+    hideHelperMessage?: boolean,
+    editable?: boolean,
+    hideActions?: boolean,
+    showDeletedGrayedOut?: boolean
+  }) {
   const collection = useCollection(collectionId);
   const txTimelineContext = useTxTimelineContext();
 
@@ -30,6 +33,7 @@ export function TransferabilityTab({ collectionId, badgeId, onlyShowFromMint, on
         approverAddress=''
         editable={!!editable}
         mintingOnly={!!onlyShowFromMint}
+        hideActions={!!hideActions}
 
         showDeletedGrayedOut={showDeletedGrayedOut}
         startingApprovals={txTimelineContext.startingCollection?.collectionApprovals ?? []}

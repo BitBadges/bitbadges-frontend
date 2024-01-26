@@ -27,6 +27,7 @@ interface DisplayProps {
   title?: string;
   subtitle?: React.ReactNode;
   defaultShowDisallowed?: boolean;
+  hideActions?: boolean;
 }
 
 interface EditableProps extends DisplayProps {
@@ -58,6 +59,7 @@ export const ApprovalSelectWrapper: FC<{
   setVisible: (visible: boolean) => void;
   defaultApproval?: CollectionApprovalWithDetails<bigint>;
   approvalLevel: string;
+
 } & { setVisible: (visible: boolean) => void }> = (props) => {
   const startingApprovals = props.startingApprovals;
   const approvalPermissions = props.approvalPermissions;
@@ -182,6 +184,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
   showDeletedGrayedOut,
   subtitle,
   defaultShowDisallowed,
+  hideActions,
   title, addMoreNode, onDelete, editable, approvals, collection, badgeId, filterFromMint, hideHelperMessage, approvalLevel, approverAddress, onlyShowFromMint
 }) => {
   const [showHidden, setShowHidden] = useState<boolean>(defaultShowDisallowed ?? false);
@@ -242,6 +245,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
           isIncomingDisplay={approvalLevel === "incoming"}
           isOutgoingDisplay={approvalLevel === "outgoing"}
           approval={x}
+          hideActions={hideActions}
 
           key={idx}
           badgeId={filterByBadgeId ? badgeId : undefined}
@@ -261,6 +265,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
           setAddress={setAddress}
           isIncomingDisplay={approvalLevel === "incoming"}
           isOutgoingDisplay={approvalLevel === "outgoing"}
+          hideActions={hideActions}
           approval={x}
           key={idx}
           badgeId={badgeId} collectionId={collection.collectionId} filterFromMint={filterFromMint} />
@@ -272,6 +277,8 @@ const FullApprovalsDisplay: FC<FullProps> = ({
           setAllApprovals={setApprovals ? setApprovals : () => { }}
           approvalPermissions={approvalPermissions ?? []}
           onDelete={onDelete} allApprovals={approvals}
+          hideActions={hideActions}
+
           address={address} setAddress={setAddress} isIncomingDisplay={approvalLevel === "incoming"}
           isOutgoingDisplay={approvalLevel === "outgoing"} disapproved approval={x}
           key={idx}

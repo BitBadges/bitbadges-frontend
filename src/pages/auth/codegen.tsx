@@ -260,7 +260,7 @@ export const AssetConditionGroupUI = (
 
             {<>
               {/* For the badges ({assetsText}),  */}
-              <CheckCircleFilled style={{ color: 'green' }} />{' '}if {amountsText}{' '}
+              {amountsText}{' '}
               of {assetsText} is owned
             </>}
 
@@ -340,8 +340,8 @@ function BlockinCodesScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [simulationMessage, setSimulationMessage] = useState('');
+  const [simulateSuccess, setSimulateSuccess] = useState(false);
   const [lists, setLists] = useState<BitBadgesAddressList<bigint>[]>([]);
-  console.log(lists);
 
   const currAccount = useAccount(address);
 
@@ -426,9 +426,10 @@ function BlockinCodesScreen() {
 
   const simulateVerification = useCallback(async (params: ChallengeParams<bigint>) => {
     try {
-      setSimulationMessage('');
       const blockinParams = params;
       if (!blockinParams.address) return;
+
+      setSimulationMessage('');
       const challenge = createChallenge(blockinParams);
       const chain = getChainForAddress(constructChallengeObjectFromString(challenge, BigIntify).address);
 
@@ -448,9 +449,11 @@ function BlockinCodesScreen() {
         skipSignatureVerification: true
       }
 
+      setSimulateSuccess(true);
       await verifySignInGeneric({ message: challenge, chain: chain, signature: '', options: verifyChallengeOptions });
     } catch (e: any) {
       setSimulationMessage(`We ran into an error simulating this sign-in attempt: ${e.errorMessage ?? e.message}`);
+      setSimulateSuccess(false);
       console.log(e);
     }
   }, [allowAddressSelect, parsedVerifyOptions]);
@@ -664,6 +667,9 @@ function BlockinCodesScreen() {
                               <div className='secondary-text' style={{ textAlign: 'center', fontSize: 12 }}>
                                 <InfoCircleOutlined /> To be approved, you must meet some criteria.
                               </div>
+                              {expectVerifySuccess && simulateSuccess && <div className='flex-center secondary-text mt-2' style={{ fontSize: 12 }}>
+                                <CheckCircleFilled style={{ color: 'green', marginRight: 4 }} /> Successfully simulated. You meet the requirements.
+                              </div>}
 
                               <div style={{ whiteSpace: 'pre-wrap', textAlign: 'start' }} className='my-4'>
                                 <AssetConditionGroupUI
@@ -736,6 +742,7 @@ function BlockinCodesScreen() {
                           </button>
 
                         </div>
+
 
                         {simulationMessage && <ErrDisplay err={simulationMessage} warning />}
                         {errorMessage && simulationMessage && <br />}

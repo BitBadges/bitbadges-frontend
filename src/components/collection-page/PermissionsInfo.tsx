@@ -316,7 +316,8 @@ export const PermissionDisplayTable = (
                           idx={idx}
                           permissions={permissions}
                           permission={y}
-                          columns={columns} onFreezePermitted={onFreezePermitted}
+                          columns={columns} 
+                          onFreezePermitted={onFreezePermitted}
                           setPermissions={setPermissions}
                         />
                       })}
@@ -474,7 +475,7 @@ export function PermissionsOverview({
 
   return <InformationDisplayCard title={permissionName ? '' : 'Manager Permissions'} span={span}>
     {(!permissionName || permissionName == "canCreateMoreBadges") && <TableRow label={"Create more badges?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={(collection.collectionPermissions.canCreateMoreBadges)} neverHasManager={noManager} badgeIds={badgeIds} permissionName="canCreateMoreBadges" />} labelSpan={18} valueSpan={6} />}
-    {!noBalancesStandard && (!permissionName || permissionName == "canUpdateCollectionApprovals") && collection.balancesType === "Standard" && <TableRow label={"Update collection transferability (including mints)?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={(collection.collectionPermissions.canUpdateCollectionApprovals)} neverHasManager={noManager} badgeIds={badgeIds} permissionName="canUpdateCollectionApprovals" />} labelSpan={18} valueSpan={6} />}
+    {!noBalancesStandard && (!permissionName || permissionName == "canUpdateCollectionApprovals") && collection.balancesType === "Standard" && <TableRow label={"Update collection transferability?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={(collection.collectionPermissions.canUpdateCollectionApprovals)} neverHasManager={noManager} badgeIds={badgeIds} permissionName="canUpdateCollectionApprovals" />} labelSpan={18} valueSpan={6} />}
     {!noBalancesStandard && (!permissionName || permissionName == "canUpdateOffChainBalancesMetadata") && (collection.balancesType === "Off-Chain - Indexed" || collection.balancesType === "Off-Chain - Non-Indexed") && <TableRow label={"Update balances URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={(collection.collectionPermissions.canUpdateOffChainBalancesMetadata)} neverHasManager={noManager} badgeIds={badgeIds} permissionName="canUpdateOffChainBalancesMetadata" />} labelSpan={18} valueSpan={6} />}
     {(!permissionName || permissionName == "canUpdateBadgeMetadata") && <TableRow label={"Update badge metadata URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={(collection.collectionPermissions.canUpdateBadgeMetadata)} neverHasManager={noManager} badgeIds={badgeIds} permissionName="canUpdateBadgeMetadata" />} labelSpan={18} valueSpan={6} />}
     {(!permissionName || permissionName == "canUpdateCollectionMetadata") && !isBadgeView && <TableRow label={"Update collection metadata URL?"} value={tbd ? <QuestionCircleFilled style={{ marginLeft: 4, fontSize: 18, color: 'lightblue' }} /> : <PermissionIcon permissions={(collection.collectionPermissions.canUpdateCollectionMetadata)} neverHasManager={noManager} permissionName="canUpdateCollectionMetadata" />} labelSpan={18} valueSpan={6} />}

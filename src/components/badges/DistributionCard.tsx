@@ -233,7 +233,7 @@ export function CanCreateMoreBadgesRow({ collection, badgeId }: { collection: Bi
 export function CanUpdateTransferabilityDisplay({ collection, badgeId }: { collection: BitBadgesCollection<bigint>, badgeId?: bigint }) {
   return (
     <TableRow
-      label={"Can transferability be updated (including mints)?"}
+      label={"Can transferability be updated?"}
       value={
         <PermissionIcon
           permissionName="canUpdateCollectionApprovals"

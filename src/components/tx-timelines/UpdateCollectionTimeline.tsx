@@ -268,8 +268,7 @@ export function UpdateCollectionTimeline() {
           : EmptyStepItem,
         !isOffChainBalances &&
           !isNonIndexedBalances &&
-          !completeControl && !noBalancesStandard &&
-          hasManager &&
+          !completeControl && !noBalancesStandard && hasManager &&
           toShowCanUpdateCollectionApprovalsPermission
           ? FreezeSelectStep
           : EmptyStepItem,

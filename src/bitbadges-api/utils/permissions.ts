@@ -6,16 +6,16 @@ import { GO_MAX_UINT_64 } from "../../utils/dates";
 export type GenericCollectionPermissionWithDetails = ActionPermission<bigint> | TimedUpdatePermission<bigint> | BalancesActionPermission<bigint> | TimedUpdateWithBadgeIdsPermission<bigint> | CollectionApprovalPermissionWithDetails<bigint>
 
 export interface CleanedPermissionDetails {
-  timelineTimes?: UintRange<bigint>[],
-  badgeIds?: UintRange<bigint>[],
-  ownershipTimes?: UintRange<bigint>[],
-  transferTimes?: UintRange<bigint>[],
-  toList?: AddressList,
-  fromList?: AddressList,
-  initiatedByList?: AddressList,
-  approvalIdList?: AddressList,
-  amountTrackerIdList?: AddressList,
-  challengeTrackerIdList?: AddressList,
+  timelineTimes: UintRange<bigint>[],
+  badgeIds: UintRange<bigint>[],
+  ownershipTimes: UintRange<bigint>[],
+  transferTimes: UintRange<bigint>[],
+  toList: AddressList,
+  fromList: AddressList,
+  initiatedByList: AddressList,
+  approvalIdList: AddressList,
+  amountTrackerIdList: AddressList,
+  challengeTrackerIdList: AddressList,
   forbidden: boolean,
   permitted: boolean,
   permissionTimes: UintRange<bigint>[],
@@ -252,16 +252,16 @@ export function getDetailsForPermission(
       if (match.permanentlyForbiddenTimes.length > 0) hasPermanentlyForbiddenTimes = true;
 
       const base = {
-        timelineTimes: usesTimelineTimes ? [match.timelineTime] : undefined,
-        badgeIds: usesBadgeIds ? [match.badgeId] : undefined,
-        ownershipTimes: usesOwnershipTimes ? [match.ownershipTime] : undefined,
-        transferTimes: usesTransferTimes ? [match.transferTime] : undefined,
-        toList: usesToList ? match.toList : undefined,
-        fromList: usesFromList ? match.fromList : undefined,
-        initiatedByList: usesInitiatedByList ? match.initiatedByList : undefined,
-        approvalIdList: usesApprovalIdList ? match.approvalIdList : undefined,
-        amountTrackerIdList: usesAmountTrackerIdList ? match.amountTrackerIdList : undefined,
-        challengeTrackerIdList: usesChallengeTrackerIdList ? match.challengeTrackerIdList : undefined,
+        timelineTimes: usesTimelineTimes ? [match.timelineTime] : [{ start: 1n, end: GO_MAX_UINT_64 }],
+        badgeIds: usesBadgeIds ? [match.badgeId] : [{ start: 1n, end: GO_MAX_UINT_64 }],
+        ownershipTimes: usesOwnershipTimes ? [match.ownershipTime] : [{ start: 1n, end: GO_MAX_UINT_64 }],
+        transferTimes: usesTransferTimes ? [match.transferTime] : [{ start: 1n, end: GO_MAX_UINT_64 }],
+        toList: usesToList ? match.toList : getReservedAddressList("All"),
+        fromList: usesFromList ? match.fromList : getReservedAddressList("All"),
+        initiatedByList: usesInitiatedByList ? match.initiatedByList : getReservedAddressList("All"),
+        approvalIdList: usesApprovalIdList ? match.approvalIdList : getReservedAddressList("All"),
+        amountTrackerIdList: usesAmountTrackerIdList ? match.amountTrackerIdList : getReservedAddressList("All"),
+        challengeTrackerIdList: usesChallengeTrackerIdList ? match.challengeTrackerIdList : getReservedAddressList("All"),
       }
 
       if (neutralTimeRanges.length > 0) {
