@@ -159,7 +159,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
     const offlineSigner = window.getOfflineSigner(chainId);
     const signingClient = await SigningStargateClient.connectWithSigner(
-      'http://node.bitbadges.io:26657',
+      RPC_URL,
       offlineSigner,
     )
     const account: AccountData = (await offlineSigner.getAccounts())[0]
