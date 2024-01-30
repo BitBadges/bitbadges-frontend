@@ -1,13 +1,10 @@
-import {
-  SigningStargateClient
-} from "@cosmjs/stargate";
 import { verifyADR36Amino } from '@keplr-wallet/cosmos';
 import { AccountData, Window as KeplrWindow } from "@keplr-wallet/types";
 import { createTxRaw } from 'bitbadgesjs-proto';
 import { BigIntify, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
 import { SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import Long from 'long';
-import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { COSMOS_LOGO, INFINITE_LOOP_MODE, NODE_API_URL, RPC_URL } from '../../../constants';
 import { checkIfSignedIn } from "../../api";
@@ -68,14 +65,9 @@ const BitBadgesKeplrSuggestChainInfo = {
   }
 }
 
-export type CosmosContextType = ChainSpecificContextType & {
-  signer?: SigningStargateClient;
-  setSigner: Dispatch<SetStateAction<SigningStargateClient | undefined>>;
-}
+export type CosmosContextType = ChainSpecificContextType & {}
 
 export const CosmosContext = createContext<CosmosContextType>({
-  signer: undefined,
-  setSigner: () => { },
   address: '',
   connect: async () => { },
   disconnect: async () => { },
@@ -102,7 +94,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
   const [address, setAddress] = useState<string>('')
   const [connected, setConnected] = useState<boolean>(false);
-  const [signer, setSigner] = useState<SigningStargateClient>();
   const [cosmosAddress, setCosmosAddress] = useState<string>('');
   const [cookies] = useCookies(['blockincookie', 'pub_key']);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
@@ -158,12 +149,12 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
     await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
     const offlineSigner = window.getOfflineSigner(chainId);
-    const signingClient = await SigningStargateClient.connectWithSigner(
-      RPC_URL,
-      offlineSigner,
-    )
+    // const signingClient = await SigningStargateClient.connectWithSigner(
+    //   RPC_URL,
+    //   offlineSigner,
+    // )
     const account: AccountData = (await offlineSigner.getAccounts())[0]
-    setSigner(signingClient);
+    // setSigner(signingClient);
     setConnected(true);
     setAddress(account.address);
   }
@@ -269,8 +260,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     signChallenge,
     signTxn,
     address,
-    signer,
-    setSigner,
     getPublicKey,
     loggedIn,
     setLoggedIn,
@@ -285,4 +274,6 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
   </ CosmosContext.Provider>
 }
 
-export const useCosmosContext = () => useContext(CosmosContext)  
+export const useCosmosContext = () => useContext(CosmosContext)
+
+
