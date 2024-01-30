@@ -1,4 +1,4 @@
-import { SupportedChain, MAINNET_CHAIN_DETAILS, BETANET_CHAIN_DETAILS } from "bitbadgesjs-utils";
+import { BETANET_CHAIN_DETAILS, MAINNET_CHAIN_DETAILS, SupportedChain } from "bitbadgesjs-utils";
 import getConfig from 'next/config';
 
 const { publicRuntimeConfig } = getConfig();
@@ -6,10 +6,12 @@ export const HOSTNAME = publicRuntimeConfig.HOSTNAME;
 export const BACKEND_PORT = publicRuntimeConfig.BACKEND_PORT;
 export const CHAIN_DETAILS = publicRuntimeConfig.MAINNET ? MAINNET_CHAIN_DETAILS : BETANET_CHAIN_DETAILS;
 
+//These are HTTPS versions (not Tendermint HTTP port versions)
+//Needed for Keplr
 export const NODE_PORT = '1317';
-export const NODE_API_URL = `http://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}:${NODE_PORT}`;
+export const NODE_API_URL = `${HOSTNAME !== 'localhost' ? 'https://node.' + HOSTNAME + '/api' : 'http://localhost:1317'}`;
 export const RPC_PORT = '26657';
-export const RPC_URL = `http://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}:${RPC_PORT}`;
+export const RPC_URL = `${HOSTNAME !== 'localhost' ? 'https://node.' + HOSTNAME + '/rpc' : 'http://localhost:26657'}`;
 export const BACKEND_URL = `https://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}${BACKEND_PORT}`;
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
 

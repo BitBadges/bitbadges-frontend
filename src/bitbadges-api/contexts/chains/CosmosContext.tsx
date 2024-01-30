@@ -9,7 +9,7 @@ import { SupportedChainMetadata, constructChallengeObjectFromString } from 'bloc
 import Long from 'long';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { COSMOS_LOGO, HOSTNAME, INFINITE_LOOP_MODE, NODE_API_URL, RPC_URL } from '../../../constants';
+import { COSMOS_LOGO, INFINITE_LOOP_MODE, NODE_API_URL, RPC_URL } from '../../../constants';
 import { checkIfSignedIn } from "../../api";
 
 import { ChainSpecificContextType } from '../ChainContext';
@@ -26,6 +26,8 @@ const BitBadgesKeplrSuggestChainInfo = {
   chainSymbolImageUrl: "https://avatars.githubusercontent.com/u/86890740",
   rpc: RPC_URL,
   rest: NODE_API_URL,
+  // rpc: 'https://node.bitbadges.io/rpc',
+  // rest: 'https://node.bitbadges.io/api',
   bip44: {
     coinType: 118,
   },
@@ -157,7 +159,7 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
     await keplr.experimentalSuggestChain(BitBadgesKeplrSuggestChainInfo)
     const offlineSigner = window.getOfflineSigner(chainId);
     const signingClient = await SigningStargateClient.connectWithSigner(
-      `http://${HOSTNAME}:26657`,
+      'http://node.bitbadges.io:26657',
       offlineSigner,
     )
     const account: AccountData = (await offlineSigner.getAccounts())[0]
