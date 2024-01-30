@@ -14,6 +14,7 @@ export const RPC_PORT = '26657';
 export const RPC_URL = `${HOSTNAME !== 'localhost' ? 'https://node.' + HOSTNAME + '/rpc' : 'http://localhost:26657'}`;
 export const BACKEND_URL = `https://${HOSTNAME !== 'localhost' ? 'api.' + HOSTNAME : HOSTNAME}${BACKEND_PORT}`;
 export const WEBSITE_HOSTNAME = `https://${HOSTNAME}`;
+export const EXPLORER_URL = `https://explorer.${HOSTNAME}`;
 
 export const DEV_MODE = process.env.PRODUCTION ? false : false;
 export const INFINITE_LOOP_MODE = process.env.PRODUCTION ? false : true;

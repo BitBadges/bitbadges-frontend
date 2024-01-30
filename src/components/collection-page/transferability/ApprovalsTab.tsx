@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { NODE_API_URL } from '../../../constants';
+import { EXPLORER_URL, NODE_API_URL } from '../../../constants';
 import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { AddressSelect } from '../../address/AddressSelect';
 import { Tabs } from '../../navigation/Tabs';
@@ -263,7 +263,7 @@ function UniversalUserApprovalsTab({
               {' '}(Block #{update.block.toString()})
             </Typography.Text>
             {update.txHash &&
-              <p><a href={NODE_API_URL + '/cosmos/tx/v1beta1/txs/' + update.txHash} target='_blank' rel='noopener noreferrer'>
+              <p><a href={EXPLORER_URL + '/BitBadges/tx/' + update.txHash} target='_blank' rel='noopener noreferrer'>
                 See Blockchain Transaction
               </a></p>
             }
