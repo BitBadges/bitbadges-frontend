@@ -11,7 +11,7 @@ import { DesiredNumberType } from '../../bitbadges-api/api';
 import { useSelector } from 'react-redux';
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { EXPLORER_URL, INFINITE_LOOP_MODE, NODE_API_URL } from '../../constants';
+import { EXPLORER_URL, INFINITE_LOOP_MODE } from '../../constants';
 import { GlobalReduxState } from '../../pages/_app';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';

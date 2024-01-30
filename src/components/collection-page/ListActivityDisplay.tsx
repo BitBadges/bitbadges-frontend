@@ -9,7 +9,7 @@ import { DesiredNumberType, getAddressLists } from '../../bitbadges-api/api';
 
 
 import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { EXPLORER_URL, INFINITE_LOOP_MODE, NODE_API_URL } from '../../constants';
+import { EXPLORER_URL, INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplayList } from '../address/AddressDisplayList';
 import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';

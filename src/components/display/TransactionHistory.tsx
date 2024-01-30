@@ -1,6 +1,6 @@
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { Divider, Typography } from "antd";
-import { EXPLORER_URL, NODE_API_URL } from "../../constants";
+import { EXPLORER_URL } from "../../constants";
 
 
 export function TxHistory({

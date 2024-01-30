@@ -5,15 +5,15 @@ import { useEffect, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { EXPLORER_URL, NODE_API_URL } from '../../../constants';
+import { EXPLORER_URL } from '../../../constants';
 import { GO_MAX_UINT_64 } from '../../../utils/dates';
 import { AddressSelect } from '../../address/AddressSelect';
 import { Tabs } from '../../navigation/Tabs';
 import { SwitchForm } from '../../tx-timelines/form-items/SwitchForm';
 import { DefaultApprovedDisplay, DefaultOptInDisplay } from '../../tx-timelines/step-items/DefaultToApprovedSelectStepItem';
 import { UserPermissionsOverview } from '../PermissionsInfo';
-import { TransferabilityTab } from './TransferabilityTab';
 import { EditableApprovalsDisplay } from './ApprovalsDisplay';
+import { TransferabilityTab } from './TransferabilityTab';
 
 
 interface UserApprovalTabProps {
