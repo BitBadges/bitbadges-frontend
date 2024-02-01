@@ -59,7 +59,7 @@ export function WalletFooter() {
             <Row className='text-gray-500 flex text-center justify-center my-1'>
               <br /><br />
               <div>
-                © Copyright 2023 BITBADGES, INC. All Rights Reserved.
+                © Copyright 2024 BITBADGES, INC. All Rights Reserved.
               </div>
             </Row>
           </div>

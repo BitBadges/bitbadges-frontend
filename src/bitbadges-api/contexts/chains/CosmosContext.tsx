@@ -21,6 +21,7 @@ const BitBadgesKeplrSuggestChainInfo = {
   chainId: "bitbadges_1-2",
   chainName: "BitBadges",
   chainSymbolImageUrl: "https://avatars.githubusercontent.com/u/86890740",
+  coinImageUrl: "https://avatars.githubusercontent.com/u/86890740",
   rpc: RPC_URL,
   rest: NODE_API_URL,
   // rpc: 'https://node.bitbadges.io/rpc',
@@ -42,6 +43,7 @@ const BitBadgesKeplrSuggestChainInfo = {
       coinMinimalDenom: "badge",
       coinDecimals: 0,
       coinGeckoId: "cosmos",
+      coinImageUrl: "https://avatars.githubusercontent.com/u/86890740",
     },
   ],
   feeCurrencies: [
@@ -55,6 +57,7 @@ const BitBadgesKeplrSuggestChainInfo = {
         average: 0.000000000001,
         high: 0.000000000001,
       },
+      coinImageUrl: "https://avatars.githubusercontent.com/u/86890740",
     },
   ],
   stakeCurrency: {
@@ -62,6 +65,7 @@ const BitBadgesKeplrSuggestChainInfo = {
     coinMinimalDenom: "badge",
     coinDecimals: 0,
     coinGeckoId: "cosmos",
+    coinImageUrl: "https://avatars.githubusercontent.com/u/86890740",
   }
 }
 

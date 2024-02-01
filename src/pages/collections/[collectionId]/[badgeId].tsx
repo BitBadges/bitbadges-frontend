@@ -144,7 +144,6 @@ export function BadgePage({ collectionPreview, badgeIdOverride }
                       }
 
                     </Col>
-                    <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
                     <Col md={12} xs={24} sm={24} style={{ minHeight: 100, flexDirection: 'column' }}>
                       {!noBalancesStandard && <>
                         <DistributionOverview

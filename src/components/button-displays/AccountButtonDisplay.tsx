@@ -307,7 +307,7 @@ export function AccountButtonDisplay({
           <Tooltip title="Follow with the BitBadges Follow Protocol" placement="bottom">
             <Avatar
 
-              size="large"
+              size={mobile ? undefined : 'large'}
               onClick={async () => {
                 await addToFollowCollection();
               }}
@@ -322,7 +322,7 @@ export function AccountButtonDisplay({
           <Tooltip title="Unfollow with the BitBadges Follow Protocol" placement="bottom">
             <Avatar
 
-              size="large"
+              size={mobile ? undefined : 'large'}
               onClick={async () => {
                 await removeFromFollowCollection();
               }}
@@ -379,7 +379,7 @@ export function AccountButtonDisplay({
           </>} placement="bottom">
             <Avatar
               style={{ cursor: 'pointer' }}
-              size="large"
+              size={mobile ? undefined : 'large'}
               className="styled-button-normal account-socials-button"
             >
               <ShareAltOutlined />
@@ -389,7 +389,7 @@ export function AccountButtonDisplay({
           </>} placement="bottom">
             <Avatar
               style={{ cursor: 'pointer' }}
-              size="large"
+              size={mobile ? undefined : 'large'}
               className="styled-button-normal account-socials-button"
               onClick={() => {
                 navigator.share({

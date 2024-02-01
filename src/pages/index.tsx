@@ -257,12 +257,13 @@ const Home: NextPage = () => {
               <br />
 
               <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>
-                BitBadges is currently in a beta phase. This means that the platform is not yet intended for production use.
+                BitBadges is currently in a beta phase (betanet).
+                Treat betanet as a subsidized testnet. This means that the platform is not yet intended for production use.
                 Bugs and issues are expected. However, we believe it is stable enough for users to start using it and providing feedback.
                 This allows us to build a better product for you in the long term!
                 <br /> <br />
                 Betanet is completely free to use for users. Once mainnet launches, badges and profiles can optionally be migrated.
-                $BADGE will be redistributed via an airdrop based on betanet contributions. Treat betanet as a subsidized testnet.
+                $BADGE will be redistributed via an airdrop based on betanet contributions.
               </Typography.Text>
 
               {/* <Typography.Text className='secondary-text' style={{ fontSize: 14 }}>

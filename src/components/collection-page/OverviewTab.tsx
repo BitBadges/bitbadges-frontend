@@ -62,7 +62,6 @@ export function OverviewTab({
           sm={24}
           xs={24}
         >
-          <Col md={0} sm={24} xs={24} style={{ height: 20 }} />
           {noBalancesStandard && MetadataDisplayElem}
           {!noBalancesStandard && (
             <>

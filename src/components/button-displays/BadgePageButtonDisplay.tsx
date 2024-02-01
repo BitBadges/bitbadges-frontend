@@ -40,6 +40,8 @@ export function BadgeButtonDisplay({
   const discordLink = 'https://discord.com/invite/' + socials?.discord;
 
   const isPreview = collectionId === NEW_COLLECTION_ID && !listId
+  const mobile = window.innerWidth < 768;
+
   return (
     <div>
 
@@ -49,7 +51,7 @@ export function BadgeButtonDisplay({
             <Tooltip title="X (formerly Twitter)" placement="bottom">
               <Avatar
                 style={{ cursor: isPreview ? 'not-allowed' : 'pointer', backgroundColor: 'black' }}
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={isPreview ? undefined : () => { }}
                 className="styled-button-normal account-socials-button"
               >
@@ -64,7 +66,7 @@ export function BadgeButtonDisplay({
             <Tooltip title="Telegram" placement="bottom">
               <Avatar
                 style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={isPreview ? undefined : () => { }}
                 className="styled-button-normal account-socials-button"
                 src={"https://1000logos.net/wp-content/uploads/2021/04/Telegram-logo.png"}
@@ -78,7 +80,7 @@ export function BadgeButtonDisplay({
             <Tooltip title="GitHub" placement="bottom">
               <Avatar
                 style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={isPreview ? undefined : () => { }}
                 className="styled-button-normal account-socials-button"
                 // src={ }
@@ -94,7 +96,7 @@ export function BadgeButtonDisplay({
             <Tooltip title="Discord" placement="bottom">
               <Avatar
                 style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={isPreview ? undefined : () => { }}
                 className="styled-button-normal account-socials-button"
                 src={"https://global-uploads.webflow.com/5e157548d6f7910beea4e2d6/604150242d4c6f111dc4e0e8_AMXD2mEvYtyJeooktUtHlCW0f3vrpbwrCN0KjvULcmHdfWBRaAyxA9cSiPn_t6wHhI4mm1qbImd2ewbgBQwm-EtT8hZVevgGiACcBFZ58UQC6EPLcV-mQtaHVb02PzhRrjrpYsnz.png"}
@@ -110,7 +112,7 @@ export function BadgeButtonDisplay({
             <Tooltip title="Website" placement="bottom">
               <Avatar
                 style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={isPreview ? undefined : () => { }}
                 className="styled-button-normal account-socials-button"
               >
@@ -178,7 +180,7 @@ export function BadgeButtonDisplay({
           <Tooltip title="Add to Watchlist" placement="bottom">
             <Avatar
               style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-              size="large"
+              size={mobile ? undefined : 'large'}
               className="styled-button-normal account-socials-button"
               src={<EyeOutlined />}
             />
@@ -240,7 +242,7 @@ export function BadgeButtonDisplay({
           <Tooltip title="Add to Watchlist" placement="bottom">
             <Avatar
               style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-              size="large"
+              size={mobile ? undefined : 'large'}
               className="styled-button-normal account-socials-button"
               src={<EyeOutlined />}
             />
@@ -257,7 +259,7 @@ export function BadgeButtonDisplay({
             <Tooltip title="Copy Link" placement="left">
               <Avatar
                 style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={isPreview ? undefined : () => {
                   global.navigator.clipboard.writeText(
                     window.location.href
@@ -272,7 +274,7 @@ export function BadgeButtonDisplay({
             <Tooltip title="Share on X" placement="left">
               <Avatar
                 style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-                size="large"
+                size={mobile ? undefined : 'large'}
                 onClick={isPreview ? undefined : () => {
                   const shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
                     window.location.href
@@ -291,7 +293,7 @@ export function BadgeButtonDisplay({
         </>} placement="bottom">
           <Avatar
             style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-            size="large"
+            size={mobile ? undefined : 'large'}
             className="styled-button-normal account-socials-button"
           >
             <ShareAltOutlined />
@@ -301,7 +303,7 @@ export function BadgeButtonDisplay({
         </>} placement="bottom">
           <Avatar
             style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-            size="large"
+            size={mobile ? undefined : 'large'}
             className="styled-button-normal account-socials-button"
             onClick={isPreview ? undefined : () => {
               navigator.share({
@@ -321,7 +323,7 @@ export function BadgeButtonDisplay({
         </>} placement="bottom">
           <Avatar
             style={{ cursor: isPreview ? 'not-allowed' : 'pointer' }}
-            size="large"
+            size={mobile ? undefined : 'large'}
             className="styled-button-normal account-socials-button"
             onClick={isPreview ? undefined : () => {
               setReportIsVisible(true);
