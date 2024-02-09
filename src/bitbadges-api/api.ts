@@ -15,7 +15,7 @@ import {
   RefreshStatusRouteSuccessResponse,
   SendClaimAlertsRouteRequestBody, SendClaimAlertsRouteSuccessResponse, SignOutRequestBody, SignOutSuccessResponse, SimulateTxRouteRequestBody, SimulateTxRouteSuccessResponse, UpdateAccountInfoRouteRequestBody, UpdateAccountInfoRouteSuccessResponse, UpdateAddressListsRouteRequestBody, UpdateAddressListsRouteSuccessResponse,
   VerifySignInRouteRequestBody, VerifySignInRouteSuccessResponse
-} from 'bitbadgesjs-utils';
+} from 'bitbadgesjs-sdk';
 import Joi from 'joi';
 import { BACKEND_URL } from '../constants';
 

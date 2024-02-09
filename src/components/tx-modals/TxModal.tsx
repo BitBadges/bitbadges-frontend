@@ -1,27 +1,28 @@
 import { CloseOutlined, CodeOutlined, InfoCircleOutlined, MinusOutlined, ZoomInOutlined } from '@ant-design/icons';
 import { Checkbox, Col, Divider, InputNumber, Modal, Row, Spin, StepProps, Steps, Switch, Tooltip, Typography, notification } from 'antd';
 import {
+  BigIntify, CosmosCoin,
   MsgCreateAddressLists,
   MsgCreateCollection,
   MsgCreateProtocol,
   MsgDeleteCollection,
-  MsgExecuteContractCompat,
   MsgDeleteProtocol,
+  MsgExecuteContractCompat,
   MsgInstantiateContractCompat,
   MsgSend,
   MsgSetCollectionForProtocol,
-  MsgStoreCodeCompat,
   MsgTransferBadges,
   MsgUniversalUpdateCollection,
   MsgUnsetCollectionForProtocol,
   MsgUpdateCollection,
   MsgUpdateProtocol,
-  MsgUpdateUserApprovals
-} from 'bitbadgesjs-proto';
-import { BigIntify, CosmosCoin, Numberify, TransactionStatus, generatePostBodyBroadcast } from 'bitbadgesjs-utils';
+  MsgUpdateUserApprovals,
+  Numberify, TransactionStatus,
+  TxContext
+} from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { simulateTx } from '../../bitbadges-api/api';
+import { broadcastTx, simulateTx } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { useStatusContext } from '../../bitbadges-api/contexts/StatusContext';
 
@@ -33,14 +34,7 @@ import {
   MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection,
   MsgUpdateCollection as ProtoMsgUpdateCollection,
   MsgUpdateUserApprovals as ProtoMsgUpdateUserApprovals,
-} from 'bitbadgesjs-proto/dist/proto/badges/tx_pb';
-
-import {
-  MsgExecuteContractCompat as ProtoMsgExecuteContractCompat,
-  MsgInstantiateContractCompat as ProtoMsgInstantiateContractCompat,
-  MsgStoreCodeCompat as ProtoMsgStoreCodeCompat,
-
-} from 'bitbadgesjs-proto/dist/proto/wasmx/tx_pb';
+} from 'bitbadgesjs-sdk/dist/proto/badges/tx_pb';
 
 import {
   MsgCreateProtocol as ProtoMsgCreateProtocol,
@@ -48,11 +42,19 @@ import {
   MsgSetCollectionForProtocol as ProtoMsgSetCollectionForProtocol,
   MsgUnsetCollectionForProtocol as ProtoMsgUnsetCollectionForProtocol,
   MsgUpdateProtocol as ProtoMsgUpdateProtocol,
-} from 'bitbadgesjs-proto/dist/proto/protocols/tx_pb';
+} from 'bitbadgesjs-sdk/dist/proto/protocols/tx_pb';
+import {
+  MsgExecuteContractCompat as ProtoMsgExecuteContractCompat,
+  MsgInstantiateContractCompat as ProtoMsgInstantiateContractCompat,
+} from 'bitbadgesjs-sdk/dist/proto/wasmx/tx_pb';
+
+import {
+  MsgStoreCode as ProtoMsgStoreCode
+} from 'bitbadgesjs-sdk/dist/proto/cosmwasm/wasm/v1/tx_pb';
 
 import {
   MsgSend as ProtoMsgSend,
-} from 'bitbadgesjs-proto/dist/proto/cosmos/bank/v1beta1/tx_pb';
+} from 'bitbadgesjs-sdk/dist/proto/cosmos/bank/v1beta1/tx_pb';
 
 import {
   MessageGenerated,
@@ -64,16 +66,15 @@ import {
   convertMsgUpdateUserApprovals,
   createProtoMsg,
   createTransactionPayload
-} from 'bitbadgesjs-proto';
+} from 'bitbadgesjs-sdk';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
-import { broadcastTransaction } from '../../bitbadges-api/cosmos-sdk/broadcast';
 import { CHAIN_DETAILS, DEV_MODE, INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay, } from '../address/AddressDisplay';
 import { DevMode } from '../common/DevMode';
 import IconButton from '../display/IconButton';
-import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 import { DisconnectedWrapper } from '../wrappers/DisconnectedWrapper';
+import { RegisteredWrapper } from '../wrappers/RegisterWrapper';
 
 const { Step } = Steps;
 
@@ -97,7 +98,7 @@ export function TxModal(
     bodyStyle,
     msgSteps,
     disabled,
-    requireRegistration,
+    requireLogin,
     coinsToTransfer,
     width
   }: {
@@ -112,7 +113,7 @@ export function TxModal(
 
     msgSteps?: StepProps[],
     disabled?: boolean,
-    requireRegistration?: boolean
+    requireLogin?: boolean
     coinsToTransfer?: CosmosCoin<bigint>[],
     width?: number | string
   }
@@ -137,7 +138,7 @@ export function TxModal(
   const [recommendedAmount, setRecommendedAmount] = useState(0n);
   const [showJson, setShowJson] = useState<object[] | null>(null);
 
-  const [finalMsgs, setFinalMsgs] = useState<MessageGenerated[] | null>(null);
+  const [finalMsgs, setFinalMsgs] = useState<any[] | null>(null);
 
   const signedInAccount = useAccount(chain.cosmosAddress);
 
@@ -222,11 +223,13 @@ export function TxModal(
             })
           }
           break;
-        case 'MsgStoreCodeCompat':
-          createFunction = (params: MsgStoreCodeCompat) => {
-            return new ProtoMsgStoreCodeCompat({
+        case 'MsgStoreCode':
+          createFunction = (params: any) => {
+            return new ProtoMsgStoreCode({
+              ...params,
               sender: chain.cosmosAddress,
-              hexWasmByteCode: `${params.hexWasmByteCode}`,
+              //We already convery in broadcast.tsx
+              // wasmByteCode: new Uint8Array(Buffer.from(params.wasmByteCode)),
             })
           }
           break;
@@ -325,8 +328,9 @@ export function TxModal(
         const status = await updateStatus();
         const gasPrice = Number(status.lastXGasAmounts.reduce((a, b) => a + b, 0n)) / Number(status.lastXGasLimits.reduce((a, b) => a + b, 0n));
 
+
         //Don't do anything with these msgs like setShowJson bc they are simulated messages, not final ones
-        const generatedMsgs: MessageGenerated[] = []
+        const generatedMsgs = []
         for (const tx of txsInfoPopulated) {
           const { generateProtoMsg, beforeTx, msg } = tx;
 
@@ -336,11 +340,10 @@ export function TxModal(
             if (newMsg) cosmosMsg = newMsg;
           }
 
-          generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
+          generatedMsgs.push(generateProtoMsg(cosmosMsg))
         }
 
-
-        const unsignedTxSimulated = await createTransactionPayload({
+        const context: TxContext = {
           chain: {
             ...CHAIN_DETAILS,
             chain: chain.chain as any,
@@ -357,12 +360,13 @@ export function TxModal(
             gas: `100000000000`,
           },
           memo: '',
-        }, generatedMsgs);
+        }
+        const payload = await createTransactionPayload(context, generatedMsgs);
 
-        console.log(unsignedTxSimulated);
-        const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
+        console.log(payload);
+        const simulatedTxBody = await chain.signTxn(context, payload, true);
 
-        const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
+        const simulatedTx = await simulateTx(simulatedTxBody);
         console.log(simulatedTx);
         const gasUsed = simulatedTx.gas_info.gas_used;
         console.log("Simulated Tx Response: ", "Gas Used (", gasUsed, ")", simulatedTx);
@@ -392,16 +396,17 @@ export function TxModal(
     setError('');
     setTransactionStatus(TransactionStatus.AwaitingSignatureOrBroadcast);
 
+
+
     try {
 
       //Currently used for updating IPFS metadata URIs right before tx
       //We return the new Msg from beforeTx() because we don't have time to wait for the React state (passe in cosmosMsg) to update
 
-      const generatedMsgs: MessageGenerated[] = []
+      const generatedMsgs = []
       for (let i = 0; i < txsInfo.length; i++) {
         const tx = txsInfo[i];
         const { generateProtoMsg, beforeTx, msg } = tx;
-
         if (!generateProtoMsg) throw new Error('generateProtoMsg is undefined');
 
         let cosmosMsg = msg;
@@ -410,7 +415,7 @@ export function TxModal(
             let newMsg = await beforeTx(false);
             if (newMsg) cosmosMsg = newMsg;
           }
-          generatedMsgs.push(createProtoMsg(generateProtoMsg(cosmosMsg)))
+          generatedMsgs.push(generateProtoMsg(cosmosMsg))
         } else {
           generatedMsgs.push(finalMsgs[i]);
         }
@@ -420,11 +425,10 @@ export function TxModal(
       //Sign and broadcast transaction
       // txDetails.sender.sequence = "0"
 
-      const unsignedTxSimulated = await createTransactionPayload(txDetails, generatedMsgs);
-
-      const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
-      console.log("SIMULATING TX", rawTxSimulated);
-      const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
+      const simulatePayload = await createTransactionPayload(txDetails, generatedMsgs);
+      const txBody = await chain.signTxn(txDetails, simulatePayload, true);
+      console.log("SIMULATING TX", txBody);
+      const simulatedTx = await simulateTx(txBody);
       const gasUsed = simulatedTx.gas_info.gas_used;
       console.log("Simulated Tx Response: ", "Gas Used (", gasUsed, ")", simulatedTx);
 
@@ -443,12 +447,10 @@ export function TxModal(
           pubkey: publicKey
         }
       }
-      const unsignedTx = await createTransactionPayload(finalTxDetails, generatedMsgs);
-      console.log("Unsigned TX:", unsignedTx);
-      const rawTx = await chain.signTxn(unsignedTx, false);
-
-
-      const initialRes = await broadcastTransaction(rawTx);
+      const finalPayload = await createTransactionPayload(finalTxDetails, generatedMsgs);
+      console.log("Unsigned TX:", finalPayload);
+      const txBodyFinal = await chain.signTxn(finalTxDetails, finalPayload, false);
+      const initialRes = await broadcastTx(txBodyFinal);
 
       if (DEV_MODE) console.log(initialRes);
 
@@ -558,8 +560,15 @@ export function TxModal(
         message: 'Transaction Successful!',
       });
 
+      if (window.opener) {
+        window.opener.postMessage({ type: 'txSuccess', txHash: msgResponse.tx_response.txhash }, '*');
+        window.close();
+      }
+
+
       setTransactionStatus(TransactionStatus.None);
       await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchBalance: true, fetchSequence: true }], true);
+
 
 
       //If it is a new collection, redirect to collection page
@@ -599,9 +608,8 @@ export function TxModal(
         if (afterTx) {
           await afterTx(collectionId ?? 0n);
         }
-
-
       }
+
 
       await txTimelineContext.resetState();
       setVisible(false);
@@ -892,17 +900,16 @@ export function TxModal(
       destroyOnClose={true}
     >
       <DisconnectedWrapper
-        message={`Please connect ${requireRegistration ? 'and sign in' : ''}.`}
+        message={`Please connect ${requireLogin ? 'and sign in' : ''}.`}
         node={
           <Row>
             <Col md={24} xs={24} sm={24}>
-              {requireRegistration ?
-                <RegisteredWrapper
-                  node={innerContent}
-                /> : innerContent}
+              <RegisteredWrapper
+                node={innerContent}
+              />
             </Col>
           </Row>}
-        requireLogin={requireRegistration}
+        requireLogin={requireLogin}
       />
     </Modal >
   );

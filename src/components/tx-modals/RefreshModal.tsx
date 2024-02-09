@@ -1,6 +1,6 @@
 import { CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Modal, Typography, notification } from 'antd';
-import { NumberType, RefreshStatusRouteSuccessResponse } from 'bitbadgesjs-utils';
+import { NumberType, RefreshStatusRouteSuccessResponse } from 'bitbadgesjs-sdk';
 import { useEffect, useState } from 'react';
 import { getRefreshStatus } from '../../bitbadges-api/api';
 import { triggerMetadataRefresh } from '../../bitbadges-api/contexts/collections/CollectionsContext';

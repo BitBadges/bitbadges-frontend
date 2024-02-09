@@ -1,4 +1,4 @@
-import { BigIntify, convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
+import { BigIntify, convertMsgUniversalUpdateCollection } from "bitbadgesjs-sdk";
 import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { GO_MAX_UINT_64 } from "../../../utils/dates";

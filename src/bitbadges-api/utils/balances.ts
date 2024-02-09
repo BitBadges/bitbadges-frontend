@@ -1,4 +1,4 @@
-import { BitBadgesCollection } from "bitbadgesjs-utils";
+import { BitBadgesCollection } from "bitbadgesjs-sdk";
 
 export const areBalancesBitBadgesHosted = (collection?: BitBadgesCollection<bigint>) => {
   return collection && collection.offChainBalancesMetadataTimeline.length > 0 &&

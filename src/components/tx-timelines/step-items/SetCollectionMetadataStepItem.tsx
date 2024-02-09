@@ -1,4 +1,4 @@
-import { MetadataAddMethod } from "bitbadgesjs-utils";
+import { MetadataAddMethod } from "bitbadgesjs-sdk";
 import { useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 

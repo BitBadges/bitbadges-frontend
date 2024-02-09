@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Switch, Typography } from "antd";
-import { Balance } from "bitbadgesjs-proto";
-import { DistributionMethod } from "bitbadgesjs-utils";
+import { Balance } from "bitbadgesjs-sdk";
+import { DistributionMethod } from "bitbadgesjs-sdk";
 import { getBadgeIdsString } from "../../../utils/badgeIds";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
 import { TableRow } from "../../display/TableRow";

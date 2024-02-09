@@ -9,11 +9,11 @@ import { useWeb3Modal } from "@web3modal/wagmi/react"
 import { notification } from "antd"
 import {
   BigIntify,
-  SupportedChain,
-  createTxRawEIP712,
-  signatureToWeb3Extension,
-} from "bitbadgesjs-proto"
-import { Numberify, convertToCosmosAddress } from "bitbadgesjs-utils"
+  TransactionPayload,
+  TxContext,
+  convertToCosmosAddress,
+  createTxBroadcastBodyEthereum
+} from "bitbadgesjs-sdk"
 import { ethers } from "ethers"
 import {
   Dispatch,
@@ -26,13 +26,12 @@ import {
 } from "react"
 import { useCookies } from "react-cookie"
 import { useAccount as useWeb3Account } from "wagmi"
-import { CHAIN_DETAILS } from "../../../constants"
 import { checkIfSignedIn } from "../../api"
 
+import { constructChallengeObjectFromString } from "blockin"
 import { ChainSpecificContextType } from "../ChainContext"
 import { setPublicKey, useAccount } from "../accounts/AccountsContext"
 import { fetchDefaultViews } from "./helpers"
-import { constructChallengeObjectFromString } from "blockin"
 
 export type EthereumContextType = ChainSpecificContextType & {
   signer?: ethers.providers.JsonRpcSigner
@@ -52,7 +51,7 @@ export const EthereumContext = createContext<EthereumContextType>({
   getPublicKey: async () => {
     return ""
   },
-  signTxn: async () => { },
+  signTxn: async () => { return '' },
   selectedChainInfo: {},
   connected: false,
   setConnected: () => { },
@@ -161,38 +160,21 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
     }
   }
 
-  const signTxn = async (txn: any, simulate: boolean) => {
+  const signTxn = async (context: TxContext, payload: TransactionPayload, simulate: boolean) => {
     if (!account) throw new Error("Account not found.")
 
-    const chain = { ...CHAIN_DETAILS, chain: SupportedChain.ETH }
-    const sender = {
-      accountAddress: cosmosAddress,
-      sequence: account.sequence ? Numberify(account.sequence) : 0,
-      accountNumber: Numberify(account.accountNumber),
-      pubkey: account.publicKey,
-    }
     let sig = ""
     if (!simulate) {
-      console.log(txn.eipToSign)
-
       sig = await signTypedData({
-        message: txn.eipToSign.message,
-        types: txn.eipToSign.types,
-        domain: txn.eipToSign.domain,
-        primaryType: txn.eipToSign.primaryType,
+        message: payload.eipToSign.message as any,
+        types: payload.eipToSign.types as any,
+        domain: payload.eipToSign.domain,
+        primaryType: payload.eipToSign.primaryType,
       })
     }
 
-    let txnExtension = signatureToWeb3Extension(chain, sender, sig)
-
-    // Create the txRaw
-    let rawTx = createTxRawEIP712(
-      txn.legacyAmino.body,
-      txn.legacyAmino.authInfo,
-      txnExtension
-    )
-
-    return rawTx
+    const txBody = createTxBroadcastBodyEthereum(context, payload, sig)
+    return txBody
   }
 
   const getPublicKey = async (_cosmosAddress: string) => {

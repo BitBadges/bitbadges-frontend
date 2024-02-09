@@ -1,5 +1,5 @@
 import { Empty, Typography } from "antd";
-import { TransferWithIncrements } from "bitbadgesjs-utils";
+import { TransferWithIncrements } from "bitbadgesjs-sdk";
 import { useState } from "react";
 
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext";

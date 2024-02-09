@@ -8,7 +8,7 @@ import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/
 import { CreateTxMsgCreateAddressListModal } from '../../tx-modals/CreateTxMsgCreateAddressLists';
 
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { AddressListEditKey } from 'bitbadgesjs-utils';
+import { AddressListEditKey } from 'bitbadgesjs-sdk';
 import moment from 'moment';
 import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { GO_MAX_UINT_64 } from '../../../utils/dates';

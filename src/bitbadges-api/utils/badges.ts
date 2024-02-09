@@ -1,5 +1,5 @@
-import { UintRange } from "bitbadgesjs-proto"
-import { BitBadgesCollection, invertUintRanges, removeUintRangesFromUintRanges, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-utils"
+import { UintRange } from "bitbadgesjs-sdk"
+import { BitBadgesCollection, invertUintRanges, removeUintRangesFromUintRanges, searchUintRangesForId, sortUintRangesAndMergeIfNecessary } from "bitbadgesjs-sdk"
 
 import { GO_MAX_UINT_64 } from "../../utils/dates"
 import { getDetailsForCollectionPermission } from "./permissions"

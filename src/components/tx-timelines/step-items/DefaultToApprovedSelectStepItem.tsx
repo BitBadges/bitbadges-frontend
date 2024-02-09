@@ -1,4 +1,4 @@
-import { appendSelfInitiatedIncomingApproval, castIncomingTransfersToCollectionTransfers, getReservedAddressList } from "bitbadgesjs-utils";
+import { appendSelfInitiatedIncomingApproval, castIncomingTransfersToCollectionTransfers, getReservedAddressList } from "bitbadgesjs-sdk";
 import { useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";

@@ -1,5 +1,5 @@
 import { Pagination as PaginationAntD } from 'antd';
-import { Numberify } from 'bitbadgesjs-proto';
+import { Numberify } from 'bitbadgesjs-sdk';
 
 export function Pagination({ currPage, onChange, total, pageSize, showOnSinglePage, showPageJumper }: {
   currPage: number, onChange: (page: number) => void, total: number, pageSize: number, showOnSinglePage?: boolean, showPageJumper?: boolean

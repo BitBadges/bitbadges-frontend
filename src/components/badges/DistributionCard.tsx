@@ -5,13 +5,13 @@ import {
   LockOutlined,
 } from "@ant-design/icons"
 import { Tooltip } from "antd"
-import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-proto"
+import { OffChainBalancesMetadataTimeline } from "bitbadgesjs-sdk"
 import {
   BitBadgesCollection,
   getBalancesForId
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { neverHasManager } from "../../bitbadges-api/utils/manager"
 import { getBadgeIdsString } from "../../utils/badgeIds"

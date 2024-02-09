@@ -1,13 +1,15 @@
-import { Empty, Spin } from 'antd';
-import { BalanceDoc, PaginationInfo } from 'bitbadgesjs-utils';
+import { Empty, Spin, Tooltip, notification } from 'antd';
+import { BalanceDoc, BitBadgesUserInfo, PaginationInfo } from 'bitbadgesjs-sdk';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { getOwnersForBadge } from '../../bitbadges-api/api';
+import { getAccounts, getOwnersForBadge } from '../../bitbadges-api/api';
 
+import { DownloadOutlined } from '@ant-design/icons';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
-import { fetchAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, getAccount, updateAccounts } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, fetchNextForCollectionViews, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { downloadJson } from '../../utils/downloadJson';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { AccountDetailsTag, AccountFilterSearchBar } from '../badges/DisplayFilters';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
@@ -42,6 +44,8 @@ function BalanceInfiniteScroll({
   const [searchAddress, setSearchAddress] = useState('');
   const [searchedBalanceDocs, setSearchedBalanceDocs] = useState<BalanceDoc<bigint>[]>([]);
 
+  const [loading, setLoading] = useState(false);
+
   const toShow = owners.slice(0, numShown);
 
   return <>
@@ -51,7 +55,72 @@ function BalanceInfiniteScroll({
         className="flex-wrap full-width flex"
         style={{ flexDirection: "row-reverse", alignItems: "flex-end", marginTop: 12 }}
       >
+        <SelectWithOptions
+          title=''
+          value={'Yes'}
+          setValue={async () => {
+            notification.info({
+              message: 'Downloading the list of owners and their balances.',
+              description: 'To do this, we need to fetch any missing values which may take awhile.'
+            });
+            setLoading(true);
 
+            const hasMore = pagination.hasMore;
+            while (hasMore) {
+              await fetchMore();
+              //wait 1 second
+              await new Promise(r => setTimeout(r, 450));
+            }
+
+            const accountsToFetch = [];
+            for (const cosmosAddress of owners.map(x => x.cosmosAddress).filter(x => x !== 'Mint' && x !== 'Total')) {
+              const cachedAccount = getAccount(cosmosAddress);
+              if (!cachedAccount) {
+                accountsToFetch.push(cosmosAddress);
+              }
+            }
+
+            const missingAccounts: BitBadgesUserInfo<bigint>[] = [];
+            //Batch in groups of 25
+            for (let i = 0; i < accountsToFetch.length; i += 25) {
+              const accountsToFetchBatch = accountsToFetch.slice(i, i + 25);
+              const res = await getAccounts({ accountsToFetch: accountsToFetchBatch.map(x => { return { address: x } }) });
+              missingAccounts.push(...res.accounts);
+              //wait 1 second
+              await new Promise(r => setTimeout(r, 450));
+            }
+
+            const jsonToDownload = {
+
+
+              owners: owners.map(x => {
+                const cachedAccount = getAccount(x.cosmosAddress);
+                return {
+                  balances: x.balances,
+                  collectionId: collectionId,
+                  cosmosAddress: x.cosmosAddress,
+                  address: cachedAccount ? cachedAccount.address : missingAccounts.find(y => y.cosmosAddress === x.cosmosAddress)?.address,
+                }
+              }).filter(x => x.cosmosAddress !== 'Mint' && x.cosmosAddress !== 'Total'),
+              addresses: owners.map(x => {
+                const cachedAccount = getAccount(x.cosmosAddress);
+                return cachedAccount ? cachedAccount.address : missingAccounts.find(y => y.cosmosAddress === x.cosmosAddress)?.address;
+              }).filter(x => x !== 'Mint' && x !== 'Total'),
+              cosmosAddresses: owners.map(x => x.cosmosAddress).filter(x => x !== 'Mint' && x !== 'Total'),
+            }
+
+            downloadJson(jsonToDownload, 'owners.json');
+
+            updateAccounts(missingAccounts);
+
+            setLoading(false);
+          }}
+          type='button'
+          options={[{
+            label: loading ? <Spin size='small' /> : <Tooltip title='Download the list of owners and their balances. We will need to fetch all balances, if missing.'><DownloadOutlined /></Tooltip>,
+            value: 'Yes',
+          }]}
+        />
         <SelectWithOptions
           title='View'
           value={cardView ? 'Card' : 'Table'}

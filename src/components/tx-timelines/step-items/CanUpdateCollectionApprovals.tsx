@@ -1,6 +1,6 @@
 import { EditOutlined, InfoCircleFilled, MinusOutlined, UndoOutlined } from "@ant-design/icons";
-import { AddressList, UintRange, deepCopy } from "bitbadgesjs-proto";
-import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, getReservedAddressList, isAddressListEmpty, isInAddressList, removeAddressListFromAddressList, removeUintRangesFromUintRanges } from "bitbadgesjs-utils";
+import { AddressList, UintRange, deepCopy } from "bitbadgesjs-sdk";
+import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, getReservedAddressList, isAddressListEmpty, isInAddressList, removeAddressListFromAddressList, removeUintRangesFromUintRanges } from "bitbadgesjs-sdk";
 import { useMemo, useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";

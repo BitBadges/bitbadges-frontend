@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CreateTxMsgUniversalUpdateCollectionModal } from '../../tx-modals/CreateTxMsgUniversalUpdateCollection';
-import { MsgUniversalUpdateCollection } from 'bitbadgesjs-proto';
+import { MsgUniversalUpdateCollection } from 'bitbadgesjs-sdk';
 
 export function SubmitMsgNewCollection({ MsgUniversalUpdateCollection, afterTx, isBitBadgesFollowProtocol, isExperiencesProtocol }: {
   afterTx?: (collectionId: bigint) => Promise<void>,

@@ -1,6 +1,6 @@
 import { Empty, Switch } from 'antd';
-import { Balance } from 'bitbadgesjs-proto';
-import { getBalancesForId } from 'bitbadgesjs-utils';
+import { Balance } from 'bitbadgesjs-sdk';
+import { getBalancesForId } from 'bitbadgesjs-sdk';
 import { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';

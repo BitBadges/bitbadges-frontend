@@ -1,7 +1,7 @@
 import { WarningOutlined, MinusOutlined, SwapOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { Typography, InputNumber } from "antd";
-import { deepCopy } from "bitbadgesjs-proto";
-import { CollectionApprovalWithDetails, filterZeroBalances, getBalancesForIds } from "bitbadgesjs-utils";
+import { deepCopy } from "bitbadgesjs-sdk";
+import { CollectionApprovalWithDetails, filterZeroBalances, getBalancesForIds } from "bitbadgesjs-sdk";
 import { useState, useEffect } from "react";
 import { fetchAccounts } from "../../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";

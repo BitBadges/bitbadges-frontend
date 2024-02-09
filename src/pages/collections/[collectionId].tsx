@@ -1,5 +1,5 @@
 import { Divider, Empty, Layout } from 'antd';
-import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
+import { getCurrentValuesForCollection } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
@@ -74,7 +74,7 @@ function CollectionPage({
   if (isNonIndexedBalances) {
     tabInfo = tabInfo.filter(tab => tab.key !== 'approvals' && tab.key !== 'activity' && tab.key !== 'owners');
   }
-  
+
   //Get collection information
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: fetch collection ,collection page');

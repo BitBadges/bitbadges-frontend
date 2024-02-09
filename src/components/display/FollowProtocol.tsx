@@ -1,6 +1,6 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
-import { BigIntify, GetFollowDetailsRouteSuccessResponse } from 'bitbadgesjs-utils';
+import { BigIntify, GetFollowDetailsRouteSuccessResponse } from 'bitbadgesjs-sdk';
 import { useCallback, useEffect, useState } from 'react';
 import { getFollowDetails } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -13,7 +13,7 @@ import { Tabs } from '../navigation/Tabs';
 import { SubmitMsgNewCollection } from '../tx-timelines/form-items/SubmitMsgUniversalUpdateCollection';
 import { InformationDisplayCard } from './InformationDisplayCard';
 
-import { convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
+import { convertMsgUniversalUpdateCollection } from "bitbadgesjs-sdk";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { fetchCollectionsWithOptions } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { GO_MAX_UINT_64 } from '../../utils/dates';

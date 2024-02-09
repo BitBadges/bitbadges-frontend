@@ -1,6 +1,6 @@
 
 import { Menu, Spin, Typography } from 'antd';
-import { BitBadgesUserInfo, GetSearchRouteSuccessResponse, getAbbreviatedAddress, getMetadataForBadgeId, isAddressValid } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo, GetSearchRouteSuccessResponse, getAbbreviatedAddress, getMetadataForBadgeId, isAddressValid } from 'bitbadgesjs-sdk';
 import { useEffect, useState } from 'react';
 import { getSearchResults } from '../../bitbadges-api/api';
 

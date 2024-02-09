@@ -1,4 +1,4 @@
-import { isAddressListEmpty } from "bitbadgesjs-utils";
+import { isAddressListEmpty } from "bitbadgesjs-sdk";
 import { useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { AddressListSelect } from "../../address/AddressListsSelect";
 import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";

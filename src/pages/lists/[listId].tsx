@@ -1,5 +1,5 @@
 import { Col, Divider, Empty, Input, Layout, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { BitBadgesAddressList, DefaultPlaceholderMetadata, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { BitBadgesAddressList, DefaultPlaceholderMetadata, convertToCosmosAddress } from 'bitbadgesjs-sdk';
 
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';

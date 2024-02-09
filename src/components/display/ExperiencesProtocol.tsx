@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { BigIntify } from 'bitbadgesjs-utils';
+import { BigIntify } from 'bitbadgesjs-sdk';
 import { useEffect, useState } from 'react';
 import { getCollectionForProtocol } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -11,7 +11,7 @@ import { EmptyIcon } from '../common/Empty';
 import { SubmitMsgNewCollection } from '../tx-timelines/form-items/SubmitMsgUniversalUpdateCollection';
 import { InformationDisplayCard } from './InformationDisplayCard';
 
-import { convertMsgUniversalUpdateCollection } from "bitbadgesjs-proto";
+import { convertMsgUniversalUpdateCollection } from "bitbadgesjs-sdk";
 import { fetchCollectionsWithOptions } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { Divider } from './Divider';
@@ -41,6 +41,8 @@ export function ExperiencesProtocolDisplay({ addressOrUsername }: { addressOrUse
     async function getFollowDetailsInfo() {
       if (!accountInfo) return;
       const res = await getCollectionForProtocol({ address: accountInfo?.cosmosAddress, name: 'Experiences Protocol' })
+      if (!res.collectionId) return;
+
       setProtocolCollectionId(res.collectionId);
 
       await fetchCollectionsWithOptions([{

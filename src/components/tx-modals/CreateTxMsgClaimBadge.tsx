@@ -1,7 +1,7 @@
 import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
 import { Input, Typography } from 'antd';
-import { MsgTransferBadges } from 'bitbadgesjs-proto';
-import { CollectionApprovalWithDetails, applyIncrementsToBalances, convertToCosmosAddress, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { MsgTransferBadges } from 'bitbadgesjs-sdk';
+import { CollectionApprovalWithDetails, applyIncrementsToBalances, convertToCosmosAddress, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-sdk';
 import SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import { useRouter } from 'next/router';
@@ -408,7 +408,6 @@ export function CreateTxMsgClaimBadgeModal(
       txsInfo={txsInfo}
       txName="Claim Badge"
       disabled={requiresProof && !isValidProof}
-      requireRegistration
       msgSteps={items}
     >
       {children}

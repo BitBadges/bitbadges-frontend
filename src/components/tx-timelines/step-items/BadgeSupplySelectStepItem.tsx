@@ -6,7 +6,7 @@ import {
   removeBadgeMetadata,
   sortUintRangesAndMergeIfNecessary,
   updateBadgeMetadata,
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { useState } from "react"
 import {
   EmptyStepItem,
@@ -15,8 +15,8 @@ import {
 } from "../../../bitbadges-api/contexts/TxTimelineContext"
 
 import { InfoCircleOutlined } from "@ant-design/icons"
-import { Balance } from "bitbadgesjs-proto"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { Balance } from "bitbadgesjs-sdk"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import {
   updateCollection,
   useCollection,

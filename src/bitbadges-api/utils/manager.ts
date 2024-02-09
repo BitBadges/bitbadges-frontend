@@ -1,4 +1,4 @@
-import { BitBadgesCollection, isAddressValid } from "bitbadgesjs-utils"
+import { BitBadgesCollection, isAddressValid } from "bitbadgesjs-sdk"
 
 export const neverHasManager = (
   collection:

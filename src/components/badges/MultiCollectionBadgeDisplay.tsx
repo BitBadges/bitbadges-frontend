@@ -1,15 +1,15 @@
 import { Spin, Tooltip, Typography } from "antd"
-import { deepCopy } from "bitbadgesjs-proto"
+import { deepCopy } from "bitbadgesjs-sdk"
 import {
   BalanceDoc,
   BitBadgesUserInfo,
   getBadgesToDisplay,
   getBalancesForId,
   removeUintRangesFromUintRanges
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { useEffect, useMemo, useState } from "react"
 
-import { BatchBadgeDetails, getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { BatchBadgeDetails, getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import { useTxTimelineContext } from "../../bitbadges-api/contexts/TxTimelineContext"
 import {
   getAccountBalancesView,

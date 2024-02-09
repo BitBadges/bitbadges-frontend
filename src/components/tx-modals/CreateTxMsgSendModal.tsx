@@ -1,5 +1,5 @@
 import { InputNumber } from 'antd';
-import { MsgSend } from 'bitbadgesjs-proto';
+import { MsgSend } from 'bitbadgesjs-sdk';
 import React, { useMemo, useState } from 'react';
 
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -84,7 +84,6 @@ export function CreateTxMsgSendModal({ visible, setVisible, children,
       setVisible={setVisible}
       txsInfo={txsInfo}
       txName="Send $BADGE"
-      requireRegistration
       coinsToTransfer={[
         {
           denom: 'badge',

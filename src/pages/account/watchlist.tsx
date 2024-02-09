@@ -4,15 +4,15 @@ import {
   PlusOutlined,
 } from "@ant-design/icons"
 import { Divider, Layout, Tag, Typography, notification } from "antd"
-import { UintRange, deepCopy } from "bitbadgesjs-proto"
+import { UintRange, deepCopy } from "bitbadgesjs-sdk"
 import {
   AccountViewKey,
   BitBadgesAddressList
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { useEffect, useMemo, useState } from "react"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
 
-import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "bitbadgesjs-utils"
+import { BatchBadgeDetails, addToBatchArray, removeFromBatchArray } from "bitbadgesjs-sdk"
 import { useSelector } from "react-redux"
 import { getAddressLists } from "../../bitbadges-api/api"
 import {

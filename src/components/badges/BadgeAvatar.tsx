@@ -1,6 +1,6 @@
 import { ClockCircleOutlined } from "@ant-design/icons"
 import { Avatar, Spin, Tooltip, notification } from "antd"
-import { Balance } from "bitbadgesjs-proto"
+import { Balance } from "bitbadgesjs-sdk"
 import {
   DefaultPlaceholderMetadata,
   Metadata,
@@ -8,7 +8,7 @@ import {
   getMaxBadgeIdForCollection,
   getMetadataForBadgeId,
   isFullUintRanges,
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { useRouter } from "next/router"
 import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"

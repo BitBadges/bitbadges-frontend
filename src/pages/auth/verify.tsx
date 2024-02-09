@@ -1,7 +1,6 @@
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Input, InputNumber, Spin, Switch } from 'antd';
-import { AddressList, convertUintRange } from 'bitbadgesjs-proto';
-import { BigIntify, BlockinAuthSignatureDoc, convertToCosmosAddress, getAbbreviatedAddress, getChainForAddress, getReservedAddressList, isInAddressList } from 'bitbadgesjs-utils';
+import { AddressList, BigIntify, BlockinAuthSignatureDoc, convertToCosmosAddress, convertUintRange, getAbbreviatedAddress, getReservedAddressList, isInAddressList } from 'bitbadgesjs-sdk';
 import { ChallengeParams, constructChallengeObjectFromString, convertAssetConditionGroup, convertChallengeParams, createChallenge } from 'blockin';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
@@ -171,11 +170,9 @@ function BlockinCodesScreen() {
         params = constructChallengeObjectFromString(message, BigIntify);
 
         const newMessage = createChallenge(params)
-
         const res = await verifySignInGeneric({
           message: newMessage,
           signature: inputtedQrCode,
-          chain: getChainForAddress(params?.address ?? ''),
           options: { expectedChallengeParams: expectedChallengeParams }
         });
         if (!res.success) {

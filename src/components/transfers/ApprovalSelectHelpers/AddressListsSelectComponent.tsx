@@ -1,7 +1,7 @@
 import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Divider, Typography } from "antd";
-import { AddressList } from "bitbadgesjs-proto";
-import { invertUintRanges, isInAddressList } from "bitbadgesjs-utils";
+import { AddressList } from "bitbadgesjs-sdk";
+import { invertUintRanges, isInAddressList } from "bitbadgesjs-sdk";
 
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { getBadgeIdsString } from "../../../utils/badgeIds";

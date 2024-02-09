@@ -1,7 +1,7 @@
 import { DeleteOutlined, EditOutlined, FieldTimeOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined, UpOutlined } from '@ant-design/icons';
 import { Col, Popover } from 'antd';
-import { TimelineItem, UintRange } from 'bitbadgesjs-proto';
-import { checkIfUintRangesOverlap, getCurrentIdxForTimeline, removeUintRangesFromUintRanges } from 'bitbadgesjs-utils';
+import { TimelineItem, UintRange } from 'bitbadgesjs-sdk';
+import { checkIfUintRangesOverlap, getCurrentIdxForTimeline, removeUintRangesFromUintRanges } from 'bitbadgesjs-sdk';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { useState, useMemo } from 'react';
 import { compareObjects } from '../../utils/compare';

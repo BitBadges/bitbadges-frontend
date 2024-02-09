@@ -30,7 +30,7 @@ import { useState } from "react"
 
 import { faMinus, faReplyAll } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { UintRange, deepCopy } from "bitbadgesjs-proto"
+import { UintRange, deepCopy } from "bitbadgesjs-sdk"
 import {
   BadgeMetadataDetails,
   DefaultPlaceholderMetadata,
@@ -45,13 +45,13 @@ import {
   searchUintRangesForId,
   setMetadataPropertyForSpecificBadgeIds,
   sortUintRangesAndMergeIfNecessary,
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import {
   NEW_COLLECTION_ID,
   useTxTimelineContext,
 } from "../../../bitbadges-api/contexts/TxTimelineContext"
 
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import {
   fetchAndUpdateMetadata,
   fetchMetadataForPreview,

@@ -1,6 +1,6 @@
-import { Balance } from 'bitbadgesjs-proto';
+import { Balance } from 'bitbadgesjs-sdk';
 import { NumberInput } from './NumberInput';
-import { Numberify } from 'bitbadgesjs-utils';
+import { Numberify } from 'bitbadgesjs-sdk';
 
 export function BalanceAmountInput({
   balances,

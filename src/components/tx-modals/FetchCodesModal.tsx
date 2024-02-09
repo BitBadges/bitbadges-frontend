@@ -1,6 +1,6 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Empty, Modal } from 'antd';
-import { CodesAndPasswords } from 'bitbadgesjs-utils';
+import { CodesAndPasswords } from 'bitbadgesjs-sdk';
 import React, { useEffect, useState } from 'react';
 import { getAllPasswordsAndCodes } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';

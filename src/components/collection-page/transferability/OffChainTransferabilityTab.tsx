@@ -3,7 +3,7 @@ import { useCollection } from '../../../bitbadges-api/contexts/collections/Colle
 import { DistributionOverview } from '../../badges/DistributionCard';
 import { Divider } from '../../display/Divider';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
-import { getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { getMetadataForBadgeId } from 'bitbadgesjs-sdk';
 import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/settings';
 import { areBalancesBitBadgesHosted } from '../../../bitbadges-api/utils/balances';
 

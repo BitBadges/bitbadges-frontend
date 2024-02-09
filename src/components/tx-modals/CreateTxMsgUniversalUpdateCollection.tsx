@@ -1,5 +1,5 @@
-import { BadgeMetadataTimeline, CollectionApproval, MsgUniversalUpdateCollection } from 'bitbadgesjs-proto';
-import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, convertToCosmosAddress, getFirstMatchForBadgeMetadata, getTransfersFromTransfersWithIncrements } from 'bitbadgesjs-utils';
+import { BadgeMetadataTimeline, CollectionApproval, MsgUniversalUpdateCollection } from 'bitbadgesjs-sdk';
+import { BadgeMetadataDetails, DefaultPlaceholderMetadata, MetadataAddMethod, convertToCosmosAddress, getFirstMatchForBadgeMetadata, getTransfersFromTransfersWithIncrements } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import React, { useMemo } from 'react';
 import { addApprovalDetailsToOffChainStorage, addMetadataToIpfs } from '../../bitbadges-api/api';
@@ -412,7 +412,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal(
       txName="Update Collection"
 
       txsInfo={txsInfo}
-      requireRegistration
+      requireLogin
     >
       {children}
     </TxModal>

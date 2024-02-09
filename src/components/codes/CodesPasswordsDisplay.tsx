@@ -1,6 +1,6 @@
 import { CopyOutlined, DownloadOutlined, InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Divider, Empty, Row, Spin, Tooltip, Typography, notification } from "antd";
-import { ClaimAlertDoc, CollectionApprovalWithDetails, PaginationInfo, convertToCosmosAddress, getAbbreviatedAddress, isAddressValid } from "bitbadgesjs-utils";
+import { ClaimAlertDoc, CollectionApprovalWithDetails, PaginationInfo, convertToCosmosAddress, getAbbreviatedAddress, isAddressValid } from "bitbadgesjs-sdk";
 import { useEffect, useState } from "react";
 
 import { getClaimAlerts, sendClaimAlert } from "../../bitbadges-api/api";
@@ -124,7 +124,7 @@ export function CodesDisplay({
         </div>
         <div className="secondary-text" style={{ textAlign: 'center' }}>
           To be able to claim, users will need to go to the claim page and enter the code / password and sign the claim transaction.{' '}
-          <InfoCircleOutlined style={{ color: 'orange' }} /> Thus, wallets are expected to be handy at claim time. Consider this when 
+          <InfoCircleOutlined style={{ color: 'orange' }} /> Thus, wallets are expected to be handy at claim time. Consider this when
           selecting your method of distribution.
 
 

@@ -5,8 +5,8 @@ import {
   LockOutlined
 } from '@ant-design/icons';
 import { Tag, Tooltip } from 'antd';
-import { BadgeMetadataTimeline, CollectionMetadataTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, StandardsTimeline } from 'bitbadgesjs-proto';
-import { BitBadgesCollection, Metadata, generateAlias, getAliasDerivationKeysForBadge, getFullIsArchivedTimeline, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { BadgeMetadataTimeline, CollectionMetadataTimeline, CustomDataTimeline, IsArchivedTimeline, ManagerTimeline, StandardsTimeline } from 'bitbadgesjs-sdk';
+import { BitBadgesCollection, Metadata, generateAlias, getAliasDerivationKeysForBadge, getFullIsArchivedTimeline, getMetadataForBadgeId, searchUintRangesForId } from 'bitbadgesjs-sdk';
 
 import { useEffect } from 'react';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';

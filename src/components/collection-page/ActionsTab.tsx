@@ -1,6 +1,6 @@
 import { Card, Empty } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import { getCurrentValuesForCollection } from 'bitbadgesjs-utils';
+import { getCurrentValuesForCollection } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';

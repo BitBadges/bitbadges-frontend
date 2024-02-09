@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 import { AddressWithBlockies } from './AddressWithBlockies';
-import { SupportedChain } from 'bitbadgesjs-utils';
+import { SupportedChain } from 'bitbadgesjs-sdk';
 
 export function AddressDisplayTitle({ title, icon }: { title: string | ReactNode, icon?: ReactNode }) {
   return <div className='flex-between' style={{ fontSize: 20 }}>

@@ -9,7 +9,7 @@ import {
   UserDeleteOutlined
 } from '@ant-design/icons';
 import { Avatar, Spin, Tooltip, message, notification } from 'antd';
-import { BitBadgesUserInfo, GetFollowDetailsRouteSuccessResponse, SupportedChain, getBalanceForIdAndTime } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo, GetFollowDetailsRouteSuccessResponse, SupportedChain, getBalanceForIdAndTime } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 
 import { useEffect, useState } from 'react';

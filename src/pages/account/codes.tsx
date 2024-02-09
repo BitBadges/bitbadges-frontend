@@ -2,7 +2,7 @@ import { Layout, Tooltip, Typography } from 'antd';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, WarningOutlined } from '@ant-design/icons';
-import { BigIntify, BitBadgesAddressList, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { BigIntify, BitBadgesAddressList, BlockinAuthSignatureDoc, convertBlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-sdk';
 import { AndGroup, AssetConditionGroup, OrGroup, OwnershipRequirements, createChallenge } from 'blockin';
 import { useEffect, useState } from 'react';
 import { deleteAuthCode, getAddressLists, getAuthCode } from '../../bitbadges-api/api';

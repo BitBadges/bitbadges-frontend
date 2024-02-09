@@ -1,14 +1,14 @@
 import {
   getCurrentValuesForCollection,
   isInAddressList
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import {
   EmptyStepItem,
   NEW_COLLECTION_ID,
   useTxTimelineContext,
 } from "../../bitbadges-api/contexts/TxTimelineContext"
 
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { neverHasManager } from "../../bitbadges-api/utils/manager"
 import { getDetailsForCollectionPermission, getDetailsForPermission } from "../../bitbadges-api/utils/permissions"

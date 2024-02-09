@@ -1,5 +1,5 @@
 import { InputNumber } from "antd";
-import { Numberify, getMaxBadgeIdForCollection } from "bitbadgesjs-utils";
+import { Numberify, getMaxBadgeIdForCollection } from "bitbadgesjs-sdk";
 import { useState } from "react";
 import { NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";

@@ -1,5 +1,5 @@
-import { ApprovalAmounts, MaxNumTransfers } from "bitbadgesjs-proto";
-import { ApprovalCriteriaWithDetails } from "bitbadgesjs-utils";
+import { ApprovalAmounts, MaxNumTransfers } from "bitbadgesjs-sdk";
+import { ApprovalCriteriaWithDetails } from "bitbadgesjs-sdk";
 
 export function approvalCriteriaUsesPredeterminedBalances(approvalCriteria?: ApprovalCriteriaWithDetails<bigint>) {
   if (!approvalCriteria || !approvalCriteria.predeterminedBalances) {

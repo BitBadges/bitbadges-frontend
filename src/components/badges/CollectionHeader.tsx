@@ -1,7 +1,7 @@
 import { Col, Typography, notification } from 'antd';
 import { useRouter } from 'next/router';
 
-import { Metadata, getMetadataDetailsForBadgeId } from 'bitbadgesjs-utils';
+import { Metadata, getMetadataDetailsForBadgeId } from 'bitbadgesjs-sdk';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { BadgeAvatar } from './BadgeAvatar';
 

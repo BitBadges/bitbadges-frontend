@@ -1,4 +1,4 @@
-import { BitBadgesCollection, getCurrentValueForTimeline } from "bitbadgesjs-utils";
+import { BitBadgesCollection, getCurrentValueForTimeline } from "bitbadgesjs-sdk";
 
 export function getCurrentMetadata(collection: BitBadgesCollection<bigint>) {
   const collectionMetadata = getCurrentValueForTimeline(collection.collectionMetadataTimeline)?.collectionMetadata;

@@ -1,5 +1,5 @@
 import { Button, Col, Divider, Empty, Input, Row, Spin, Tooltip, Typography } from 'antd';
-import { Numberify, ReviewDoc } from 'bitbadgesjs-utils';
+import { Numberify, ReviewDoc } from 'bitbadgesjs-sdk';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ReactStars from "react-stars";

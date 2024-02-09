@@ -1,5 +1,5 @@
 import { Divider } from "antd";
-import { checkIfUintRangesOverlap, convertToCosmosAddress, getCurrentValueForTimeline } from "bitbadgesjs-utils";
+import { checkIfUintRangesOverlap, convertToCosmosAddress, getCurrentValueForTimeline } from "bitbadgesjs-sdk";
 import { useEffect, useState } from "react";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";

@@ -2,13 +2,13 @@ import { Form, Input, Spin, Tag, Tooltip, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { FullscreenExitOutlined, FullscreenOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { PaginationInfo, getMaxBadgeIdForCollection, getUintRangesForAllBadgeIdsInCollection, invertUintRanges, removeUintRangesFromUintRanges } from 'bitbadgesjs-utils';
+import { PaginationInfo, getMaxBadgeIdForCollection, getUintRangesForAllBadgeIdsInCollection, invertUintRanges, removeUintRangesFromUintRanges } from 'bitbadgesjs-sdk';
 
-import { BigIntify, UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-proto';
+import { BigIntify, UintRange, convertUintRange, deepCopy } from 'bitbadgesjs-sdk';
 import { filterBadgesInCollection } from '../../bitbadges-api/api';
 import { fetchCollectionsWithOptions, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { getBadgesWithFrozenMetadata, getBadgesWithFrozenTransferability, getBadgesWithLockedSupply } from '../../bitbadges-api/utils/badges';
-import { BatchBadgeDetails } from 'bitbadgesjs-utils';
+import { BatchBadgeDetails } from 'bitbadgesjs-sdk';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { compareObjects } from '../../utils/compare';
 import { GO_MAX_UINT_64 } from '../../utils/dates';

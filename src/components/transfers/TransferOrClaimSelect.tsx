@@ -1,7 +1,7 @@
 import { CloseOutlined, CloudSyncOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Col, Empty, Row, StepProps, Steps } from 'antd';
-import { Balance, BigIntify, convertBalance } from 'bitbadgesjs-proto';
-import { TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-utils';
+import { Balance, BigIntify, convertBalance } from 'bitbadgesjs-sdk';
+import { TransferWithIncrements, checkIfUintRangesOverlap, deepCopyBalances, getBalancesAfterTransfers } from 'bitbadgesjs-sdk';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';

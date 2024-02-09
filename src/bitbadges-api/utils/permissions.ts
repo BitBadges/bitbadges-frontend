@@ -1,5 +1,5 @@
-import { ActionPermission, AddressList, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission, UintRange, deepCopy } from "bitbadgesjs-proto";
-import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, GetFirstMatchOnly, GetListWithOptions, GetUintRangesWithOptions, UniversalPermissionDetails, getReservedAddressList, removeUintRangesFromUintRanges } from "bitbadgesjs-utils";
+import { ActionPermission, AddressList, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission, UintRange, deepCopy } from "bitbadgesjs-sdk";
+import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, GetFirstMatchOnly, GetListWithOptions, GetUintRangesWithOptions, UniversalPermissionDetails, getReservedAddressList, removeUintRangesFromUintRanges } from "bitbadgesjs-sdk";
 import { PermissionNameString } from "../../components/collection-page/PermissionsInfo";
 import { getPermissionVariablesFromName } from "../../components/tx-timelines/form-items/BeforeAfterPermission";
 import { GO_MAX_UINT_64 } from "../../utils/dates";

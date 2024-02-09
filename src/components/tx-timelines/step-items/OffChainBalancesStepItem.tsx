@@ -1,6 +1,6 @@
 import { Divider, Form, Input, Typography } from "antd";
-import { Transfer } from "bitbadgesjs-proto";
-import { MetadataAddMethod, TransferWithIncrements } from "bitbadgesjs-utils";
+import { Transfer } from "bitbadgesjs-sdk";
+import { MetadataAddMethod, TransferWithIncrements } from "bitbadgesjs-sdk";
 import { useEffect, useState } from "react";
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 

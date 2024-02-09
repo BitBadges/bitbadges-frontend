@@ -2,8 +2,8 @@ import { InfoCircleOutlined, MinusOutlined, PlusOutlined } from "@ant-design/ico
 import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Divider, Switch } from "antd";
-import { UintRange } from "bitbadgesjs-proto";
-import { UniversalPermission, getReservedAddressList, isAddressListEmpty } from "bitbadgesjs-utils";
+import { UintRange } from "bitbadgesjs-sdk";
+import { UniversalPermission, getReservedAddressList, isAddressListEmpty } from "bitbadgesjs-sdk";
 import { useState } from "react";
 import { GenericCollectionPermissionWithDetails } from "../../bitbadges-api/utils/permissions";
 import { GO_MAX_UINT_64 } from "../../utils/dates";

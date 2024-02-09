@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, DatePicker, Form, Input, Tooltip, Typography, message } from 'antd';
-import { UintRange } from 'bitbadgesjs-proto';
-import { BitBadgesAddressList } from 'bitbadgesjs-utils';
+import { UintRange } from 'bitbadgesjs-sdk';
+import { BitBadgesAddressList } from 'bitbadgesjs-sdk';
 import { AndGroup, ChallengeParams, OwnershipRequirements } from 'blockin/dist/types/verify.types';
 import moment from 'moment';
 import { useEffect, useState } from 'react';

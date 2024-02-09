@@ -11,7 +11,7 @@ import {
   Typography,
   notification
 } from "antd"
-import { deepCopy } from "bitbadgesjs-proto"
+import { deepCopy } from "bitbadgesjs-sdk"
 import {
   AccountViewKey,
   BatchBadgeDetails,
@@ -21,7 +21,7 @@ import {
   removeFromBatchArray,
   removeUintRangesFromUintRanges,
   sortUintRangesAndMergeIfNecessary
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { SHA256 } from "crypto-js"
 import { useRouter } from "next/router"
 import {

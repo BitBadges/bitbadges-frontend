@@ -5,12 +5,12 @@ import {
   getBalanceForIdAndTime,
   getMetadataForBadgeId,
   isFullUintRanges,
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { useRouter } from "next/router"
 
 import { ClockCircleOutlined } from "@ant-design/icons"
-import { Balance } from "bitbadgesjs-proto"
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { Balance } from "bitbadgesjs-sdk"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext"
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"

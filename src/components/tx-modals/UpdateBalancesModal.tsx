@@ -1,7 +1,7 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Divider, Modal, Spin, message, notification } from 'antd';
-import { BigIntify, BitBadgesCollection, OffChainBalancesMap, TransferWithIncrements, convertOffChainBalancesMap, convertToCosmosAddress } from 'bitbadgesjs-utils';
-import { createBalanceMapForOffChainBalances } from 'bitbadgesjs-utils/dist/distribution';
+import { BigIntify, BitBadgesCollection, OffChainBalancesMap, TransferWithIncrements, convertOffChainBalancesMap, convertToCosmosAddress } from 'bitbadgesjs-sdk';
+import { createBalanceMapForOffChainBalances } from 'bitbadgesjs-sdk';
 import React, { useState } from 'react';
 import { addBalancesToOffChainStorage, fetchMetadataDirectly, getCollections } from '../../bitbadges-api/api';
 import { getCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';

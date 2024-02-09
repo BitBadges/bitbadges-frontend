@@ -119,8 +119,8 @@ const Home: NextPage = () => {
               {' '} to build your digital identity!</div>
             <br />
             <p className='secondary-text' style={{ fontSize: 14 }}>
-              BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, managing, and verifying digital NFT badges.
-              This is a beta version of BitBadges which is completely free for users. </p>
+              BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, and verifying digital NFT badges.
+              Build multi-chain token-gated applications all with one interface. This is a beta version of BitBadges which is completely free for users. </p>
             <div className='flex flex-wrap full-width mt-3'>
               <Button
                 size='large'

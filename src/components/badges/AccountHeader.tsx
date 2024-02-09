@@ -2,7 +2,7 @@
 import { Avatar, Col } from 'antd';
 
 
-import { BitBadgesUserInfo } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo } from 'bitbadgesjs-sdk';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { MarkdownDisplay } from '../../pages/account/[addressOrUsername]/settings';
 import { AddressDisplay } from '../address/AddressDisplay';

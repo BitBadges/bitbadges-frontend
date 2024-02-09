@@ -2,7 +2,7 @@ import { Divider, Layout, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { ReactElement, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
-import { BigIntify, GetFollowDetailsRouteSuccessResponse, convertBitBadgesCollection, convertGetFollowDetailsRouteSuccessResponse, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { BigIntify, GetFollowDetailsRouteSuccessResponse, convertBitBadgesCollection, convertGetFollowDetailsRouteSuccessResponse, getMetadataForBadgeId } from 'bitbadgesjs-sdk';
 import { useBrowseContext } from '../bitbadges-api/contexts/BrowseContext';
 import { AccountHeader } from '../components/badges/AccountHeader';
 import { AddressListCard } from '../components/badges/AddressListCard';

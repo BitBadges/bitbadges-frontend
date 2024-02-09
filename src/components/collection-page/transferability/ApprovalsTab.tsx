@@ -1,6 +1,6 @@
 import { ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Divider, Empty, Typography } from 'antd';
-import { UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendSelfInitiatedIncomingApproval, appendSelfInitiatedOutgoingApproval, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressList, getUnhandledUserIncomingApprovals } from 'bitbadgesjs-utils';
+import { UserIncomingApprovalWithDetails, UserOutgoingApprovalWithDetails, appendSelfInitiatedIncomingApproval, appendSelfInitiatedOutgoingApproval, castIncomingTransfersToCollectionTransfers, castOutgoingTransfersToCollectionTransfers, castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getReservedAddressList, getUnhandledUserIncomingApprovals } from 'bitbadgesjs-sdk';
 import { useEffect, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';

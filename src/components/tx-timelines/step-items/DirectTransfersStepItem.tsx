@@ -1,17 +1,16 @@
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
-import { MessageGenerated, MsgTransferBadges, MsgUniversalUpdateCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, createProtoMsg, createTransactionPayload } from "bitbadgesjs-proto";
-import { MsgTransferBadges as ProtoMsgTransferBadges, MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection } from 'bitbadgesjs-proto/dist/proto/badges/tx_pb';
-import { convertToCosmosAddress, generatePostBodyBroadcast, getTransfersFromTransfersWithIncrements, isInAddressList } from "bitbadgesjs-utils";
+import { MsgTransferBadges, MsgUniversalUpdateCollection, TxContext, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertToCosmosAddress, createTransactionPayload, getTransfersFromTransfersWithIncrements, isInAddressList } from "bitbadgesjs-sdk";
+import { MsgTransferBadges as ProtoMsgTransferBadges, MsgUniversalUpdateCollection as ProtoMsgUniversalUpdateCollection } from 'bitbadgesjs-sdk/dist/proto/badges/tx_pb';
 import { useEffect, useState } from "react";
 import { simulateTx } from "../../../bitbadges-api/api";
 import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
 import { useAccount } from "../../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { CHAIN_DETAILS } from "../../../constants";
+import { ErrDisplay } from "../../common/ErrDisplay";
 import { TransferSelect } from "../../transfers/TransferOrClaimSelect";
 import { TxInfo } from "../../tx-modals/TxModal";
-import { ErrDisplay } from "../../common/ErrDisplay";
 import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";
 
 export function DirectTransfersStepItem() {
@@ -106,14 +105,14 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
       try {
         if (!signedInAccount) return;
 
-        const generatedMsgs: MessageGenerated[] = []
+        const generatedMsgs = []
         for (const tx of txsInfo) {
           const { generateProtoMsg, msg } = tx;
           if (!generateProtoMsg) continue;
-          generatedMsgs.push(createProtoMsg(generateProtoMsg(msg)))
+          generatedMsgs.push(generateProtoMsg(msg))
         }
 
-        const unsignedTxSimulated = await createTransactionPayload({
+        const txContext: TxContext = {
           chain: {
             ...CHAIN_DETAILS,
             chain: chain.chain as any,
@@ -130,12 +129,12 @@ export const DirectTransfersNode = ({ err, setErr }: { err: Error | string | nul
             gas: `100000000000`,
           },
           memo: '',
-        }, generatedMsgs);
+        }
+        const payload = await createTransactionPayload(txContext, generatedMsgs);
 
 
-        console.log(unsignedTxSimulated);
-        const rawTxSimulated = await chain.signTxn(unsignedTxSimulated, true);
-        const simulatedTx = await simulateTx(generatePostBodyBroadcast(rawTxSimulated));
+        const txBody = await chain.signTxn(txContext, payload, true);
+        const simulatedTx = await simulateTx(txBody)
         console.log(simulatedTx);
         setErr(null);
       } catch (e: any) {

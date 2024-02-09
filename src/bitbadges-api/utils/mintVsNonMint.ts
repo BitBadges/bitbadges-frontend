@@ -1,4 +1,4 @@
-import { BitBadgesCollection, getNonMintApprovals as getNonMint, getMintApprovals as getMint } from "bitbadgesjs-utils";
+import { BitBadgesCollection, getNonMintApprovals as getNonMint, getMintApprovals as getMint } from "bitbadgesjs-sdk";
 
 export const getNonMintApprovals = (collection: BitBadgesCollection<bigint>) => {
   return getNonMint(collection.collectionApprovals);

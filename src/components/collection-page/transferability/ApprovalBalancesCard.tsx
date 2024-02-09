@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from "@ant-design/icons"
-import { CollectionApprovalWithDetails } from "bitbadgesjs-utils"
+import { CollectionApprovalWithDetails } from "bitbadgesjs-sdk"
 import { useState } from "react"
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
 import { approvalCriteriaUsesPredeterminedBalances } from "../../../bitbadges-api/utils/claims"

@@ -1,4 +1,4 @@
-import { AccountViewKey } from "bitbadgesjs-utils";
+import { AccountViewKey } from "bitbadgesjs-sdk";
 import { fetchAccountsWithOptions } from "../accounts/AccountsContext";
 
 export async function fetchDefaultViews(address: string, loggedIn: boolean) {

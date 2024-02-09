@@ -1,6 +1,6 @@
 import { CloseOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Divider, Switch } from 'antd';
-import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, getReservedAddressList, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressList, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
+import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, getReservedAddressList, getUnhandledCollectionApprovals, getUnhandledUserIncomingApprovals, getUnhandledUserOutgoingApprovals, isInAddressList, validateCollectionApprovalsUpdate } from 'bitbadgesjs-sdk';
 import { FC, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
@@ -302,7 +302,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
       noBorder inheritBg
       noPadding
     >
-      <div style={{ float: 'right' }}>
+      <div style={{ display: 'flex', justifyContent: 'end', flexDirection: 'row-reverse', flexWrap: 'wrap' }}>
         {onlyShowFromMint && <Switch
           style={{ margin: 10 }}
           disabled
@@ -328,6 +328,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
         />}
 
         <Switch
+          style={{ margin: 10 }}
           checkedChildren="Hide Disapprovals?"
           unCheckedChildren="Hide Disapprovals?"
           checked={!showHidden}
@@ -343,7 +344,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
         />}
       </div>
       <br />
-      <div>
+      <div className=''>
         {getRows()}
         {!hasRows && <EmptyIcon description='No approvals found.' />}
       </div>

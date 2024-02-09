@@ -1,5 +1,5 @@
 import { Col, Divider, Empty, Layout, Row } from 'antd';
-import { TransferActivityDoc, getCurrentValuesForCollection, getMetadataForBadgeId } from 'bitbadgesjs-utils';
+import { TransferActivityDoc, getCurrentValuesForCollection, getMetadataForBadgeId } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getBadgeActivity } from '../../../bitbadges-api/api';

@@ -1,7 +1,7 @@
 import { BookOutlined, CloudSyncOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, GiftOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MinusOutlined, SwapOutlined, UndoOutlined } from '@ant-design/icons';
 import { Spin, Tag, Tooltip, Typography, notification } from 'antd';
-import { AmountTrackerIdDetails } from 'bitbadgesjs-proto';
-import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, getCurrentValueForTimeline, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-utils';
+import { AmountTrackerIdDetails } from 'bitbadgesjs-sdk';
+import { CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, convertToCosmosAddress, getCurrentValueForTimeline, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';

@@ -1,6 +1,6 @@
 import { WarningOutlined } from "@ant-design/icons";
 import { Statistic } from "antd";
-import { CollectionApprovalWithDetails } from "bitbadgesjs-utils";
+import { CollectionApprovalWithDetails } from "bitbadgesjs-sdk";
 import { useAccount } from "../../../bitbadges-api/contexts/accounts/AccountsContext";
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
 import { approvalCriteriaHasNoAmountRestrictions, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from "../../../bitbadges-api/utils/claims";

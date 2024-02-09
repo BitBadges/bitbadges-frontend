@@ -1,11 +1,11 @@
 import { notification } from 'antd';
 import {
   BigIntify,
-  SupportedChain,
-  createTxRawEIP712,
-  signatureToWeb3ExtensionBitcoin,
-} from 'bitbadgesjs-proto';
-import { Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
+  TransactionPayload,
+  TxContext,
+  convertToCosmosAddress,
+  createTxBroadcastBodyBitcoin
+} from 'bitbadgesjs-sdk';
 import { constructChallengeObjectFromString } from 'blockin';
 import {
   Dispatch,
@@ -16,7 +16,7 @@ import {
   useState,
 } from 'react';
 import { useCookies } from 'react-cookie';
-import { BITCOIN_LOGO, CHAIN_DETAILS } from '../../../constants';
+import { BITCOIN_LOGO } from '../../../constants';
 import { checkIfSignedIn } from '../../api';
 import { ChainSpecificContextType } from '../ChainContext';
 import { useAccount } from '../accounts/AccountsContext';
@@ -38,7 +38,7 @@ export const BitcoinContext = createContext<BitcoinContextType>({
     return '';
   },
   loggedInExpiration: 0,
-  signTxn: async () => { },
+  signTxn: async () => { return '' },
   selectedChainInfo: {},
   connected: false,
   setConnected: () => { },
@@ -174,20 +174,13 @@ export const BitcoinContextProvider: React.FC<Props> = ({ children }) => {
     return { message: message, signature: bytesToBase64(signature) };
   };
 
-  const signTxn = async (txn: any, simulate: boolean) => {
+  const signTxn = async (context: TxContext, payload: TransactionPayload, simulate: boolean) => {
     if (!account) throw new Error('Account not found.');
-
-    const chain = { ...CHAIN_DETAILS, chain: SupportedChain.BTC };
-    const sender = {
-      accountAddress: cosmosAddress,
-      sequence: account.sequence ? Numberify(account.sequence) : 0,
-      accountNumber: Numberify(account.accountNumber),
-      pubkey: pubKey,
-    };
+    const bitcoinProvider = getProvider();
 
     let sig = '';
     if (!simulate) {
-      const message = txn.jsonToSign;
+      const message = payload.jsonToSign;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await bitcoinProvider.signMessage(
         address,
@@ -198,18 +191,9 @@ export const BitcoinContextProvider: React.FC<Props> = ({ children }) => {
       sig = Buffer.from(base64Sig, 'base64').toString('hex');
     }
 
-    let txnExtension = signatureToWeb3ExtensionBitcoin(chain, sender, sig);
-
-    // Create the txRaw
-    let rawTx = createTxRawEIP712(
-      txn.legacyAmino.body,
-      txn.legacyAmino.authInfo,
-      txnExtension
-    );
-
-    return rawTx;
+    const txBody = createTxBroadcastBodyBitcoin(context, payload, sig);
+    return txBody;
   };
-
   const getPublicKey = async (_cosmosAddress: string) => {
     return pubKey;
   };

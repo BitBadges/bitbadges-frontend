@@ -1,9 +1,9 @@
 import { Avatar, Button, DatePicker, Divider, Switch } from 'antd';
-import { UintRange, deepCopy } from 'bitbadgesjs-proto';
+import { UintRange, deepCopy } from 'bitbadgesjs-sdk';
 import moment from 'moment';
 import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
 import { DeleteOutlined, EditOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons';
-import { checkIfUintRangesOverlap, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-utils';
+import { checkIfUintRangesOverlap, isFullUintRanges, sortUintRangesAndMergeIfNecessary } from 'bitbadgesjs-sdk';
 import { useState } from 'react';
 import IconButton from '../display/IconButton';
 

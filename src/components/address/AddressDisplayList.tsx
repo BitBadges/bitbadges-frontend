@@ -1,13 +1,13 @@
 import { CopyOutlined, InfoCircleOutlined, UserDeleteOutlined } from "@ant-design/icons"
 import { Spin, Tooltip, notification } from "antd"
-import { deepCopy } from "bitbadgesjs-proto"
+import { deepCopy } from "bitbadgesjs-sdk"
 import { useEffect, useState } from "react"
 import { INFINITE_LOOP_MODE } from "../../constants"
 import { getPageDetails } from "../../utils/pagination"
 import { Pagination } from "../common/Pagination"
 import { AddressDisplay } from "./AddressDisplay"
 
-import { isAddressValid } from "bitbadgesjs-utils"
+import { isAddressValid } from "bitbadgesjs-sdk"
 import { getAccounts } from "../../bitbadges-api/api"
 import { fetchAccounts, getAccount, updateAccounts } from "../../bitbadges-api/contexts/accounts/AccountsContext"
 

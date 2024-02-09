@@ -1,5 +1,5 @@
 import { Layout, Spin } from 'antd';
-import { BigIntify, convertBlockinAuthSignatureDoc, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { BigIntify, convertBlockinAuthSignatureDoc, convertToCosmosAddress } from 'bitbadgesjs-sdk';
 import { ChallengeParams, constructChallengeObjectFromString } from 'blockin';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';

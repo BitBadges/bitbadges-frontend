@@ -1,6 +1,6 @@
 import { CloseOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Avatar, Modal, Tooltip, Typography, notification } from 'antd';
-import { BlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { BlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-sdk';
 import { toDataURL } from 'qrcode';
 import React, { ReactNode, useEffect } from 'react';
 import { QRCode } from 'react-qrcode-logo';

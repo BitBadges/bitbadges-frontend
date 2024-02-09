@@ -1,5 +1,5 @@
 import { Divider, Empty, Spin } from 'antd';
-import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressList } from 'bitbadgesjs-utils';
+import { CodesAndPasswords, CollectionApprovalWithDetails, isInAddressList } from 'bitbadgesjs-sdk';
 import { useState } from 'react';
 
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';

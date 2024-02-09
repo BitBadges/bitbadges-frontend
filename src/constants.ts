@@ -1,4 +1,4 @@
-import { BETANET_CHAIN_DETAILS, MAINNET_CHAIN_DETAILS, SupportedChain } from "bitbadgesjs-utils";
+import { BETANET_CHAIN_DETAILS, MAINNET_CHAIN_DETAILS, SupportedChain } from "bitbadgesjs-sdk";
 import getConfig from 'next/config';
 
 const { publicRuntimeConfig } = getConfig();

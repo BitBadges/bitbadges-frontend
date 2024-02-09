@@ -1,7 +1,7 @@
 import { EyeOutlined, MenuUnfoldOutlined, MinusOutlined } from "@ant-design/icons";
 import { notification } from "antd";
-import { UintRange, deepCopy } from "bitbadgesjs-proto";
-import { BatchBadgeDetails, BitBadgesUserInfo, CustomPage, addToBatchArray as addTobatchArrayImported, allInBatchArray, removeFromBatchArray as removeFromBatchArrayImported } from "bitbadgesjs-utils";
+import { UintRange, deepCopy } from "bitbadgesjs-sdk";
+import { BatchBadgeDetails, BitBadgesUserInfo, CustomPage, addToBatchArray as addTobatchArrayImported, allInBatchArray, removeFromBatchArray as removeFromBatchArrayImported } from "bitbadgesjs-sdk";
 import { useState } from "react";
 import { updateAccountInfo } from "../../bitbadges-api/api";
 import { updateAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";

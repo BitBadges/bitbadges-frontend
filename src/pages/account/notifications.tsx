@@ -1,7 +1,7 @@
 import { Badge, Layout } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 
-import { AccountViewKey } from 'bitbadgesjs-utils';
+import { AccountViewKey } from 'bitbadgesjs-sdk';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchNextForAccountViews, getAccountActivityView, getAccountClaimAlertsView, getAccountListsActivityView, updateProfileInfo, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 // import { AnnouncementsTab } from '../../components/collection-page/AnnouncementsTab';

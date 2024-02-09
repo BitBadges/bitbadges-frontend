@@ -1,4 +1,4 @@
-import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-utils';
+import { GetBrowseCollectionsRouteSuccessResponse } from 'bitbadgesjs-sdk';
 import { createContext, useContext, useState } from 'react';
 import { DesiredNumberType, getBrowseCollections } from '../api';
 import { updateAccount } from './accounts/AccountsContext';

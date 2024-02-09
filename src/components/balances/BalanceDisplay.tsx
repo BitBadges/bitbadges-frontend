@@ -1,14 +1,14 @@
 import { InfoCircleOutlined } from "@ant-design/icons"
 import { Col, Empty, Tooltip } from "antd"
-import { Balance, BigIntify, MustOwnBadges, UintRange, convertUintRange, deepCopy } from "bitbadgesjs-proto"
+import { Balance, BigIntify, MustOwnBadges, UintRange, convertUintRange, deepCopy } from "bitbadgesjs-sdk"
 import { ReactNode, useMemo, useState } from "react"
 import { getBadgeIdsString } from "../../utils/badgeIds"
 import { GO_MAX_UINT_64, getTimeRangesElement } from "../../utils/dates"
 import { Pagination } from "../common/Pagination"
 import { BalanceDisplayEditRow } from "./BalanceDisplayEditRow"
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay"
-import { applyIncrementsToBalances } from "bitbadgesjs-utils"
-import { getAllBadgeIdsToBeTransferred } from "bitbadgesjs-utils"
+import { applyIncrementsToBalances } from "bitbadgesjs-sdk"
+import { getAllBadgeIdsToBeTransferred } from "bitbadgesjs-sdk"
 
 
 

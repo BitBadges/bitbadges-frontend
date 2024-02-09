@@ -1,4 +1,4 @@
-import { MetadataAddMethod } from "bitbadgesjs-utils";
+import { MetadataAddMethod } from "bitbadgesjs-sdk";
 import { MetadataForm } from "../form-items/MetadataForm";
 import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";
 

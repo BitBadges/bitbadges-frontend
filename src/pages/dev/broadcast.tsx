@@ -1,7 +1,7 @@
 import { CheckCircleFilled, DeleteOutlined, DownOutlined, EditOutlined, InfoCircleOutlined, MinusOutlined, PlusOutlined, UndoOutlined } from '@ant-design/icons';
 import { Col, Collapse, Divider, Row, Select, Typography, Upload, notification } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { BigIntify, convertMsgCreateCollection, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertMsgUpdateCollection, convertMsgUpdateUserApprovals } from 'bitbadgesjs-proto';
+import { BigIntify, convertMsgCreateCollection, convertMsgDeleteCollection, convertMsgTransferBadges, convertMsgUniversalUpdateCollection, convertMsgUpdateCollection, convertMsgUpdateUserApprovals } from 'bitbadgesjs-sdk';
 
 import { useRouter } from 'next/router';
 
@@ -37,8 +37,16 @@ function Broadcast() {
   const [err, setErr] = useState<Error | null>();
   const chain = useChainContext();
   const router = useRouter();
+  const [userMode, setUserMode] = useState(false);
+
+  useEffect(() => {
+    if (window.opener) {
+      setUserMode(true);
+    }
+  }, []);
 
   const routerTxsInfo = router.query.txsInfo;
+  const userModeParam = router.query.userMode;
 
   const [txsInfo, setTxsInfo] = useState<TxInfo[]>([]);
 
@@ -49,13 +57,19 @@ function Broadcast() {
   const [editIsVisible, setEditIsVisible] = useState<boolean>(false);
 
   useEffect(() => {
+    setUserMode(userModeParam === 'true');
+  }, [userModeParam]);
+
+  useEffect(() => {
     setTxsInfo(routerTxsInfo ? JSON.parse(routerTxsInfo as string) : []);
 
     if (!notified && (routerTxsInfo)) {
       setNotified(true);
+      const hasOpener = window.opener;
       notification.info({
         message: 'Loaded from URL',
-        description: 'The transaction type and message were loaded from the URL.'
+        description: 'The transaction type and message were loaded from the URL.' +
+          (hasOpener ? ' Upon success, the site that directed you here will be notified of the transaction hash, and you will be redirected abck to the site.' : ''),
       })
     }
   }, [routerTxsInfo, notified]);
@@ -76,10 +90,11 @@ function Broadcast() {
                             : txType === 'MsgUnsetCollectionForProtocol' ? sampleMsgUnsetCollectionForProtocol
                               : txType === 'MsgInstantiateContractCompat' ? sampleMsgInstantiateContractCompat
                                 : txType === 'MsgExecuteContractCompat' ? sampleMsgExecuteContractCompat
+                                  // : txType === 'MsgVote' ? { proposalId: 1, voter: chain.cosmosAddress, option: 'Yes' }
                                   : undefined
   }
 
-  const [byteCode, setByteCode] = useState<any>();
+  const [byteCode, setByteCode] = useState<Uint8Array>();
 
   const [editIdx, setEditIdx] = useState<number>(-1);
   const [fileList, setFileList] = useState<any[]>([]);
@@ -91,16 +106,17 @@ function Broadcast() {
     try {
       const fileReader = new FileReader();
       fileReader.onload = (e) => {
+        console.log("e.target", e.target);
         if (e.target && e.target.result) {
           const result = e.target.result as ArrayBuffer;
           const buffer = Buffer.from(result);
-          const hexData = buffer.toString('hex');
-          setByteCode('0x' + hexData);
+          setByteCode(new Uint8Array(buffer));
         }
       };
       fileReader.readAsArrayBuffer(file);
     } catch (err) {
       onError(err);
+      console.error(err);
 
     }
   };
@@ -115,9 +131,12 @@ function Broadcast() {
     </div>
   );
 
+
+  const txTypesThatRequireLogin = ['MsgCreateCollection', 'MsgUpdateCollection', 'MsgUniversalUpdateCollection', 'MsgCreateAddressLists'];
+
   return (
     <DisconnectedWrapper
-      requireLogin
+      requireLogin={!!txsInfo.find(x => txTypesThatRequireLogin.includes(x.type))}
       message='Please connect a wallet and sign in to access this page.'
       node={
         <RegisteredWrapper
@@ -132,81 +151,84 @@ function Broadcast() {
                 paddingTop: '20px',
               }}
             >
+              {userMode && <></>}
+              {!userMode && <>
+                <Col md={24} xs={24} style={{ textAlign: 'center' }} className='primary-text'>
+                  <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>
+                    Transaction Builder
+                  </Typography.Text>
+                  <div className='secondary-text'>
+                    <InfoCircleOutlined /> Transactions are made up of one or more Cosmos SDK Msgs.
+                  </div>
+                  <br />
+                  <br />
 
-              <Col md={24} xs={24} style={{ textAlign: 'center' }} className='primary-text'>
-                <Typography.Text strong style={{ fontSize: 20 }} className='primary-text'>
-                  Transaction Builder
-                </Typography.Text>
-                <div className='secondary-text'>
-                  <InfoCircleOutlined /> Transactions are made up of one or more Cosmos SDK Msgs.
-                </div>
-                <br />
-                <br />
+                  <Collapse
+                    className='full-width primary-text'
+                    style={{ alignItems: 'center' }}
+                    expandIconPosition='start'
+                    activeKey={activeKeys}
+                    onChange={(keys) => {
+                      setActiveKeys(keys as string[]);
+                    }}
+                  >
 
-                <Collapse
-                  className='full-width primary-text'
-                  style={{ alignItems: 'center' }}
-                  expandIconPosition='start'
-                  activeKey={activeKeys}
-                  onChange={(keys) => {
-                    setActiveKeys(keys as string[]);
-                  }}
-                >
+                    {txsInfo.map((_, idx) => {
+                      const txInfo = txsInfo[idx];
+                      return <CollapsePanel
+                        key={idx}
+                        className='full-width card-bg'
+                        header={
+                          <div className='primary-text full-width flex-center' style={{ justifyContent: 'space-between' }}>
+                            <div style={{ textAlign: 'left', fontSize: 16, fontWeight: 500 }}>
+                              {`Msg ${idx + 1}: ${txInfo.type}`}
 
-                  {txsInfo.map((_, idx) => {
-                    const txInfo = txsInfo[idx];
-                    return <CollapsePanel
-                      key={idx}
-                      className='full-width card-bg'
-                      header={
-                        <div className='primary-text full-width flex-center' style={{ justifyContent: 'space-between' }}>
-                          <div style={{ textAlign: 'left', fontSize: 16, fontWeight: 500 }}>
-                            {`Tx ${idx + 1}: ${txInfo.type}`}
+                            </div>
+                          </div>
+                        }>
+                        {<>
+                          <br />
+                          <div className='flex-center full-width'>
+                            <IconButton src={<EditOutlined />} onClick={() => {
+                              setInputTxType(txInfo.type);
+                              setInputMsg(JSON.stringify(txInfo.msg, null, 2));
+                              setEditIsVisible(true);
+                              setEditIdx(idx);
+                              setActiveKeys([]);
+                            }} text='Edit' />
+                            <IconButton src={<DeleteOutlined />} onClick={() => {
+                              setTxsInfo(txsInfo.filter((_, i) => idx !== i));
+                            }} text='Delete' />
 
                           </div>
-                        </div>
-                      }>
-                      {<>
-                        <br />
-                        <div className='flex-center full-width'>
-                          <IconButton src={<EditOutlined />} onClick={() => {
-                            setInputTxType(txInfo.type);
-                            setInputMsg(JSON.stringify(txInfo.msg, null, 2));
-                            setEditIsVisible(true);
-                            setEditIdx(idx);
-                            setActiveKeys([]);
-                          }} text='Edit' />
-                          <IconButton src={<DeleteOutlined />} onClick={() => {
-                            setTxsInfo(txsInfo.filter((_, i) => idx !== i));
-                          }} text='Delete' />
+                          {txInfo.type !== 'MsgStoreCode' && <DevMode
 
-                        </div>
-                        <DevMode obj={txInfo.msg}
-                          isJsonDisplay
+                            obj={txInfo.msg}
+                            isJsonDisplay
+                            override inheritBg noBorder
+                          />}
 
-                          override inheritBg noBorder />
-
-                      </>}
-                    </CollapsePanel>
+                        </>}
+                      </CollapsePanel>
 
 
-                  })}
-                </Collapse>
-                <Divider />
+                    })}
+                  </Collapse>
+                  <Divider />
 
-                <IconButton
-                  src={editIsVisible ? <MinusOutlined /> : <PlusOutlined />}
-                  onClick={() => {
-                    setEditIdx(-1);
-                    setEditIsVisible(!editIsVisible)
-                  }}
-                  text={editIsVisible ? 'Hide' : 'Add Msg'}
-                />
-                <Divider />
+                  <IconButton
+                    src={editIsVisible ? <MinusOutlined /> : <PlusOutlined />}
+                    onClick={() => {
+                      setEditIdx(-1);
+                      setEditIsVisible(!editIsVisible)
+                    }}
+                    text={editIsVisible ? 'Hide' : 'Add Msg'}
+                  />
+                  <Divider />
 
 
-              </Col>
-
+                </Col>
+              </>}
               {editIsVisible && <div className='flex-center flex-column'>
 
                 <Select
@@ -216,11 +238,14 @@ function Broadcast() {
                   value={inputTxType}
                   onChange={(value) => {
                     setInputTxType(value);
-                    if (value === 'MsgStoreCodeCompat') return;
+                    if (value === 'MsgStoreCode') return;
 
                     const json = getJSON(value);
-                    if (value.endsWith('Compat')) {
+                    if (value.endsWith('Compat') || value.endsWith('StoreCode')) {
                       json.sender = chain.cosmosAddress;
+                      if (value === 'MsgInstantiateContractCompat') {
+                        json.admin = chain.cosmosAddress;
+                      }
                     } else if (value === 'MsgSend') {
                       json.fromAddress = chain.cosmosAddress;
                     } else {
@@ -274,8 +299,8 @@ function Broadcast() {
                   <Select.Option key={12} value={'MsgUnsetCollectionForProtocol'}>
                     MsgUnsetCollectionForProtocol
                   </Select.Option>
-                  <Select.Option key={13} value={'MsgStoreCodeCompat'}>
-                    MsgStoreCodeCompat
+                  <Select.Option key={13} value={'MsgStoreCode'}>
+                    MsgStoreCode
                   </Select.Option>
                   <Select.Option key={14} value={'MsgInstantiateContractCompat'}>
                     MsgInstantiateContractCompat
@@ -292,7 +317,7 @@ function Broadcast() {
                 <br />
                 <div className='flex-center full-width' style={{ alignItems: 'normal' }}>
                   <InformationDisplayCard noBorder inheritBg title='' md={12} xs={24} style={{ textAlign: 'center' }}>
-                    {inputTxType !== 'MsgStoreCodeCompat' && <>
+                    {inputTxType !== 'MsgStoreCode' && <>
                       <Row className='full-width flex-center flex-column'>
 
                         <b className='primary-text'>Enter MsgValue</b>
@@ -320,7 +345,7 @@ function Broadcast() {
                       </Row>
                     </>}
 
-                    {inputTxType === 'MsgStoreCodeCompat' && <>
+                    {inputTxType === 'MsgStoreCode' && <>
                       {!byteCode && <div className='flex-center'>
                         <Upload
                           fileList={fileList}
@@ -352,11 +377,12 @@ function Broadcast() {
 
 
                   </InformationDisplayCard>
-                  <InformationDisplayCard noBorder inheritBg title='' md={12} xs={24} style={{ textAlign: 'center' }}>
+                  {inputTxType !== 'MsgStoreCode' && <InformationDisplayCard noBorder inheritBg title='' md={12} xs={24} style={{ textAlign: 'center' }}>
                     <Row className='full-width flex-center flex-column'><b className='primary-text'>JSON</b>
                       <br />
+
                       <MarkdownDisplay
-    
+
                         showMoreHeight={10000}
                         markdown={
                           "```json\n" +
@@ -364,7 +390,7 @@ function Broadcast() {
                           "\n```"
                         } />
                     </Row>
-                  </InformationDisplayCard>
+                  </InformationDisplayCard>}
 
                 </div>
                 {err && <div className='flex-center' style={{ color: 'red' }}>
@@ -374,7 +400,7 @@ function Broadcast() {
                 <Divider />
                 <button className='landing-button'
                   style={{ width: '100%' }}
-                  disabled={!!err || (inputTxType === 'MsgStoreCodeCompat' && !byteCode)}
+                  disabled={!!err || (inputTxType === 'MsgStoreCode' && !byteCode)}
                   onClick={() => {
                     if (!inputTxType) return;
 
@@ -394,9 +420,9 @@ function Broadcast() {
                         denom: a.denom
                       }))
                     }
-                    else if (inputTxType === 'MsgStoreCodeCompat') msg = {
+                    else if (inputTxType === 'MsgStoreCode') msg = {
                       sender: chain.cosmosAddress,
-                      hexWasmByteCode: byteCode,
+                      wasmByteCode: byteCode,
                     }
                     else msg = msg
 
@@ -429,7 +455,7 @@ function Broadcast() {
 
                   onClick={() => {
                     setVisible(true);
-                  }}>Broadcast</button>
+                  }}>Sign and Broadcast Transaction</button>
               </>}
 
 
@@ -437,7 +463,7 @@ function Broadcast() {
                 <TxModal
                   visible={visible}
                   setVisible={setVisible}
-                  txName={'Dev Broadcast'}
+                  txName={'Broadcast'}
                   txsInfo={txsInfo}
                 />}
             </ div>

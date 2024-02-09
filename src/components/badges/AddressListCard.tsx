@@ -1,5 +1,5 @@
 import { Card, Typography } from 'antd';
-import { BitBadgesAddressList } from 'bitbadgesjs-utils';
+import { BitBadgesAddressList } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';

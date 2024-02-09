@@ -13,7 +13,7 @@ import {
   BatchBadgeDetails,
   getMetadataForBadgeId,
   isFullUintRanges
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { getAddressLists } from "../../bitbadges-api/api"
 import { useChainContext } from "../../bitbadges-api/contexts/ChainContext"
 import {

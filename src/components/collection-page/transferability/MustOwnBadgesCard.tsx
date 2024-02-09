@@ -1,4 +1,4 @@
-import { CollectionApprovalWithDetails } from "bitbadgesjs-utils";
+import { CollectionApprovalWithDetails } from "bitbadgesjs-sdk";
 import { BalanceDisplay } from "../../balances/BalanceDisplay";
 
 export const MustOwnBadgesCard = ({ approval }: {

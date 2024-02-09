@@ -1,5 +1,5 @@
 import { Col, Divider, Empty, Modal, Row, Spin, Tooltip, Typography } from 'antd';
-import { ClaimAlertDoc } from 'bitbadgesjs-utils';
+import { ClaimAlertDoc } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';

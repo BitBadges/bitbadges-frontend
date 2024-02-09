@@ -1,4 +1,4 @@
-import { StatusDoc } from 'bitbadgesjs-utils';
+import { StatusDoc } from 'bitbadgesjs-sdk';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { DesiredNumberType, getStatus } from '../api';
 import { INFINITE_LOOP_MODE } from '../../constants';

@@ -5,16 +5,16 @@ import {
   PlusOutlined
 } from "@ant-design/icons"
 import { Row, Switch } from "antd"
-import { Balance, UintRange, deepCopy } from "bitbadgesjs-proto"
+import { Balance, UintRange, deepCopy } from "bitbadgesjs-sdk"
 import {
   checkIfUintRangesOverlap,
   getTotalNumberOfBadgeIds,
   invertUintRanges,
   sortUintRangesAndMergeIfNecessary
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { ReactNode, useState } from "react"
 
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { getBadgeIdsString } from "../../utils/badgeIds"
 import { GO_MAX_UINT_64 } from "../../utils/dates"

@@ -1,12 +1,12 @@
-import { deepCopy } from "bitbadgesjs-proto"
+import { deepCopy } from "bitbadgesjs-sdk"
 import {
   BitBadgesCollection,
   MetadataAddMethod,
   sortUintRangesAndMergeIfNecessary
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { ReactNode, useState } from "react"
 
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import {
   EmptyStepItem,
   NEW_COLLECTION_ID,

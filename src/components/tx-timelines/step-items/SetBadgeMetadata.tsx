@@ -1,7 +1,7 @@
 import {
   MetadataAddMethod,
   getMaxBadgeIdForCollection
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { useState } from "react"
 import {
   EmptyStepItem,

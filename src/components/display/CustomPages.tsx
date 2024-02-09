@@ -1,5 +1,5 @@
 import { Col, Dropdown, Input, Switch } from "antd"
-import { BatchBadgeDetails, BitBadgesAddressList, allInBatchArray, removeUintRangesFromUintRanges } from "bitbadgesjs-utils"
+import { BatchBadgeDetails, BitBadgesAddressList, allInBatchArray, removeUintRangesFromUintRanges } from "bitbadgesjs-sdk"
 import { useEffect, useState } from "react"
 import { getAddressLists } from "../../bitbadges-api/api"
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"

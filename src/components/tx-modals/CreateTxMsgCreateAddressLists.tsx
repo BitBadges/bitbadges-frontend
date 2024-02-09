@@ -1,6 +1,6 @@
 import { notification } from 'antd';
-import { MsgCreateAddressLists } from 'bitbadgesjs-proto';
-import { convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { MsgCreateAddressLists } from 'bitbadgesjs-sdk';
+import { convertToCosmosAddress } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import React, { useCallback, useMemo } from 'react';
 import { addMetadataToIpfs } from '../../bitbadges-api/api';
@@ -93,7 +93,7 @@ export function CreateTxMsgCreateAddressListModal(
       txsInfo={txsInfo}
       txName="Address List"
       msgSteps={msgSteps}
-      requireRegistration
+      requireLogin
     >
       {children}
     </TxModal>

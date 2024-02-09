@@ -7,7 +7,7 @@ import { GO_MAX_UINT_64 } from "../../../utils/dates";
 import { GenericFormStepWrapper } from "../form-items/GenericFormStepWrapper";
 import { SwitchForm } from "../form-items/SwitchForm";
 import { InformationDisplayCard } from "../../display/InformationDisplayCard";
-import { getCurrentValuesForCollection } from "bitbadgesjs-utils";
+import { getCurrentValuesForCollection } from "bitbadgesjs-sdk";
 
 export function BalanceTypeSelectStepItem() {
 

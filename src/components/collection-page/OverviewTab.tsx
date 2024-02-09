@@ -2,9 +2,9 @@ import { Col, Row } from "antd"
 import {
   getCurrentValuesForCollection,
   getUintRangesForAllBadgeIdsInCollection,
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { BadgeAvatarDisplay } from "../badges/BadgeAvatarDisplay"
 import { DistributionOverview } from "../badges/DistributionCard"

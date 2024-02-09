@@ -1,8 +1,7 @@
 import { CheckCircleFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Collapse, Progress, Spin, Tooltip } from 'antd';
-import { UintRange } from 'bitbadgesjs-proto';
-import { BigIntify, BitBadgesAddressList, NumberType, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getChainForAddress, getMetadataForBadgeId, getTotalNumberOfBadgeIds } from 'bitbadgesjs-utils';
-import { AndGroup, AssetConditionGroup, ChallengeParams, OrGroup, OwnershipRequirements, VerifyChallengeOptions, constructChallengeObjectFromString, convertChallengeParams, createChallenge } from 'blockin';
+import { BigIntify, BitBadgesAddressList, NumberType, UintRange, convertBlockinAuthSignatureDoc, convertToCosmosAddress, getMetadataForBadgeId, getTotalNumberOfBadgeIds } from 'bitbadgesjs-sdk';
+import { AndGroup, AssetConditionGroup, ChallengeParams, OrGroup, OwnershipRequirements, VerifyChallengeOptions, convertChallengeParams, createChallenge } from 'blockin';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createAuthCode, getAddressLists, verifySignInGeneric } from '../../bitbadges-api/api';
@@ -431,7 +430,6 @@ function BlockinCodesScreen() {
 
       setSimulationMessage('');
       const challenge = createChallenge(blockinParams);
-      const chain = getChainForAddress(constructChallengeObjectFromString(challenge, BigIntify).address);
 
       const verifyChallengeOptions: VerifyChallengeOptions = {
         expectedChallengeParams: {
@@ -450,7 +448,7 @@ function BlockinCodesScreen() {
       }
 
       setSimulateSuccess(true);
-      await verifySignInGeneric({ message: challenge, chain: chain, signature: '', options: verifyChallengeOptions });
+      await verifySignInGeneric({ message: challenge, signature: '', options: verifyChallengeOptions });
     } catch (e: any) {
       setSimulationMessage(`We ran into an error simulating this sign-in attempt: ${e.errorMessage ?? e.message}`);
       setSimulateSuccess(false);
@@ -530,7 +528,6 @@ function BlockinCodesScreen() {
     } = { success: false, errorMessage: skipVerify ? 'skipVerify is true' : 'Not used for non-callback requests' };
     if (!skipVerify && callbackRequired) {
       try {
-        const chain = getChainForAddress(constructChallengeObjectFromString(signChallengeResponse.message, BigIntify).address);
         const parsedVerifyOptions = verifyOptions ? JSON.parse(verifyOptions as string) : undefined;
 
         const verifyChallengeOptions: VerifyChallengeOptions = {
@@ -545,7 +542,7 @@ function BlockinCodesScreen() {
           skipAssetVerification: parsedVerifyOptions?.skipAssetVerification,
         }
 
-        await verifySignInGeneric({ message: signChallengeResponse.message, chain: chain, signature: signChallengeResponse.signature, options: verifyChallengeOptions });
+        await verifySignInGeneric({ message: signChallengeResponse.message, signature: signChallengeResponse.signature, options: verifyChallengeOptions });
         verificationResponse = { success: true };
       } catch (e: any) {
         verificationResponse = { success: false, errorMessage: e.errorMessage ?? e.message };

@@ -6,7 +6,7 @@ import '../styles/antd-override-styles.css';
 import { configureStore, createSerializableStateInvariantMiddleware } from '@reduxjs/toolkit';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
 import { Button } from 'antd';
-import { BitBadgesUserInfo, CollectionMap } from 'bitbadgesjs-utils';
+import { BitBadgesUserInfo, CollectionMap } from 'bitbadgesjs-sdk';
 import type { AppProps } from 'next/app';
 import Head from "next/head";
 import { useRouter } from 'next/router';

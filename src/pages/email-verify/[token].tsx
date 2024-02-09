@@ -23,7 +23,6 @@ export default function EmailVerify() {
         if (res.data.success) {
           setVerified(true);
         }
-
       }
     }
 

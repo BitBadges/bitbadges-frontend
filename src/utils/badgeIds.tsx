@@ -1,4 +1,4 @@
-import { UintRange } from "bitbadgesjs-proto";
+import { UintRange } from "bitbadgesjs-sdk";
 import { GO_MAX_UINT_64 } from "./dates";
 
 export function getBadgeIdsString(badgeIds: UintRange<bigint>[]) {

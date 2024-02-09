@@ -1,7 +1,7 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Divider, StepProps, Typography } from 'antd';
-import { MsgTransferBadges } from 'bitbadgesjs-proto';
-import { CollectionApprovalWithDetails, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { MsgTransferBadges } from 'bitbadgesjs-sdk';
+import { CollectionApprovalWithDetails, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-sdk';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -200,7 +200,6 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       txsInfo={txsInfo}
       txName="Transfer Badge(s)"
       width={'90%'}
-      requireRegistration
     >
       {children}
     </TxModal>

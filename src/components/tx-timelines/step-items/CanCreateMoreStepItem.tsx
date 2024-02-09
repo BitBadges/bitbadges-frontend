@@ -1,8 +1,8 @@
 import { Divider } from "antd"
-import { BalancesActionPermission } from "bitbadgesjs-proto"
+import { BalancesActionPermission } from "bitbadgesjs-sdk"
 import { useCallback, useState } from "react"
 
-import { getMaxBadgeIdForCollection } from "bitbadgesjs-utils"
+import { getMaxBadgeIdForCollection } from "bitbadgesjs-sdk"
 import {
   EmptyStepItem,
   NEW_COLLECTION_ID,

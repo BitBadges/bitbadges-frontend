@@ -1,7 +1,7 @@
 import { FormOutlined, InfoCircleOutlined, LockOutlined, WarningOutlined } from '@ant-design/icons';
 import { Col, Input, Row, Switch, Tooltip, Typography, notification } from 'antd';
-import { AddressList, ApprovalAmounts, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-proto';
-import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, Numberify, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBadgeIdsToBeTransferred, getReservedAddressList, isAddressListEmpty, isFullUintRanges, isInAddressList, validateCollectionApprovalsUpdate } from 'bitbadgesjs-utils';
+import { AddressList, ApprovalAmounts, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-sdk';
+import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, Numberify, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBadgeIdsToBeTransferred, getReservedAddressList, isAddressListEmpty, isFullUintRanges, isInAddressList, validateCollectionApprovalsUpdate } from 'bitbadgesjs-sdk';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useEffect, useMemo, useRef, useState } from 'react';

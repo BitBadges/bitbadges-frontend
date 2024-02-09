@@ -1,7 +1,7 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { Col, Collapse, Row, Spin } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
-import { BitBadgesAddressList, ListActivityDoc } from 'bitbadgesjs-utils';
+import { BitBadgesAddressList, ListActivityDoc } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';

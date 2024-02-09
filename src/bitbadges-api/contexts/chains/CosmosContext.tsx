@@ -1,7 +1,6 @@
 import { verifyADR36Amino } from '@keplr-wallet/cosmos';
 import { AccountData, Window as KeplrWindow } from "@keplr-wallet/types";
-import { createTxRaw } from 'bitbadgesjs-proto';
-import { BigIntify, Numberify, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { BigIntify, TransactionPayload, TxContext, convertToCosmosAddress, createTxBroadcastBodyCosmos } from 'bitbadgesjs-sdk';
 import { SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import Long from 'long';
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -77,7 +76,7 @@ export const CosmosContext = createContext<CosmosContextType>({
   disconnect: async () => { },
   signChallenge: async () => { return { message: '', signature: '' } },
   getPublicKey: async () => { return '' },
-  signTxn: async () => { },
+  signTxn: async () => { return '' },
   selectedChainInfo: {},
   connected: false,
   setConnected: () => { },
@@ -185,29 +184,28 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
 
     return {
       message: message,
-      signature: sig.pub_key.value + ':' + sig.signature,
+      signature: sig.signature,
+      publicKey: sig.pub_key.value,
     }
   }
 
-  const signTxn = async (txn: any, simulate: boolean) => {
+  const signTxn = async (context: TxContext, payload: TransactionPayload, simulate: boolean) => {
     if (!account) {
       throw new Error('Account does not exist');
     }
-    const sender = {
-      accountAddress: cosmosAddress,
-      sequence: account.sequence ? Numberify(account.sequence) : 0,
-      accountNumber: Numberify(account.accountNumber),
-      pubkey: account.publicKey,
-    };
+    const { sender } = context;
     await window.keplr?.enable(chainId);
 
+    let signatures = [
+      new Uint8Array(Buffer.from('0x', 'hex')),
+    ]
     if (!simulate) {
       const signResponse = await window?.keplr?.signDirect(
         chainId,
         sender.accountAddress,
         {
-          bodyBytes: txn.signDirect.body.serializeBinary(),
-          authInfoBytes: txn.signDirect.authInfo.serializeBinary(),
+          bodyBytes: payload.signDirect.body.toBinary(),
+          authInfoBytes: payload.signDirect.authInfo.toBinary(),
           chainId: chainId,
           accountNumber: new Long(sender.accountNumber),
         },
@@ -217,34 +215,18 @@ export const CosmosContextProvider: React.FC<Props> = ({ children }) => {
       )
 
       if (!signResponse) {
-        return;
+        throw new Error('No signature returned from Keplr');
       }
 
-      const signatures = [
+      signatures = [
         new Uint8Array(Buffer.from(signResponse.signature.signature, 'base64')),
       ]
-
-      const { signed } = signResponse;
-
-      const signedTx = createTxRaw(
-        signed.bodyBytes,
-        signed.authInfoBytes,
-        signatures,
-      )
-
-      return signedTx;
-    } else {
-      const simulatedTx = createTxRaw(
-        txn.signDirect.body.serializeBinary(),
-        txn.signDirect.authInfo.serializeBinary(),
-        [
-          new Uint8Array(Buffer.from('0x', 'hex')),
-        ],
-      )
-
-      return simulatedTx;
     }
+
+    const txBody = createTxBroadcastBodyCosmos(payload, signatures);
+    return txBody;
   }
+
 
   const getPublicKey = async (_cosmosAddress: string) => {
     const account = await window?.keplr?.getKey(chainId)

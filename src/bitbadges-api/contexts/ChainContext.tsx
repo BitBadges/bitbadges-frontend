@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { SupportedChain, convertToCosmosAddress } from 'bitbadgesjs-utils';
+import { SupportedChain, TransactionPayload, TxContext, convertToCosmosAddress } from 'bitbadgesjs-sdk';
 import { SupportedChainMetadata } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
@@ -12,6 +12,7 @@ import { useSolanaContext } from './chains/SolanaContext';
 export type SignChallengeResponse = {
   signature: string
   message: string;
+  publicKey?: string;
 }
 
 export type ChainContextType = ChainSpecificContextType & {
@@ -37,7 +38,7 @@ export type ChainSpecificContextType = {
   disconnect: () => Promise<any>,
   connect: () => Promise<any>,
   signChallenge: (challenge: string) => Promise<SignChallengeResponse>,
-  signTxn: (txn: object, simulate: boolean) => Promise<any>,
+  signTxn: (context: TxContext, payload: TransactionPayload, simulate: boolean) => Promise<string>, //Returns broadcast post body
   getPublicKey: (cosmosAddress: string) => Promise<string>,
   selectedChainInfo: (SupportedChainMetadata & { getAddressForName?: (name: string) => Promise<string | undefined>; }) | undefined,
 
@@ -56,7 +57,7 @@ const ChainContext = createContext<ChainContextType>({
   connect: async () => { },
   disconnect: async () => { },
   signChallenge: async () => { return { message: '', signature: '' } },
-  signTxn: async () => { },
+  signTxn: async () => { return '' },
   getPublicKey: async () => { return '' },
   selectedChainInfo: {},
   chain: SupportedChain.ETH,

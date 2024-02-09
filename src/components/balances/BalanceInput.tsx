@@ -1,4 +1,4 @@
-import { Balance, MustOwnBadges, UintRange } from 'bitbadgesjs-proto';
+import { Balance, MustOwnBadges, UintRange } from 'bitbadgesjs-sdk';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
 
 //Just a wrapper for BalanceDisplay. Should be unified in the future

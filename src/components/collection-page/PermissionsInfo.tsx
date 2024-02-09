@@ -2,8 +2,8 @@ import { CheckCircleFilled, ClockCircleFilled, CloseCircleFilled, DeleteOutlined
 import { faSnowflake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, Switch } from "antd";
-import { UintRange } from "bitbadgesjs-proto";
-import { castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getCurrentValuesForCollection, getReservedAddressList, isInAddressList, removeUintRangesFromUintRanges } from 'bitbadgesjs-utils';
+import { UintRange } from "bitbadgesjs-sdk";
+import { castUserIncomingApprovalPermissionToCollectionApprovalPermission, castUserOutgoingApprovalPermissionToCollectionApprovalPermission, getCurrentValuesForCollection, getReservedAddressList, isInAddressList, removeUintRangesFromUintRanges } from 'bitbadgesjs-sdk';
 
 import { useState } from "react";
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
@@ -316,7 +316,7 @@ export const PermissionDisplayTable = (
                           idx={idx}
                           permissions={permissions}
                           permission={y}
-                          columns={columns} 
+                          columns={columns}
                           onFreezePermitted={onFreezePermitted}
                           setPermissions={setPermissions}
                         />

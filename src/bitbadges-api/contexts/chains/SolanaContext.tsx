@@ -1,15 +1,14 @@
 
 import { notification } from 'antd';
-import { BigIntify, SupportedChain, createTxRawEIP712, signatureToWeb3ExtensionSolana } from 'bitbadgesjs-proto';
-import { Numberify, convertToCosmosAddress, solanaToCosmos } from 'bitbadgesjs-utils';
+import { BigIntify, TransactionPayload, TxContext, convertToCosmosAddress, createTxBroadcastBodySolana, solanaToCosmos } from 'bitbadgesjs-sdk';
+import { constructChallengeObjectFromString } from 'blockin';
 import { Dispatch, SetStateAction, createContext, useCallback, useContext, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { CHAIN_DETAILS, SOLANA_LOGO } from '../../../constants';
+import { SOLANA_LOGO } from '../../../constants';
 import { checkIfSignedIn } from '../../api';
 import { ChainSpecificContextType } from '../ChainContext';
 import { useAccount } from '../accounts/AccountsContext';
 import { fetchDefaultViews } from './helpers';
-import { constructChallengeObjectFromString } from 'blockin';
 
 const bs58 = require('bs58');
 
@@ -25,7 +24,7 @@ export const SolanaContext = createContext<SolanaContextType>({
   disconnect: async () => { },
   signChallenge: async () => { return { message: '', signature: '' } },
   getPublicKey: async () => { return '' },
-  signTxn: async () => { },
+  signTxn: async () => { return '' },
   selectedChainInfo: {},
   connected: false,
   loggedInExpiration: 0,
@@ -148,20 +147,12 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
     return { message: message, signature: signedMessage.signature.toString('hex') };
   }
 
-  const signTxn = async (txn: any, simulate: boolean) => {
+  const signTxn = async (context: TxContext, payload: TransactionPayload, simulate: boolean) => {
     if (!account) throw new Error('Account not found.');
-
-    const chain = { ...CHAIN_DETAILS, chain: SupportedChain.SOLANA };
-    const sender = {
-      accountAddress: cosmosAddress,
-      sequence: account.sequence ? Numberify(account.sequence) : 0,
-      accountNumber: Numberify(account.accountNumber),
-      pubkey: pubKey,
-    };
 
     let sig = '';
     if (!simulate) {
-      const message = txn.jsonToSign;
+      const message = payload.jsonToSign;
       const encodedMessage = new TextEncoder().encode(message);
       const signedMessage = await solanaProvider.request({
         method: "signMessage",
@@ -173,17 +164,8 @@ export const SolanaContextProvider: React.FC<Props> = ({ children }) => {
       sig = signedMessage.signature.toString('hex');
     }
 
-
-    let txnExtension = signatureToWeb3ExtensionSolana(chain, sender, sig, address);
-
-    // Create the txRaw
-    let rawTx = createTxRawEIP712(
-      txn.legacyAmino.body,
-      txn.legacyAmino.authInfo,
-      txnExtension,
-    )
-
-    return rawTx;
+    const txBody = createTxBroadcastBodySolana(context, payload, sig, address);
+    return txBody;
   }
 
   const getPublicKey = async (_cosmosAddress: string) => {

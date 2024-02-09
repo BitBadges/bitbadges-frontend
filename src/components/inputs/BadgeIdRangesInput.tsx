@@ -2,14 +2,14 @@ import {
   InfoCircleOutlined
 } from "@ant-design/icons"
 import { Button, Input, Switch } from "antd"
-import { UintRange } from "bitbadgesjs-proto"
+import { UintRange } from "bitbadgesjs-sdk"
 import {
   checkIfUintRangesOverlap,
   getMaxBadgeIdForCollection,
   isFullUintRanges,
   removeUintRangesFromUintRanges,
   sortUintRangesAndMergeIfNecessary
-} from "bitbadgesjs-utils"
+} from "bitbadgesjs-sdk"
 import { useState } from "react"
 import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
 import { GO_MAX_UINT_64 } from "../../utils/dates"

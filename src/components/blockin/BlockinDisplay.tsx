@@ -1,5 +1,5 @@
 import { Avatar, Typography, notification } from "antd";
-import { Numberify, SupportedChain } from "bitbadgesjs-utils";
+import { Numberify, SupportedChain } from "bitbadgesjs-sdk";
 import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
 import { BlockinUIDisplay } from 'blockin/dist/ui';
 import Image from 'next/image';
@@ -74,10 +74,10 @@ export const BlockinDisplay = ({
     return response;
   }
 
-  const handleVerifyChallenge = async (message: string, signature: string) => {
+  const handleVerifyChallenge = async (message: string, signature: string, publicKey?: string) => {
 
     try {
-      await verifySignIn({ chain, message, signature });
+      await verifySignIn({ message, signature, publicKey });
 
       const _challengeObj = constructChallengeObjectFromString(message, Numberify);
       /**
@@ -107,7 +107,8 @@ export const BlockinDisplay = ({
 
     const verifyChallengeResponse: SignAndVerifyChallengeResponse = await handleVerifyChallenge(
       signChallengeResponse.message,
-      signChallengeResponse.signature
+      signChallengeResponse.signature,
+      signChallengeResponse.publicKey
     );
 
     return verifyChallengeResponse;

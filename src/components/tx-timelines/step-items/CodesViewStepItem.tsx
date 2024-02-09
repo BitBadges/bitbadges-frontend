@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { CodesAndPasswords } from "bitbadgesjs-utils";
+import { CodesAndPasswords } from "bitbadgesjs-sdk";
 import { EmptyStepItem, NEW_COLLECTION_ID } from "../../../bitbadges-api/contexts/TxTimelineContext";
 
 import { CodesPasswordsTab } from "../../codes/CodesPasswordsTab";

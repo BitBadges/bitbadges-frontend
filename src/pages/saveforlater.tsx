@@ -1,5 +1,5 @@
 import { Layout, Typography } from 'antd';
-import { getAbbreviatedAddress } from 'bitbadgesjs-utils';
+import { getAbbreviatedAddress } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
 import { InformationDisplayCard } from '../components/display/InformationDisplayCard';
 
@@ -43,7 +43,7 @@ function SaveForLater() {
 
         </InformationDisplayCard>
       </div>
-    </ Content >
+    </Content>
   );
 }
 

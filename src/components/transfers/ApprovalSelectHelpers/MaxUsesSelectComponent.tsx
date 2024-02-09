@@ -1,6 +1,6 @@
 import { InfoCircleOutlined, LockOutlined, WarningOutlined } from "@ant-design/icons";
 import { Tooltip, Switch, Typography } from "antd";
-import { DistributionMethod } from "bitbadgesjs-utils";
+import { DistributionMethod } from "bitbadgesjs-sdk";
 import { ReactNode } from "react";
 import { TableRow } from "../../display/TableRow";
 import { NumberInput } from "../../inputs/NumberInput";

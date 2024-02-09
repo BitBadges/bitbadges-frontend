@@ -1,5 +1,5 @@
 import { Form, Input, Typography } from "antd";
-import { ApprovalInfoDetails } from "bitbadgesjs-utils";
+import { ApprovalInfoDetails } from "bitbadgesjs-sdk";
 import { MarkdownEditor } from "../../pages/account/[addressOrUsername]/settings";
 
 export function ClaimMetadataSelect({

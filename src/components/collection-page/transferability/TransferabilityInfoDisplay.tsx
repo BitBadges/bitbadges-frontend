@@ -2,7 +2,7 @@ import { CheckCircleFilled, CloseCircleFilled, InfoCircleOutlined, WarningOutlin
 import { faSnowflake } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Col, Popover, Tag, Tooltip } from "antd"
-import { CollectionApprovalWithDetails } from "bitbadgesjs-utils"
+import { CollectionApprovalWithDetails } from "bitbadgesjs-sdk"
 import { useMemo } from "react"
 import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext"
 import { approvalCriteriaHasNoAmountRestrictions, approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from "../../../bitbadges-api/utils/claims"

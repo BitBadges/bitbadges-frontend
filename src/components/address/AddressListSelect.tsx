@@ -6,7 +6,7 @@ import { } from "../../constants";
 import { AddressDisplayTitle } from "./AddressDisplay";
 import { AddressDisplayList } from "./AddressDisplayList";
 import { AddressSelect, EnterMethod } from "./AddressSelect";
-import { BLANK_USER_INFO, convertToCosmosAddress, getChainForAddress } from "bitbadgesjs-utils";
+import { BLANK_USER_INFO, convertToCosmosAddress, getChainForAddress } from "bitbadgesjs-sdk";
 import { getAccount, updateAccounts } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 
 export function BatchAddressSelect({

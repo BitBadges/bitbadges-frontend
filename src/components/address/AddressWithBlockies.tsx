@@ -1,5 +1,5 @@
 import { Avatar, Tooltip } from "antd";
-import { BigIntify, SupportedChain, convertBitBadgesUserInfo, getChainForAddress } from "bitbadgesjs-utils";
+import { BigIntify, SupportedChain, convertBitBadgesUserInfo, getChainForAddress } from "bitbadgesjs-sdk";
 import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext";
 import { getChainLogo } from "../../constants";
 import { Address } from "./Address";

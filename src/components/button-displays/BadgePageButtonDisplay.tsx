@@ -6,8 +6,8 @@ import {
   ShareAltOutlined
 } from '@ant-design/icons';
 import { Avatar, Col, Tooltip, message, notification } from 'antd';
-import { addToBatchArray } from 'bitbadgesjs-utils';
-import { useState } from 'react';
+import { addToBatchArray } from 'bitbadgesjs-sdk';
+import { useEffect, useState } from 'react';
 import { updateAccountInfo } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
@@ -40,7 +40,16 @@ export function BadgeButtonDisplay({
   const discordLink = 'https://discord.com/invite/' + socials?.discord;
 
   const isPreview = collectionId === NEW_COLLECTION_ID && !listId
-  const mobile = window.innerWidth < 768;
+
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => {
+      setMobile(window.innerWidth < 768);
+    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div>

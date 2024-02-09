@@ -1,5 +1,5 @@
-import { MsgUpdateUserApprovals } from 'bitbadgesjs-proto';
-import { UserOutgoingApprovalWithDetails } from 'bitbadgesjs-utils';
+import { MsgUpdateUserApprovals } from 'bitbadgesjs-sdk';
+import { UserOutgoingApprovalWithDetails } from 'bitbadgesjs-sdk';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 
@@ -80,7 +80,6 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
       setVisible={setVisible}
       txsInfo={txsInfo}
       txName="Update Approvals"
-      requireRegistration
       style={{ minWidth: '95%' }}
     >
       {children}
