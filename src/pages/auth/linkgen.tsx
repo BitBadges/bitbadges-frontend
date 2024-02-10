@@ -54,6 +54,10 @@ function BlockinCodesScreen() {
     skipVerify: false,
     verifyOptions: {},
     expectVerifySuccess: false,
+    discord: {
+      clientId: '',
+      redirectUri: '',
+    },
   });
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -751,6 +755,37 @@ function BlockinCodesScreen() {
                         An example where it may not is if you have not distributed the badges yet, or the authentication times
                         are not yet valid.
                       </div>
+                      <br />
+
+                      <div className='flex'>
+                        <b>Discord Server Gating?</b>
+                      </div>
+                      <div className='secondary-text' style={{ textAlign: 'start' }}>
+                        <InfoCircleOutlined /> If you are using this link to gate a Discord server (see <a href="https://docs.bitbadges.io/for-developers/tutorials/badge-gating-discord-servers" target="_blank" rel="noopener noreferrer">here</a>), you can provide your Discord Client ID and Redirect URI.
+                        With this, we will first prompt the user to sign your challenge message, then we prompt them to authenticate with Discord, and finally,
+                        we pass all the info back for you to handle via a callback route where you can assign roles, gate channels, etc.
+                      </div>
+                      <Input
+                        value={codeGenParams.discord.clientId}
+                        onChange={(e: any) => {
+                          setCodeGenParams({ ...codeGenParams, discord: { ...codeGenParams.discord, clientId: e.target.value } });
+                        }}
+                        style={{
+                        }}
+                        className='primary-text inherit-bg my-2'
+                        placeholder='Discord Client ID'
+                      />
+                      <Input
+                        value={codeGenParams.discord.redirectUri}
+                        onChange={(e: any) => {
+                          setCodeGenParams({ ...codeGenParams, discord: { ...codeGenParams.discord, redirectUri: e.target.value } });
+                        }}
+                        style={{
+                        }}
+                        className='primary-text inherit-bg my-2'
+                        placeholder='Discord Redirect URI'
+                      />
+
                     </div>
 
                   </Form.Item>

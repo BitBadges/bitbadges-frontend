@@ -32,6 +32,11 @@ export interface CodeGenQueryParams {
   verifyOptions?: VerifyChallengeOptions;
 
   expectVerifySuccess?: boolean;
+
+  discord?: {
+    clientId: string;
+    redirectUri: string;
+  }
 }
 
 export const AssetConditionGroupUI = (
@@ -326,6 +331,7 @@ function BlockinCodesScreen() {
     skipVerify,
     verifyOptions,
     expectVerifySuccess,
+    discord,
   } = router.query;
 
 
@@ -542,14 +548,21 @@ function BlockinCodesScreen() {
           skipAssetVerification: parsedVerifyOptions?.skipAssetVerification,
         }
 
-        await verifySignInGeneric({ message: signChallengeResponse.message, signature: signChallengeResponse.signature, options: verifyChallengeOptions });
+        await verifySignInGeneric({ message: signChallengeResponse.message, signature: signChallengeResponse.signature, options: verifyChallengeOptions, publicKey: signChallengeResponse.publicKey });
         verificationResponse = { success: true };
       } catch (e: any) {
         verificationResponse = { success: false, errorMessage: e.errorMessage ?? e.message };
       }
     }
+
+    const discordDetails = discord ? JSON.parse(discord as string) : undefined;
+    if (discordDetails && discordDetails.clientId && discordDetails.redirectUri) {
+      window.open(`https://discord.com/api/oauth2/authorize?client_id=${discordDetails.clientId}&redirect_uri=${discordDetails.redirectUri}&response_type=code&scope=identify&state=${JSON.stringify({ signature, message: signChallengeResponse.message, verificationResponse, publicKey: signChallengeResponse.publicKey, options: verifyOptions })}`, '_blank');
+    }
+
+
     if (window.opener && callbackRequired) {
-      window.opener.postMessage({ signature: signature, message: challenge, verificationResponse }, '*');
+      window.opener.postMessage({ signature: signChallengeResponse.signature, message: signChallengeResponse.message, verificationResponse }, '*');
       window.close();
     }
 

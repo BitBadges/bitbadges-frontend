@@ -376,72 +376,37 @@ export function AuthCodes() {
 
 
       <br />
-      {tab == 'all' && <>
-        {!signedInAccount || !chain.loggedIn ? <>
-          <div className='flex-center flex-column'>
-            <BlockinDisplay />
-          </div>
-        </> : <>
-          <br />
+      <div className='flex-center'>
+        <InformationDisplayCard md={12} xs={24} sm={24} title='' >
+          <CustomCarousel
+            title={<div className='flex'>
 
-          <div className='flex-center'>
-            {<InformationDisplayCard md={12} xs={24} sm={24} title='' >
-
-              <CustomCarousel
-                title={<div className='flex'>
-
-                  <Tabs
-                    tab={tab}
-                    setTab={setTab}
-                    tabInfo={[
-                      { key: 'all', content: 'All' + (authCodes.length > 0 ? ` (${authCodes.length})` : ' (0)') },
-                      { key: 'saved', content: 'Saved' + (savedAuthCodes.length > 0 ? ` (${savedAuthCodes.length})` : ' (0)') }
-                    ]}
-                  />
-                </div>}
-                items={items}
-                numPerPage={1}
+              <Tabs
+                tab={tab}
+                setTab={setTab}
+                tabInfo={[
+                  { key: 'all', content: 'All' + (authCodes.length > 0 ? ` (${authCodes.length})` : ' (0)') },
+                  { key: 'saved', content: 'Saved' + (savedAuthCodes.length > 0 ? ` (${savedAuthCodes.length})` : ' (0)') }
+                ]}
               />
-              {authCodes.length === 0 && <div className='flex-center flex-column'>
-                <EmptyIcon description='No codes found. Providers will give you instructions on how to create one.' />
-              </div>}
-            </InformationDisplayCard>}
-          </div>
-
-
-        </>}
-      </>}
-
-      {tab == 'saved' && <>
-        <>
-          <br />
-          <div className='flex-center'>
-            {<InformationDisplayCard md={12} xs={24} sm={24} title='' >
-
-              <CustomCarousel
-                title={<div className='flex-center'>
-
-                  <Tabs
-                    tab={tab}
-                    setTab={setTab}
-                    tabInfo={[
-                      { key: 'all', content: 'All' + (authCodes.length > 0 ? ` (${authCodes.length})` : ' (0)') },
-                      { key: 'saved', content: 'Saved' + (savedAuthCodes.length > 0 ? ` (${savedAuthCodes.length})` : ' (0)') }
-                    ]}
-                  />
-                </div>}
-                items={savedItems}
-                numPerPage={1}
-              />
-              {savedAuthCodes.length === 0 && <div className='flex-center flex-column'>
-                <EmptyIcon description='No codes saved to the browser.' />
-              </div>}
-            </InformationDisplayCard>}
-          </div>
-
-
-        </>
-      </>}
+            </div>}
+            items={tab === 'all' ? items : savedItems}
+            numPerPage={1}
+          />
+          {tab == 'all' && (!signedInAccount || !chain.loggedIn) ? <>
+            <div className='flex-center flex-column'>
+              <BlockinDisplay />
+            </div>
+          </> : <>
+            {tab == 'all' && authCodes.length === 0 && <div className='flex-center flex-column'>
+              <EmptyIcon description='No codes found. Providers will give you instructions on how to create one.' />
+            </div>}
+            {tab == 'saved' && savedAuthCodes.length === 0 && <div className='flex-center flex-column'>
+              <EmptyIcon description='No codes saved to the browser.' />
+            </div>}
+          </>}
+        </InformationDisplayCard>
+      </div>
       <Divider />
     </Content>
 

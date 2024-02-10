@@ -120,7 +120,7 @@ const Home: NextPage = () => {
             <br />
             <p className='secondary-text' style={{ fontSize: 14 }}>
               BitBadges is the <b>all-in-one</b>, multi-chain platform for creating, collecting, and verifying digital NFT badges.
-              Build multi-chain token-gated applications all with one interface. This is a beta version of BitBadges which is completely free for users. </p>
+              Build multi-chain, token-gated applications seamlessly all with one interface. This is a beta version of BitBadges which is completely free for users. </p>
             <div className='flex flex-wrap full-width mt-3'>
               <Button
                 size='large'
