@@ -42,17 +42,18 @@ export function FormNavigationHeader({
               Back
             </button>
           </div>
-          <Col md={mobileView ? 0 : 3} xs={0} sm={0}>
-            <Typography.Text
-              strong
-              className="primary-text flex-center"
-              style={{
-                fontSize: 20
-              }}>
-              {stepNum} / {finalStepNumber}
-            </Typography.Text>
-          </Col>
-
+          {!mobileView && (
+            <div style={{ width: 100 }}>
+              <Typography.Text
+                strong
+                className="primary-text flex-center"
+                style={{
+                  fontSize: 20
+                }}>
+                {stepNum} / {finalStepNumber}
+              </Typography.Text>
+            </div>
+          )}
           <div>
             <button
               style={{

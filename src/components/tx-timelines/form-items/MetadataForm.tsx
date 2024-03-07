@@ -199,11 +199,14 @@ export const GenericStringArrFormInput = ({
   helper?: string | ReactNode;
   err?: string;
 }) => {
+  const [valueStr, setValueStr] = useState(value.join(', '));
+
   return (
     <GenericTextFormInput
       label={label}
-      value={value.join(',')}
+      value={valueStr}
       setValue={(value) => {
+        setValueStr(value);
         setValue(value.split(',').map((x) => x.trim()));
       }}
       placeholder={placeholder}

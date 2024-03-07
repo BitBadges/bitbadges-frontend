@@ -52,7 +52,7 @@ export function FormTimeline({
   }, [items, formStepNum]);
 
   return (
-    <div style={{ textAlign: 'left' }}>
+    <div style={{ textAlign: 'left', minWidth: 300 }}>
       <FormNavigationHeader
         decrementStep={decrementStep}
         incrementStep={incrementStep}

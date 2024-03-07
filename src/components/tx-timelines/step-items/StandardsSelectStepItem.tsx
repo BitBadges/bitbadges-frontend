@@ -18,11 +18,12 @@ export function StandardsSelectStepItem() {
   const setCanUpdateStandards = txTimelineContext.setUpdateStandardsTimeline;
 
   const [err, setErr] = useState<Error | null>(null);
+  const [isCustomStandards, setIsCustomStandards] = useState<boolean>(!!collection && collection.standardsTimeline.length > 0);
 
-  const [customStandards, setCustomStandards] = useState<string[]>([]);
-  const [isCustomStandards, setIsCustomStandards] = useState<boolean>(false);
 
   if (!collection) return EmptyStepItem;
+
+  const customStandards = collection.standardsTimeline.length > 0 ? collection.standardsTimeline[0].standards : [];
 
   const options = [
     {
@@ -55,15 +56,12 @@ export function StandardsSelectStepItem() {
             label="Custom Standards"
             value={customStandards}
             setValue={(val) => {
-              setCustomStandards(val);
-
-              const currStandards = collection.standardsTimeline.length > 0 ? collection.standardsTimeline[0].standards : [];
               updateCollection({
                 collectionId: NEW_COLLECTION_ID,
                 standardsTimeline: [
                   new StandardsTimeline({
                     timelineTimes: UintRangeArray.FullRanges(),
-                    standards: [...currStandards, ...val]
+                    standards: [...val]
                   })
                 ]
               });
@@ -129,7 +127,6 @@ export function StandardsSelectStepItem() {
                       collectionId: NEW_COLLECTION_ID,
                       standardsTimeline: []
                     });
-                    setCustomStandards([]);
                     setIsCustomStandards(false);
                     return;
                   }
