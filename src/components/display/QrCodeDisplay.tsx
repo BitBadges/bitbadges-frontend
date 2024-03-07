@@ -190,49 +190,45 @@ const QrCodeDisplay: React.FC<QrCodeDisplayProps> = ({
               </>
             )}
           </div>
-          {!isIos && (
-            <>
-              <div className="flex-center">
-                {storeLocally && authCode && !isIos && (
-                  <>
-                    <div className="secondary-text text-center">
-                      <InfoCircleOutlined /> Open on a mobile Apple device to add to Apple Wallet.
-                    </div>
-                  </>
-                )}
+          <div className="flex-center">
+            {storeLocally && authCode && !isIos && (
+              <>
+                <div className="secondary-text text-center">
+                  <InfoCircleOutlined /> Open on a mobile Apple device to add to Apple Wallet.
+                </div>
+              </>
+            )}
 
-                {storeLocally && authCode && isIos && (
-                  <>
-                    <br />
-                    <br />
-                    <a
-                      onClick={async () => {
-                        const res = await BitBadgesApi.generateAppleWalletPass({
-                          name: authCode.name,
-                          description: authCode.description,
-                          signature: authCode.signature,
-                          message: createChallenge(authCode.params)
-                        });
-                        const pass = Buffer.from(res.data);
+            {storeLocally && authCode && isIos && (
+              <>
+                <br />
+                <br />
+                <a
+                  onClick={async () => {
+                    const res = await BitBadgesApi.generateAppleWalletPass({
+                      name: authCode.name,
+                      description: authCode.description,
+                      signature: authCode.signature,
+                      message: createChallenge(authCode.params)
+                    });
+                    const pass = Buffer.from(res.data);
 
-                        const blob = new Blob([pass], { type: 'application/vnd.apple.pkpass' });
-                        const url = window.URL.createObjectURL(blob);
-                        if (url) {
-                          const link = document.createElement('a');
-                          link.href = url;
-                          link.download = 'bitbadges.pkpass';
-                          link.click();
+                    const blob = new Blob([pass], { type: 'application/vnd.apple.pkpass' });
+                    const url = window.URL.createObjectURL(blob);
+                    if (url) {
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = 'bitbadges.pkpass';
+                      link.click();
 
-                          // window.URL.revokeObjectURL(url);
-                        }
-                      }}>
-                      <img src="/images/add_to_apple_wallet.svg" style={{ width: 150 }} />
-                    </a>
-                  </>
-                )}
-              </div>
-            </>
-          )}
+                      // window.URL.revokeObjectURL(url);
+                    }
+                  }}>
+                  <img src="/images/add_to_apple_wallet.svg" style={{ width: 150 }} />
+                </a>
+              </>
+            )}
+          </div>
 
           <br />
           <GenericModal title="View on Different Device" visible={portModalIsVisible} setVisible={setPortModalIsVisible} style={{ minWidth: '90%' }}>

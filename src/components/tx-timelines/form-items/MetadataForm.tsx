@@ -285,7 +285,7 @@ export const GenericTextFormInput = ({
       />
       {helper ? (
         typeof helper === 'string' ? (
-          <div style={{ fontSize: 12 }}>
+          <div style={{ fontSize: 12, textAlign: 'start' }}>
             <Text className="secondary-text">{helper}</Text>
           </div>
         ) : (
