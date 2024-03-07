@@ -11,16 +11,16 @@ function Mint() {
   return (
     <DisconnectedWrapper
       requireLogin
-      message='Please connect a wallet and sign in to access this page.'
+      message="Please connect a wallet and sign in to access this page."
       node={
         <RegisteredWrapper
-          message='Please register to access the Mint page.'
+          message="Please register to access the Mint page."
           node={
             <Content
-              className=''
+              className=""
               style={{
                 textAlign: 'center',
-                minHeight: '100vh',
+                minHeight: '100vh'
               }}
             >
               <div
@@ -29,7 +29,7 @@ function Mint() {
                   marginRight: '3vw',
                   paddingLeft: '1vw',
                   paddingRight: '1vw',
-                  paddingTop: '20px',
+                  paddingTop: '20px'
                 }}
               >
                 <TxTimeline collectionId={NEW_COLLECTION_ID} />

@@ -10,9 +10,9 @@ import { PermissionNameString, PermissionsOverview } from '../../collection-page
 import { ErrDisplay } from '../../common/ErrDisplay';
 import IconButton from '../../display/IconButton';
 import { PermissionSelect } from '../../inputs/UniversalPermissionSelect';
-import { BeforeAfterPermission, getPermissionVariablesFromName } from './BeforeAfterPermission';
+import { BeforeAfterPermission } from './BeforeAfterPermission';
 import { SwitchForm } from './SwitchForm';
-
+import { getPermissionVariablesFromName } from 'bitbadgesjs-sdk';
 
 export function PermissionUpdateSelectWrapper({
   checked,
@@ -23,15 +23,14 @@ export function PermissionUpdateSelectWrapper({
   node,
   documentationLink
 }: {
-  checked: boolean,
-  setChecked: (checked: boolean) => void,
-  err: Error | null,
-  setErr: (err: Error | null) => void,
-  permissionName: PermissionNameString,
-  node: () => JSX.Element,
-  documentationLink?: string
+  checked: boolean;
+  setChecked: (checked: boolean) => void;
+  err: Error | null;
+  setErr: (err: Error | null) => void;
+  permissionName: PermissionNameString;
+  node: () => JSX.Element;
+  documentationLink?: string;
 }) {
-
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
   const startingCollection = txTimelineContext.startingCollection;
@@ -55,16 +54,16 @@ export function PermissionUpdateSelectWrapper({
     }
   }, [collection, startingCollection, permissionName, setErr]);
 
-
-  const startingPermissions = startingCollection?.collectionPermissions[`${permissionName as keyof typeof startingCollection.collectionPermissions}`] ?? [] as any;
-  const currPermissions = collection?.collectionPermissions[`${permissionName as keyof typeof collection.collectionPermissions}`] ?? [] as any;
+  const startingPermissions =
+    startingCollection?.collectionPermissions[`${permissionName as keyof typeof startingCollection.collectionPermissions}`] ?? ([] as any);
+  const currPermissions = collection?.collectionPermissions[`${permissionName as keyof typeof collection.collectionPermissions}`] ?? ([] as any);
   const isSameAsStarting = compareObjects(startingPermissions, currPermissions);
 
   return (
     <>
-      <div className='primary-text flex-center flex-column'>
-        <div style={{ alignItems: 'center', }} className='flex-center'>
-          {checked && !!existingCollectionId &&
+      <div className="primary-text flex-center flex-column">
+        <div style={{ alignItems: 'center' }} className="flex-center">
+          {checked && !!existingCollectionId && (
             <IconButton
               src={showBeforeAndAfter ? <MinusOutlined style={{ fontSize: 16 }} /> : <AuditOutlined style={{ fontSize: 16 }} />}
               text={showBeforeAndAfter ? 'Hide' : 'Changes'}
@@ -72,8 +71,9 @@ export function PermissionUpdateSelectWrapper({
               onClick={() => {
                 setShowBeforeAndAfter(!showBeforeAndAfter);
               }}
-            />}
-          {checked &&
+            />
+          )}
+          {checked && (
             <IconButton
               src={<FormOutlined style={{ fontSize: 16 }} />}
               text={formView ? 'Advanced' : 'Normal'}
@@ -81,16 +81,18 @@ export function PermissionUpdateSelectWrapper({
               onClick={() => {
                 setFormView(!formView);
               }}
-            />}
-          {checked &&
+            />
+          )}
+          {checked && (
             <IconButton
               src={<UndoOutlined style={{ fontSize: 16 }} />}
               text={'Reset'}
               disabled={isSameAsStarting}
-              tooltipMessage='Undo all changes'
+              tooltipMessage="Undo all changes"
               onClick={() => {
                 if (startingCollection && collection) {
-                  const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
+                  const existingPermissions =
+                    startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                   updateCollection({
                     collectionId: NEW_COLLECTION_ID,
@@ -109,7 +111,8 @@ export function PermissionUpdateSelectWrapper({
                   });
                 }
               }}
-            />}
+            />
+          )}
           <IconButton
             src={<BookOutlined style={{ fontSize: 16 }} />}
             style={{ cursor: 'pointer' }}
@@ -121,7 +124,7 @@ export function PermissionUpdateSelectWrapper({
           />
         </div>
 
-        {!isMint &&
+        {!isMint && (
           <Switch
             style={{ marginTop: 10, marginBottom: 10 }}
             checked={checked}
@@ -130,7 +133,8 @@ export function PermissionUpdateSelectWrapper({
             onChange={(e) => {
               setChecked(e);
               if (startingCollection && collection) {
-                const existingPermissions = startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
+                const existingPermissions =
+                  startingCollection.collectionPermissions[`${permissionName}` as keyof typeof startingCollection.collectionPermissions];
 
                 updateCollection({
                   collectionId: NEW_COLLECTION_ID,
@@ -141,73 +145,82 @@ export function PermissionUpdateSelectWrapper({
                 });
               }
             }}
-            className='primary-text'
-          />}
+            className="primary-text"
+          />
+        )}
       </div>
-      {!checked && flags &&
+      {!checked && flags && (
         <>
           <br />
           <div className="full-width">
             <SwitchForm
-              options={[{
-                title: 'Do Not Update',
-                message: `This value will remain as previously set.
+              options={[
+                {
+                  title: 'Do Not Update',
+                  message: `This value will remain as previously set.
                   ${!existingCollectionId && permissionName != 'canUpdateManager' ? ' For new collections, this means the value will be empty or unset.' : ''}
                   ${!existingCollectionId && permissionName == 'canUpdateManager' ? ' For new collections, this means the manager will be set to your address by default.' : ''}`,
-                isSelected: true,
-                additionalNode: () => <>
-                  <PermissionsOverview
-                    collectionId={NEW_COLLECTION_ID}
-                    permissionName={permissionName}
-                  />
-                </>,
-              }]}
-              onSwitchChange={() => { }}
+                  isSelected: true,
+                  additionalNode: () => (
+                    <>
+                      <PermissionsOverview collectionId={NEW_COLLECTION_ID} permissionName={permissionName} />
+                    </>
+                  )
+                }
+              ]}
+              onSwitchChange={() => {}}
             />
             <br />
           </div>
-        </>}
+        </>
+      )}
 
-
-      {checked && flags && showBeforeAndAfter && <>
-        <BeforeAfterPermission
-          permissionName={permissionName}
-        />
-      </>}
-      {checked && <>
-        {err &&
-          <><br />
-            <div style={{ color: 'red', textAlign: 'center' }}>
-              <ErrDisplay err={err} />
+      {checked && flags && showBeforeAndAfter && (
+        <>
+          <BeforeAfterPermission permissionName={permissionName} />
+        </>
+      )}
+      {checked && (
+        <>
+          {err && (
+            <>
               <br />
-              {DEV_MODE && <>
-                {err.message}
+              <div style={{ color: 'red', textAlign: 'center' }}>
+                <ErrDisplay err={err} />
                 <br />
-              </>}
+                {DEV_MODE && (
+                  <>
+                    {err.message}
+                    <br />
+                  </>
+                )}
+              </div>
+            </>
+          )}
+          <br />
 
-            </div></>}
-        <br />
-
-        {formView && node()}
-        {/* Advanced permission select view */}
-        {!formView && <PermissionSelect
-          collectionId={NEW_COLLECTION_ID}
-          permissionName={permissionName}
-          value={currPermissions}
-          setValue={(value) => {
-            if (collection) {
-              updateCollection({
-                collectionId: NEW_COLLECTION_ID,
-                collectionPermissions: {
-                  ...collection.collectionPermissions,
-                  [`${permissionName}`]: value
+          {formView && node()}
+          {/* Advanced permission select view */}
+          {!formView && (
+            <PermissionSelect
+              collectionId={NEW_COLLECTION_ID}
+              permissionName={permissionName}
+              value={currPermissions}
+              setValue={(value) => {
+                if (collection) {
+                  updateCollection({
+                    collectionId: NEW_COLLECTION_ID,
+                    collectionPermissions: {
+                      ...collection.collectionPermissions,
+                      [`${permissionName}`]: value
+                    }
+                  });
                 }
-              });
-            }
-          }}
-        />}
-      </>}
-
+              }}
+            />
+          )}
+        </>
+      )}
     </>
-  )
+  );
 }

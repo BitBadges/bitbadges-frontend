@@ -1,30 +1,13 @@
-import { deepCopy } from 'bitbadgesjs-sdk';
-import {
-  AccountFetchDetails,
-  AccountMap,
-  BigIntify,
-  BitBadgesUserInfo,
-  GetAccountsRouteRequestBody,
-  MINT_ACCOUNT,
-  convertBitBadgesUserInfo,
-  convertToCosmosAddress,
-  isAddressValid,
-} from 'bitbadgesjs-sdk';
+import { AccountFetchDetails, BitBadgesUserInfo, GetAccountsRouteRequestBody, convertToCosmosAddress, isAddressValid } from 'bitbadgesjs-sdk';
 import { ThunkAction } from 'redux-thunk';
-import {
-  AccountReducerState,
-  AppDispatch,
-  GlobalReduxState,
-} from '../../../pages/_app';
-import { compareObjects } from '../../../utils/compare';
+import { AccountReducerState, AppDispatch, GlobalReduxState } from '../../../pages/_app';
 import { DesiredNumberType, getAccounts } from '../../api';
 import { initialState, reservedNames } from './AccountsContext';
-import { updateAccountWithResponse } from 'bitbadgesjs-sdk';
 
 interface UpdateAccountsReduxAction {
   type: typeof UPDATE_ACCOUNTS;
   payload: {
-    userInfos: BitBadgesUserInfo<DesiredNumberType>[];
+    userInfos: Array<BitBadgesUserInfo<DesiredNumberType>>;
     forcefulRefresh: boolean;
   };
 }
@@ -63,46 +46,38 @@ export type AccountsActionTypes =
   | DeleteAccountsAction;
 
 export const updateAccountsRedux = (
-  userInfos: BitBadgesUserInfo<DesiredNumberType>[] = [],
+  userInfos: Array<BitBadgesUserInfo<DesiredNumberType>> = [],
   forcefulRefresh: boolean = false
 ): UpdateAccountsReduxAction => ({
   type: UPDATE_ACCOUNTS,
   payload: {
     userInfos,
-    forcefulRefresh,
-  },
+    forcefulRefresh
+  }
 });
 
-export const deleteAccountsRedux = (
-  accountsToDelete: string[]
-): DeleteAccountsAction => ({
+export const deleteAccountsRedux = (accountsToDelete: string[]): DeleteAccountsAction => ({
   type: DELETE_ACCOUNTS,
-  payload: accountsToDelete,
+  payload: accountsToDelete
 });
 
 // Define your action creators
-export const fetchAccountsRequest = (
-  accountsToFetch: AccountFetchDetails[]
-): FetchAccountsRequestAction => ({
+export const fetchAccountsRequest = (accountsToFetch: AccountFetchDetails[]): FetchAccountsRequestAction => ({
   type: FETCH_ACCOUNTS_REQUEST,
-  payload: accountsToFetch,
+  payload: accountsToFetch
 });
 
-
-const getAccount = (
-  state: AccountReducerState,
-  addressOrUsername: string,
-) => {
+const getAccount = (state: AccountReducerState, addressOrUsername: string) => {
   if (reservedNames.includes(addressOrUsername))
-    return {
-      ...MINT_ACCOUNT,
+    return new BitBadgesUserInfo({
+      ...BitBadgesUserInfo.MintAccount(),
       address: addressOrUsername,
-      cosmosAddress: addressOrUsername,
-    };
+      cosmosAddress: addressOrUsername
+    });
 
   let accountToReturn;
-  let accounts = state.accounts;
-  let cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
+  const accounts = state.accounts;
+  const cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
 
   if (isAddressValid(addressOrUsername)) {
     const cosmosAddress = convertToCosmosAddress(addressOrUsername);
@@ -113,24 +88,20 @@ const getAccount = (
   return accountToReturn;
 };
 
-export const fetchAccountsRedux = (
-  accountsToFetch: AccountFetchDetails[]
-): ThunkAction<void, GlobalReduxState, unknown, AccountsActionTypes> =>
+export const fetchAccountsRedux =
+  (accountsToFetch: AccountFetchDetails[]): ThunkAction<void, GlobalReduxState, unknown, AccountsActionTypes> =>
   async (dispatch: AppDispatch, getState: () => GlobalReduxState) => {
     const state = getState().accounts;
 
     try {
-      const batchRequestBody: GetAccountsRouteRequestBody = { accountsToFetch: [], };
+      const batchRequestBody: GetAccountsRouteRequestBody = { accountsToFetch: [] };
 
       //Iterate through and see which accounts + info we actually need to fetch versus which we already have enough information for
 
       for (const accountToFetch of accountsToFetch) {
-
-
         const addressOrUsername = accountToFetch.address || accountToFetch.username || '';
         if (!addressOrUsername) continue;
         if (reservedNames.includes(addressOrUsername)) continue;
-
         const cachedAccount = getAccount(state, addressOrUsername);
 
         if (cachedAccount === undefined) {
@@ -139,23 +110,8 @@ export const fetchAccountsRedux = (
         } else {
           if (accountToFetch.address) accountToFetch.address = cachedAccount.address;
           if (accountToFetch.username) accountToFetch.username = cachedAccount.username;
-
-          //Do not fetch views where hasMore is false (i.e. we alreay have everything)
-          const viewsToFetch = accountToFetch.viewsToFetch?.filter((x) => {
-            if (x.bookmark == 'nil') return false; //TODO: Think this is legacy CouchDB code? 
-
-            const currPagination = cachedAccount.views[x.viewId]?.pagination;
-            if (!currPagination) return true;
-            else return currPagination.hasMore;
-          });
-
-          //Check if we need to fetch anything at all
-          const needToFetch = (accountToFetch.fetchSequence && cachedAccount.sequence === undefined) ||
-            (accountToFetch.fetchBalance && cachedAccount.balance === undefined) ||
-            viewsToFetch?.length || !cachedAccount.fetchedProfile;
-
-          if (needToFetch) {
-            batchRequestBody.accountsToFetch.push(accountToFetch);
+          if (!cachedAccount.isRedundantRequest(accountToFetch)) {
+            batchRequestBody.accountsToFetch.push(cachedAccount.pruneRequestBody(accountToFetch));
           }
         }
       }
@@ -163,8 +119,7 @@ export const fetchAccountsRedux = (
       // Dispatch success action with fetched data
       if (batchRequestBody.accountsToFetch.length > 0) {
         const res = await getAccounts(batchRequestBody);
-        // console.log('ACCOUNTS RES', batchRequestBody, res);
-
+        console.log('ACCOUNTS RES', batchRequestBody, res);
         dispatch(updateAccountsRedux(res.accounts, false));
       }
     } catch (error: any) {
@@ -174,92 +129,108 @@ export const fetchAccountsRedux = (
     return true;
   };
 
+const updateAccounts = (state = initialState, userInfos: Array<BitBadgesUserInfo<DesiredNumberType>> = []) => {
+  const accounts = state.accounts;
+  const cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
 
-const updateAccounts = (
-  state = initialState,
-  userInfos: BitBadgesUserInfo<DesiredNumberType>[] = []
-) => {
-  let accounts = state.accounts;
-  let cosmosAddressesByUsernames = state.cosmosAddressesByUsernames;
-
-  const accountsToReturn: {
+  const accountsToReturn: Array<{
     account: BitBadgesUserInfo<DesiredNumberType>;
     needToCompare: boolean;
     ignore: boolean;
     cachedAccountCopy?: BitBadgesUserInfo<DesiredNumberType>;
-  }[] = [];
+  }> = [];
   for (const account of userInfos) {
     if (reservedNames.includes(account.cosmosAddress)) {
       accountsToReturn.push({
-        account: {
-          ...MINT_ACCOUNT,
+        account: new BitBadgesUserInfo({
+          ...BitBadgesUserInfo.MintAccount(),
           address: account.cosmosAddress,
-          cosmosAddress: account.cosmosAddress,
-        },
+          cosmosAddress: account.cosmosAddress
+        }),
         ignore: true,
-        needToCompare: false,
+        needToCompare: false
       });
       continue;
     }
 
-    let accountInMap = accounts[account.cosmosAddress];
-    let cachedAccount = !accountInMap ? undefined : deepCopy(convertBitBadgesUserInfo(accountInMap, BigIntify));
+    const accountInMap = accounts[account.cosmosAddress];
+    const cachedAccount = accountInMap?.clone();
     if (cachedAccount == undefined) {
       accountsToReturn.push({
         account,
         needToCompare: false,
-        ignore: false,
+        ignore: false
       });
       continue;
     } else {
-      const cachedAccountCopy = deepCopy(cachedAccount);
-      const newAccount = updateAccountWithResponse(cachedAccount, account);
+      const cachedAccountCopy = cachedAccount.clone();
+      cachedAccount.updateWithNewResponse(account);
 
       accountsToReturn.push({
-        account: newAccount,
+        account: cachedAccount,
         needToCompare: true,
         ignore: false,
-        cachedAccountCopy,
+        cachedAccountCopy
       });
     }
   }
 
   //Update the accounts map
-  const newUpdates: AccountMap<bigint> = {};
-  const newUsernameUpdates: { [username: string]: string } = {};
+  const newUpdates: typeof accounts = {};
+  const newUsernameUpdates: Record<string, string> = {};
   for (const accountToReturn of accountsToReturn) {
     if (accountToReturn.ignore) continue;
-    //Only trigger a rerender if the account has changed or we haev to
-    if (
-      (accountToReturn.needToCompare && !compareObjects(
-        accountToReturn.account,
-        accountToReturn.cachedAccountCopy
-      )) || !accountToReturn.needToCompare
-    ) {
-      newUpdates[accountToReturn.account.cosmosAddress] = accountToReturn.account;
+    const account = accountToReturn.account;
+
+    //If the account is reported, remove the readme and profile pic
+    if (account?.reported && (account.readme || account?.profilePicUrl)) {
+      account.readme = undefined;
+      account.profilePicUrl = undefined;
+    }
+
+    //Only trigger a rerender if the account has changed or we have to
+    if ((accountToReturn.needToCompare && !accountToReturn.account.equals(accountToReturn.cachedAccountCopy)) || !accountToReturn.needToCompare) {
+      newUpdates[accountToReturn.account.cosmosAddress] = deepFreeze(accountToReturn.account);
       if (accountToReturn.account.username) {
         newUsernameUpdates[accountToReturn.account.username] = accountToReturn.account.cosmosAddress;
       }
     }
   }
 
-  return {
+  const newState: AccountReducerState = {
     ...state,
     accounts: { ...accounts, ...newUpdates },
     cosmosAddressesByUsernames: {
       ...cosmosAddressesByUsernames,
-      ...newUsernameUpdates,
-    },
+      ...newUsernameUpdates
+    }
   };
+
+  return newState;
 };
 
-export const accountReducer = (
-  state = initialState,
-  action: { type: string; payload: any }
-): AccountReducerState => {
+export function deepFreeze<T>(obj: T): Readonly<T> {
+  // Retrieve the property names defined on obj
+  const propNames = Object.getOwnPropertyNames(obj) as Array<keyof T>;
+
+  // Freeze properties before freezing self
+  propNames.forEach((name) => {
+    const prop = obj[name];
+
+    // Freeze prop if it's an object
+    if (typeof prop === 'object' && prop !== null && !Object.isFrozen(prop)) {
+      deepFreeze(prop);
+    }
+  });
+
+  // Freeze self
+  return Object.freeze(obj);
+}
+
+export const accountReducer = (state = initialState, action: { type: string; payload: any }): AccountReducerState => {
   switch (action.type) {
     case 'UPDATE_ACCOUNTS':
-      const userInfos = action.payload.userInfos as BitBadgesUserInfo<DesiredNumberType>[];
+      const userInfos = action.payload.userInfos as Array<BitBadgesUserInfo<DesiredNumberType>>;
       return updateAccounts(state, userInfos);
     case 'FETCH_ACCOUNTS_REQUEST':
       return { ...state };

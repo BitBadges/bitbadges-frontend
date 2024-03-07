@@ -1,15 +1,14 @@
-import { MetadataAddMethod } from "bitbadgesjs-sdk";
-import { useState } from "react";
-import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import { useState } from 'react';
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
-import { useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { getBadgesWithUpdatableMetadata } from "../../../bitbadges-api/utils/badges";
-import { CollectionHeader } from "../../badges/CollectionHeader";
-import { MetadataForm } from "../form-items/MetadataForm";
-import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
+import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { getBadgesWithUpdatableMetadata } from '../../../bitbadges-api/utils/badges';
+import { CollectionHeader } from '../../badges/CollectionHeader';
+import { MetadataForm } from '../form-items/MetadataForm';
+import { UpdateSelectWrapper } from '../form-items/UpdateSelectWrapper';
+import { MetadataAddMethod } from '../../../bitbadges-api/types';
 
 export function SetCollectionMetadataStepItem() {
-
   const collection = useCollection(NEW_COLLECTION_ID);
   const collectionMetadata = collection?.cachedCollectionMetadata;
   const txTimelineContext = useTxTimelineContext();
@@ -21,43 +20,48 @@ export function SetCollectionMetadataStepItem() {
 
   const [err, setErr] = useState<Error | null>(null);
 
-  if (!collection) return EmptyStepItem
+  if (!collection) return EmptyStepItem;
 
   const toUpdateBadges = getBadgesWithUpdatableMetadata(collection, startingCollection, undefined, 'current');
 
   return {
     title: 'Set Collection Metadata',
-    description: <>{'Provide details about the collection you are creating.'}
-    </>,
+    description: <>{'Provide details about the collection you are creating.'}</>,
 
-    node: () => <UpdateSelectWrapper
-      doNotUpdateNode={() => {
-        return <><CollectionHeader multiDisplay collectionId={NEW_COLLECTION_ID} hideCollectionLink />
-        </>
-      }}
-      documentationLink="https://docs.bitbadges.io/overview/how-it-works/metadata"
-      err={err}
-      updateFlag={canUpdateCollectionMetadata}
-      setUpdateFlag={setCanUpdateCollectionMetadata}
-      setErr={(err) => { setErr(err) }}
-      jsonPropertyPath='collectionMetadataTimeline'
-      permissionName='canUpdateCollectionMetadata'
-      disableJson
-      node={() => <div>{
-        collection && <div>
-          <MetadataForm
-            isCollectionSelect
-            badgeIds={toUpdateBadges}
-            addMethod={addMethod}
-            setAddMethod={setAddMethod}
-          />
-        </div>
-      }</div>
-      }
-    />,
-    disabled: !collection || (addMethod === MetadataAddMethod.Manual && !(collectionMetadata?.name))
-      || (addMethod === MetadataAddMethod.UploadUrl && ((collection.collectionMetadataTimeline.length == 0)
-      ))
-      || !!err,
-  }
+    node: () => (
+      <UpdateSelectWrapper
+        doNotUpdateNode={() => {
+          return (
+            <>
+              <CollectionHeader multiDisplay collectionId={NEW_COLLECTION_ID} hideCollectionLink />
+            </>
+          );
+        }}
+        documentationLink="https://docs.bitbadges.io/overview/how-it-works/metadata"
+        err={err}
+        updateFlag={canUpdateCollectionMetadata}
+        setUpdateFlag={setCanUpdateCollectionMetadata}
+        setErr={(err) => {
+          setErr(err);
+        }}
+        jsonPropertyPath="collectionMetadataTimeline"
+        permissionName="canUpdateCollectionMetadata"
+        disableJson
+        node={() => (
+          <div>
+            {collection && (
+              <div>
+                <MetadataForm isCollectionSelect badgeIds={toUpdateBadges} addMethod={addMethod} setAddMethod={setAddMethod} />
+              </div>
+            )}
+          </div>
+        )}
+      />
+    ),
+    disabled:
+      !collection ||
+      (addMethod === MetadataAddMethod.Manual && !collectionMetadata?.name) ||
+      (addMethod === MetadataAddMethod.UploadUrl && collection.collectionMetadataTimeline.length == 0) ||
+      !!err
+  };
 }

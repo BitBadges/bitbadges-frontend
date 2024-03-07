@@ -1,4 +1,4 @@
-import { Avatar, Badge, Layout, Tooltip, Typography, } from 'antd';
+import { Avatar, Badge, Layout, Tooltip, Typography } from 'antd';
 import { ReactNode } from 'react';
 
 const { Content } = Layout;
@@ -13,25 +13,21 @@ export interface ButtonDisplayProps {
   disabled?: boolean;
 }
 
-export function ButtonDisplay({
-  buttons
-}: {
-  buttons: ButtonDisplayProps[];
-}) {
+export function ButtonDisplay({ buttons }: { buttons: ButtonDisplayProps[] }) {
   return (
-    <Content className='flex'>
-      <div className='full-width flex-center' style={{ padding: '10', marginTop: 8 }} >
+    <Content className="flex">
+      <div className="full-width flex-center" style={{ padding: '10', marginTop: 8 }}>
         {buttons.map((button, idx) => {
           return (
             <Tooltip
               key={idx}
               title={<div style={{ textAlign: 'center' }}> {button.tooltipMessage ? button.tooltipMessage : button.name}</div>}
-              placement='bottom'
+              placement="bottom"
               style={{ textAlign: 'center' }}
             >
               <div style={{ minWidth: 75 }}>
                 {/* //This is the antd Badge */}
-                <Badge count={button.count} >
+                <Badge count={button.count}>
                   <Avatar
                     style={{
                       marginBottom: 1,
@@ -39,19 +35,17 @@ export function ButtonDisplay({
                       fontSize: 20,
                       padding: 0,
                       margin: 0,
-                      alignItems: 'center',
+                      alignItems: 'center'
                     }}
                     size="large"
-                    onClick={button.disabled ? () => { } : button.onClick}
+                    onClick={button.disabled ? () => {} : button.onClick}
                     className="styled-button"
                   >
                     {button.icon}
                   </Avatar>
                 </Badge>
                 <div style={{ marginTop: 3 }}>
-                  <Text className='primary-text'>
-                    {button.name}
-                  </Text>
+                  <Text className="primary-text">{button.name}</Text>
                 </div>
               </div>
             </Tooltip>

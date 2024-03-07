@@ -4,11 +4,9 @@ import { DesiredNumberType, getBrowseCollections } from '../api';
 import { updateAccount } from './accounts/AccountsContext';
 import { updateCollection } from './collections/CollectionsContext';
 
-
-
-export type BrowseContextType = {
-  browse: GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType> | undefined,
-  updateBrowse: () => Promise<GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType> | undefined>
+export interface BrowseContextType {
+  browse: GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType> | undefined;
+  updateBrowse: () => Promise<GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType> | undefined>;
 }
 
 const BrowseContext = createContext<BrowseContextType>({
@@ -18,9 +16,9 @@ const BrowseContext = createContext<BrowseContextType>({
   }
 });
 
-type Props = {
-  children?: React.ReactNode
-};
+interface Props {
+  children?: React.ReactNode;
+}
 
 export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
   const [browse, setBrowse] = useState<GetBrowseCollectionsRouteSuccessResponse<DesiredNumberType>>();
@@ -34,7 +32,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       for (const collection of browseInfo.collections[category]) {
         if (!updatedIds.has(collection.collectionId)) {
-          updateCollection({ ...collection })
+          updateCollection(collection);
           updatedIds.add(collection.collectionId);
         }
       }
@@ -45,7 +43,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
       for (const profile of browseInfo.profiles[category]) {
         if (!updatedAccounts.has(profile.cosmosAddress)) {
-          updateAccount({ ...profile, });
+          updateAccount(profile);
           updatedAccounts.add(profile.cosmosAddress);
         }
       }
@@ -53,7 +51,6 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
   }
 
   async function getCollectionsAndUpdateBrowse() {
-
     const browseInfo = await getBrowseCollections();
 
     await updateCollectionsAndAccounts(browseInfo);
@@ -61,7 +58,6 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
 
     return browseInfo;
   }
-
 
   const updateBrowse = async () => {
     const browseInfo = await getCollectionsAndUpdateBrowse();
@@ -73,9 +69,7 @@ export const BrowseContextProvider: React.FC<Props> = ({ children }) => {
     updateBrowse
   };
 
-  return <BrowseContext.Provider value={browseContext}>
-    {children}
-  </BrowseContext.Provider>;
-}
+  return <BrowseContext.Provider value={browseContext}>{children}</BrowseContext.Provider>;
+};
 
 export const useBrowseContext = () => useContext(BrowseContext);

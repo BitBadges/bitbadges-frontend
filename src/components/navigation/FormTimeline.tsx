@@ -15,12 +15,13 @@ export function FormTimeline({
   items,
   formStepNum,
   setFormStepNum,
+  mobileView
 }: {
-  formStepNum: number
-  setFormStepNum: (newStepNum: number) => void
-  items: TimelineItem[]
+  formStepNum: number;
+  setFormStepNum: (newStepNum: number) => void;
+  items: TimelineItem[];
+  mobileView?: boolean;
 }) {
-
   const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
 
   const filteredItems = items.filter((item) => !item.doNotDisplay);
@@ -39,7 +40,6 @@ export function FormTimeline({
     setNextButton(formStepNum - 1);
   };
 
-
   const setNextButton = (newStepNum: number) => {
     setNextButtonDisabled(!!filteredItems[newStepNum - 1]?.disabled);
   };
@@ -51,68 +51,64 @@ export function FormTimeline({
     setNextButtonDisabled(!!filteredItems[formStepNum - 1]?.disabled);
   }, [items, formStepNum]);
 
-  const getTitleElem = (title: string | ReactNode) => {
-    return (
-      <div
-        style={{
-          justifyContent: 'center',
-          display: 'flex',
-        }}
-
-      >
-        <Typography.Text
-          className='flex-center primary-text capitalize'
-          style={{
-            fontSize: 20,
-            marginBottom: 10,
-          }}
-          strong
-        >
-          {title}
-        </Typography.Text>
-      </div>
-    );
-  };
-
-  const getTitleDescription = (description: string | ReactNode) => {
-    return (
-      <div
-        style={{
-          justifyContent: 'center',
-          display: 'flex',
-          marginBottom: 10,
-        }}
-      >
-        <Typography.Text
-          className='flex-center secondary-text'
-          style={{
-            fontSize: 14,
-            textAlign: 'center',
-          }}
-          strong
-        >
-          {description}
-        </Typography.Text>
-      </div>
-    );
-  };
-
   return (
     <div style={{ textAlign: 'left' }}>
-
       <FormNavigationHeader
         decrementStep={decrementStep}
         incrementStep={incrementStep}
         stepNum={formStepNum}
         finalStepNumber={filteredItems.length}
         nextButtonDisabled={nextButtonDisabled}
+        mobileView={mobileView}
       />
-      {formStepNum - 1 < filteredItems.length && <>
-        {getTitleElem(filteredItems[formStepNum - 1].title)}
-        {getTitleDescription(filteredItems[formStepNum - 1].description)}
-        {filteredItems[formStepNum - 1].node()}
-      </>}
-
+      {formStepNum - 1 < filteredItems.length && (
+        <>
+          <TitleElem title={filteredItems[formStepNum - 1].title} />
+          <DescriptionElem description={filteredItems[formStepNum - 1].description} />
+          {filteredItems[formStepNum - 1].node()}
+        </>
+      )}
     </div>
   );
 }
+
+const DescriptionElem = ({ description }: { description: string | ReactNode }) => {
+  return (
+    <div
+      style={{
+        justifyContent: 'center',
+        display: 'flex',
+        marginBottom: 10
+      }}>
+      <Typography.Text
+        className="flex-center secondary-text"
+        style={{
+          fontSize: 14,
+          textAlign: 'center'
+        }}
+        strong>
+        {description}
+      </Typography.Text>
+    </div>
+  );
+};
+
+const TitleElem = ({ title }: { title: string | ReactNode }) => {
+  return (
+    <div
+      style={{
+        justifyContent: 'center',
+        display: 'flex'
+      }}>
+      <Typography.Text
+        className="flex-center primary-text capitalize"
+        style={{
+          fontSize: 20,
+          marginBottom: 10
+        }}
+        strong>
+        {title}
+      </Typography.Text>
+    </div>
+  );
+};

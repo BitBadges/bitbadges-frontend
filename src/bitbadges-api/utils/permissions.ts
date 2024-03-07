@@ -1,61 +1,93 @@
-import { ActionPermission, AddressList, BalancesActionPermission, TimedUpdatePermission, TimedUpdateWithBadgeIdsPermission, UintRange, deepCopy } from "bitbadgesjs-sdk";
-import { BitBadgesCollection, CollectionApprovalPermissionWithDetails, GetFirstMatchOnly, GetListWithOptions, GetUintRangesWithOptions, UniversalPermissionDetails, getReservedAddressList, removeUintRangesFromUintRanges } from "bitbadgesjs-sdk";
-import { PermissionNameString } from "../../components/collection-page/PermissionsInfo";
-import { getPermissionVariablesFromName } from "../../components/tx-timelines/form-items/BeforeAfterPermission";
-import { GO_MAX_UINT_64 } from "../../utils/dates";
-export type GenericCollectionPermissionWithDetails = ActionPermission<bigint> | TimedUpdatePermission<bigint> | BalancesActionPermission<bigint> | TimedUpdateWithBadgeIdsPermission<bigint> | CollectionApprovalPermissionWithDetails<bigint>
+import {
+  ActionPermission,
+  AddressList,
+  BalancesActionPermission,
+  BitBadgesCollection,
+  CollectionApprovalPermissionWithDetails,
+  TimedUpdatePermission,
+  TimedUpdateWithBadgeIdsPermission,
+  UintRangeArray,
+  getPermissionVariablesFromName,
+  iCollectionPermissionsWithDetails
+} from 'bitbadgesjs-sdk';
+import { PermissionNameString } from '../../components/collection-page/PermissionsInfo';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { GetUintRangesWithOptions, GetListWithOptions, UniversalPermissionDetails, GetFirstMatchOnly } from 'bitbadgesjs-sdk/dist/core/overlaps';
+export type GenericCollectionPermissionWithDetails =
+  | ActionPermission<bigint>
+  | TimedUpdatePermission<bigint>
+  | BalancesActionPermission<bigint>
+  | TimedUpdateWithBadgeIdsPermission<bigint>
+  | CollectionApprovalPermissionWithDetails<bigint>;
 
 export interface CleanedPermissionDetails {
-  timelineTimes: UintRange<bigint>[],
-  badgeIds: UintRange<bigint>[],
-  ownershipTimes: UintRange<bigint>[],
-  transferTimes: UintRange<bigint>[],
-  toList: AddressList,
-  fromList: AddressList,
-  initiatedByList: AddressList,
-  approvalIdList: AddressList,
-  amountTrackerIdList: AddressList,
-  challengeTrackerIdList: AddressList,
-  forbidden: boolean,
-  permitted: boolean,
-  permissionTimes: UintRange<bigint>[],
-  neutralTimes: UintRange<bigint>[],
-  permanentlyPermittedTimes: UintRange<bigint>[],
-  permanentlyForbiddenTimes: UintRange<bigint>[],
+  timelineTimes: UintRangeArray<bigint>;
+  badgeIds: UintRangeArray<bigint>;
+  ownershipTimes: UintRangeArray<bigint>;
+  transferTimes: UintRangeArray<bigint>;
+  toList: AddressList;
+  fromList: AddressList;
+  initiatedByList: AddressList;
+  approvalIdList: AddressList;
+  amountTrackerIdList: AddressList;
+  challengeTrackerIdList: AddressList;
+  forbidden: boolean;
+  permitted: boolean;
+  permissionTimes: UintRangeArray<bigint>;
+  neutralTimes: UintRangeArray<bigint>;
+  permanentlyPermittedTimes: UintRangeArray<bigint>;
+  permanentlyForbiddenTimes: UintRangeArray<bigint>;
 }
 
-export function getDetailsForCollectionPermission(collection: BitBadgesCollection<bigint> | undefined, permissionName: PermissionNameString, badgeIds?: UintRange<bigint>[]) {
-  const permissions = collection?.collectionPermissions[permissionName as keyof typeof collection.collectionPermissions] ?? [];
+export function getDetailsForCollectionPermission(
+  collection: Readonly<BitBadgesCollection<bigint>> | undefined,
+  permissionName: PermissionNameString,
+  badgeIds?: UintRangeArray<bigint>
+) {
+  const permissions = collection?.collectionPermissions[permissionName as keyof iCollectionPermissionsWithDetails<bigint>];
   return getDetailsForPermission(permissions, permissionName, badgeIds);
 }
 
 export function getDetailsForPermission(
-  _permissions: GenericCollectionPermissionWithDetails[],
+  _permissions: GenericCollectionPermissionWithDetails[] | undefined,
   permissionName: PermissionNameString,
-  badgeIds?: UintRange<bigint>[],
+  badgeIds?: UintRangeArray<bigint>,
   doNotMerge?: boolean
 ) {
-  const { flags, castFunction } = getPermissionVariablesFromName(permissionName);
+  const { flags } = getPermissionVariablesFromName(permissionName);
   const usedFlags = flags;
-  const permissions = castFunction(_permissions);
+  const permissions = _permissions ? _permissions.map((x) => x.clone().castToUniversalPermission()) : [];
 
-  const { usesBadgeIds, usesTimelineTimes, usesTransferTimes, usesToList, usesFromList, usesInitiatedByList, usesOwnershipTimes, usesApprovalIdList, usesAmountTrackerIdList, usesChallengeTrackerIdList } = usedFlags;
+  const {
+    usesBadgeIds,
+    usesTimelineTimes,
+    usesTransferTimes,
+    usesToList,
+    usesFromList,
+    usesInitiatedByList,
+    usesOwnershipTimes,
+    usesApprovalIdList,
+    usesAmountTrackerIdList,
+    usesChallengeTrackerIdList
+  } = usedFlags;
   const hideIfFull = true;
-  let columns = [{
-    title: 'Allowed?',
-    dataIndex: 'permission',
-    key: 'permission',
-  },
-  {
-    title: 'Frozen?',
-    dataIndex: 'frozen',
-    key: 'frozen',
-  },
-  {
-    title: 'Times',
-    dataIndex: 'permissionTimes',
-    key: 'permissionTimes'
-  }];
+  let columns = [
+    {
+      title: 'Allowed?',
+      dataIndex: 'permission',
+      key: 'permission'
+    },
+    {
+      title: 'Frozen?',
+      dataIndex: 'frozen',
+      key: 'frozen'
+    },
+    {
+      title: 'Times',
+      dataIndex: 'permissionTimes',
+      key: 'permissionTimes'
+    }
+  ];
 
   const dataSource: CleanedPermissionDetails[] = [];
 
@@ -63,8 +95,8 @@ export function getDetailsForPermission(
     columns.push({
       title: 'From',
       dataIndex: 'fromList',
-      key: 'fromList',
-    })
+      key: 'fromList'
+    });
   }
 
   if (usesToList) {
@@ -72,15 +104,15 @@ export function getDetailsForPermission(
       title: 'To',
       dataIndex: 'toList',
       key: 'toList'
-    })
+    });
   }
 
   if (usesInitiatedByList) {
     columns.push({
       title: 'Initiated By',
       dataIndex: 'initiatedByList',
-      key: 'initiatedByList',
-    })
+      key: 'initiatedByList'
+    });
   }
 
   if (usesTimelineTimes) {
@@ -88,15 +120,15 @@ export function getDetailsForPermission(
       title: 'Updatable Times',
       dataIndex: 'timelineTimes',
       key: 'timelineTimes'
-    })
+    });
   }
 
   if (usesBadgeIds) {
     columns.push({
       title: 'Badge IDs',
       dataIndex: 'badgeIds',
-      key: 'badgeIds',
-    })
+      key: 'badgeIds'
+    });
   }
 
   if (usesOwnershipTimes) {
@@ -104,44 +136,41 @@ export function getDetailsForPermission(
     columns.push({
       title: isBalancesAction ? 'Circulating Times' : 'Ownership Times',
       dataIndex: 'ownershipTimes',
-      key: 'ownershipTimes',
-    })
+      key: 'ownershipTimes'
+    });
   }
 
   if (usesTransferTimes) {
     columns.push({
       title: 'Transfer Times',
       dataIndex: 'transferTimes',
-      key: 'transferTimes',
-    })
+      key: 'transferTimes'
+    });
   }
-
-
 
   if (usesApprovalIdList) {
     columns.push({
       title: 'Approval ID',
       dataIndex: 'approvalId',
-      key: 'approvalIdList',
-    })
+      key: 'approvalIdList'
+    });
   }
 
   if (usesAmountTrackerIdList) {
     columns.push({
       title: 'Amount Tracker ID',
       dataIndex: 'amountTrackerId',
-      key: 'amountTrackerIdList',
-    })
+      key: 'amountTrackerIdList'
+    });
   }
 
   if (usesChallengeTrackerIdList) {
     columns.push({
       title: 'Challenge Tracker ID',
       dataIndex: 'challengeTrackerId',
-      key: 'challengeTrackerIdList',
-    })
+      key: 'challengeTrackerIdList'
+    });
   }
-
 
   let hasNeutralTimes = false;
   let hasPermanentlyPermittedTimes = false;
@@ -150,26 +179,26 @@ export function getDetailsForPermission(
   if (doNotMerge) {
     firstMatchDetails = [];
     const defaultPerm = {
-      timelineTimes: [{ start: 1n, end: 18446744073709551615n }],
-      fromList: getReservedAddressList("All") as AddressList,
-      toList: getReservedAddressList("All") as AddressList,
-      initiatedByList: getReservedAddressList("All") as AddressList,
-      approvalIdList: getReservedAddressList("All") as AddressList,
-      amountTrackerIdList: getReservedAddressList("All") as AddressList,
-      challengeTrackerIdList: getReservedAddressList("All") as AddressList,
-      transferTimes: [{ start: 1n, end: 18446744073709551615n }],
-      badgeIds: [{ start: 1n, end: 18446744073709551615n }],
-      ownershipTimes: [{ start: 1n, end: 18446744073709551615n }],
+      timelineTimes: UintRangeArray.FullRanges(),
+      fromList: AddressList.AllAddresses(),
+      toList: AddressList.AllAddresses(),
+      initiatedByList: AddressList.AllAddresses(),
+      approvalIdList: AddressList.AllAddresses(),
+      amountTrackerIdList: AddressList.AllAddresses(),
+      challengeTrackerIdList: AddressList.AllAddresses(),
+      transferTimes: UintRangeArray.FullRanges(),
+      badgeIds: UintRangeArray.FullRanges(),
+      ownershipTimes: UintRangeArray.FullRanges(),
 
-      permanentlyPermittedTimes: [],
-      permanentlyForbiddenTimes: [],
+      permanentlyPermittedTimes: new UintRangeArray<bigint>(),
+      permanentlyForbiddenTimes: new UintRangeArray<bigint>(),
 
       ...usedFlags,
 
-      arbitraryValue: {},
-    }
+      arbitraryValue: {}
+    };
 
-    for (const permission of deepCopy([...permissions, defaultPerm])) {
+    for (const permission of [...permissions, defaultPerm]) {
       const badgeIds = GetUintRangesWithOptions(permission.badgeIds, permission.usesBadgeIds);
       const timelineTimes = GetUintRangesWithOptions(permission.timelineTimes, permission.usesTimelineTimes);
       const transferTimes = GetUintRangesWithOptions(permission.transferTimes, permission.usesTransferTimes);
@@ -185,29 +214,29 @@ export function getDetailsForPermission(
       const amountTrackerIdList = GetListWithOptions(permission.amountTrackerIdList, permission.usesAmountTrackerIdList);
       const challengeTrackerIdList = GetListWithOptions(permission.challengeTrackerIdList, permission.usesChallengeTrackerIdList);
 
-
       for (const badgeId of badgeIds) {
         for (const timelineTime of timelineTimes) {
           for (const transferTime of transferTimes) {
             for (const ownershipTime of ownershipTimes) {
-              const brokenDown: UniversalPermissionDetails[] = [{
-                badgeId: badgeId,
-                timelineTime: timelineTime,
-                transferTime: transferTime,
-                ownershipTime: ownershipTime,
-                toList: toList,
-                fromList: fromList,
-                initiatedByList: initiatedByList,
-                approvalIdList: approvalIdList,
-                amountTrackerIdList: amountTrackerIdList,
-                challengeTrackerIdList: challengeTrackerIdList,
+              const brokenDown: UniversalPermissionDetails[] = [
+                {
+                  badgeId: badgeId,
+                  timelineTime: timelineTime,
+                  transferTime: transferTime,
+                  ownershipTime: ownershipTime,
+                  toList: toList,
+                  fromList: fromList,
+                  initiatedByList: initiatedByList,
+                  approvalIdList: approvalIdList,
+                  amountTrackerIdList: amountTrackerIdList,
+                  challengeTrackerIdList: challengeTrackerIdList,
 
-                permanentlyPermittedTimes: permanentlyPermittedTimes,
-                permanentlyForbiddenTimes: permanentlyForbiddenTimes,
+                  permanentlyPermittedTimes: permanentlyPermittedTimes,
+                  permanentlyForbiddenTimes: permanentlyForbiddenTimes,
 
-                arbitraryValue,
-              }];
-
+                  arbitraryValue
+                }
+              ];
 
               for (const broken of brokenDown) {
                 firstMatchDetails.push(broken);
@@ -215,54 +244,48 @@ export function getDetailsForPermission(
             }
           }
         }
-
       }
     }
   } else {
-    firstMatchDetails = GetFirstMatchOnly(deepCopy(permissions), true, usedFlags);
+    firstMatchDetails = GetFirstMatchOnly(permissions, true, usedFlags);
   }
 
   //Neutral times = not explicitly permitted and not explicitly forbidden
   for (const origMatch of firstMatchDetails) {
-    let neutralTimeRanges = [{ start: 1n, end: GO_MAX_UINT_64 }];
+    const neutralTimeRanges = UintRangeArray.FullRanges();
 
     let filteredDetails: UniversalPermissionDetails[] = [origMatch];
     if (badgeIds && usesBadgeIds) {
       filteredDetails = [];
-      const [, removed] = removeUintRangesFromUintRanges(badgeIds, [origMatch.badgeId] ?? []);
+      const removed = badgeIds.getOverlaps(origMatch.badgeId);
       for (const removedBadgeId of removed) {
         filteredDetails.push({
           ...origMatch,
           badgeId: removedBadgeId
-        })
+        });
       }
     }
 
     for (const match of filteredDetails) {
-
-
-      const [remaining, _] = removeUintRangesFromUintRanges(match.permanentlyForbiddenTimes, neutralTimeRanges)
-      neutralTimeRanges = remaining;
-
-      const [remaining2, _x] = removeUintRangesFromUintRanges(match.permanentlyPermittedTimes, neutralTimeRanges)
-      neutralTimeRanges = remaining2;
+      neutralTimeRanges.remove(match.permanentlyForbiddenTimes);
+      neutralTimeRanges.remove(match.permanentlyPermittedTimes);
 
       if (neutralTimeRanges.length > 0) hasNeutralTimes = true;
       if (match.permanentlyPermittedTimes.length > 0) hasPermanentlyPermittedTimes = true;
       if (match.permanentlyForbiddenTimes.length > 0) hasPermanentlyForbiddenTimes = true;
 
       const base = {
-        timelineTimes: usesTimelineTimes ? [match.timelineTime] : [{ start: 1n, end: GO_MAX_UINT_64 }],
-        badgeIds: usesBadgeIds ? [match.badgeId] : [{ start: 1n, end: GO_MAX_UINT_64 }],
-        ownershipTimes: usesOwnershipTimes ? [match.ownershipTime] : [{ start: 1n, end: GO_MAX_UINT_64 }],
-        transferTimes: usesTransferTimes ? [match.transferTime] : [{ start: 1n, end: GO_MAX_UINT_64 }],
-        toList: usesToList ? match.toList : getReservedAddressList("All"),
-        fromList: usesFromList ? match.fromList : getReservedAddressList("All"),
-        initiatedByList: usesInitiatedByList ? match.initiatedByList : getReservedAddressList("All"),
-        approvalIdList: usesApprovalIdList ? match.approvalIdList : getReservedAddressList("All"),
-        amountTrackerIdList: usesAmountTrackerIdList ? match.amountTrackerIdList : getReservedAddressList("All"),
-        challengeTrackerIdList: usesChallengeTrackerIdList ? match.challengeTrackerIdList : getReservedAddressList("All"),
-      }
+        timelineTimes: usesTimelineTimes ? UintRangeArray.From([match.timelineTime]) : UintRangeArray.FullRanges(),
+        badgeIds: usesBadgeIds ? UintRangeArray.From([match.badgeId]) : UintRangeArray.FullRanges(),
+        ownershipTimes: usesOwnershipTimes ? UintRangeArray.From([match.ownershipTime]) : UintRangeArray.FullRanges(),
+        transferTimes: usesTransferTimes ? UintRangeArray.From([match.transferTime]) : UintRangeArray.FullRanges(),
+        toList: usesToList ? match.toList : AddressList.AllAddresses(),
+        fromList: usesFromList ? match.fromList : AddressList.AllAddresses(),
+        initiatedByList: usesInitiatedByList ? match.initiatedByList : AddressList.AllAddresses(),
+        approvalIdList: usesApprovalIdList ? match.approvalIdList : AddressList.AllAddresses(),
+        amountTrackerIdList: usesAmountTrackerIdList ? match.amountTrackerIdList : AddressList.AllAddresses(),
+        challengeTrackerIdList: usesChallengeTrackerIdList ? match.challengeTrackerIdList : AddressList.AllAddresses()
+      };
 
       if (neutralTimeRanges.length > 0) {
         dataSource.push({
@@ -271,9 +294,9 @@ export function getDetailsForPermission(
           permissionTimes: neutralTimeRanges,
           ...base,
           neutralTimes: neutralTimeRanges,
-          permanentlyPermittedTimes: [],
-          permanentlyForbiddenTimes: []
-        })
+          permanentlyPermittedTimes: UintRangeArray.From([]),
+          permanentlyForbiddenTimes: UintRangeArray.From([])
+        });
       }
 
       if (match.permanentlyPermittedTimes.length > 0) {
@@ -283,9 +306,9 @@ export function getDetailsForPermission(
           permissionTimes: match.permanentlyPermittedTimes,
           ...base,
           permanentlyPermittedTimes: match.permanentlyPermittedTimes,
-          permanentlyForbiddenTimes: [],
-          neutralTimes: []
-        })
+          permanentlyForbiddenTimes: UintRangeArray.From([]),
+          neutralTimes: UintRangeArray.From([])
+        });
       }
 
       if (match.permanentlyForbiddenTimes.length > 0) {
@@ -295,53 +318,52 @@ export function getDetailsForPermission(
           permissionTimes: match.permanentlyForbiddenTimes,
           ...base,
           permanentlyForbiddenTimes: match.permanentlyForbiddenTimes,
-          permanentlyPermittedTimes: [],
-          neutralTimes: []
-        })
+          permanentlyPermittedTimes: UintRangeArray.From([]),
+          neutralTimes: UintRangeArray.From([])
+        });
       }
     }
   }
-
 
   //If anything is "All" or full, just don't show it
   //Isn't worth confusing the average user
   if (hideIfFull) {
     for (const column of columns) {
       if ((column.key.endsWith('Times') || column.key.endsWith('Ids')) && column.key !== 'permissionTimes') {
-        const key = column.key as keyof typeof dataSource[0];
+        const key = column.key as keyof (typeof dataSource)[0];
         let allAreFull = true;
         for (const x of dataSource) {
-          const val = x[key] as any
+          const val = x[key] as any;
           if (!(val?.length === 1 && val[0].start === 1n && val[0].end === GO_MAX_UINT_64)) {
             allAreFull = false;
           }
         }
 
         if (allAreFull) {
-          columns = columns.filter(x => x.key !== column.key);
+          columns = columns.filter((x) => x.key !== column.key);
         }
-
       } else if (column.key.endsWith('List') || column.key.endsWith('Id')) {
-        let key = column.key as keyof typeof dataSource[0];
-        if (column.key.endsWith('Id')) key = key + 'List' as keyof typeof dataSource[0];
+        let key = column.key as keyof (typeof dataSource)[0];
+        if (column.key.endsWith('Id')) key = (key + 'List') as keyof (typeof dataSource)[0];
         let allAreFull = true;
         for (const x of dataSource) {
-          const val = x[key] as any
+          const val = x[key] as any;
           if (!(val?.addresses?.length === 0 && val.whitelist === false)) {
             allAreFull = false;
           }
         }
 
         if (allAreFull) {
-          columns = columns.filter(x => x.key !== column.key);
+          columns = columns.filter((x) => x.key !== column.key);
         }
       }
     }
   }
 
-
   const isAlwaysFrozenAndForbidden: boolean = !hasNeutralTimes && !hasPermanentlyPermittedTimes;
-  const isAlwaysPermittedOrNeutral: boolean = (hasNeutralTimes && !hasPermanentlyPermittedTimes && !hasPermanentlyForbiddenTimes) || (hasPermanentlyPermittedTimes && !hasNeutralTimes && !hasPermanentlyForbiddenTimes)
+  const isAlwaysPermittedOrNeutral: boolean =
+    (hasNeutralTimes && !hasPermanentlyPermittedTimes && !hasPermanentlyForbiddenTimes) ||
+    (hasPermanentlyPermittedTimes && !hasNeutralTimes && !hasPermanentlyForbiddenTimes);
   const isAlwaysFrozenAndPermitted: boolean = !hasNeutralTimes && !hasPermanentlyForbiddenTimes;
   const isCustom = !isAlwaysFrozenAndForbidden && !isAlwaysPermittedOrNeutral && !isAlwaysFrozenAndPermitted;
 
@@ -355,7 +377,6 @@ export function getDetailsForPermission(
     isAlwaysPermittedOrNeutral,
     isAlwaysFrozenAndPermitted,
     isCustom,
-    isAlwaysFrozen: !hasNeutralTimes,
-  }
+    isAlwaysFrozen: !hasNeutralTimes
+  };
 }
-

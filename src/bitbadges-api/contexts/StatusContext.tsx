@@ -1,63 +1,65 @@
-import { StatusDoc } from 'bitbadgesjs-sdk';
-import { createContext, useContext, useState, useEffect } from 'react';
-import { DesiredNumberType, getStatus } from '../api';
-import { INFINITE_LOOP_MODE } from '../../constants';
 import { notification } from 'antd';
+import { StatusDoc } from 'bitbadgesjs-sdk';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { INFINITE_LOOP_MODE } from '../../constants';
+import { DesiredNumberType, getStatus } from '../api';
 
-export type StatusContextType = {
-  status: StatusDoc<DesiredNumberType>,
-  updateStatus: () => Promise<StatusDoc<DesiredNumberType>>
+export interface StatusContextType {
+  status: StatusDoc<DesiredNumberType>;
+  updateStatus: () => Promise<StatusDoc<DesiredNumberType>>;
 
-  maintenanceMode: boolean
+  maintenanceMode: boolean;
 }
 
 const StatusContext = createContext<StatusContextType>({
-  status: {
-    _docId: "status",
-    block: {
-      height: 0n,
-      timestamp: 0n,
-      txIndex: 0n,
-    },
-    nextCollectionId: 1n,
-    gasPrice: 0,
-    lastXGasAmounts: [],
-    lastXGasLimits: [],
-  },
-  updateStatus: async () => {
-    return {
-      _docId: "status",
-      block: {
-        height: 0n,
-        timestamp: 0n,
-        txIndex: 0n,
-      },
-      nextCollectionId: 1n,
-      gasPrice: 0,
-      lastXGasAmounts: [],
-      lastXGasLimits: [],
-    }
-  },
-  maintenanceMode: false,
-});
-
-type Props = {
-  children?: React.ReactNode
-};
-
-export const StatusContextProvider: React.FC<Props> = ({ children }) => {
-  const [status, setStatus] = useState<StatusDoc<DesiredNumberType>>({
+  status: new StatusDoc<DesiredNumberType>({
     _docId: 'status',
     block: {
       height: 0n,
       timestamp: 0n,
-      txIndex: 0n,
+      txIndex: 0n
     },
     nextCollectionId: 1n,
     gasPrice: 0,
     lastXGasAmounts: [],
-    lastXGasLimits: [],
-  });
+    lastXGasLimits: []
+  }),
+  updateStatus: async () => {
+    return new StatusDoc<DesiredNumberType>({
+      _docId: 'status',
+      block: {
+        height: 0n,
+        timestamp: 0n,
+        txIndex: 0n
+      },
+      nextCollectionId: 1n,
+      gasPrice: 0,
+      lastXGasAmounts: [],
+      lastXGasLimits: []
+    });
+  },
+  maintenanceMode: false
+});
+
+interface Props {
+  children?: React.ReactNode;
+}
+
+export const StatusContextProvider: React.FC<Props> = ({ children }) => {
+  const [status, setStatus] = useState<StatusDoc<DesiredNumberType>>(
+    new StatusDoc<DesiredNumberType>({
+      _docId: 'status',
+      block: {
+        height: 0n,
+        timestamp: 0n,
+        txIndex: 0n
+      },
+      nextCollectionId: 1n,
+      gasPrice: 0,
+      lastXGasAmounts: [],
+      lastXGasLimits: []
+    })
+  );
 
   const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
   const [warned, setWarned] = useState<boolean>(false);
@@ -77,7 +79,7 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
             description: `BitBadges is currently experiencing difficulties. It was last synced at ${new Date(Number(res.status.block.timestamp)).toLocaleString()}.
             This could be for multiple reasons like planned maintenance, heavy load, or an unexpected error. 
             You can still interact with the site, but any data after ${new Date(Number(res.status.block.timestamp)).toLocaleTimeString()} may not be shown.`,
-            duration: 0,
+            duration: 0
           });
 
           setWarned(true);
@@ -88,23 +90,21 @@ export const StatusContextProvider: React.FC<Props> = ({ children }) => {
       }
     }
     fetchStatus();
-  }, [])
+  }, []);
 
   const updateStatus = async () => {
     const res = await getStatus();
     setStatus(res.status);
     return res.status;
-  }
+  };
 
   const statusContext: StatusContextType = {
     status,
     updateStatus,
-    maintenanceMode,
+    maintenanceMode
   };
 
-  return <StatusContext.Provider value={statusContext}>
-    {children}
-  </StatusContext.Provider>;
-}
+  return <StatusContext.Provider value={statusContext}>{children}</StatusContext.Provider>;
+};
 
 export const useStatusContext = () => useContext(StatusContext);

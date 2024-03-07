@@ -1,6 +1,5 @@
 import { InputNumber } from 'antd';
 
-
 export function NumberInput({
   value,
   setValue,
@@ -9,35 +8,34 @@ export function NumberInput({
   max,
   disabled
 }: {
-  value: number,
-  setValue: (value: number) => void,
-  title?: string
-  min: number,
-  max?: number,
-  disabled?: boolean
+  value: number;
+  setValue: (value: number) => void;
+  title?: string;
+  min: number;
+  max?: number;
+  disabled?: boolean;
 }) {
-  return <div style={{ alignItems: 'center', justifyContent: 'center' }}>
-    <div className='flex-between flex-column'>
-      <b>{title}</b>
-      <InputNumber
-        defaultValue={value}
-        min={min >= 0 ? min : 1}
-        max={max}
-        title='Amount'
-        value={value}
-        disabled={disabled}
-        onChange={
-          (value: number | null) => {
+  return (
+    <div style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <div className="flex-between flex-column">
+        <b>{title}</b>
+        <InputNumber
+          defaultValue={value}
+          min={min >= 0 ? min : 1}
+          max={max}
+          title="Amount"
+          value={value}
+          disabled={disabled}
+          onChange={(value: number | null) => {
             if (!value || value <= 0) {
               setValue(0);
-            }
-            else {
+            } else {
               setValue(value);
             }
-          }
-        }
-        className='primary-text inherit-bg rounded-md'
-      />
+          }}
+          className="primary-text inherit-bg rounded-md"
+        />
+      </div>
     </div>
-  </div>
+  );
 }

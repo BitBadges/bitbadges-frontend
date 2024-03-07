@@ -1,29 +1,36 @@
-import { appendSelfInitiatedIncomingApproval, castIncomingTransfersToCollectionTransfers, getReservedAddressList } from "bitbadgesjs-sdk";
-import { useState } from "react";
-import { useChainContext } from "../../../bitbadges-api/contexts/ChainContext";
-import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from "../../../bitbadges-api/contexts/TxTimelineContext";
+import {
+  AddressList,
+  UintRangeArray,
+  UserBalanceStoreWithDetails,
+  UserIncomingApprovalWithDetails,
+  appendSelfInitiatedIncomingApproval
+} from 'bitbadgesjs-sdk';
+import { useState } from 'react';
+import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
+import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
-import { CheckCircleFilled, CloseCircleFilled } from "@ant-design/icons";
-import { updateCollection, useCollection } from "../../../bitbadges-api/contexts/collections/CollectionsContext";
-import { compareObjects } from "../../../utils/compare";
-import { GO_MAX_UINT_64 } from "../../../utils/dates";
-import { AddressDisplayList } from "../../address/AddressDisplayList";
-import { SwitchForm } from "../form-items/SwitchForm";
-import { UpdateSelectWrapper } from "../form-items/UpdateSelectWrapper";
-import { EditableApprovalsDisplay } from "../../collection-page/transferability/ApprovalsDisplay";
+import { CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
+import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import { compareObjects } from '../../../utils/compare';
+import { AddressDisplayList } from '../../address/AddressDisplayList';
+import { EditableApprovalsDisplay } from '../../collection-page/transferability/ApprovalsDisplay';
+import { SwitchForm } from '../form-items/SwitchForm';
+import { UpdateSelectWrapper } from '../form-items/UpdateSelectWrapper';
 
-export const defaultApprovedOption = [{
-  fromListId: "All",
-  fromList: getReservedAddressList("All"),
-  initiatedByList: getReservedAddressList("All"),
-  initiatedByListId: "All",
-  transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-  approvalId: "default-incoming-allowed",
-  amountTrackerId: "default-incoming-allowed",
-  challengeTrackerId: "default-incoming-allowed",
-}]
+export const defaultApprovedOption = [
+  new UserIncomingApprovalWithDetails({
+    fromListId: 'All',
+    fromList: AddressList.AllAddresses(),
+    initiatedByList: AddressList.AllAddresses(),
+    initiatedByListId: 'All',
+    transferTimes: UintRangeArray.FullRanges(),
+    badgeIds: UintRangeArray.FullRanges(),
+    ownershipTimes: UintRangeArray.FullRanges(),
+    approvalId: 'default-incoming-allowed',
+    amountTrackerId: 'default-incoming-allowed',
+    challengeTrackerId: 'default-incoming-allowed'
+  })
+];
 
 export const DefaultApprovedDisplay = ({ address }: { address: string }) => {
   return (
@@ -32,13 +39,16 @@ export const DefaultApprovedDisplay = ({ address }: { address: string }) => {
         <thead>
           <tr className="">
             <th className="p-2"></th>
-            <th className="p-2"><b>To</b></th>
-            <th className="p-2"><b>Initiator</b></th>
+            <th className="p-2">
+              <b>To</b>
+            </th>
+            <th className="p-2">
+              <b>Initiator</b>
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr className="text-center">
-
             <td className="p-2">
               <CheckCircleFilled style={{ fontSize: 20, color: 'green' }} />
             </td>
@@ -61,15 +71,17 @@ export const DefaultOptInDisplay = ({ address }: { address: string }) => {
       <table className="table-auto w-full overflow-x-scroll">
         <thead>
           <tr className="">
-
             <th className="p-2"></th>
-            <th className="p-2"><b>To</b></th>
-            <th className="p-2"><b>Initiator</b></th>
+            <th className="p-2">
+              <b>To</b>
+            </th>
+            <th className="p-2">
+              <b>Initiator</b>
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr className="text-center">
-
             <td className="p-2">
               <CheckCircleFilled style={{ fontSize: 20, color: 'green' }} />
             </td>
@@ -81,7 +93,6 @@ export const DefaultOptInDisplay = ({ address }: { address: string }) => {
             </td>
           </tr>
           <tr className="text-center">
-
             <td className="p-2">
               <CloseCircleFilled style={{ fontSize: 20, color: 'red' }} />
             </td>
@@ -98,10 +109,7 @@ export const DefaultOptInDisplay = ({ address }: { address: string }) => {
   );
 };
 
-
-
 export function DefaultToApprovedSelectStepItem() {
-
   const collection = useCollection(NEW_COLLECTION_ID);
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
@@ -114,74 +122,83 @@ export function DefaultToApprovedSelectStepItem() {
   return {
     title: `Default Incoming Approvals`,
     description: `If not overriden by the collection approvals, all badge transfers need to satisfy the recipient's incoming approvals. What should the incoming approvals be by default?`,
-    node: () => <UpdateSelectWrapper
-      documentationLink={"https://docs.bitbadges.io/overview/how-it-works/transferability"}
-      err={null}
-      setErr={() => { }}
-      updateFlag={updateFlag}
-      setUpdateFlag={setUpdateFlag}
-      jsonPropertyPath='defaultUserIncomingApprovals'
-      advancedNode={() => <>
-        <div style={{ textAlign: 'center' }}>
-          <EditableApprovalsDisplay
-            approvals={
-              castIncomingTransfersToCollectionTransfers(
-                collection.defaultBalances.incomingApprovals.length > 0 ?
-                  collection.defaultBalances.incomingApprovals :
-                  appendSelfInitiatedIncomingApproval([], chain.address), chain.address)}
-            collection={collection}
-            approvalLevel='incoming'
-
-            editable={true}
-            //genesis only so will always not have existing approvals or permissions
-            startingApprovals={[]}
-            approvalPermissions={[]}
-            mintingOnly={false}
-            setApprovals={(approvals) => {
-              updateCollection({
-                collectionId: NEW_COLLECTION_ID,
-                defaultBalances: {
-                  ...collection.defaultBalances,
-                  incomingApprovals: approvals
+    node: () => (
+      <UpdateSelectWrapper
+        documentationLink={'https://docs.bitbadges.io/overview/how-it-works/transferability'}
+        err={null}
+        setErr={() => {}}
+        updateFlag={updateFlag}
+        setUpdateFlag={setUpdateFlag}
+        jsonPropertyPath="defaultUserIncomingApprovals"
+        advancedNode={() => (
+          <>
+            <div style={{ textAlign: 'center' }}>
+              <EditableApprovalsDisplay
+                approvals={(collection.defaultBalances.incomingApprovals.length > 0
+                  ? collection.defaultBalances.incomingApprovals
+                  : appendSelfInitiatedIncomingApproval([], chain.address)
+                ).map((x) => x.castToCollectionTransfer(chain.address))}
+                collectionId={collection.collectionId}
+                approvalLevel="incoming"
+                editable={true}
+                //genesis only so will always not have existing approvals or permissions
+                startingApprovals={[]}
+                approvalPermissions={[]}
+                mintingOnly={false}
+                setApprovals={(approvals) => {
+                  updateCollection({
+                    collectionId: NEW_COLLECTION_ID,
+                    defaultBalances: new UserBalanceStoreWithDetails({
+                      ...collection.defaultBalances,
+                      incomingApprovals: approvals
+                    })
+                  });
+                }}
+                approverAddress={chain.address}
+              />
+            </div>
+          </>
+        )}
+        node={() => (
+          <>
+            <SwitchForm
+              showCustomOption
+              options={[
+                {
+                  title: 'Approved by Default',
+                  message: `For all users, all incoming transfers (including mints) will be approved by default. To block incoming transfers, users must manually set their incoming approvals.`,
+                  isSelected: compareObjects(collection.defaultBalances.incomingApprovals, defaultApprovedOption),
+                  additionalNode: () => (
+                    <>
+                      <DefaultApprovedDisplay address={chain.address} />
+                    </>
+                  )
+                },
+                {
+                  title: 'Opt-In Only',
+                  message:
+                    'By default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints). This is typically only used in specific cases, such as a KYC requirement.',
+                  isSelected: collection.defaultBalances.incomingApprovals.length === 0,
+                  additionalNode: () => (
+                    <>
+                      <DefaultOptInDisplay address={chain.address} />
+                    </>
+                  )
                 }
-              })
-            }}
-            approverAddress={chain.address}
-          />
-        </div>
-      </>}
-      node={() => <>
-        <SwitchForm
-          showCustomOption
-          options={[
-            {
-              title: 'Approved by Default',
-              message: `For all users, all incoming transfers (including mints) will be approved by default. To block incoming transfers, users must manually set their incoming approvals.`,
-              isSelected: compareObjects(collection.defaultBalances.incomingApprovals, defaultApprovedOption),
-              additionalNode: () => <><DefaultApprovedDisplay address={chain.address} /></>
-            },
-            {
-              title: 'Opt-In Only',
-              message: 'By default, users must be the initiator or explicitly approve a transfer for it to be successful. Transferring to this user forcefully without prior approval will fail (including mints). This is typically only used in specific cases, such as a KYC requirement.',
-              isSelected: collection.defaultBalances.incomingApprovals.length === 0,
-              additionalNode: () => <>
-                <DefaultOptInDisplay address={chain.address} />
-              </>
-            },
-          ]}
-          onSwitchChange={(idx) => {
-            updateCollection({
-              collectionId: NEW_COLLECTION_ID,
-              defaultBalances: {
-                ...collection.defaultBalances,
-                incomingApprovals: idx === 0 ? defaultApprovedOption : []
-              }
-            });
-          }}
-        />
-      </>
-      }
-    />
-
-  }
+              ]}
+              onSwitchChange={(idx) => {
+                updateCollection({
+                  collectionId: NEW_COLLECTION_ID,
+                  defaultBalances: new UserBalanceStoreWithDetails({
+                    ...collection.defaultBalances,
+                    incomingApprovals: idx === 0 ? defaultApprovedOption : []
+                  })
+                });
+              }}
+            />
+          </>
+        )}
+      />
+    )
+  };
 }

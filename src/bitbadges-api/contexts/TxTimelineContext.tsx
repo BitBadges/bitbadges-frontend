@@ -1,21 +1,31 @@
-import { AddressList, Balance, deepCopy } from 'bitbadgesjs-sdk';
-import { AddressListEditKey, BitBadgesCollection, CollectionApprovalWithDetails, DefaultPlaceholderMetadata, MetadataAddMethod, NumberType, TransferWithIncrements, incrementMintAndTotalBalances } from 'bitbadgesjs-sdk';
+import {
+  BalanceArray,
+  BitBadgesAddressList,
+  BitBadgesCollection,
+  CollectionApprovalWithDetails,
+  Metadata,
+  NumberType,
+  TransferWithIncrements,
+  UintRangeArray,
+  UserBalanceStoreWithDetails
+} from 'bitbadgesjs-sdk';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { MintType } from '../../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { defaultApprovedOption } from '../../components/tx-timelines/step-items/DefaultToApprovedSelectStepItem';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { getAddressLists } from '../api';
+import { MetadataAddMethod } from '../types';
 import { useChainContext } from './ChainContext';
 import { fetchAccounts } from './accounts/AccountsContext';
+import { deepFreeze } from './accounts/reducer';
 import { fetchCollectionsWithOptions, setCollection, updateCollection, useCollection } from './collections/CollectionsContext';
 
 export const EmptyStepItem = {
   title: '',
   description: '',
   node: () => <></>,
-  doNotDisplay: true,
-}
+  doNotDisplay: true
+};
 
 export const NEW_COLLECTION_ID = 0n;
 
@@ -40,43 +50,36 @@ export const NEW_COLLECTION_ID = 0n;
 */
 
 export interface CreateAndDistributeMsg<T extends NumberType> {
-  transfers: TransferWithIncrements<T>[]
-  setTransfers: (transfers: TransferWithIncrements<T>[]) => void
+  transfers: Array<TransferWithIncrements<T>>;
+  setTransfers: (transfers: Array<TransferWithIncrements<T>>) => void;
 
-  badgesToCreate: Balance<T>[];
-  setBadgesToCreate: (badgesToCreate: Balance<T>[]) => void
+  badgesToCreate: BalanceArray<T>;
+  setBadgesToCreate: (badgesToCreate: BalanceArray<T>) => void;
 
-  mintType: MintType
-  setMintType: (mintType: MintType) => void
+  mintType: MintType;
+  setMintType: (mintType: MintType) => void;
 
   customCollection: boolean;
-  setCustomCollection: (customCollection: boolean) => void
+  setCustomCollection: (customCollection: boolean) => void;
 }
 
 export interface CreateAddressListMsg<T extends NumberType> {
-  addressList: (AddressList & {
-    private?: boolean;
-
-    editKeys?: AddressListEditKey<T>[];
-  })
-  setAddressList: (addressList: AddressList & {
-    private?: boolean;
-    editKeys?: AddressListEditKey<T>[];
-  }) => void
-  isUpdateAddressList?: boolean
+  addressList: BitBadgesAddressList<T>;
+  setAddressList: (addressList: BitBadgesAddressList<T>) => void;
+  isUpdateAddressList?: boolean;
 }
 
 export interface UpdateMetadataMsg {
-  collectionAddMethod: MetadataAddMethod
-  setCollectionAddMethod: (method: MetadataAddMethod) => void
+  collectionAddMethod: MetadataAddMethod;
+  setCollectionAddMethod: (method: MetadataAddMethod) => void;
 
-  badgeAddMethod: MetadataAddMethod
-  setBadgeAddMethod: (method: MetadataAddMethod) => void
+  badgeAddMethod: MetadataAddMethod;
+  setBadgeAddMethod: (method: MetadataAddMethod) => void;
 
-  metadataSize: number
+  metadataSize: number;
 
-  offChainAddMethod: MetadataAddMethod
-  setOffChainAddMethod: (method: MetadataAddMethod) => void
+  offChainAddMethod: MetadataAddMethod;
+  setOffChainAddMethod: (method: MetadataAddMethod) => void;
 }
 
 export interface UpdateFlags {
@@ -100,34 +103,38 @@ export interface UpdateFlags {
   setUpdateIsArchivedTimeline: (value: boolean) => void;
 }
 
-export type MsgUniversalUpdateCollectionProps = CreateAndDistributeMsg<bigint> & CreateAddressListMsg<bigint> & UpdateMetadataMsg & UpdateFlags & BaseTxTimelineProps
+export type MsgUniversalUpdateCollectionProps = CreateAndDistributeMsg<bigint> &
+  CreateAddressListMsg<bigint> &
+  UpdateMetadataMsg &
+  UpdateFlags &
+  BaseTxTimelineProps;
 
 export interface BaseTxTimelineProps {
-  txType: 'UpdateCollection'
-  existingCollectionId: bigint | undefined
-  setExistingCollectionId: (existingCollectionId: bigint | undefined) => void
+  txType: 'UpdateCollection';
+  existingCollectionId: bigint | undefined;
+  setExistingCollectionId: (existingCollectionId: bigint | undefined) => void;
 
-  startingCollection: BitBadgesCollection<bigint> | undefined
-  setStartingCollection: (startingCollection: BitBadgesCollection<bigint> | undefined) => void
+  startingCollection: Readonly<BitBadgesCollection<bigint>> | undefined;
+  setStartingCollection: (startingCollection: BitBadgesCollection<bigint> | undefined) => void;
 
-  initialLoad: boolean
-  setInitialLoad: (initialLoad: boolean) => void
+  initialLoad: boolean;
+  setInitialLoad: (initialLoad: boolean) => void;
 
-  existingAddressListId: string
-  setExistingAddressListId: (addressListId: string) => void
+  existingAddressListId: string;
+  setExistingAddressListId: (addressListId: string) => void;
 
-  formStepNum: number
-  setFormStepNum: (formStepNum: number) => void
+  formStepNum: number;
+  setFormStepNum: (formStepNum: number) => void;
 
-  resetState: (collectionId?: bigint, addressListId?: string) => void
+  resetState: (collectionId?: bigint, addressListId?: string) => void;
 
-  completeControl: boolean
-  setCompleteControl: (completeControl: boolean) => void
+  completeControl: boolean;
+  setCompleteControl: (completeControl: boolean) => void;
 
-  resetCollectionApprovals: () => (CollectionApprovalWithDetails<bigint>)[]
+  resetCollectionApprovals: () => Array<CollectionApprovalWithDetails<bigint>>;
 
-  showAdvancedOptions: boolean
-  setShowAdvancedOptions: (showAdvancedOptions: boolean) => void
+  showAdvancedOptions: boolean;
+  setShowAdvancedOptions: (showAdvancedOptions: boolean) => void;
 }
 
 export type TxTimelineContextType = MsgUniversalUpdateCollectionProps;
@@ -135,84 +142,90 @@ export type TxTimelineContextType = MsgUniversalUpdateCollectionProps;
 const TxTimelineContext = createContext<TxTimelineContextType>({
   txType: 'UpdateCollection',
   existingCollectionId: undefined,
-  setExistingCollectionId: () => { },
+  setExistingCollectionId: () => {},
 
   startingCollection: undefined,
-  setStartingCollection: () => { },
+  setStartingCollection: () => {},
 
   existingAddressListId: '',
-  setExistingAddressListId: () => { },
+  setExistingAddressListId: () => {},
 
   transfers: [],
-  setTransfers: () => { },
-  badgesToCreate: [],
-  setBadgesToCreate: () => { },
+  setTransfers: () => {},
+  badgesToCreate: BalanceArray.From([]),
+  setBadgesToCreate: () => {},
 
   customCollection: true,
-  setCustomCollection: () => { },
+  setCustomCollection: () => {},
 
   //Update flags
   updateCollectionPermissions: true,
-  setUpdateCollectionPermissions: () => { },
+  setUpdateCollectionPermissions: () => {},
   updateManagerTimeline: true,
-  setUpdateManagerTimeline: () => { },
+  setUpdateManagerTimeline: () => {},
   updateCollectionMetadataTimeline: true,
-  setUpdateCollectionMetadataTimeline: () => { },
+  setUpdateCollectionMetadataTimeline: () => {},
   updateBadgeMetadataTimeline: true,
-  setUpdateBadgeMetadataTimeline: () => { },
+  setUpdateBadgeMetadataTimeline: () => {},
   updateOffChainBalancesMetadataTimeline: true,
-  setUpdateOffChainBalancesMetadataTimeline: () => { },
+  setUpdateOffChainBalancesMetadataTimeline: () => {},
   updateCustomDataTimeline: true,
-  setUpdateCustomDataTimeline: () => { },
+  setUpdateCustomDataTimeline: () => {},
   updateCollectionApprovals: true,
-  setUpdateCollectionApprovals: () => { },
+  setUpdateCollectionApprovals: () => {},
   updateStandardsTimeline: true,
-  setUpdateStandardsTimeline: () => { },
+  setUpdateStandardsTimeline: () => {},
   updateIsArchivedTimeline: true,
-  setUpdateIsArchivedTimeline: () => { },
+  setUpdateIsArchivedTimeline: () => {},
 
   mintType: MintType.BitBadge,
-  setMintType: () => { },
+  setMintType: () => {},
 
-  addressList: {
+  addressList: new BitBadgesAddressList({
     listId: '',
+    _docId: '',
     addresses: [],
     whitelist: true,
     uri: '',
     customData: '',
-
     createdBy: '',
-  },
-  setAddressList: () => { },
+    listsActivity: [],
+    views: {},
+    editClaims: [],
+    updateHistory: [],
+    createdBlock: 0n,
+    lastUpdated: 0n
+  }),
+
+  setAddressList: () => {},
 
   collectionAddMethod: MetadataAddMethod.None,
-  setCollectionAddMethod: () => { },
+  setCollectionAddMethod: () => {},
   badgeAddMethod: MetadataAddMethod.None,
-  setBadgeAddMethod: () => { },
+  setBadgeAddMethod: () => {},
 
   offChainAddMethod: MetadataAddMethod.None,
-  setOffChainAddMethod: () => { },
+  setOffChainAddMethod: () => {},
 
   metadataSize: 0,
   initialLoad: true,
-  setInitialLoad: () => { },
+  setInitialLoad: () => {},
   formStepNum: 1,
-  setFormStepNum: () => { },
-  resetState: () => { },
+  setFormStepNum: () => {},
+  resetState: () => {},
 
   completeControl: false,
-  setCompleteControl: () => { },
+  setCompleteControl: () => {},
   resetCollectionApprovals: () => [],
 
   showAdvancedOptions: false,
-  setShowAdvancedOptions: () => { },
+  setShowAdvancedOptions: () => {}
 });
 
-type Props = {
-  children?: React.ReactNode
-};
+interface Props {
+  children?: React.ReactNode;
+}
 export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
-
   const chain = useChainContext();
   const txType = 'UpdateCollection';
 
@@ -222,27 +235,44 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
   const setExistingCollectionId = (existingCollectionId: bigint | undefined) => {
     setExistingCollectionIdState(existingCollectionId);
-  }
+  };
 
-  const [startingCollection, setStartingCollection] = useState<BitBadgesCollection<bigint>>();
+  const [startingCollection, setStartingCollectionState] = useState<Readonly<BitBadgesCollection<bigint>> | undefined>();
+  const setStartingCollection = (startingCollection: BitBadgesCollection<bigint> | undefined) => {
+    if (startingCollection) {
+      const startingCollectionCopy = startingCollection.clone();
+      setStartingCollectionState(deepFreeze(startingCollectionCopy));
+    } else {
+      setStartingCollectionState(undefined);
+    }
+  };
   const simulatedCollection = useCollection(NEW_COLLECTION_ID);
 
   const [size, setSize] = useState(0);
-  const [badgesToCreate, setBadgesToCreate] = useState<Balance<bigint>[]>([]);
-  const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
+  const [badgesToCreate, setBadgesToCreate] = useState<BalanceArray<bigint>>(BalanceArray.From([]));
+  const [transfers, setTransfers] = useState<Array<TransferWithIncrements<bigint>>>([]);
   const [completeControl, setCompleteControl] = useState(false);
   const [customCollection, setCustomCollection] = useState(true);
 
   const [mintType, setMintType] = useState<MintType>(MintType.BitBadge);
 
-  const [addressList, setAddressList] = useState<AddressList>({
-    listId: '',
-    addresses: [],
-    whitelist: true,
-    uri: '',
-    customData: '',
-    createdBy: chain.address
-  })
+  const [addressList, setAddressList] = useState<BitBadgesAddressList<bigint>>(
+    new BitBadgesAddressList({
+      listId: '',
+      _docId: '',
+      addresses: [],
+      whitelist: true,
+      uri: '',
+      customData: '',
+      createdBy: chain.address,
+      views: {},
+      listsActivity: [],
+      editClaims: [],
+      updateHistory: [],
+      createdBlock: 0n,
+      lastUpdated: 0n
+    })
+  );
 
   //The method used to add metadata to the collection and individual badges
   const [collectionAddMethod, setCollectionAddMethod] = useState<MetadataAddMethod>(MetadataAddMethod.Manual);
@@ -269,36 +299,40 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: update collection timeline, existing collection changed');
     if (!startingCollection) return [];
 
-    const defaultApprovalsToAdd = [...deepCopy(startingCollection.collectionApprovals)];
-
     updateCollection({
       collectionId: NEW_COLLECTION_ID,
-      collectionApprovals: [
-        ...defaultApprovalsToAdd,
-      ],
+      collectionApprovals: startingCollection.collectionApprovals.map((x) => x.clone())
     });
 
-    return defaultApprovalsToAdd;
-  }
-
+    return startingCollection.collectionApprovals.map((x) => x.clone());
+  };
 
   function resetState(existingCollectionId?: bigint, addressListId?: string) {
     setExistingCollectionIdState(existingCollectionId);
     setStartingCollection(undefined);
     setExistingAddressListId(addressListId ?? '');
     setFormStepNum(1);
-    setBadgesToCreate([]);
+    setBadgesToCreate(new BalanceArray());
     setCollectionAddMethod(MetadataAddMethod.Manual);
     setTransfers([]);
     setMintType(MintType.BitBadge);
-    setAddressList({
-      listId: '',
-      addresses: [],
-      whitelist: true,
-      uri: '',
-      customData: '',
-      createdBy: chain.address
-    })
+    setAddressList(
+      new BitBadgesAddressList({
+        listId: '',
+        _docId: '',
+        addresses: [],
+        whitelist: true,
+        uri: '',
+        customData: '',
+        createdBy: chain.address,
+        views: {},
+        listsActivity: [],
+        editClaims: [],
+        updateHistory: [],
+        createdBlock: 0n,
+        lastUpdated: 0n
+      })
+    );
     setSize(0);
 
     setUpdateCollectionPermissions(!existingCollectionId);
@@ -322,7 +356,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
       if (INFINITE_LOOP_MODE) console.log('useEffect: address list, initial load');
       if (!existingAddressListId) return;
       setMintType(MintType.AddressList);
-      const res = await getAddressLists({ listsToFetch: [{ listId: existingAddressListId }] });
+      const res = await getAddressLists({ listsToFetch: [{ listId: existingAddressListId, fetchPrivateParams: true }] });
       if (res) {
         setAddressList(res.addressLists[0]);
       }
@@ -332,7 +366,6 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
   const initialLoad = !!startingCollection;
 
-
   //Only upon first load, we fetch the existing collection from the server if it exists
   //Set default values for the collection if it doesn't exist or populate with exsitng values if it does
   //Throughout the timeline, we never update the existing collection, only the simulated collection with ID === 0n
@@ -341,66 +374,71 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     if (!chain.cosmosAddress) return;
 
     async function initialize() {
-      let startingCollectionDefault: BitBadgesCollection<bigint> = {
+      let startingCollectionDefault = new BitBadgesCollection<bigint>({
         //Default values for a new collection
         //If existing, they are overriden further below via the spread
+        _docId: chain.cosmosAddress,
         merkleChallenges: [],
         approvalTrackers: [],
         updateHistory: [],
         aliasAddress: '',
-        managerTimeline: [{
-          manager: chain.cosmosAddress,
-          timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        }],
-        cachedCollectionMetadata: DefaultPlaceholderMetadata,
+        managerTimeline: [
+          {
+            manager: chain.cosmosAddress,
+            timelineTimes: UintRangeArray.FullRanges()
+          }
+        ],
+        cachedCollectionMetadata: Metadata.DefaultPlaceholderMetadata(),
         cachedBadgeMetadata: [],
         activity: [],
-        announcements: [],
         reviews: [],
-        owners: [{
-          _docId: "0:Total",
-          collectionId: 0n,
-          onChain: true,
-          cosmosAddress: 'Total',
-          balances: [],
-          incomingApprovals: [],
-          outgoingApprovals: [],
-          userPermissions: {
-            canUpdateIncomingApprovals: [],
-            canUpdateOutgoingApprovals: [],
-            canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+        owners: [
+          {
+            _docId: '0:Total',
+            collectionId: 0n,
+            onChain: true,
+            cosmosAddress: 'Total',
+            balances: [],
+            incomingApprovals: [],
+            outgoingApprovals: [],
+            userPermissions: {
+              canUpdateIncomingApprovals: [],
+              canUpdateOutgoingApprovals: [],
+              canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+              canUpdateAutoApproveSelfInitiatedOutgoingTransfers: []
+            },
+            autoApproveSelfInitiatedIncomingTransfers: true,
+            autoApproveSelfInitiatedOutgoingTransfers: true,
+            updateHistory: []
           },
-          autoApproveSelfInitiatedIncomingTransfers: true,
-          autoApproveSelfInitiatedOutgoingTransfers: true,
-          updateHistory: [],
-        }, {
-          _docId: "0:Mint",
-          cosmosAddress: 'Mint',
-          onChain: true,
-          collectionId: 0n,
-          balances: [],
-          incomingApprovals: [],
-          outgoingApprovals: [],
-          userPermissions: {
-            canUpdateIncomingApprovals: [],
-            canUpdateOutgoingApprovals: [],
-            canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
-          },
-          autoApproveSelfInitiatedIncomingTransfers: true,
-          autoApproveSelfInitiatedOutgoingTransfers: true,
-          updateHistory: [],
-        }],
+          {
+            _docId: '0:Mint',
+            cosmosAddress: 'Mint',
+            onChain: true,
+            collectionId: 0n,
+            balances: [],
+            incomingApprovals: [],
+            outgoingApprovals: [],
+            userPermissions: {
+              canUpdateIncomingApprovals: [],
+              canUpdateOutgoingApprovals: [],
+              canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
+              canUpdateAutoApproveSelfInitiatedOutgoingTransfers: []
+            },
+            autoApproveSelfInitiatedIncomingTransfers: true,
+            autoApproveSelfInitiatedOutgoingTransfers: true,
+            updateHistory: []
+          }
+        ],
         views: {},
         collectionApprovals: [],
         badgeMetadataTimeline: [],
         // standardsTimeline: [{
         //   standards: ["BitBadges"],
-        //   timelineTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+        //   timelineTimes: UintRangeArray.FullRanges(),
         // }], TODO:
         standardsTimeline: [],
-        balancesType: "Standard",
+        balancesType: 'Standard',
         collectionMetadataTimeline: [],
 
         isArchivedTimeline: [],
@@ -415,21 +453,22 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
           canUpdateCustomData: [],
           canUpdateManager: [],
           canUpdateOffChainBalancesMetadata: [],
-          canUpdateStandards: [],
+          canUpdateStandards: []
         },
+        offChainClaims: [],
         offChainBalancesMetadataTimeline: [],
         defaultBalances: {
           balances: [],
-          incomingApprovals: deepCopy(defaultApprovedOption),
+          incomingApprovals: defaultApprovedOption.map((x) => x.clone()),
           outgoingApprovals: [],
           userPermissions: {
             canUpdateIncomingApprovals: [],
             canUpdateOutgoingApprovals: [],
             canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: []
           },
           autoApproveSelfInitiatedIncomingTransfers: true,
-          autoApproveSelfInitiatedOutgoingTransfers: true,
+          autoApproveSelfInitiatedOutgoingTransfers: true
         },
         createdBy: chain.cosmosAddress,
         createdBlock: 0n,
@@ -438,31 +477,44 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
         //Preview / simulated collection values
         // _docId: "0",
         collectionId: 0n
-      }
+      });
 
       if (!startingCollection) {
-        const existingCollectionsRes = existingCollectionId && existingCollectionId > 0n ? await fetchCollectionsWithOptions(
-          [{
-            collectionId: existingCollectionId, viewsToFetch: [],
-            fetchTotalAndMintBalances: true,
-            handleAllAndAppendDefaults: false,
-          }], true) : [];
+        const existingCollectionsRes =
+          existingCollectionId && existingCollectionId > 0n
+            ? await fetchCollectionsWithOptions(
+                [
+                  {
+                    collectionId: existingCollectionId,
+                    viewsToFetch: [],
+                    fetchTotalAndMintBalances: true,
+                    handleAllAndAppendDefaults: false,
+                    fetchPrivateParams: true
+                  }
+                ],
+                true
+              )
+            : [];
 
-        let existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
+        const existingCollection = existingCollectionId && existingCollectionId > 0n ? existingCollectionsRes[0] : undefined;
 
         if (existingCollectionId && existingCollectionId > 0n && existingCollection) {
-          await fetchAccounts([existingCollection.createdBy, ...existingCollection.managerTimeline.map(x => x.manager), existingCollection.aliasAddress]);
+          await fetchAccounts([
+            existingCollection.createdBy,
+            ...existingCollection.managerTimeline.map((x) => x.manager),
+            existingCollection.aliasAddress
+          ]);
         }
 
-        startingCollectionDefault = {
+        startingCollectionDefault = new BitBadgesCollection({
           ...startingCollectionDefault,
           ...existingCollection,
 
           //Preview / simulated collection value
           collectionId: 0n
-        }
+        });
 
-        setStartingCollection(deepCopy(startingCollectionDefault));
+        setStartingCollection(startingCollectionDefault);
         setCollection(startingCollectionDefault);
       }
     }
@@ -477,22 +529,25 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     //All other updates are handled within CollectionContext
     //Here, we update the preview collection whenever claims, transfers, or badgesToCreate changes
     if (!startingCollection) return;
+    const newColl = startingCollection.clone();
+    newColl.getBadgeBalances('Mint')?.addBalances(badgesToCreate);
+    newColl.getBadgeBalances('Total')?.addBalances(badgesToCreate);
 
-    const newOwnersArr = incrementMintAndTotalBalances(0n, startingCollection?.owners ?? [], badgesToCreate);
-    const postSimulatedCollection = { owners: newOwnersArr, collectionId: NEW_COLLECTION_ID };
-    updateCollection(postSimulatedCollection);
+    updateCollection({
+      collectionId: NEW_COLLECTION_ID,
+      owners: newColl.owners
+    });
   }, [badgesToCreate, startingCollection]);
-
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  distribution method');
     setTransfers([]);
-    if (simulatedCollection?.balancesType === "Off-Chain - Indexed") {
+    if (simulatedCollection?.balancesType === 'Off-Chain - Indexed') {
       setUpdateCollectionApprovals(false);
       updateCollection({
         collectionId: NEW_COLLECTION_ID,
         collectionApprovals: [],
-        defaultBalances: {
+        defaultBalances: new UserBalanceStoreWithDetails({
           balances: [],
           incomingApprovals: [],
           outgoingApprovals: [],
@@ -500,24 +555,24 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateIncomingApprovals: [],
             canUpdateOutgoingApprovals: [],
             canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: []
           },
           autoApproveSelfInitiatedIncomingTransfers: true,
-          autoApproveSelfInitiatedOutgoingTransfers: true,
-        },
+          autoApproveSelfInitiatedOutgoingTransfers: true
+        })
       });
-    } else if (simulatedCollection?.balancesType === "Standard") {
+    } else if (simulatedCollection?.balancesType === 'Standard') {
       setUpdateCollectionApprovals(true);
       updateCollection({
         collectionId: NEW_COLLECTION_ID,
-        offChainBalancesMetadataTimeline: [],
+        offChainBalancesMetadataTimeline: []
       });
-    } else if (simulatedCollection?.balancesType === "Off-Chain - Non-Indexed") {
+    } else if (simulatedCollection?.balancesType === 'Off-Chain - Non-Indexed') {
       setUpdateCollectionApprovals(false);
       updateCollection({
         collectionId: NEW_COLLECTION_ID,
         collectionApprovals: [],
-        defaultBalances: {
+        defaultBalances: new UserBalanceStoreWithDetails({
           balances: [],
           incomingApprovals: [],
           outgoingApprovals: [],
@@ -525,12 +580,12 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
             canUpdateIncomingApprovals: [],
             canUpdateOutgoingApprovals: [],
             canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
+            canUpdateAutoApproveSelfInitiatedOutgoingTransfers: []
           },
           autoApproveSelfInitiatedIncomingTransfers: true,
-          autoApproveSelfInitiatedOutgoingTransfers: true,
-        },
-        offChainBalancesMetadataTimeline: [],
+          autoApproveSelfInitiatedOutgoingTransfers: true
+        }),
+        offChainBalancesMetadataTimeline: []
       });
     }
   }, [simulatedCollection?.balancesType]);
@@ -591,7 +646,7 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
 
     setExistingCollectionId: setExistingCollectionId,
     initialLoad,
-    setInitialLoad: () => { },
+    setInitialLoad: () => {},
 
     formStepNum,
     setFormStepNum,
@@ -600,11 +655,9 @@ export const TxTimelineContextProvider: React.FC<Props> = ({ children }) => {
     setCompleteControl,
     showAdvancedOptions,
     setShowAdvancedOptions
-  }
+  };
 
-  return <TxTimelineContext.Provider value={context}>
-    {children}
-  </TxTimelineContext.Provider>;
-}
+  return <TxTimelineContext.Provider value={context}>{children}</TxTimelineContext.Provider>;
+};
 
 export const useTxTimelineContext = () => useContext(TxTimelineContext);

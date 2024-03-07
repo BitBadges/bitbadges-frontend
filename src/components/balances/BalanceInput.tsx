@@ -1,4 +1,4 @@
-import { Balance, MustOwnBadges, UintRange } from 'bitbadgesjs-sdk';
+import { Balance, BalanceArray, MustOwnBadges, UintRange } from 'bitbadgesjs-sdk';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
 
 //Just a wrapper for BalanceDisplay. Should be unified in the future
@@ -20,27 +20,39 @@ export function BalanceInput({
   timeString,
   numIncrements,
   suggestedBalances,
-  noOffChainBalances
+  hideMessage,
+  noOffChainBalances,
+  oneBalanceOnly,
+  originalBalances
 }: {
-  balancesToShow: Balance<bigint>[],
-  onAddBadges: (balance: Balance<bigint>, amountRange?: UintRange<bigint>, collectionId?: bigint, mustSatisfyForAllAssets?: boolean, overrideWithCurrentTime?: boolean) => void,
-  onRemoveAll?: () => void,
-  collectionId?: bigint,
-  message?: string,
-  isMustOwnBadgesInput?: boolean,
-  setBalances?: (balances: Balance<bigint>[]) => void,
-  hideDisplay?: boolean
-  sequentialOnly?: boolean
-  fullWidthCards?: boolean
-  mustOwnBadges?: MustOwnBadges<bigint>[]
-  increment?: bigint
-  timeString?: string
-  setIncrement?: (increment: bigint) => void
-  numIncrements?: bigint
-  suggestedBalances?: Balance<bigint>[],
-  noOffChainBalances?: boolean
+  balancesToShow: BalanceArray<bigint>;
+  onAddBadges: (
+    balance: Balance<bigint>,
+    amountRange?: UintRange<bigint>,
+    collectionId?: bigint,
+    mustSatisfyForAllAssets?: boolean,
+    overrideWithCurrentTime?: boolean
+  ) => void;
+  onRemoveAll?: () => void;
+  collectionId?: bigint;
+  message?: string;
+  isMustOwnBadgesInput?: boolean;
+  setBalances?: (balances: BalanceArray<bigint>) => void;
+  hideDisplay?: boolean;
+  sequentialOnly?: boolean;
+  fullWidthCards?: boolean;
+  mustOwnBadges?: Array<MustOwnBadges<bigint>>;
+  increment?: bigint;
+  timeString?: string;
+  setIncrement?: (increment: bigint) => void;
+  numIncrements?: bigint;
+  suggestedBalances?: BalanceArray<bigint>;
+  noOffChainBalances?: boolean;
+  hideMessage?: boolean;
+  oneBalanceOnly?: boolean;
+  originalBalances?: BalanceArray<bigint>;
 }) {
-  return <>
+  return (
     <BalanceDisplay
       suggestedBalances={suggestedBalances}
       collectionId={collectionId ?? 0n}
@@ -48,24 +60,24 @@ export function BalanceInput({
       isMustOwnBadgesInput={isMustOwnBadgesInput}
       balances={balancesToShow}
       message={message ?? 'Balances'}
-      showingSupplyPreview={message == "Circulating Supplys"}
-      hideMessage={hideDisplay}
+      showingSupplyPreview={message == 'Circulating Supplys'}
+      hideMessage={hideDisplay || hideMessage}
       hideBadges={hideDisplay}
       hideTable={hideDisplay}
       incrementBadgeIdsBy={increment}
       setIncrementBadgeIdsBy={setIncrement}
       numIncrements={numIncrements}
-
+      originalBalances={originalBalances}
       //Edit props
       onAddBadges={onAddBadges}
       noOffChainBalances={noOffChainBalances}
       editable
       onRemoveAll={onRemoveAll}
       setBalances={setBalances}
-
       sequentialOnly={sequentialOnly}
       fullWidthCards={fullWidthCards}
       timeString={timeString}
+      oneBalanceOnly={oneBalanceOnly}
     />
-  </>
+  );
 }

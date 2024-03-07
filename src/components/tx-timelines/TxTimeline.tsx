@@ -6,11 +6,11 @@ import { UpdateCollectionTimeline } from './UpdateCollectionTimeline';
 
 export function TxTimeline({
   collectionId,
-  addressListId,
+  addressListId
 }: {
-  collectionId?: bigint,
-  onFinish?: ((props: MsgUniversalUpdateCollectionProps) => void),
-  addressListId?: string,
+  collectionId?: bigint;
+  onFinish?: (props: MsgUniversalUpdateCollectionProps) => void;
+  addressListId?: string;
 }) {
   const txTimelineContext = useTxTimelineContext();
 
@@ -20,11 +20,14 @@ export function TxTimeline({
     txTimelineContext.resetState(collectionId, addressListId);
   }, [collectionId, addressListId]);
 
-  if (!txTimelineContext.initialLoad) return <div className='primary-text inherit-bg' style={{ minHeight: '100vh' }} >
-    <Spin size='large' />
-    <Divider />
-    {<p>Fetching all details for this collection. This may take some time.</p>}
-  </ div>
+  if (!txTimelineContext.initialLoad)
+    return (
+      <div className="primary-text inherit-bg" style={{ minHeight: '100vh' }}>
+        <Spin size="large" />
+        <Divider />
+        {<p>Fetching all details for this collection. This may take some time.</p>}
+      </div>
+    );
 
-  return <UpdateCollectionTimeline />
+  return <UpdateCollectionTimeline />;
 }

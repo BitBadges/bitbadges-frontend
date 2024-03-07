@@ -1,4 +1,4 @@
-import { MsgUpdateUserApprovals } from 'bitbadgesjs-sdk';
+import { MsgUpdateUserApprovals, UserPermissions } from 'bitbadgesjs-sdk';
 import { UserOutgoingApprovalWithDetails } from 'bitbadgesjs-sdk';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
@@ -8,21 +8,28 @@ import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitb
 import { EditableUserApprovalsTab } from '../collection-page/transferability/ApprovalsTab';
 import { TxModal } from './TxModal';
 
-export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visible, setVisible, children }: {
-  collectionId: bigint,
-  visible: boolean,
-  setVisible: (visible: boolean) => void,
-  children?: React.ReactNode
+export function CreateTxMsgUpdateUserOutgoingApprovalsModal({
+  collectionId,
+  visible,
+  setVisible,
+  children
+}: {
+  collectionId: bigint;
+  visible: boolean;
+  setVisible: (visible: boolean) => void;
+  children?: React.ReactNode;
 }) {
   const chain = useChainContext();
   const collection = useCollection(collectionId);
 
-  const [newOutgoingApprovals, setNewOutgoingApprovals] = useState<UserOutgoingApprovalWithDetails<bigint>[]>(collection?.owners.find(x => x.cosmosAddress === chain.cosmosAddress)?.outgoingApprovals ?? []);
+  const [newOutgoingApprovals, setNewOutgoingApprovals] = useState<Array<UserOutgoingApprovalWithDetails<bigint>>>(
+    collection?.owners.find((x) => x.cosmosAddress === chain.cosmosAddress)?.outgoingApprovals ?? []
+  );
 
   useEffect(() => {
     async function getApproveeBalance() {
       const balanceInfo = await fetchBalanceForUser(collectionId, chain.cosmosAddress);
-      setNewOutgoingApprovals((balanceInfo?.outgoingApprovals ?? []));
+      setNewOutgoingApprovals(balanceInfo?.outgoingApprovals ?? []);
     }
     getApproveeBalance();
   }, [chain.cosmosAddress, collectionId]);
@@ -30,36 +37,33 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
   const items = [
     {
       title: 'Select',
-      description: <div style={{ textAlign: 'center', }}>
-        <EditableUserApprovalsTab
-          collectionId={collectionId}
-          userOutgoingApprovals={newOutgoingApprovals}
-          setUserOutgoingApprovals={setNewOutgoingApprovals}
-        />
-      </div>
-    },
+      description: (
+        <div style={{ textAlign: 'center' }}>
+          <EditableUserApprovalsTab
+            collectionId={collectionId}
+            userOutgoingApprovals={newOutgoingApprovals}
+            setUserOutgoingApprovals={setNewOutgoingApprovals}
+          />
+        </div>
+      )
+    }
   ];
 
   const txsInfo = useMemo(() => {
-    const txCosmosMsg: MsgUpdateUserApprovals<bigint> = {
+    const txCosmosMsg = new MsgUpdateUserApprovals<bigint>({
       creator: chain.cosmosAddress,
       collectionId: collectionId,
       updateUserPermissions: false,
-      userPermissions: {
-        canUpdateIncomingApprovals: [],
-        canUpdateOutgoingApprovals: [],
-        canUpdateAutoApproveSelfInitiatedIncomingTransfers: [],
-        canUpdateAutoApproveSelfInitiatedOutgoingTransfers: [],
-      },
+      userPermissions: UserPermissions.InitEmpty(),
       updateIncomingApprovals: false,
       updateOutgoingApprovals: true,
       incomingApprovals: [],
-      outgoingApprovals: newOutgoingApprovals.filter(x => x.approvalId !== 'self-initiated-incoming' && x.approvalId !== 'self-initiated-outgoing'),
+      outgoingApprovals: newOutgoingApprovals.filter((x) => x.approvalId !== 'self-initiated-incoming' && x.approvalId !== 'self-initiated-outgoing'),
       autoApproveSelfInitiatedIncomingTransfers: false,
       autoApproveSelfInitiatedOutgoingTransfers: false,
       updateAutoApproveSelfInitiatedIncomingTransfers: false,
-      updateAutoApproveSelfInitiatedOutgoingTransfers: false,
-    };
+      updateAutoApproveSelfInitiatedOutgoingTransfers: false
+    });
 
     return [
       {
@@ -70,20 +74,12 @@ export function CreateTxMsgUpdateUserOutgoingApprovalsModal({ collectionId, visi
           await fetchAccounts([chain.cosmosAddress], true);
         }
       }
-    ]
+    ];
   }, [chain.cosmosAddress, collectionId, newOutgoingApprovals]);
 
   return (
-    <TxModal
-      msgSteps={items}
-      visible={visible}
-      setVisible={setVisible}
-      txsInfo={txsInfo}
-      txName="Update Approvals"
-      style={{ minWidth: '95%' }}
-    >
+    <TxModal msgSteps={items} visible={visible} setVisible={setVisible} txsInfo={txsInfo} txName="Update Approvals" style={{ minWidth: '95%' }}>
       {children}
     </TxModal>
-
   );
 }

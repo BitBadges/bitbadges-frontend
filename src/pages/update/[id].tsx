@@ -18,15 +18,15 @@ function Update() {
   return (
     <DisconnectedWrapper
       requireLogin
-      message='Please connect a wallet and sign in to access this page.'
+      message="Please connect a wallet and sign in to access this page."
       node={
         <RegisteredWrapper
-          message='Please register to access this page.'
+          message="Please register to access this page."
           node={
             <Content
               style={{
                 textAlign: 'center',
-                minHeight: '100vh',
+                minHeight: '100vh'
               }}
             >
               <div
@@ -35,17 +35,13 @@ function Update() {
                   marginRight: '3vw',
                   paddingLeft: '1vw',
                   paddingRight: '1vw',
-                  paddingTop: '20px',
+                  paddingTop: '20px'
                 }}
               >
                 <TxTimeline
-                  addressListId={
-                    (id as string).indexOf("_") >= 0 ? id as string : undefined
-                  }
-                  collectionId={
-                    !((id as string).indexOf("_") >= 0) ? BigInt(id as string) : undefined
-                  } />
-
+                  addressListId={(id as string).includes('_') ? (id as string) : undefined}
+                  collectionId={!(id as string).includes('_') ? BigInt(id as string) : undefined}
+                />
               </div>
             </Content>
           }

@@ -1,5 +1,5 @@
 import { Layout, Spin } from 'antd';
-import { BigIntify, convertBlockinAuthSignatureDoc, convertToCosmosAddress } from 'bitbadgesjs-sdk';
+import { BigIntify, BlockinAuthSignatureDoc, convertToCosmosAddress } from 'bitbadgesjs-sdk';
 import { ChallengeParams, constructChallengeObjectFromString } from 'blockin';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -30,41 +30,42 @@ function QRCode() {
     getParams();
   }, [code, params]);
 
-
-  if (!code) return <div className='flex-center' style={{ minHeight: '100vh' }}>
-    <Spin size='large' />
-  </div>;
-
+  if (!code)
+    return (
+      <div className="flex-center" style={{ minHeight: '100vh' }}>
+        <Spin size="large" />
+      </div>
+    );
 
   const qrCode = code as string;
   return (
-    <Content
-      className="full-area"
-      style={{ minHeight: '100vh', padding: 8 }}
-    >
-      <div className='flex-center'>
-        {qrCode && params &&
-          <InformationDisplayCard md={12} xs={24} title='' style={{ marginTop: 16, textAlign: 'left' }}>
-            <div className='flex-center'>
-              {<AuthCode
+    <Content className="full-area" style={{ minHeight: '100vh', padding: 8 }}>
+      <div className="flex-center">
+        {qrCode && params && (
+          <InformationDisplayCard md={12} xs={24} title="" style={{ marginTop: 16, textAlign: 'left' }}>
+            <div className="flex-center">
+              <AuthCode
                 ported
                 onlyShowCode
-                setSavedAuthCodes={() => { }}
-                authCode={convertBlockinAuthSignatureDoc({
-                  _docId: '',
-                  signature: qrCode,
-                  name: name as string ?? '',
-                  description: description as string ?? '',
-                  image: image as string ?? '',
-                  params: params,
-                  createdAt: Date.now(),
-                  cosmosAddress: convertToCosmosAddress(params?.address as string),
-                }, BigIntify)} />}
+                setSavedAuthCodes={() => {}}
+                authCode={
+                  new BlockinAuthSignatureDoc({
+                    _docId: '',
+                    signature: qrCode,
+                    name: (name as string) ?? '',
+                    description: (description as string) ?? '',
+                    image: (image as string) ?? '',
+                    params: params,
+                    createdAt: BigInt(Date.now()),
+                    cosmosAddress: convertToCosmosAddress(params?.address)
+                  })
+                }
+              />
             </div>
           </InformationDisplayCard>
-        }
+        )}
       </div>
-    </ Content >
+    </Content>
   );
 }
 

@@ -1,98 +1,95 @@
-import { CheckCircleFilled, InfoCircleOutlined } from '@ant-design/icons';
+import { CheckCircleFilled } from '@ant-design/icons';
 import { Input, Typography } from 'antd';
-import { MsgTransferBadges } from 'bitbadgesjs-sdk';
-import { CollectionApprovalWithDetails, applyIncrementsToBalances, convertToCosmosAddress, isInAddressList, searchUintRangesForId } from 'bitbadgesjs-sdk';
+import { CollectionApprovalWithDetails, MsgTransferBadges, applyIncrementsToBalances, convertToCosmosAddress } from 'bitbadgesjs-sdk';
 import SHA256 from 'crypto-js/sha256';
-import MerkleTree from 'merkletreejs';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { getCodeForPassword } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
 import { BalanceDisplay } from '../balances/BalanceDisplay';
 import { BlockinDisplay } from '../blockin/BlockinDisplay';
+import { ClaimInputs } from '../collection-page/transferability/OffChainTransferabilityTab';
 import { PredeterminedCard } from '../collection-page/transferability/PredeterminedCard';
 import { ErrDisplay } from '../common/ErrDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { getTreeForApproval } from './CreateTxMsgTransferBadges';
 import { TxModal } from './TxModal';
-
 
 //Claim badge is exclusively used for predetermined balances
 //For other standard tramsfers, use CreateTxMsgTransferBadgesModal
-export function CreateTxMsgClaimBadgeModal(
-  {
-    collectionId, visible, approval, setVisible, children
-  }: {
-    collectionId: bigint,
-    visible: boolean,
-    setVisible: (visible: boolean) => void,
-    children?: React.ReactNode,
-    approval: CollectionApprovalWithDetails<bigint>,
-  }
-) {
+export function CreateTxMsgClaimBadgeModal({
+  collectionId,
+  visible,
+  approval,
+  setVisible,
+  children
+}: {
+  collectionId: bigint;
+  visible: boolean;
+  setVisible: (visible: boolean) => void;
+  children?: React.ReactNode;
+  approval: CollectionApprovalWithDetails<bigint>;
+}) {
   const chain = useChainContext();
   const router = useRouter();
   const collection = useCollection(collectionId);
-
 
   const approvalId = approval.approvalId;
   const approvalCriteria = approval?.approvalCriteria;
   const hasPredetermined = approvalCriteriaUsesPredeterminedBalances(approvalCriteria);
   const precalculationId = hasPredetermined ? approvalId : '';
   const claimItem = approval.approvalCriteria?.merkleChallenge?.root ? approval.approvalCriteria?.merkleChallenge : undefined;
-  const challengeTracker = collection?.merkleChallenges.find(x => x.challengeId === approval.challengeTrackerId);
+  const challengeTracker = collection?.merkleChallenges.find((x) => x.challengeId === approval.challengeTrackerId);
   const requiresProof = !!approvalCriteria?.merkleChallenge?.root;
   const isWhitelist = claimItem?.useCreatorAddressAsLeaf ?? false;
   const details = approval.details;
   const merkleChallenge = approval.approvalCriteria && approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
-  const claim = merkleChallenge
-  const leavesDetails = approval?.details?.challengeDetails?.leavesDetails;
-  const treeOptions = approval?.details?.challengeDetails?.treeOptions;
-  const hasPassword = approval.details?.hasPassword;
-
+  const claim = merkleChallenge;
+  const fetchedPlugins =
+    approval.details?.offChainClaims && approval.details?.offChainClaims.length > 0 ? approval.details?.offChainClaims[0].plugins : [];
+  const isManualDistribution =
+    approval.details?.offChainClaims && approval.details?.offChainClaims.length > 0 ? approval.details?.offChainClaims[0].manualDistribution : false;
+  const claimId = approval.details?.offChainClaims && approval.details?.offChainClaims.length > 0 ? approval.details?.offChainClaims[0].claimId : '';
 
   const query = router.query;
   const codeQuery = query.code as string;
   const passwordQuery = query.password as string;
 
-  const [code, setCode] = useState<string>("");
-  const [passwordCodeToSubmit, setPasswordCodeToSubmit] = useState<string>("");
+  const [onChainCode, setOnChainCode] = useState<string>('');
   const [recipient, setRecipient] = useState<string>(chain.address);
-  const [address, setAddress] = useState<string>(chain.address);
 
   const recipientAccount = useAccount(recipient);
-
   const tree = useMemo(() => {
     if (INFINITE_LOOP_MODE) console.log('useMemo:  tree');
     if (!visible) return null;
-    if (!merkleChallenge) return null;
-    return new MerkleTree(leavesDetails?.leaves.map(x => leavesDetails?.isHashed ? x : SHA256(x)) ?? [], SHA256, treeOptions);
-  }, [merkleChallenge, leavesDetails, treeOptions, visible]);
+    if (!approval) return null;
 
+    return getTreeForApproval(approval);
+  }, [approval, visible]);
 
   //auto populate if navigated to page with a URL query (e.g. QR code)
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect: claim display query');
     if (!visible) return;
     if (codeQuery) {
-      if (setCode) setCode(codeQuery as string);
+      if (setOnChainCode) setOnChainCode(codeQuery);
     } else if (passwordQuery) {
-      if (setCode) setCode(passwordQuery as string);
+      if (setOnChainCode) setOnChainCode(passwordQuery);
     }
-  }, [codeQuery, passwordQuery, setCode, visible]);
+  }, [codeQuery, passwordQuery, setOnChainCode, visible]);
 
   const calculationMethod = approvalCriteria?.predeterminedBalances?.orderCalculationMethod;
 
-  const claimCode = details?.hasPassword ? passwordCodeToSubmit : code;
+  const claimCode = onChainCode;
 
-  const leafIndex: number = (claim?.useCreatorAddressAsLeaf ?
-    approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x.includes(chain.cosmosAddress))
-    : approval.details?.challengeDetails?.leavesDetails.leaves.findIndex(x => x === SHA256(claimCode ?? '').toString())) ?? -1;
-
+  const leafIndex: number =
+    (claim?.useCreatorAddressAsLeaf
+      ? approval.details?.challengeDetails?.leavesDetails.leaves.findIndex((x) => x.includes(chain.cosmosAddress))
+      : approval.details?.challengeDetails?.leavesDetails.leaves.findIndex((x) => x === SHA256(claimCode ?? '').toString())) ?? -1;
 
   //There are many different cases that can happen here as to why a user can not claim
   //1. Not connected to wallet
@@ -100,7 +97,7 @@ export function CreateTxMsgClaimBadgeModal(
   //3. Only one claim per address and user has already claimed
   //4. Only one claim per code and code has been used
   //5. Could not fetch claim data when it was created (most likely due to not being created through BitBadges website and being incompatible)
-  const [, validTime] = searchUintRangesForId(BigInt(Date.now()), approval.transferTimes);
+  const validTime = approval.transferTimes.searchIfExists(BigInt(Date.now()));
   let errorMessage = '';
   let cantClaim = false;
   let notConnected = false;
@@ -110,129 +107,115 @@ export function CreateTxMsgClaimBadgeModal(
     cantClaim = true;
     notConnected = true;
     errorMessage = 'Please connect to claim!';
-  } else if (claim && details?.hasPassword && !chain.loggedIn) {
+  } else if (claim && fetchedPlugins.length > 0 && !chain.loggedIn) {
     cantClaim = true;
     notConnected = true;
     errorMessage = 'Please sign in with your wallet!';
   } else if (!details && approvalCriteria?.merkleChallenge?.root) {
     cantClaim = true;
-    errorMessage = 'The details for this claim were not found. This is usually the case when a badge collection is not created through the BitBadges website and incompatible.';
+    errorMessage =
+      'The details for this claim were not found. This is usually the case when a badge collection is not created through the BitBadges website and incompatible.';
   } else if ((approvalCriteria?.predeterminedBalances?.manualBalances ?? []).length > 0) {
     cantClaim = true;
     errorMessage = 'This claim uses manual predetermined balances which is not currently supported.';
   } else if (!validTime) {
     cantClaim = true;
     errorMessage = 'This claim is not currently active! Invalid time.';
-  } else if (claim && claim.root && claim.useCreatorAddressAsLeaf && !details?.challengeDetails.leavesDetails.leaves.find(y => y.includes(chain.cosmosAddress))) {
+  } else if (
+    claim?.root &&
+    claim.useCreatorAddressAsLeaf &&
+    !details?.challengeDetails?.leavesDetails.leaves.find((y) => y.includes(chain.cosmosAddress))
+  ) {
     cantClaim = true;
     errorMessage = 'You are not on the whitelist for this claim!';
-  } else if (code && !hasPassword && challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
+  } else if (challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
     cantClaim = true;
-    errorMessage = 'The entered code has already been used!';
-  } else if (code && challengeTracker?.usedLeafIndices?.includes(BigInt(leafIndex))) {
-    cantClaim = true;
-    errorMessage = 'The entered password has already been used!';
-  } else if (code && leafIndex < 0) {
+    errorMessage = 'You are attempting to use a previously used value!';
+  } else if (onChainCode && leafIndex < 0) {
     cantClaim = true;
     errorMessage = 'The entered code / password is invalid!';
-  } else if (claim && claim.root && !claim.useCreatorAddressAsLeaf && !code) {
+  } else if (claim?.root && !claim.useCreatorAddressAsLeaf && !onChainCode && (details?.hasPassword || fetchedPlugins.length == 0)) {
     cantClaim = true;
     errorMessage = 'No code / password has been entered.';
-  } else if (approval && !(isInAddressList(approval.initiatedByList, chain.cosmosAddress) || isInAddressList(approval.initiatedByList, chain.address))) {
+  } else if (approval && !(approval.initiatedByList.checkAddress(chain.cosmosAddress) || approval.initiatedByList.checkAddress(chain.address))) {
     cantClaim = true;
     errorMessage = 'You are excluded from the list of approved addresses.';
-  } else if (approval && !(isInAddressList(approval.toList, recipientAccount?.cosmosAddress ?? '') || isInAddressList(approval.toList, recipientAccount?.cosmosAddress ?? ''))) {
+  } else if (
+    approval &&
+    !(approval.toList.checkAddress(recipientAccount?.cosmosAddress ?? '') || approval.toList.checkAddress(recipientAccount?.cosmosAddress ?? ''))
+  ) {
     cantClaim = true;
     errorMessage = 'The recipient is excluded from the list of addresses that can receive.';
+  } else if ((fetchedPlugins ?? []).length > 0 && !onChainCode) {
+    cantClaim = true;
+    errorMessage = 'Please complete the form to claim!';
   }
 
-  const isMint = approval.fromListId === 'Mint'
+  const isMint = approval.fromListId === 'Mint';
 
-  useEffect(() => {
-    if (claimItem && approval.details?.hasPassword) {
-      const timeout = setTimeout(() => {
-        fetchCodeForPassword();
-      }, 900);
-
-      return () => clearTimeout(timeout);
-
-    } else {
-      setPasswordCodeToSubmit(code);
-    }
-  }, [code, claimItem, approval]);
-
-  async function fetchCodeForPassword() {
-    if (!visible || !code) return;
-
-    if (approval && approval.details?.hasPassword) {
-      let claimItemCid = '';
-      if (approval.uri?.startsWith('ipfs://')) {
-        claimItemCid = approval.uri.split('ipfs://')[1];
-        claimItemCid = claimItemCid.split('/')[0];
-      }
-      if (code) {
-        try {
-          const res = await getCodeForPassword(collectionId, claimItemCid, code);
-          setPasswordCodeToSubmit(res.code);
-          console.log(res.code);
-        } catch (e) {
-
-        }
-      }
-    }
-  }
-
-  const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(passwordCodeToSubmit).toString();
+  const leaf = isWhitelist ? SHA256(chain.cosmosAddress).toString() : SHA256(onChainCode).toString();
   const proofObj = tree?.getProof(leaf, leafIndex !== undefined && leafIndex >= 0 ? leafIndex : undefined);
   const isValidProof = proofObj && tree && proofObj.length === tree.getLayerCount() - 1;
-  const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0))
-  const reservedAddress = claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0);
+  const reservedCode = !(claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !onChainCode || !(leafIndex >= 0));
+  const reservedAddress = claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && leafIndex >= 0;
 
   const reservedBalances = applyIncrementsToBalances(
-    approvalCriteria?.predeterminedBalances?.incrementedBalances?.startBalances ?? [],
+    approvalCriteria?.predeterminedBalances?.incrementedBalances?.startBalances.clone() ?? [],
     approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ?? 0n,
     approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy ?? 0n,
     BigInt(leafIndex)
   );
 
   const txsInfo = useMemo(() => {
-    const txCosmosMsg: MsgTransferBadges<bigint> = {
+    const txCosmosMsg = new MsgTransferBadges({
       creator: chain.cosmosAddress,
       collectionId: collectionId,
-      transfers: [{
-        from: "Mint",
-        toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
-        balances: [],
-        precalculateBalancesFromApproval: {
-          approvalId: precalculationId ?? '',
-          approvalLevel: hasPredetermined ? "collection" : "",
-          approverAddress: "",
-        },
-        merkleProofs: requiresProof ? [{
-          aunts: proofObj ? proofObj.map((proof) => {
-            return {
-              aunt: proof.data.toString('hex'),
-              onRight: proof.position === 'right'
-            }
-          }) : [],
-          leaf: isWhitelist ? '' : passwordCodeToSubmit,
-        }] : [],
-        memo: '',
-        prioritizedApprovals: precalculationId ? [{
-          approvalId: precalculationId ?? '',
-          approvalLevel: "collection",
-          approverAddress: "",
-        }] : [],
-        onlyCheckPrioritizedApprovals: false,
-      }],
-    };
+      transfers: [
+        {
+          from: 'Mint',
+          toAddresses: [recipient ? convertToCosmosAddress(recipient) : chain.cosmosAddress],
+          balances: [],
+          precalculateBalancesFromApproval: {
+            approvalId: precalculationId ?? '',
+            approvalLevel: hasPredetermined ? 'collection' : '',
+            approverAddress: ''
+          },
+          merkleProofs: requiresProof
+            ? [
+                {
+                  aunts: proofObj
+                    ? proofObj.map((proof) => {
+                        return {
+                          aunt: proof.data.toString('hex'),
+                          onRight: proof.position === 'right'
+                        };
+                      })
+                    : [],
+                  leaf: isWhitelist ? '' : onChainCode
+                }
+              ]
+            : [],
+          memo: '',
+          prioritizedApprovals: precalculationId
+            ? [
+                {
+                  approvalId: precalculationId ?? '',
+                  approvalLevel: 'collection',
+                  approverAddress: ''
+                }
+              ]
+            : [],
+          onlyCheckPrioritizedApprovals: false
+        }
+      ]
+    });
 
     return [
       {
         type: 'MsgTransferBadges',
         msg: txCosmosMsg,
         afterTx: async () => {
-          await fetchCollections([collectionId], true)
+          await fetchCollections([collectionId], true);
 
           const addressesToFetch = [txCosmosMsg.creator, chain.cosmosAddress];
           for (const transfer of txCosmosMsg.transfers) {
@@ -241,163 +224,174 @@ export function CreateTxMsgClaimBadgeModal(
           }
 
           //Anything after the first 10 addresses will not be fetched and they can just refresh the page, if necessary
-          const prunedAddresses = [...new Set(addressesToFetch.map(x => convertToCosmosAddress(x)))].slice(0, 10);
+          const prunedAddresses = [...new Set(addressesToFetch.map((x) => convertToCosmosAddress(x)))].slice(0, 10);
           await fetchAccounts(prunedAddresses, true);
+
+          await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true }], true);
         }
       }
-    ]
-  }, [collectionId, chain.cosmosAddress, recipient, precalculationId, hasPredetermined, requiresProof, proofObj, isWhitelist, passwordCodeToSubmit]);
-
+    ];
+  }, [collectionId, chain.cosmosAddress, recipient, precalculationId, hasPredetermined, requiresProof, proofObj, isWhitelist, onChainCode]);
 
   if (!collection || !visible) return <></>;
-
-
 
   const items = [
     {
       title: 'Claim Details',
       disabled: cantClaim || !(isValidProof || !requiresProof),
-      description: <div>
+      description: (
+        <div>
+          <div className="flex flex-wrap">
+            <InformationDisplayCard md={12} xs={24} sm={24} title="Details" style={{ textAlign: 'center' }} subtitle={''}>
+              {errorMessage ? (
+                <>
+                  <ErrDisplay err={errorMessage} />
+                </>
+              ) : (
+                <></>
+              )}
+              <div className="flex-center full-width">
+                <div
+                  style={{
+                    padding: '0',
+                    textAlign: 'center',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}>
+                  <div style={{ alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
+                      {isMint && hasPredetermined && chain.connected && (
+                        <div className="full-width" style={{ textAlign: 'center' }}>
+                          <>
+                            <div style={{ textAlign: 'start' }}>
+                              <Typography.Text strong className="primary-text" style={{ marginBottom: 12 }}>
+                                {' '}
+                                Recipient
+                              </Typography.Text>
+                            </div>
 
-        <div className='flex flex-wrap'>
-          <InformationDisplayCard md={12} xs={24} sm={24} title='Details' style={{ textAlign: 'center' }} subtitle={''}>
-
-            {errorMessage ? <>
-              <ErrDisplay err={errorMessage} />
-            </> : <>
-              <br />
-
-            </>}
-            <div className="flex-center full-width">
-              <div style={{ padding: '0', textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ alignItems: 'center', justifyContent: 'center' }} >
-                  <div className="flex-center flex-wrap full-width" style={{ alignItems: 'normal' }}>
-
-                    {notConnected ? <>
-
-                      <div>
-                        <BlockinDisplay hideLogo hideLogin={!(claim && claim.root && details?.hasPassword)} />
-                      </div>
-                    </> : <>
-
-                      {isMint && claim && claim.root && !claim.useCreatorAddressAsLeaf && setCode ?
-                        <div className='full-width' style={{ textAlign: 'center' }}>
-                          {
-                            <>
-                              <div style={{ textAlign: 'start' }}>
-                                <Typography.Text strong className='primary-text' style={{ marginBottom: 12, textAlign: 'start' }}>
-                                  {details?.hasPassword ? 'Password' : 'Code'}</Typography.Text>
-                              </div>
-                              <Input
-                                placeholder={`Enter ${details?.hasPassword ? 'Password' : 'Code'}`}
-                                value={code}
-                                onInput={(e: any) => {
-                                  if (setCode) {
-                                    setCode(e.target.value);
-                                    setPasswordCodeToSubmit('');
-                                  }
-                                }
-                                }
-                                className="primary-text inherit-bg full-width"
-                                style={{
-                                  textAlign: 'center',
-                                  width: '100%',
-                                  marginTop: 10,
-                                }}
-                              />
-                              {details?.hasPassword && <>
-
-                                {!passwordCodeToSubmit && <>
-                                  <div className='secondary-text'>
-                                    <InfoCircleOutlined /> {`If correct, this will count as a use of the password (1 per address, ${details?.challengeDetails?.leavesDetails?.leaves.length - (leafIndex + 1)} total).`}
-                                  </div>
-                                </>}
-
-                                {!!passwordCodeToSubmit && <>
-
-                                  <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
-                                    {`The password is valid`} <CheckCircleFilled style={{ color: '#00FF00' }} />
-                                  </Typography.Text>
-                                </>}
-
-                              </>}
-                              {code && leafIndex >= 0 && !errorMessage && !details?.hasPassword && <>
-
-                                <Typography.Text strong className='secondary-text' style={{ fontSize: 16 }}>
-                                  {`The code is valid`} <CheckCircleFilled style={{ color: '#00FF00' }} />
-                                </Typography.Text>
-                              </>}
-
-                            </>
-                          }
-                          {claim?.useCreatorAddressAsLeaf || !calculationMethod?.useMerkleChallengeLeafIndex || !code || !(leafIndex >= 0) ? <></> : <>
+                            <AddressSelect
+                              switchable
+                              defaultValue={chain.address}
+                              onUserSelect={(val) => {
+                                if (setRecipient) setRecipient(val);
+                              }}
+                              disabled={approvalCriteria?.requireToEqualsInitiatedBy}
+                            />
                             <br />
-                            <br />
-                            <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>This is code #{leafIndex + 1} which is reserved claim #{leafIndex + 1}</Typography.Text>
-
                           </>
-                          }
 
-                        </div> : <></>}
-                    </>}
-                    <br />
-                    {isMint && hasPredetermined && chain.connected && <div className='full-width' style={{ textAlign: 'center' }}>
-                      {<>
-                        <br />
-                        <div style={{ textAlign: 'start' }}>
-
-                          <Typography.Text strong className='primary-text' style={{ marginBottom: 12 }}> Recipient</Typography.Text>
+                          {claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && leafIndex >= 0 ? (
+                            <>
+                              <Typography.Text strong className="primary-text" style={{ fontSize: 16 }}>
+                                This address has been reserved claim #{leafIndex + 1}.
+                              </Typography.Text>
+                            </>
+                          ) : (
+                            <></>
+                          )}
                         </div>
+                      )}
+                      <br />
+                      {notConnected ? (
+                        <>
+                          <div>
+                            <BlockinDisplay hideLogo hideLogin={!(claim?.root && details?.hasPassword)} />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {isMint && claim?.root && !claim.useCreatorAddressAsLeaf && setOnChainCode ? (
+                            <div className="full-width" style={{ textAlign: 'center' }}>
+                              {/* Little confusing but this is for the action codes (manually distributed). not plugin codes. */}
+                              {!details?.hasPassword && isManualDistribution && (
+                                <>
+                                  <div style={{ textAlign: 'start' }}>
+                                    <Typography.Text strong className="primary-text" style={{ marginBottom: 12, textAlign: 'start' }}>
+                                      {'Code'}
+                                    </Typography.Text>
+                                  </div>
+                                  <Input
+                                    placeholder={`Enter Code`}
+                                    value={onChainCode}
+                                    onInput={(e: any) => {
+                                      if (setOnChainCode) {
+                                        setOnChainCode(e.target.value);
+                                      }
+                                    }}
+                                    className="primary-text inherit-bg full-width"
+                                    style={{
+                                      textAlign: 'center',
+                                      width: '100%',
+                                      marginTop: 10
+                                    }}
+                                  />
+                                  <br />
+                                </>
+                              )}
 
-                        <AddressSelect switchable defaultValue={chain.address} onUserSelect={(val) => {
-                          if (setRecipient) setRecipient(val);
-                        }}
-                          disabled={approvalCriteria?.requireToEqualsInitiatedBy}
-                        />
-                        <br />
-                      </>}
-                      {claim?.useCreatorAddressAsLeaf && calculationMethod?.useMerkleChallengeLeafIndex && (leafIndex >= 0) ? <>
-                        <Typography.Text strong className='primary-text' style={{ fontSize: 16 }}>
-                          This address has been reserved claim #{leafIndex + 1}.
-                        </Typography.Text>
-                      </> : <></>}
-                    </div>}
+                              {!isManualDistribution && !onChainCode && (
+                                <ClaimInputs claimId={claimId} plugins={fetchedPlugins} docId={claimId} setOnChainCode={setOnChainCode} />
+                              )}
+
+                              {claim?.useCreatorAddressAsLeaf ||
+                              !calculationMethod?.useMerkleChallengeLeafIndex ||
+                              !onChainCode ||
+                              !(leafIndex >= 0) ? (
+                                <></>
+                              ) : (
+                                <>
+                                  <br />
+                                  <br />
+                                  <Typography.Text strong className="primary-text" style={{ fontSize: 16 }}>
+                                    This is code #{leafIndex + 1} which is reserved claim #{leafIndex + 1}
+                                  </Typography.Text>
+                                </>
+                              )}
+
+                              {!!onChainCode && !isManualDistribution && (
+                                <>
+                                  <Typography.Text strong className="secondary-text" style={{ fontSize: 16 }}>
+                                    {`All criteria is satisfied!`} <CheckCircleFilled style={{ color: '#00FF00' }} />
+                                  </Typography.Text>
+                                </>
+                              )}
+
+                              {onChainCode && leafIndex >= 0 && !errorMessage && !details?.hasPassword && isManualDistribution && (
+                                <>
+                                  <Typography.Text strong className="secondary-text" style={{ fontSize: 16 }}>
+                                    {`The code is valid`} <CheckCircleFilled style={{ color: '#00FF00' }} />
+                                  </Typography.Text>
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            <></>
+                          )}
+                        </>
+                      )}
+                      <br />
+                    </div>
                   </div>
-
-
-
-
                 </div>
               </div>
-
-            </div >
-          </InformationDisplayCard>
-          <InformationDisplayCard md={12} xs={24} sm={24} title='Badges to Receive' style={{ textAlign: 'center' }} subtitle={''}>
-            <br />
-            {reservedCode || reservedAddress ? <>
-              <BalanceDisplay
-                message={`Claim #${leafIndex + 1}`}
-                collectionId={collectionId}
-                balances={reservedBalances}
-
-              />
-            </> : <>
-              <PredeterminedCard
-                collectionId={collectionId} transfer={approval} address={address} setAddress={setAddress}
-              />
-            </>}
-          </InformationDisplayCard>
-        </div >
-        {/* <br />
-        <div className='secondary-text' style={{ textAlign: 'center' }}>
-          <InfoCircleOutlined /> These are the details for this claim.
-          All claims have a parent approval from which they are derived (which is the one you clicked to get here). All criteria in the parent approval must be satisfied in order to claim,
-          and once the claim is processed, it will increment the counters in the parent approval.
-        </div> */}
-        < br />
-      </div >
+            </InformationDisplayCard>
+            <InformationDisplayCard md={12} xs={24} sm={24} title="Badges to Receive" style={{ textAlign: 'center' }} subtitle={''}>
+              {reservedCode || reservedAddress ? (
+                <>
+                  <br />
+                  <BalanceDisplay message={`Claim #${leafIndex + 1}`} collectionId={collectionId} balances={reservedBalances} />
+                </>
+              ) : (
+                <PredeterminedCard collectionId={collectionId} transfer={approval} />
+              )}
+            </InformationDisplayCard>
+          </div>
+          <br />
+        </div>
+      )
     }
-  ]
+  ];
 
   console.log(txsInfo);
   return (
@@ -407,9 +401,9 @@ export function CreateTxMsgClaimBadgeModal(
       setVisible={setVisible}
       txsInfo={txsInfo}
       txName="Claim Badge"
+      requireLogin={fetchedPlugins.length > 0}
       disabled={requiresProof && !isValidProof}
-      msgSteps={items}
-    >
+      msgSteps={items}>
       {children}
     </TxModal>
   );

@@ -4,4 +4,4 @@ export const getPageDetails = (currPage: number, pageSize: number, min: number, 
   const endIdNum = max < startIdNum + pageSize - 1 ? max : startIdNum + pageSize - 1;
 
   return { start: startIdNum, end: endIdNum };
-}
+};

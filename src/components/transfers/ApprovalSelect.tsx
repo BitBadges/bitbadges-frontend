@@ -1,53 +1,67 @@
-import { FormOutlined, InfoCircleOutlined, LockOutlined, WarningOutlined } from '@ant-design/icons';
-import { Col, Input, Row, Switch, Tooltip, Typography, notification } from 'antd';
-import { AddressList, ApprovalAmounts, Balance, MustOwnBadges, deepCopy } from 'bitbadgesjs-sdk';
-import { ApprovalCriteriaWithDetails, ApprovalInfoDetails, CollectionApprovalPermissionWithDetails, CollectionApprovalWithDetails, DistributionMethod, MerkleChallengeWithDetails, Numberify, checkIfUintRangesOverlap, convertToCosmosAddress, getAllBadgeIdsToBeTransferred, getReservedAddressList, isAddressListEmpty, isFullUintRanges, isInAddressList, validateCollectionApprovalsUpdate } from 'bitbadgesjs-sdk';
+import { InfoCircleOutlined, LockOutlined, WarningOutlined } from '@ant-design/icons';
+import { Row, Switch, Tooltip, Typography } from 'antd';
+import {
+  AddressList,
+  ApprovalInfoDetails,
+  BalanceArray,
+  ClaimIntegrationPluginType,
+  CollectionApprovalPermissionWithDetails,
+  CollectionApprovalWithDetails,
+  MerkleChallengeWithDetails,
+  MustOwnBadges,
+  TransferWithIncrements,
+  UintRangeArray,
+  convertToCosmosAddress,
+  deepCopyPrimitives,
+  getAllBadgeIdsToBeTransferred,
+  iApprovalCriteriaWithDetails,
+  iApprovalInfoDetails,
+  iCollectionApprovalWithDetails,
+  validateCollectionApprovalsUpdate
+} from 'bitbadgesjs-sdk';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
-import { approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../bitbadges-api/utils/claims';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { DistributionMethod } from '../../bitbadges-api/types';
+import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
-import { getBadgeIdsString } from '../../utils/badgeIds';
-import { GO_MAX_UINT_64, getTimeRangesElement } from '../../utils/dates';
-import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
-import { BalanceDisplay } from '../balances/BalanceDisplay';
+import { IntegrationPluginDetails, getBlankPlugin, getPlugin, getPluginDetails } from '../../integrations/integrations';
+import { GO_MAX_UINT_64 } from '../../utils/dates';
 import { BalanceInput } from '../balances/BalanceInput';
+import { generateCodesFromSeed } from '../collection-page/transferability/OffChainTransferabilityTab';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { BadgeIDSelectWithSwitch } from '../inputs/BadgeIdRangesInput';
-import { DateRangeInput } from '../inputs/DateRangeInput';
-import { NumberInput } from '../inputs/NumberInput';
-import { RadioGroup } from '../inputs/Selects';
+import { DateSelectWithSwitch } from '../inputs/DateRangeInput';
+import { Tabs } from '../navigation/Tabs';
 import { AddressListSelectComponent } from './ApprovalSelectHelpers/AddressListsSelectComponent';
-import { ApprovalAmounts as ApprovalAmountsComponent } from './ApprovalSelectHelpers/ApprovalAmountsSelectComponent';
+import { ApprovalSelectAmountsCard } from './ApprovalSelectHelpers/ApprovalAmountsCard';
+import { ApprovalTemplates } from './ApprovalSelectHelpers/ApprovalTemplates';
 import { MaxUses } from './ApprovalSelectHelpers/MaxUsesSelectComponent';
-import { OrderCalculationMethod } from './ApprovalSelectHelpers/OrderCalculationComponent';
+import { ClaimBuilder } from './ClaimBuilder';
 import { ClaimMetadataSelect } from './ClaimMetadataSelectStep';
+import { BitBadgesClaimLogo } from '../../pages/lists/[listId]';
 
 const crypto = require('crypto');
 
-export enum CodeType {
+export enum DistributionType {
   None,
-  Unique,
-  Reusable
+  Manual,
+  Builder
 }
 
-export enum AmountType {
+export enum PredeterminedTab {
   Tally,
-  Predetermined,
-}
-
-export enum PredeterminedType {
-  Dynamic,
-  Same,
+  AllOrNothing,
   NoLimit
 }
 
-export type RequiredApprovalProps = CollectionApprovalWithDetails<bigint> & { approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>>, details: ApprovalInfoDetails<bigint> };
+export type RequiredApprovalProps = iCollectionApprovalWithDetails<bigint> & {
+  approvalCriteria: Required<iApprovalCriteriaWithDetails<bigint>>;
+  details: iApprovalInfoDetails<bigint>;
+};
 
-//Get minimum value but ignore 0 values 
+//Get minimum value but ignore 0 values
 const minNonZeroValue = (values: bigint[]) => {
   let min = GO_MAX_UINT_64;
   for (const value of values) {
@@ -56,64 +70,66 @@ const minNonZeroValue = (values: bigint[]) => {
     }
   }
   return min;
-}
-
-
-
+};
 
 //Gets the max increments applied to the approval
 //Basicallly, it is the minimum value set for overall max uses and the selected usePer max uses (where applicable)
-export const getMaxIncrementsApplied = (
-  approvalToAdd: RequiredApprovalProps,
-) => {
-  const checkedKeyId = Object.entries(approvalToAdd?.approvalCriteria?.predeterminedBalances?.orderCalculationMethod || {}).find(([, val]) => val === true)?.[0];
+export const getMaxIncrementsApplied = (approvalToAdd: RequiredApprovalProps) => {
+  const checkedKeyId = Object.entries(approvalToAdd.approvalCriteria?.predeterminedBalances?.orderCalculationMethod || {}).find(
+    ([, val]) => val === true
+  )?.[0];
   let maxIncrementsApplied = 0n;
   if (checkedKeyId === 'useOverallNumTransfers' || checkedKeyId === 'useMerkleChallengeLeafIndex' || !checkedKeyId) {
     maxIncrementsApplied = approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers;
   } else if (checkedKeyId === 'usePerFromAddressNumTransfers') {
-    maxIncrementsApplied = minNonZeroValue([approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers, approvalToAdd.approvalCriteria.maxNumTransfers.perFromAddressMaxNumTransfers]);
+    // If requireFromEqualsInitiatedBy is true, then use perInitiatedByAddressMaxNumTransfers
+    maxIncrementsApplied = minNonZeroValue([
+      approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers,
+      approvalToAdd.approvalCriteria.requireFromEqualsInitiatedBy
+        ? approvalToAdd.approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers
+        : approvalToAdd.approvalCriteria.maxNumTransfers.perFromAddressMaxNumTransfers
+    ]);
   } else if (checkedKeyId === 'usePerInitiatedByAddressNumTransfers') {
-    maxIncrementsApplied = minNonZeroValue([approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers, approvalToAdd.approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers]);
+    maxIncrementsApplied = minNonZeroValue([
+      approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers,
+      approvalToAdd.approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers
+    ]);
   } else if (checkedKeyId === 'usePerToAddressNumTransfers') {
-    maxIncrementsApplied = minNonZeroValue([approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers, approvalToAdd.approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers]);
+    maxIncrementsApplied = minNonZeroValue([
+      approvalToAdd.approvalCriteria.maxNumTransfers.overallMaxNumTransfers,
+      approvalToAdd.approvalCriteria.requireToEqualsInitiatedBy
+        ? approvalToAdd.approvalCriteria.maxNumTransfers.perInitiatedByAddressMaxNumTransfers
+        : approvalToAdd.approvalCriteria.maxNumTransfers.perToAddressMaxNumTransfers
+    ]);
   }
 
   return maxIncrementsApplied;
-}
+};
 
-export const getAllApprovedBadges = (
-  approvalToAdd: RequiredApprovalProps,
-  amountType: AmountType,
-  startBalances: Balance<bigint>[],
-  increment: bigint,
-) => {
-  if (amountType === AmountType.Tally) {
-    return approvalToAdd.badgeIds
+export const getAllApprovedBadges = (approvalToAdd: RequiredApprovalProps, startBalances: BalanceArray<bigint>, increment: bigint) => {
+  if (!approvalCriteriaUsesPredeterminedBalances(approvalToAdd.approvalCriteria)) {
+    return approvalToAdd.badgeIds;
   } else {
     const maxIncrementsApplied = getMaxIncrementsApplied(approvalToAdd);
     const allApprovedBadges = getAllBadgeIdsToBeTransferred([
-      {
+      new TransferWithIncrements({
         from: '',
-        balances: startBalances.map(x => { return { ...x, amount: 1n } }),
+        balances: startBalances.map((x) => {
+          return { ...x, amount: 1n };
+        }),
         toAddressesLength: maxIncrementsApplied,
         toAddresses: [],
-        incrementBadgeIdsBy: increment > 0 ? increment : 0n,
-        incrementOwnershipTimesBy: 0n,
-      }
+        incrementBadgeIdsBy: increment,
+        incrementOwnershipTimesBy: 0n
+      })
     ]);
-    console.log("APPROVVED", approvalToAdd.badgeIds, allApprovedBadges)
     return allApprovedBadges;
   }
-}
-
-
-
+};
 
 export function ApprovalSelect({
   collectionId,
   setVisible,
-  distributionMethod,
-  setDistributionMethod,
   defaultFromList,
   fromListLocked,
   defaultApproval,
@@ -129,50 +145,40 @@ export function ApprovalSelect({
   approvalPermissions
 }: {
   fromListLocked?: boolean;
-  defaultFromList?: AddressList,
-  defaultToList?: AddressList,
-  defaultInitiatedByList?: AddressList,
+  defaultFromList?: AddressList;
+  defaultToList?: AddressList;
+  defaultInitiatedByList?: AddressList;
   toListLocked?: boolean;
   initiatedByListLocked?: boolean;
   hideTransferDisplay?: boolean;
   collectionId: bigint;
-  distributionMethod: DistributionMethod;
-  setDistributionMethod: (distributionMethod: DistributionMethod) => void;
   hideRemaining?: boolean;
   setVisible?: (visible: boolean) => void;
-  defaultApproval?: CollectionApprovalWithDetails<bigint>
+  defaultApproval?: CollectionApprovalWithDetails<bigint>;
   showMintingOnlyFeatures?: boolean;
-  approvalsToAdd: CollectionApprovalWithDetails<bigint>[];
-  setApprovalsToAdd: (approvalsToAdd: CollectionApprovalWithDetails<bigint>[]) => void;
+  approvalsToAdd: Array<CollectionApprovalWithDetails<bigint>>;
+  setApprovalsToAdd: (approvalsToAdd: Array<CollectionApprovalWithDetails<bigint>>) => void;
   hideCollectionOnlyFeatures?: boolean;
-  startingApprovals: CollectionApprovalWithDetails<bigint>[];
-  approvalPermissions: CollectionApprovalPermissionWithDetails<bigint>[]
+  startingApprovals: Array<CollectionApprovalWithDetails<bigint>>;
+  approvalPermissions: Array<CollectionApprovalPermissionWithDetails<bigint>>;
 }) {
-  const isEdit = !!defaultApproval
+  const isEdit = !!defaultApproval;
   const nonMintOnlyApproval = defaultFromList?.listId === '!Mint';
   const mintOnlyApproval = defaultFromList?.listId === 'Mint' && fromListLocked;
 
-  const chain = useChainContext();
-  const collection = useCollection(collectionId);
-  const [showMustOwnBadges, setShowMustOwnBadges] = useState(false);
-  const [codeType, setCodeType] = useState(CodeType.None);
-  const [claimPassword, setClaimPassword] = useState('');
-  const [predeterminedType, setPredeterminedType] = useState(PredeterminedType.NoLimit);
-
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
-
-  const defaultApprovalToAdd: CollectionApprovalWithDetails<bigint> & {
-    approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>>
-    details: ApprovalInfoDetails<bigint>
+  const defaultApprovalToAdd: iCollectionApprovalWithDetails<bigint> & {
+    approvalCriteria: Required<iApprovalCriteriaWithDetails<bigint>>;
+    details: iApprovalInfoDetails<bigint>;
   } = {
     fromListId: defaultFromList ? defaultFromList.listId : 'Mint',
-    fromList: defaultFromList ? defaultFromList : getReservedAddressList("Mint"),
+    fromList: defaultFromList ? defaultFromList : AddressList.getReservedAddressList('Mint'),
     toListId: defaultToList ? defaultToList.listId : 'All',
-    toList: defaultToList ? defaultToList : getReservedAddressList("All"),
+    toList: defaultToList ? defaultToList : AddressList.AllAddresses(),
     initiatedByListId: defaultInitiatedByList ? defaultInitiatedByList.listId : 'All',
-    initiatedByList: defaultInitiatedByList ? defaultInitiatedByList : getReservedAddressList("All"),
-    transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-    ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
+    initiatedByList: defaultInitiatedByList ? defaultInitiatedByList : AddressList.AllAddresses(),
+    transferTimes: UintRangeArray.FullRanges(),
+    ownershipTimes: UintRangeArray.FullRanges(),
     badgeIds: [],
     approvalId: '',
     amountTrackerId: '',
@@ -187,40 +193,39 @@ export function ApprovalSelect({
       challengeDetails: {
         leavesDetails: {
           leaves: [],
-          isHashed: false,
-        },
+          isHashed: false
+        }
       },
-      ...defaultApproval?.details,
+      ...defaultApproval?.details
     },
     approvalCriteria: {
-
       mustOwnBadges: [],
       approvalAmounts: {
         overallApprovalAmount: 0n,
         perFromAddressApprovalAmount: 0n,
         perToAddressApprovalAmount: 0n,
-        perInitiatedByAddressApprovalAmount: 0n,
+        perInitiatedByAddressApprovalAmount: 0n
       },
       maxNumTransfers: {
         overallMaxNumTransfers: 0n,
         perFromAddressMaxNumTransfers: 0n,
         perToAddressMaxNumTransfers: 0n,
-        perInitiatedByAddressMaxNumTransfers: 0n,
+        perInitiatedByAddressMaxNumTransfers: 0n
       },
       predeterminedBalances: {
         manualBalances: [],
         incrementedBalances: {
           startBalances: [],
           incrementBadgeIdsBy: 0n,
-          incrementOwnershipTimesBy: 0n,
+          incrementOwnershipTimesBy: 0n
         },
         orderCalculationMethod: {
           useMerkleChallengeLeafIndex: false,
           useOverallNumTransfers: false,
           usePerFromAddressNumTransfers: false,
           usePerInitiatedByAddressNumTransfers: false,
-          usePerToAddressNumTransfers: false,
-        },
+          usePerToAddressNumTransfers: false
+        }
       },
       merkleChallenge: {
         root: '',
@@ -229,9 +234,9 @@ export function ApprovalSelect({
         useCreatorAddressAsLeaf: false,
         maxUsesPerLeaf: 1n,
         uri: '',
-        customData: '',
+        customData: ''
       }, //handled later
-      requireToEqualsInitiatedBy: false,
+      requireToEqualsInitiatedBy: true,
       requireFromEqualsInitiatedBy: false,
       requireToDoesNotEqualInitiatedBy: false,
       requireFromDoesNotEqualInitiatedBy: false,
@@ -239,501 +244,473 @@ export function ApprovalSelect({
       overridesToIncomingApprovals: false,
       overridesFromOutgoingApprovals: defaultFromList?.listId === 'Mint' ? true : false,
 
-      ...defaultApproval?.approvalCriteria,
-    },
-  }
-
-
-  const [approvalToAdd, setApprovalToAdd] = useState<CollectionApprovalWithDetails<bigint> & {
-    approvalCriteria: Required<ApprovalCriteriaWithDetails<bigint>>,
-    details: ApprovalInfoDetails<bigint>
-  }>(deepCopy(defaultApprovalToAdd));
-
-  const numRecipients = approvalToAdd?.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers || 0n;
-
-  const mustOwnBadges = approvalToAdd?.approvalCriteria?.mustOwnBadges || [];
-  const setMustOwnBadges = (mustOwnBadges: MustOwnBadges<bigint>[]) => { setApprovalToAdd({ ...approvalToAdd, approvalCriteria: { ...approvalToAdd.approvalCriteria, mustOwnBadges } }) };
-
-  const requireToEqualsInitiatedBy = approvalToAdd?.approvalCriteria?.requireToEqualsInitiatedBy || false;
-  const requireToDoesNotEqualInitiatedBy = approvalToAdd?.approvalCriteria?.requireToDoesNotEqualInitiatedBy || false;
-  const requireFromEqualsInitiatedBy = approvalToAdd?.approvalCriteria?.requireFromEqualsInitiatedBy || false;
-  const requireFromDoesNotEqualInitiatedBy = approvalToAdd?.approvalCriteria?.requireFromDoesNotEqualInitiatedBy || false;
-  const increment = approvalToAdd?.approvalCriteria?.predeterminedBalances?.incrementedBalances?.incrementBadgeIdsBy || 0n;
-  const startBalances = approvalToAdd?.approvalCriteria.predeterminedBalances?.incrementedBalances?.startBalances || [];
-
-  const uintRangesOverlap = checkIfUintRangesOverlap(approvalToAdd?.badgeIds || []);
-  const uintRangesLengthEqualsZero = approvalToAdd?.badgeIds.length === 0;
-
-  const ownedTimesOverlap = checkIfUintRangesOverlap(approvalToAdd?.ownershipTimes || []);
-  const ownedTimesLengthEqualsZero = approvalToAdd?.ownershipTimes.length === 0;
-
-  const transferTimesOverlap = checkIfUintRangesOverlap(approvalToAdd?.transferTimes || []);
-  const transferTimesLengthEqualsZero = approvalToAdd?.transferTimes.length === 0;
-
-  const [amountType, setAmountType] = useState<AmountType>(AmountType.Tally);
-  const [expectedPartitions, setExpectedPartitions] = useState<bigint>(1n);
-
-  useEffect(() => {
-    if (INFINITE_LOOP_MODE) console.log('amountType', amountType);
-    const newPredeterminedBalances: Balance<bigint>[] = [];
-    let newApprovalAmounts: ApprovalAmounts<bigint> | undefined = undefined
-
-    if (amountType === AmountType.Predetermined) {
-      newPredeterminedBalances.push({
-        amount: 1n,
-        badgeIds: deepCopy(approvalToAdd.badgeIds),
-        ownershipTimes: deepCopy(approvalToAdd.ownershipTimes),
-      });
-      newApprovalAmounts = {
-        overallApprovalAmount: 0n,
-        perFromAddressApprovalAmount: 0n,
-        perInitiatedByAddressApprovalAmount: 0n,
-        perToAddressApprovalAmount: 0n,
-      }
+      ...defaultApproval?.approvalCriteria
     }
+  };
 
-    setApprovalToAdd((approvalToAdd) => {
-      return {
-        ...approvalToAdd,
+  const [approvalToAdd, setApprovalToAdd] = useState<
+    iCollectionApprovalWithDetails<bigint> & {
+      approvalCriteria: Required<iApprovalCriteriaWithDetails<bigint>>;
+      details: iApprovalInfoDetails<bigint>;
+    }
+  >(deepCopyPrimitives(defaultApprovalToAdd));
 
-        approvalCriteria: {
-          ...approvalToAdd.approvalCriteria,
-          approvalAmounts: {
-            ...approvalToAdd.approvalCriteria.approvalAmounts,
-            ...newApprovalAmounts,
-          },
-          predeterminedBalances: {
-            ...approvalToAdd.approvalCriteria.predeterminedBalances,
-            manualBalances: [],
-            incrementedBalances: {
-              ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
-              startBalances: newPredeterminedBalances,
-              incrementBadgeIdsBy: amountType === AmountType.Predetermined ? 1n : 0n,
-              incrementOwnershipTimesBy: 0n,
+  const approvalCriteria = approvalToAdd.approvalCriteria;
+  const numRecipients = approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers || 0n;
 
-            },
-            orderCalculationMethod: {
-              ...approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod,
-              useOverallNumTransfers: false,
-              usePerFromAddressNumTransfers: false,
-              usePerInitiatedByAddressNumTransfers: false,
-              usePerToAddressNumTransfers: false,
-              useMerkleChallengeLeafIndex: false,
-            },
-          }
-        }
+  const mustOwnBadges = approvalCriteria?.mustOwnBadges || [];
+  const setMustOwnBadges = (mustOwnBadges: Array<MustOwnBadges<bigint>>) => {
+    setApprovalToAdd({
+      ...approvalToAdd,
+      approvalCriteria: {
+        ...approvalToAdd.approvalCriteria,
+        mustOwnBadges: mustOwnBadges
       }
     });
-  }, [amountType, approvalToAdd.badgeIds, approvalToAdd.ownershipTimes]);
+  };
 
-  const PasswordSelect = <div style={{ textAlign: 'center' }}>
+  const requireToEqualsInitiatedBy = approvalCriteria?.requireToEqualsInitiatedBy || false;
+  const requireToDoesNotEqualInitiatedBy = approvalCriteria?.requireToDoesNotEqualInitiatedBy || false;
+  const requireFromEqualsInitiatedBy = approvalCriteria?.requireFromEqualsInitiatedBy || false;
+  const requireFromDoesNotEqualInitiatedBy = approvalCriteria?.requireFromDoesNotEqualInitiatedBy || false;
+  const increment = approvalCriteria?.predeterminedBalances?.incrementedBalances?.incrementBadgeIdsBy || 0n;
+  const startBalances = approvalCriteria.predeterminedBalances?.incrementedBalances?.startBalances || [];
+  const defaultClaim =
+    defaultApprovalToAdd.details.offChainClaims && defaultApprovalToAdd.details.offChainClaims.length > 0
+      ? defaultApprovalToAdd.details.offChainClaims[0]
+      : undefined;
 
-    <br />
-    <b style={{ textAlign: 'center' }}>Password</b>
-    <Input
-      value={claimPassword}
-      onChange={(e) => {
-        setClaimPassword?.(e.target.value);
-      }}
-      className='primary-text inherit-bg'
-      style={{ textAlign: 'center' }}
-    />
-    {!claimPassword && <div style={{ color: 'red' }}>Password cannot be empty.</div>}
-  </div>
+  const uintRangesOverlap = UintRangeArray.From(approvalToAdd?.badgeIds).hasOverlaps();
+  const uintRangesLengthEqualsZero = approvalToAdd?.badgeIds.length === 0;
 
-  const str = codeType == CodeType.Unique ? "Codes will be uniquely generated and one-time use only. Users can enter an unused code to claim badges." :
-    "A custom password can be used to claim badges (e.g. attendance code = password123). Limited to one use per address."
+  const ownedTimesOverlap = UintRangeArray.From(approvalToAdd?.ownershipTimes).hasOverlaps();
+  const ownedTimesLengthEqualsZero = approvalToAdd?.ownershipTimes.length === 0;
 
-  const LearnMore = <div style={{ textAlign: 'center' }} className='secondary-text'>
-    <br />
-    <p>
-      <InfoCircleOutlined /> {str} This is a centralized solution. <Tooltip color='black' title="For a better user experience, codes and passwords are stored in a centralized manner via the BitBadges servers. This makes it easier for you (the collection creator) by eliminating storage requirements. For a decentralized solution, you can store your own codes and interact directly with the blockchain (see documentation).">
-        Hover to learn more.
-      </Tooltip>
-    </p>
-  </div>
+  const transferTimesOverlap = UintRangeArray.From(approvalToAdd?.transferTimes).hasOverlaps();
+  const transferTimesLengthEqualsZero = approvalToAdd?.transferTimes.length === 0;
 
-  const getCurrentManagerApprovals = () => {
-    const approvals: RequiredApprovalProps[] = [];
+  const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(
+    defaultClaim ? DistributionMethod.Codes : DistributionMethod.Whitelist
+  );
 
-    if (!collection) return approvals;
+  const [showMustOwnBadges, setShowMustOwnBadges] = useState(approvalCriteria?.mustOwnBadges?.length > 0);
+  const [distributionType, setDistributionType] = useState<DistributionType>(
+    defaultClaim ? (defaultClaim.manualDistribution ? DistributionType.Manual : DistributionType.Builder) : DistributionType.None
+  );
+  const [plugins, setPlugins] = useState<IntegrationPluginDetails<ClaimIntegrationPluginType>[]>(defaultClaim?.plugins || []);
+  const [disabled, setDisabled] = useState(false);
 
-    for (const managerTimelineVal of collection.managerTimeline) {
-      const times = managerTimelineVal.timelineTimes;
-      const manager = managerTimelineVal.manager;
+  const passwordPlugin = getPluginDetails('password', plugins);
+  const claimPassword = passwordPlugin?.privateParams?.password;
 
-      if (!manager) continue;
-      const id = crypto.randomBytes(32).toString('hex');
+  const isPartitionView = increment > 0n;
 
-      approvals.push({
-        ...defaultApprovalToAdd,
-        toList: getReservedAddressList("All"),
-        toListId: "All",
-        fromListId: "Mint",
-        fromList: getReservedAddressList("Mint"),
-        initiatedByList: getReservedAddressList(convertToCosmosAddress(manager)),
-        initiatedByListId: convertToCosmosAddress(manager),
-        transferTimes: times,
-        badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-        approvalId: id,
-        amountTrackerId: id,
-        challengeTrackerId: id,
-        approvalCriteria: {
-          ...defaultApprovalToAdd.approvalCriteria,
-          overridesFromOutgoingApprovals: true,
-          overridesToIncomingApprovals: true,
-        }
-      })
+  const [expectedPartitions, setExpectedPartitions] = useState<bigint>(1n);
+
+  const getKeyFromType = (type: 'overall' | 'to' | 'initiatedBy' | 'from') => {
+    return type === 'overall'
+      ? 'overallMaxNumTransfers'
+      : type === 'to'
+        ? 'perToAddressMaxNumTransfers'
+        : type === 'initiatedBy'
+          ? 'perInitiatedByAddressMaxNumTransfers'
+          : 'perFromAddressMaxNumTransfers';
+  };
+
+  const setMaxUses = useCallback(
+    (maxUses: bigint, type: 'overall' | 'to' | 'initiatedBy' | 'from') => {
+      const key = getKeyFromType(type);
+
+      setApprovalToAdd((approvalToAdd) => {
+        return {
+          ...approvalToAdd,
+          approvalCriteria: {
+            ...approvalToAdd.approvalCriteria,
+            maxNumTransfers: {
+              ...approvalToAdd.approvalCriteria.maxNumTransfers,
+              [key]: maxUses
+            }
+          }
+        };
+      });
+    },
+    [setApprovalToAdd]
+  );
+
+  const getAmountKeyFromType = (type: 'overall' | 'to' | 'initiatedBy' | 'from') => {
+    return type === 'overall'
+      ? 'overallApprovalAmount'
+      : type === 'to'
+        ? 'perToAddressApprovalAmount'
+        : type === 'initiatedBy'
+          ? 'perInitiatedByAddressApprovalAmount'
+          : 'perFromAddressApprovalAmount';
+  };
+
+  const setAmount = useCallback(
+    (amount: bigint, type: 'overall' | 'to' | 'initiatedBy' | 'from') => {
+      const key = getAmountKeyFromType(type);
+      setApprovalToAdd((approvalToAdd) => {
+        return {
+          ...approvalToAdd,
+          approvalCriteria: {
+            ...approvalToAdd.approvalCriteria,
+            approvalAmounts: {
+              ...approvalToAdd.approvalCriteria.approvalAmounts,
+              [key]: amount
+            }
+          }
+        };
+      });
+    },
+    [setApprovalToAdd]
+  );
+
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('whitelist');
+    const whitelistSize = approvalToAdd.initiatedByList.addresses.length;
+
+    //If we were previously a whitelist and now we are not, we need to remove the distribution method
+    if (!approvalToAdd.initiatedByList.whitelist && distributionMethod === DistributionMethod.Whitelist) {
+      setDistributionMethod(DistributionMethod.None);
     }
 
-    return approvals;
-  }
+    //If we are a whitelist, we need to set the max uses and approved amounts accordingly
+    //If there is only one address, we can set the max uses and approved amounts to 0 (we use the overall amounts instead)
+    if (distributionMethod === DistributionMethod.Whitelist && approvalToAdd.initiatedByList.whitelist) {
+      setMaxUses(BigInt(whitelistSize), 'overall');
+      setMaxUses(0n, 'initiatedBy');
+      setAmount(0n, 'initiatedBy');
+    } else if (whitelistSize == 1 && approvalToAdd.initiatedByList.whitelist) {
+      setMaxUses(0n, 'initiatedBy');
+      setAmount(0n, 'initiatedBy');
+    }
 
-  const currDate = useMemo(() => {
-    const date = new Date();
-    return date;
-  }, []);
+    //If we only have one, we use the overall
+    //If we require the recipient to equal the initiated by, we use the initiated by
+    const toSize = approvalToAdd.toList.addresses.length;
+    if ((toSize == 1 && approvalToAdd.toList.whitelist) || approvalToAdd.approvalCriteria.requireToEqualsInitiatedBy) {
+      setMaxUses(0n, 'to');
+      setAmount(0n, 'to');
 
-  const currDatePlus24Hours = useMemo(() => {
-    const date = new Date();
-    date.setHours(date.getHours() + 24);
-    return date;
-  }, []);
-
-
-  const approveSelfFor24Hours = () => {
-    return {
-      ...defaultApprovalToAdd,
-      toList: getReservedAddressList("All"),
-      toListId: "All",
-      fromListId: "Mint",
-      fromList: getReservedAddressList("Mint"),
-      initiatedByList: getReservedAddressList(chain.cosmosAddress),
-      initiatedByListId: chain.cosmosAddress,
-      transferTimes: [{ start: BigInt(currDate.getTime()), end: BigInt(currDatePlus24Hours.getTime()) }],
-      badgeIds: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-      approvalId: "approve-self-24-hours",
-      amountTrackerId: "approve-self-24-hours",
-      challengeTrackerId: "approve-self-24-hours",
-      approvalCriteria: {
-        ...defaultApprovalToAdd.approvalCriteria,
-        overridesFromOutgoingApprovals: true,
-        overridesToIncomingApprovals: true,
+      if (approvalToAdd.approvalCriteria.requireToEqualsInitiatedBy && approvalToAdd.toList.listId !== 'All') {
+        setApprovalToAdd((approvalToAdd) => {
+          return {
+            ...approvalToAdd,
+            toList: AddressList.AllAddresses(),
+            toListId: 'All'
+          };
+        });
       }
     }
-  }
 
-  const AllMaxUses = <>
-    <div className='full-width'>
-      <MaxUses
-        approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
+    //If we only have one, we use the overall
+    //If we require the from to equal the initiated by, we use the initiated by
+    const fromSize = approvalToAdd.fromList.addresses.length;
+    if ((fromSize == 1 && approvalToAdd.fromList.whitelist) || approvalToAdd.approvalCriteria.requireFromEqualsInitiatedBy) {
+      setMaxUses(0n, 'from');
+      setAmount(0n, 'from');
 
-        label={'Max uses (all cumulatively)'} type='overall' disabled={distributionMethod === DistributionMethod.Codes} />
-      <MaxUses
-        approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
+      if (approvalToAdd.approvalCriteria.requireFromEqualsInitiatedBy && approvalToAdd.fromList.listId !== 'All') {
+        setApprovalToAdd((approvalToAdd) => {
+          return {
+            ...approvalToAdd,
+            fromList: AddressList.AllAddresses(),
+            fromListId: 'All'
+          };
+        });
+      }
+    }
 
-        label={'Max uses per initiator'} type='initiatedBy' disabled={distributionMethod === DistributionMethod.Codes && codeType === CodeType.Reusable} />
-      <MaxUses
-        approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-        label={'Max uses per sender'} type='from' />
-      <MaxUses
-        approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-        label={'Max uses per recipient'} type='to' />
-    </div>
-  </>
+    if (distributionMethod === DistributionMethod.Codes) {
+      if (approvalToAdd.initiatedByList.listId != 'All') {
+        setApprovalToAdd((approvalToAdd) => {
+          return {
+            ...approvalToAdd,
+            initiatedByList: AddressList.AllAddresses(),
+            initiatedByListId: 'All'
+          };
+        });
+      }
 
-  return <>
-    <Typography.Text style={{ textAlign: 'center' }} className="secondary-text">
-      <WarningOutlined style={{ marginRight: 5, color: '#FF5733' }} />
-      Below, you are creating an approval.
-      Approvals determine the rules for how badges can be transferred but do not actually transfer the badges.
-      For any transfer to be successful, there must be a valid approval and sufficient balances.
-    </Typography.Text>
-    <br /><br />
-    {mintOnlyApproval && <div style={{ textAlign: 'center' }} className="">
-      <b>Apply a template?</b>{' '}
-      <div className='flex-center secondary-text flex-wrap'>
-        <Tooltip color='black' title='Approve yourself for 24 hours to transfer with no restrictions from the Mint address.'>
-          <button
-            className='cursor-pointer hoverable styled-button-normal rounded p-2 m-2 '
-            style={{ borderWidth: 1 }}
-            onClick={() => {
-              if (!collection) return;
+      if (approvalToAdd.approvalCriteria.mustOwnBadges.length > 0) {
+        setApprovalToAdd((approvalToAdd) => {
+          return {
+            ...approvalToAdd,
+            approvalCriteria: {
+              ...approvalToAdd.approvalCriteria,
+              mustOwnBadges: []
+            }
+          };
+        });
+      }
+    }
+  }, [
+    distributionMethod,
+    approvalToAdd.approvalCriteria.requireFromEqualsInitiatedBy,
+    approvalToAdd.approvalCriteria.requireToEqualsInitiatedBy,
+    approvalToAdd.fromList,
+    approvalToAdd.initiatedByList,
+    approvalToAdd.toList,
+    approvalToAdd.approvalCriteria.mustOwnBadges,
+    setDistributionMethod,
+    setMaxUses,
+    setAmount
+  ]);
 
-              setApprovalToAdd(approveSelfFor24Hours());
+  useEffect(() => {
+    if (INFINITE_LOOP_MODE) console.log('distributionMethod');
+    if (distributionType !== DistributionType.Builder && plugins.length > 0) {
+      setPlugins([]);
+    }
+  }, [distributionType, plugins]);
 
-              notification.success({
-                message: 'Template applied',
-              });
-            }}
-          >
-            <FormOutlined /> Approve self for 24 hours
-          </button>
-        </Tooltip>
-        {getCurrentManagerApprovals().length == 1 &&
-          <Tooltip color='black'
-            title='Using the selected values for the manager, this will create an approval that approves the manager at any given time to transfer from the Mint address with no restrictions.'>
-
-            <button
-              className='cursor-pointer hoverable styled-button-normal rounded p-2 m-2'
-              style={{ borderWidth: 1 }}
-              onClick={() => {
-                if (!collection) return;
-
-                setApprovalToAdd(getCurrentManagerApprovals()[0]);
-
-                notification.success({
-                  message: 'Template applied',
-                });
-              }}
-            >
-              <FormOutlined />  Approve current manager at any given time
-            </button>
-          </Tooltip>}
-      </div>
+  const LearnMore = (
+    <div style={{ textAlign: 'center' }} className="secondary-text">
       <br />
-    </div>}
+      <p>
+        <InfoCircleOutlined /> This is a centralized solution.{' '}
+        <Tooltip
+          color="black"
+          title="For a better user experience, codes, passwords, and challenges are facilitated by BitBadges to make it easier for you. Decentralized alternatives are always available (see documentation).">
+          Hover to learn more.
+        </Tooltip>
+      </p>
+    </div>
+  );
 
+  return (
+    <>
+      <Typography.Text style={{ textAlign: 'center' }} className="secondary-text">
+        <WarningOutlined style={{ marginRight: 5, color: '#FF5733' }} />
+        Below, you are creating an approval. Approvals determine the rules for how badges can be transferred but do not actually transfer the badges.
+        For any transfer to be successful, there must be a valid approval and sufficient balances.
+      </Typography.Text>
+      <br />
+      <br />
+      {mintOnlyApproval && (
+        <ApprovalTemplates defaultApprovalToAdd={defaultApprovalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} />
+      )}
 
-
-    <Row style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className='primary-text'>
-
-      <div className='flex flex-wrap full-width'>
-        <InformationDisplayCard title={<>From <LockOutlined /></>} md={8} xs={24} sm={24} subtitle='Who can send the badges?'>
-          <AddressListSelectComponent
-            approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} nonMintOnlyApproval={nonMintOnlyApproval}
-            type='from' disabled={fromListLocked} />
-
-          {!hideCollectionOnlyFeatures && <TableRow labelSpan={16} valueSpan={8} label={'Do not check outgoing approvals?'} value={<Switch
-            disabled={fromListLocked}
-            checked={approvalToAdd.approvalCriteria.overridesFromOutgoingApprovals}
-            onChange={(checked) => {
+      <div className="flex flex-wrap full-width">
+        <InformationDisplayCard
+          title="Approval Details"
+          md={16}
+          xs={24}
+          sm={24}
+          subtitle="Provide optional metadata for the approval. Explain what it is for, how to get approved, etc. This will be displayed alongside the approval.">
+          <ClaimMetadataSelect
+            approvalDetails={new ApprovalInfoDetails(approvalToAdd.details)}
+            setApprovalDetails={(details) => {
               setApprovalToAdd({
                 ...approvalToAdd,
-                approvalCriteria: {
-                  ...approvalToAdd.approvalCriteria,
-                  overridesFromOutgoingApprovals: checked,
-                }
+                details: details
               });
             }}
-          />} />}
-          <TableRow labelSpan={16} valueSpan={8} label={'Sender must be approver?'} value={<Switch
-            checked={requireFromEqualsInitiatedBy}
-            onChange={(checked) => {
-              setApprovalToAdd({
-                ...approvalToAdd,
-                approvalCriteria: {
-                  ...approvalToAdd.approvalCriteria,
-                  requireFromEqualsInitiatedBy: checked,
-                }
-              });
-            }}
-            disabled={fromListLocked}
-          />} />
-          <TableRow labelSpan={16} valueSpan={8} label={'Sender must not be approver?'} value={<Switch
-            checked={requireFromDoesNotEqualInitiatedBy}
-            onChange={(checked) => {
-              setApprovalToAdd({
-                ...approvalToAdd,
-                approvalCriteria: {
-                  ...approvalToAdd.approvalCriteria,
-                  requireFromDoesNotEqualInitiatedBy: checked,
-                }
-              });
-            }}
-            disabled={fromListLocked}
-          />} />
-
-          {requireFromDoesNotEqualInitiatedBy && requireFromEqualsInitiatedBy && <div style={{ color: 'red' }}>Sender cannot be both approver and not approver.</div>}
-
-
+          />
         </InformationDisplayCard>
-        <InformationDisplayCard title='To' md={8} xs={24} sm={24} subtitle='Who can receive the badges?'>
-          <AddressListSelectComponent
-            disabled={toListLocked}
-            approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-            type='to' />
-          {!hideCollectionOnlyFeatures && <TableRow labelSpan={16} valueSpan={8} label={'Do not check incoming approvals?'} value={<Switch
-            disabled={toListLocked}
-            checked={approvalToAdd.approvalCriteria.overridesToIncomingApprovals}
-            onChange={(checked) => {
-              setApprovalToAdd({
-                ...approvalToAdd,
-                approvalCriteria: {
-                  ...approvalToAdd.approvalCriteria,
-                  overridesToIncomingApprovals: checked,
-                }
-              });
-            }}
-          />} />}
-          <TableRow labelSpan={16} valueSpan={8} label={'Recipient must be approver?'} value={<Switch
-            disabled={toListLocked}
-            checked={requireToEqualsInitiatedBy}
-            onChange={(checked) => {
-              setApprovalToAdd({
-                ...approvalToAdd,
-                approvalCriteria: {
-                  ...approvalToAdd.approvalCriteria,
-                  requireToEqualsInitiatedBy: checked,
-                }
-              });
-            }}
-          />} />
-          <TableRow labelSpan={16} valueSpan={8} label={'Recipient must not be approver?'} value={<Switch
-            disabled={toListLocked}
-            checked={requireToDoesNotEqualInitiatedBy}
-            onChange={(checked) => {
-              setApprovalToAdd({
-                ...approvalToAdd,
-                approvalCriteria: {
-                  ...approvalToAdd.approvalCriteria,
-                  requireToDoesNotEqualInitiatedBy: checked,
-                }
-              });
-            }}
-          />} />
-          {requireToDoesNotEqualInitiatedBy && requireToEqualsInitiatedBy && <div style={{ color: 'red' }}>Recipient cannot be both approver and not approver.</div>}
-          {requireFromEqualsInitiatedBy && requireToEqualsInitiatedBy && <div style={{ color: 'red' }}>Recipient cannot be sender, recipient, and approver.</div>}
-        </InformationDisplayCard>
-        <InformationDisplayCard title='Approved' md={8} xs={24} sm={24} subtitle='Who is approved to initiate the transfer?'>
+        <InformationDisplayCard title="Criteria" md={8} xs={24} sm={24} subtitle="How do you want to gate who is approved?">
           {/* Choose between codes, whitelist, and password */}
-          {showMintingOnlyFeatures && !initiatedByListLocked &&
-            <RadioGroup
-              value={distributionMethod == DistributionMethod.None ? 'address' :
-                distributionMethod == DistributionMethod.Codes ? codeType == CodeType.Unique ? 'codes' : 'password' : 'address'}
-              onChange={(e) => {
-
-
-                if (e === 'password') {
-                  setCodeType(CodeType.Reusable);
+          {showMintingOnlyFeatures && !initiatedByListLocked && (
+            <Tabs
+              fullWidth
+              type="underline"
+              tab={
+                distributionMethod === DistributionMethod.None
+                  ? 'address'
+                  : distributionMethod === DistributionMethod.Codes
+                    ? distributionType === DistributionType.Manual
+                      ? 'codes'
+                      : distributionType === DistributionType.Builder
+                        ? 'builder'
+                        : 'none'
+                    : 'address'
+              }
+              setTab={(e) => {
+                if (e === 'codes' || e === 'builder') {
                   setDistributionMethod(DistributionMethod.Codes);
-                  setAmountType(AmountType.Tally);
-                  setPredeterminedType(PredeterminedType.Same);
+                  setDistributionType(DistributionType.Manual);
                   setExpectedPartitions(1n);
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    initiatedByList: getReservedAddressList("All"),
-                    initiatedByListId: "All",
-                    approvalCriteria: {
-                      ...approvalToAdd.approvalCriteria,
-                      maxNumTransfers: {
-                        ...approvalToAdd.approvalCriteria.maxNumTransfers,
-                        overallMaxNumTransfers: 1n,
-                        perInitiatedByAddressMaxNumTransfers: 1n,
-                      }
-                    }
-                  });
-                } else if (e === 'codes') {
-                  setCodeType(CodeType.Unique);
+                  setMaxUses(1n, 'overall');
+                  setMaxUses(1n, 'initiatedBy');
+
                   setDistributionMethod(DistributionMethod.Codes);
                   setExpectedPartitions(1n);
-                  setAmountType(AmountType.Tally);
-                  setPredeterminedType(PredeterminedType.Same);
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    initiatedByList: getReservedAddressList("All"),
-                    initiatedByListId: "All",
-                    approvalCriteria: {
-                      ...approvalToAdd.approvalCriteria,
-                      maxNumTransfers: {
-                        ...approvalToAdd.approvalCriteria.maxNumTransfers,
-                        overallMaxNumTransfers: 1n,
-                        perInitiatedByAddressMaxNumTransfers: 1n,
+                  setMaxUses(1n, 'overall');
+                  setMaxUses(1n, 'initiatedBy');
+
+                  setApprovalToAdd((approvalToAdd) => {
+                    return {
+                      ...approvalToAdd,
+                      approvalCriteria: {
+                        ...approvalToAdd.approvalCriteria,
+                        predeterminedBalances: {
+                          ...approvalToAdd.approvalCriteria.predeterminedBalances,
+                          manualBalances: [],
+                          incrementedBalances: {
+                            ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
+                            startBalances: [],
+                            incrementBadgeIdsBy: 0n,
+                            incrementOwnershipTimesBy: 0n
+                          },
+                          orderCalculationMethod: {
+                            ...approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod,
+                            useOverallNumTransfers: false,
+                            usePerFromAddressNumTransfers: false,
+                            usePerInitiatedByAddressNumTransfers: false,
+                            usePerToAddressNumTransfers: false,
+                            useMerkleChallengeLeafIndex: false
+                          }
+                        }
                       }
-                    }
+                    };
                   });
+
+                  if (e === 'builder') {
+                    setDistributionType(DistributionType.Builder);
+                    setPlugins([
+                      {
+                        id: 'numUses',
+                        publicParams: {
+                          maxUses: 1
+                        },
+                        privateParams: getPlugin('numUses').getBlankPrivateParams(),
+                        publicState: getPlugin('numUses').getBlankPublicState()
+                      }
+                    ]);
+                  } else if (e === 'codes') {
+                    setDistributionType(DistributionType.Manual);
+                  } else {
+                    setDistributionMethod(DistributionMethod.None);
+                  }
                 } else {
                   setDistributionMethod(DistributionMethod.None);
                 }
-                setClaimPassword('');
               }}
-              options={[
+              tabInfo={[
                 {
-                  label: 'By Address',
-                  value: 'address',
+                  content: 'By Address',
+                  key: 'address'
                 },
                 {
-                  label: 'Codes',
-                  value: 'codes',
+                  content: 'Codes',
+                  key: 'codes'
                 },
                 {
-                  label: 'Password',
-                  value: 'password'
-                },
+                  content: 'Claims',
+                  key: 'builder'
+                }
               ]}
-            />}
+            />
+          )}
 
-
-          {(distributionMethod === DistributionMethod.None || distributionMethod === DistributionMethod.Whitelist) &&
+          {(distributionMethod === DistributionMethod.None || distributionMethod === DistributionMethod.Whitelist) && (
             <AddressListSelectComponent
               disabled={initiatedByListLocked}
-              approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-              type='initiatedBy' />}
+              approvalToAdd={approvalToAdd}
+              setApprovalToAdd={setApprovalToAdd}
+              collectionId={collectionId}
+              type="initiatedBy"
+            />
+          )}
 
+          {approvalToAdd.initiatedByList.whitelist && showMintingOnlyFeatures && (
+            <TableRow
+              labelSpan={16}
+              valueSpan={8}
+              label={'Store whitelist off-chain?'}
+              value={
+                <Switch
+                  disabled={initiatedByListLocked || distributionMethod === DistributionMethod.Codes}
+                  checked={distributionMethod === DistributionMethod.Whitelist}
+                  onChange={(checked) => {
+                    //Other changes are made in the global useEffect above
+                    if (checked) {
+                      setDistributionMethod(DistributionMethod.Whitelist);
+                    } else {
+                      setDistributionMethod(DistributionMethod.None);
+                    }
+                  }}
+                />
+              }
+            />
+          )}
 
+          {distributionMethod === DistributionMethod.Codes && distributionType === DistributionType.Manual && (
+            <>
+              <br />
 
-          {approvalToAdd.initiatedByList.whitelist && showMintingOnlyFeatures && <TableRow labelSpan={16} valueSpan={8} label={'Store whitelist off-chain?'} value={
-            <Switch
-              disabled={initiatedByListLocked || distributionMethod === DistributionMethod.Codes}
-              checked={distributionMethod === DistributionMethod.Whitelist} onChange={(checked) => {
-                if (checked) {
-                  setDistributionMethod(DistributionMethod.Whitelist);
-                } else {
-                  setDistributionMethod(DistributionMethod.None);
-                }
-              }} />
-          } />}
-
-
-          {distributionMethod === DistributionMethod.Codes && codeType == CodeType.Unique && <>
-            {distributionMethod === DistributionMethod.Codes && LearnMore}
-            {codeType == CodeType.Unique && <>
-              <div className='flex-center flex-wrap flex-column'>
+              <div className="flex-center flex-wrap flex-column">
                 <MaxUses
                   setExpectedPartitions={setExpectedPartitions}
-                  isCodeDisplay approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses (all cumulatively)'} type='overall' disabled={initiatedByListLocked} />
-
+                  isCodeDisplay
+                  approvalToAdd={approvalToAdd}
+                  setApprovalToAdd={setApprovalToAdd}
+                  type="overall"
+                  distributionMethod={distributionMethod}
+                  disabled={initiatedByListLocked}
+                />
               </div>
-            </>}
-          </>}
-
-          {distributionMethod === DistributionMethod.Codes && codeType == CodeType.Reusable && <>
-            {distributionMethod === DistributionMethod.Codes && LearnMore}
-
-            {codeType == CodeType.Reusable &&
-              <>
-                {PasswordSelect}
-                <br />
-                <MaxUses isPasswordDisplay
-                  setExpectedPartitions={setExpectedPartitions}
-                  approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} amountType={amountType} codeType={codeType} distributionMethod={distributionMethod} label={'Max uses (all cumulatively)'} type='overall' disabled={initiatedByListLocked} />
-              </>}
-
-
-          </>}
-          <TableRow labelSpan={16} valueSpan={8} label={<>Must own specific badges?</>}
-            value={<>
-              <Switch
-                checked={mustOwnBadges.length > 0 || showMustOwnBadges}
-                onChange={(checked) => {
-                  setMustOwnBadges([]);
-                  setShowMustOwnBadges(checked);
+              <br />
+              <div className="text-center secondary-text">
+                <p>
+                  We will generate N claim codes for you to distribute manually however you would like. Codes will be viewable along with helper
+                  distribution tools on the next step of this form. Users can navigate to the claim page to enter codes and claim badges.
+                </p>
+              </div>
+            </>
+          )}
+          {distributionMethod === DistributionMethod.Codes && distributionType === DistributionType.Builder && (
+            <>
+              <br />
+              <BitBadgesClaimLogo />
+              <br />
+              <ClaimBuilder
+                isUpdate={false} // no updates for approvals are currently supported
+                plugins={plugins}
+                setPlugins={(plugins) => {
+                  const maxUses = getPluginDetails('numUses', plugins)?.publicParams?.maxUses || 0;
+                  setPlugins(plugins);
+                  setMaxUses(BigInt(maxUses), 'overall');
+                  setMaxUses(1n, 'initiatedBy');
+                  setExpectedPartitions(BigInt(maxUses));
                 }}
+                offChainSelect={false}
+                setDisabled={setDisabled}
               />
             </>
-            } />
-          {showMustOwnBadges &&
+          )}
+          {distributionMethod === DistributionMethod.Codes && LearnMore}
+
+          {distributionMethod !== DistributionMethod.Codes && (
+            <TableRow
+              labelSpan={16}
+              valueSpan={8}
+              label={<>Must own specific badges?</>}
+              value={
+                <>
+                  <Switch
+                    checked={mustOwnBadges.length > 0 || showMustOwnBadges}
+                    onChange={(checked) => {
+                      setMustOwnBadges([]);
+                      setShowMustOwnBadges(checked);
+                    }}
+                  />
+                </>
+              }
+            />
+          )}
+          {showMustOwnBadges && (
             <InformationDisplayCard
               title={''}
-              subtitle={'Select badges that the approver must own (or not own) at the time of transfer. Only works for badges with on-chain balances.'}
+              subtitle={
+                'Select badges that the approver must own (or not own) at the time of transfer. Only works for badges with on-chain balances.'
+              }
               span={24}
               noPadding
               inheritBg
-              noBorder
-            >
-              <div className='primary-text'>
+              noBorder>
+              <div className="primary-text">
                 <br />
 
                 <BalanceInput
@@ -741,25 +718,32 @@ export function ApprovalSelect({
                   isMustOwnBadgesInput
                   noOffChainBalances
                   message="Must Own Badges"
-                  balancesToShow={mustOwnBadges.map(x => {
-                    return {
-                      ...x,
-                      amount: x.amountRange.start,
-                      ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                    }
-                  })}
-                  mustOwnBadges={mustOwnBadges}
+                  balancesToShow={BalanceArray.From(
+                    mustOwnBadges.map((x) => {
+                      return {
+                        ...x,
+                        amount: x.amountRange.start,
+                        ownershipTimes: UintRangeArray.FullRanges()
+                      };
+                    })
+                  )}
+                  mustOwnBadges={mustOwnBadges.map((x) => new MustOwnBadges(x))}
                   onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets, overrideWithCurrentTime) => {
                     if (!collectionId || !amountRange) return;
 
-                    setMustOwnBadges([...mustOwnBadges, {
-                      collectionId: collectionId,
-                      overrideWithCurrentTime: !!overrideWithCurrentTime,
-                      amountRange: amountRange,
-                      badgeIds: balance.badgeIds,
-                      ownershipTimes: balance.ownershipTimes,
-                      mustSatisfyForAllAssets: !!mustSatisfyForAllAssets
-                    }]);
+                    setMustOwnBadges(
+                      [
+                        ...mustOwnBadges,
+                        {
+                          collectionId: collectionId,
+                          overrideWithCurrentTime: !!overrideWithCurrentTime,
+                          amountRange: amountRange,
+                          badgeIds: balance.badgeIds,
+                          ownershipTimes: balance.ownershipTimes,
+                          mustSatisfyForAllAssets: !!mustSatisfyForAllAssets
+                        }
+                      ].map((x) => new MustOwnBadges(x))
+                    );
                   }}
                   onRemoveAll={() => {
                     setMustOwnBadges([]);
@@ -768,67 +752,237 @@ export function ApprovalSelect({
                   collectionId={collectionId}
                 />
               </div>
-            </InformationDisplayCard>}
-
+            </InformationDisplayCard>
+          )}
         </InformationDisplayCard>
       </div>
+      <Row style={{ textAlign: 'center', justifyContent: 'center', display: 'flex', width: '100%' }} className="primary-text">
+        <div className="flex flex-wrap full-width">
+          <InformationDisplayCard
+            title={
+              <>
+                From <LockOutlined />
+              </>
+            }
+            md={8}
+            xs={24}
+            sm={24}
+            subtitle="Who can send the badges?">
+            <AddressListSelectComponent
+              approvalToAdd={approvalToAdd}
+              setApprovalToAdd={setApprovalToAdd}
+              collectionId={collectionId}
+              nonMintOnlyApproval={nonMintOnlyApproval}
+              type="from"
+              disabled={fromListLocked}
+            />
+            {!fromListLocked && (
+              <>
+                {!hideCollectionOnlyFeatures && (
+                  <TableRow
+                    labelSpan={16}
+                    valueSpan={8}
+                    label={'Do not check outgoing approvals?'}
+                    value={
+                      <Switch
+                        disabled={fromListLocked}
+                        checked={approvalToAdd.approvalCriteria.overridesFromOutgoingApprovals}
+                        onChange={(checked) => {
+                          setApprovalToAdd({
+                            ...approvalToAdd,
+                            approvalCriteria: {
+                              ...approvalToAdd.approvalCriteria,
+                              overridesFromOutgoingApprovals: checked
+                            }
+                          });
+                        }}
+                      />
+                    }
+                  />
+                )}
+                <TableRow
+                  labelSpan={16}
+                  valueSpan={8}
+                  label={'Sender must be approver?'}
+                  value={
+                    <Switch
+                      checked={requireFromEqualsInitiatedBy}
+                      onChange={(checked) => {
+                        //Other changes are made in the global useEffect above
+                        setApprovalToAdd({
+                          ...approvalToAdd,
+                          approvalCriteria: {
+                            ...approvalToAdd.approvalCriteria,
+                            requireFromEqualsInitiatedBy: checked
+                          }
+                        });
+                      }}
+                      disabled={fromListLocked}
+                    />
+                  }
+                />
+                <TableRow
+                  labelSpan={16}
+                  valueSpan={8}
+                  label={'Sender must not be approver?'}
+                  value={
+                    <Switch
+                      checked={requireFromDoesNotEqualInitiatedBy}
+                      onChange={(checked) => {
+                        setApprovalToAdd({
+                          ...approvalToAdd,
+                          approvalCriteria: {
+                            ...approvalToAdd.approvalCriteria,
+                            requireFromDoesNotEqualInitiatedBy: checked
+                          }
+                        });
+                      }}
+                      disabled={fromListLocked}
+                    />
+                  }
+                />
+              </>
+            )}
 
+            {requireFromDoesNotEqualInitiatedBy && requireFromEqualsInitiatedBy && (
+              <div style={{ color: 'red' }}>Sender cannot be both approver and not approver.</div>
+            )}
+            {requireFromDoesNotEqualInitiatedBy && requireFromEqualsInitiatedBy && (
+              <div style={{ color: 'red' }}>Sender cannot be sender, recipient, and approver.</div>
+            )}
+            {requireFromEqualsInitiatedBy && (
+              <>
+                <br />
+                <div className="secondary-text">Since the sender must be the approver, all restrictions for the approver will apply here.</div>
+              </>
+            )}
+          </InformationDisplayCard>
+          <InformationDisplayCard title="To" md={8} xs={24} sm={24} subtitle="Who can receive the badges?">
+            {!requireToEqualsInitiatedBy && (
+              <AddressListSelectComponent
+                disabled={toListLocked}
+                approvalToAdd={approvalToAdd}
+                setApprovalToAdd={setApprovalToAdd}
+                collectionId={collectionId}
+                type="to"
+              />
+            )}
+            {!hideCollectionOnlyFeatures && (
+              <TableRow
+                labelSpan={16}
+                valueSpan={8}
+                label={'Do not check incoming approvals?'}
+                value={
+                  <Switch
+                    disabled={toListLocked}
+                    checked={approvalToAdd.approvalCriteria.overridesToIncomingApprovals}
+                    onChange={(checked) => {
+                      setApprovalToAdd({
+                        ...approvalToAdd,
+                        approvalCriteria: {
+                          ...approvalToAdd.approvalCriteria,
+                          overridesToIncomingApprovals: checked
+                        }
+                      });
+                    }}
+                  />
+                }
+              />
+            )}
+            {!requireToDoesNotEqualInitiatedBy && (
+              <TableRow
+                labelSpan={16}
+                valueSpan={8}
+                label={'Recipient must be approver?'}
+                value={
+                  <Switch
+                    disabled={toListLocked}
+                    checked={requireToEqualsInitiatedBy}
+                    onChange={(checked) => {
+                      //Other changes are made in the global useEffect above
+                      setApprovalToAdd({
+                        ...approvalToAdd,
+                        approvalCriteria: {
+                          ...approvalToAdd.approvalCriteria,
+                          requireToEqualsInitiatedBy: checked
+                        }
+                      });
+                    }}
+                  />
+                }
+              />
+            )}
+            {!requireToEqualsInitiatedBy && (
+              <TableRow
+                labelSpan={16}
+                valueSpan={8}
+                label={'Recipient must not be approver?'}
+                value={
+                  <Switch
+                    disabled={toListLocked}
+                    checked={requireToDoesNotEqualInitiatedBy}
+                    onChange={(checked) => {
+                      setApprovalToAdd({
+                        ...approvalToAdd,
+                        approvalCriteria: {
+                          ...approvalToAdd.approvalCriteria,
+                          requireToDoesNotEqualInitiatedBy: checked
+                        }
+                      });
+                    }}
+                  />
+                }
+              />
+            )}
+            {requireToDoesNotEqualInitiatedBy && requireToEqualsInitiatedBy && (
+              <div style={{ color: 'red' }}>Recipient cannot be both approver and not approver.</div>
+            )}
+            {requireFromEqualsInitiatedBy && requireToEqualsInitiatedBy && (
+              <div style={{ color: 'red' }}>Recipient cannot be sender, recipient, and approver.</div>
+            )}
 
-
-      <div className='flex flex-wrap full-width'>
-        <InformationDisplayCard title='Badge IDs' md={8} xs={24} sm={24} subtitle='Which badges are approved to be transferred?'>
-
-          {showMintingOnlyFeatures && <><br />
-            <RadioGroup value={amountType} onChange={(e) => {
-              setAmountType(e);
-              setPredeterminedType(e === AmountType.Predetermined ? PredeterminedType.Dynamic : PredeterminedType.Same);
-              if (e === AmountType.Predetermined && isFullUintRanges(approvalToAdd.badgeIds)) {
+            {requireToEqualsInitiatedBy && (
+              <>
+                <br />
+                <div className="secondary-text">Since the recipient must be the approver, all restrictions for the approver will apply here.</div>
+              </>
+            )}
+          </InformationDisplayCard>
+          <InformationDisplayCard title="Transfer Times" md={8} xs={24} sm={24} subtitle="When can this approval be used?">
+            <DateSelectWithSwitch
+              timeRanges={UintRangeArray.From(approvalToAdd.transferTimes)}
+              setTimeRanges={(transferTimes) => {
                 setApprovalToAdd({
                   ...approvalToAdd,
-                  badgeIds: [],
+                  transferTimes
                 });
-              }
-            }} options={[
-              { label: <>Standard {distributionMethod === DistributionMethod.Codes ? " - All or Nothing" : ""}</>, value: AmountType.Tally },
-              { label: 'Partitions', value: AmountType.Predetermined },
-            ]} />
+              }}
+            />
+          </InformationDisplayCard>
+        </div>
 
+        <div className="flex flex-wrap full-width">
+          <InformationDisplayCard title="Badge IDs" md={8} xs={24} sm={24} subtitle="Which badges are to be transferred?">
+            {
+              <>
+                <br />
 
-            <div className='secondary-text' style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }}>
-              {amountType === AmountType.Predetermined && <>
-                <InfoCircleOutlined /> Partitions - Different uses of this approval can correspond to different badge IDs (e.g. use #1 can be for badge IDs 1-5, use #2 can be for badge IDs 6-10, etc.).
-              </>}
-              {amountType === AmountType.Tally && <>
-                <InfoCircleOutlined /> Standard - All uses of this approval will be for the same badge IDs ({getBadgeIdsString(approvalToAdd.badgeIds)}).
-              </>}
-            </div>
-
-            <br />
-            {amountType === AmountType.Predetermined && <>
-
-              <BadgeIDSelectWithSwitch
-                message={"Select Badge IDs for Partition #1"}
-                collectionId={collectionId}
-                hideBadges
-                disabled={amountType === AmountType.Predetermined}
-                uintRanges={approvalToAdd?.badgeIds || []}
-                setUintRanges={(uintRanges) => {
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    badgeIds: uintRanges,
-                  });
-                }}
-              />
-              {approvalToAdd.badgeIds.length === 0 && <div style={{ color: 'red' }}>
-                <WarningOutlined /> Badge IDs cannot be empty.
-              </div>}
-              {approvalToAdd.badgeIds.length > 0 && <>
-                <div className='flex-center'>
-                  <NumberInput
-
-                    value={increment ? Numberify(increment.toString()) : 0}
-                    setValue={(value) => {
-                      setApprovalToAdd({
+                <BadgeIDSelectWithSwitch
+                  disabled={isPartitionView}
+                  collectionId={collectionId}
+                  uintRanges={UintRangeArray.From(approvalToAdd.badgeIds)}
+                  setUintRanges={(badgeIds) => {
+                    setApprovalToAdd((approvalToAdd) => {
+                      return {
+                        ...approvalToAdd,
+                        badgeIds: badgeIds
+                      };
+                    });
+                  }}
+                  incrementBadgeIdsBy={increment}
+                  setIncrementBadgeIdsBy={(increment) => {
+                    setApprovalToAdd((approvalToAdd) => {
+                      return {
                         ...approvalToAdd,
                         approvalCriteria: {
                           ...approvalToAdd.approvalCriteria,
@@ -836,579 +990,312 @@ export function ApprovalSelect({
                             ...approvalToAdd.approvalCriteria.predeterminedBalances,
                             incrementedBalances: {
                               ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
-                              incrementBadgeIdsBy: BigInt(value),
+                              incrementBadgeIdsBy: increment
                             }
                           }
                         }
-                      });
-                    }}
-                    min={1}
-                    title="IDs Increment"
-                  />
-
-                  <NumberInput
-                    disabled={distributionMethod === DistributionMethod.Codes}
-                    value={expectedPartitions ? Numberify(expectedPartitions.toString()) : 0}
-                    setValue={(value) => {
-                      setExpectedPartitions(BigInt(value));
-                    }}
-                    min={1}
-                    title="Partitions"
-                  />
-
-                </div>
-
-                <div style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div>
-                    <div style={{ marginLeft: 8 }}>
-                      {increment === 0n && 'Each use of this approval will transfer the following badges: '}
-                      {increment ? `Partition #1 = ID${increment > 1 ? 's' : ''} ${getBadgeIdsString(startBalances.map(x => x.badgeIds).flat())}` : ''}
-                    </div>
-
-                    {expectedPartitions > 1n &&
-                      <div style={{ marginLeft: 8 }}>
-
-                        {increment ? `Partition #2 = ID${increment > 1 ? 's' : ''} ${getBadgeIdsString(startBalances.map(x => x.badgeIds).flat().map(x => { return { start: x.start + increment, end: x.end + increment } }))}` : ''}
-
-                      </div>}
-
-                    {expectedPartitions > 2n &&
-                      <div style={{ marginLeft: 8 }}>
-                        <div style={{ marginLeft: 8 }}>
-                          ...
-                        </div>
-                        <div style={{ marginLeft: 8 }}>
-                          {increment ? `Partition #${expectedPartitions} = ID${increment > 1 ? 's' : ''} ${getBadgeIdsString(startBalances.map(x => x.badgeIds).flat().map(x => { return { start: x.start + increment * (expectedPartitions - 1n), end: x.end + increment * (expectedPartitions - 1n) } }))}` : ''}
-                        </div>
-                      </div>}
-                  </div>
-                </div>
-              </>}
-              {distributionMethod === DistributionMethod.Codes && <div className='secondary-text' style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }}>
-                <LockOutlined /> To edit number of partitions, edit the number of {distributionMethod === DistributionMethod.Codes &&
-                  codeType === CodeType.Unique ? "codes" : "password uses"}.
-              </div>}
-              <br />
-
-              <BadgeAvatarDisplay
-                collectionId={collectionId}
-                showIds
-                badgeIds={getAllBadgeIdsToBeTransferred([
-                  {
-                    from: 'Mint',
-                    toAddresses: [],
-                    toAddressesLength: expectedPartitions,
-                    incrementBadgeIdsBy: increment,
-                    balances: startBalances.map(x => { return { ...x, amount: 1n } }),
+                      };
+                    });
+                  }}
+                  numRecipients={expectedPartitions}
+                  setNumRecipients={
+                    distributionMethod === DistributionMethod.Codes || !showMintingOnlyFeatures
+                      ? undefined
+                      : (numRecipients) => {
+                          setExpectedPartitions(numRecipients);
+                        }
                   }
-                ])} />
+                />
 
-            </>}
-          </>}
+                {approvalToAdd.badgeIds.length === 0 && (
+                  <div style={{ color: 'red' }}>
+                    <WarningOutlined /> Badge IDs cannot be empty.
+                  </div>
+                )}
 
-          {amountType !== AmountType.Predetermined && <>
-            <br />
-            <BadgeIDSelectWithSwitch
-              collectionId={collectionId}
-              uintRanges={approvalToAdd?.badgeIds || []}
-              setUintRanges={(uintRanges) => {
+                {distributionMethod === DistributionMethod.Codes && isPartitionView && (
+                  <div className="secondary-text" style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }}>
+                    <LockOutlined /> To edit number of recipients, edit the number of claims.
+                  </div>
+                )}
+              </>
+            }
+          </InformationDisplayCard>
+
+          <InformationDisplayCard
+            md={8}
+            xs={24}
+            sm={24}
+            title="Ownership Times"
+            subtitle="Which ownership times for the badges are to be transferred?">
+            <DateSelectWithSwitch
+              timeRanges={UintRangeArray.From(approvalToAdd.ownershipTimes)}
+              setTimeRanges={(ownershipTimes) => {
                 setApprovalToAdd({
                   ...approvalToAdd,
-                  badgeIds: uintRanges,
+                  ownershipTimes
                 });
               }}
-            /></>}
-
-        </InformationDisplayCard>
-
-        <InformationDisplayCard md={8} xs={24} sm={24} title='Ownership Times' subtitle='Which ownership times for the badges are approved to be transferred?'>
-          <br />
-          <Switch
-            checked={isFullUintRanges(approvalToAdd.ownershipTimes)}
-            checkedChildren="All Times"
-            unCheckedChildren="Custom"
-            onChange={(checked) => {
-              if (checked) {
-                setApprovalToAdd({
-                  ...approvalToAdd,
-                  ownershipTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                });
-              } else {
-                setApprovalToAdd({
-                  ...approvalToAdd,
-                  ownershipTimes: [],
-                });
-              }
-            }}
+            />
+          </InformationDisplayCard>
+          <ApprovalSelectAmountsCard
+            collectionId={collectionId}
+            approvalToAdd={approvalToAdd}
+            setApprovalToAdd={setApprovalToAdd}
+            expectedPartitions={expectedPartitions}
+            distributionMethod={distributionMethod}
+            distributionType={distributionType}
+            fromListLocked={!!fromListLocked}
+            toListLocked={!!toListLocked}
+            initiatedByListLocked={!!initiatedByListLocked}
           />
-          <br />
-          <br />
+        </div>
+      </Row>
+      <button
+        className="landing-button"
+        style={{ width: '100%', marginTop: 16 }}
+        disabled={
+          (distributionType === DistributionType.Builder && disabled) ||
+          new AddressList(approvalToAdd.fromList).isEmpty() ||
+          new AddressList(approvalToAdd.toList).isEmpty() ||
+          new AddressList(approvalToAdd.initiatedByList).isEmpty() ||
+          approvalToAdd.badgeIds.length === 0 ||
+          approvalToAdd.ownershipTimes.length === 0 ||
+          approvalToAdd.transferTimes.length === 0 ||
+          uintRangesOverlap ||
+          uintRangesLengthEqualsZero ||
+          ownedTimesOverlap ||
+          ownedTimesLengthEqualsZero ||
+          (requireFromDoesNotEqualInitiatedBy && requireFromEqualsInitiatedBy) ||
+          (requireToDoesNotEqualInitiatedBy && requireToEqualsInitiatedBy) ||
+          (distributionMethod === DistributionMethod.Codes && distributionType === DistributionType.None) ||
+          approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances.startBalances.find(
+            (x) =>
+              x.amount <= 0n ||
+              UintRangeArray.From(x.badgeIds).hasOverlaps() ||
+              UintRangeArray.From(x.ownershipTimes).hasOverlaps() ||
+              x.badgeIds.length === 0 ||
+              x.ownershipTimes.length === 0
+          )
+            ? true
+            : false ||
+              ((approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0n ||
+                approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy > 0n) &&
+                !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers &&
+                !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerToAddressNumTransfers &&
+                !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerFromAddressNumTransfers &&
+                !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerInitiatedByAddressNumTransfers &&
+                !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex) ||
+              (nonMintOnlyApproval && new AddressList(approvalToAdd.fromList).checkAddress('Mint')) ||
+              (!!approvalsToAdd.find((x) => x.approvalId === approvalToAdd.approvalId) && !defaultApproval) ||
+              (nonMintOnlyApproval && new AddressList(approvalToAdd.fromList).checkAddress('Mint')) ||
+              transferTimesOverlap ||
+              transferTimesLengthEqualsZero ||
+              (startBalances.length > 0 && startBalances.some((x) => x.amount <= 0n)) ||
+              (distributionMethod === DistributionMethod.Codes && distributionType === DistributionType.Builder && plugins.length === 0) ||
+              getMaxIncrementsApplied(approvalToAdd) !== expectedPartitions
+        }
+        onClick={() => {
+          //Set them here
+          const codes = [];
+          const addresses = [];
 
-          <>
-            {isFullUintRanges(approvalToAdd.ownershipTimes) ? <></> : <>
-              {approvalToAdd.ownershipTimes.length == 0 && <div style={{ color: 'red' }}>
-                <WarningOutlined /> Ownership times cannot be empty.
-              </div>}
-              <DateRangeInput
-                timeRanges={approvalToAdd.ownershipTimes}
-                setTimeRanges={(ownershipTimes) => {
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    ownershipTimes,
-                  });
-                }}
-              />
-            </>
-            }</>
+          const newApprovalToAdd: iCollectionApprovalWithDetails<bigint> & {
+            approvalCriteria: iApprovalCriteriaWithDetails<bigint>;
+          } = approvalToAdd;
 
-        </InformationDisplayCard>
-        <InformationDisplayCard md={8} xs={24} sm={24} title='Amounts' subtitle='Select the amounts to approve.'>
-          <br />
-          {(approvalToAdd.badgeIds.length === 0 || approvalToAdd.ownershipTimes.length === 0) && <div style={{ color: 'red' }}>
-            <WarningOutlined /> Badge IDs and / or ownership times cannot be empty.
-          </div>}
-          {approvalToAdd.badgeIds.length > 0 && approvalToAdd.ownershipTimes.length > 0 && <div className='flex-center'>
+          if (distributionMethod === DistributionMethod.Codes) {
+            const seedCode = crypto.randomBytes(32).toString('hex');
+            codes.push(...generateCodesFromSeed(seedCode, Number(numRecipients)));
 
-            <Col >
+            const hashedCodes = codes.map((x) => SHA256(x).toString());
+            const treeOptions = {
+              fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000'
+            };
+            const codesTree = new MerkleTree(hashedCodes, SHA256, treeOptions);
+            const codesRoot = codesTree.getRoot().toString('hex');
 
-              {amountType === AmountType.Tally && <>
+            const merkleChallenge: any = {
+              root: '',
+              expectedProofLength: 0n,
+              uri: '',
+              customData: '',
+              useCreatorAddressAsLeaf: false,
+              maxUsesPerLeaf: 0n
+            };
 
-                {distributionMethod !== DistributionMethod.Codes && <>
-
-                  <RadioGroup
-                    value={predeterminedType !== PredeterminedType.Same ?
-                      predeterminedType === PredeterminedType.NoLimit ? "none" :
-
-                        "tally" : "all"}
-                    onChange={(e) => {
-                      if (e === "tally") {
-                        setAmountType(AmountType.Tally);
-                        setPredeterminedType(PredeterminedType.Dynamic);
-                      }
-                      if (e === "all") {
-                        setAmountType(AmountType.Tally);
-                        setPredeterminedType(PredeterminedType.Same);
-                      }
-
-                      if (e === "none") {
-                        setAmountType(AmountType.Tally);
-                        setPredeterminedType(PredeterminedType.NoLimit);
-                      }
-
-                    }
-                    } options={[
-                      { label: 'All or Nothing', value: "all" },
-                      { label: 'Tally', value: "tally" },
-                      { label: 'No Limit', value: "none" },
-                    ]}
-                  />
-                </>
+            const details = {
+              challengeDetails: {
+                leavesDetails: {
+                  leaves: [],
+                  isHashed: false
                 }
-                {predeterminedType !== PredeterminedType.Same && predeterminedType === PredeterminedType.NoLimit && <>
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text full-width'>
-                    <div className=''>
-                      <InfoCircleOutlined /> No Limit - No amount restrictions. Amounts will not be tracked. You can optionally choose to restrict the max number of uses, but each use will still approve an unlimited amount.
-                    </div>
-                  </div>
-                  <br />
-                  {AllMaxUses}
-                </>}
-                {predeterminedType !== PredeterminedType.Same && predeterminedType === PredeterminedType.Dynamic && <>
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
-                    <div className=''>
-                      <InfoCircleOutlined /> Tally - Approvals will correspond to the selected badge IDs ({getBadgeIdsString(approvalToAdd.badgeIds)}) and times ({getTimeRangesElement(approvalToAdd.ownershipTimes)}).
-                      You can set the limit for the amount approved on an overall (all users), per recipient, per sender, and / or per approver basis.
-                    </div>
-                  </div>
-                </>}
-                {predeterminedType === PredeterminedType.Same && <>
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className='secondary-text'>
-                    <div className=''>
-                      <InfoCircleOutlined /> All or Nothing - Every use of this approval will approve the same badge IDs and ownership times (the selected ones). The approval is only valid though if they are all transferred together.
-                    </div>
-                  </div>
-                </>}
-                <br />
-                {amountType === AmountType.Tally && predeterminedType === PredeterminedType.Dynamic && <>
-                  <ApprovalAmountsComponent
-                    approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-                    type='overall' label='Overall (all cumulatively)' />
-                  <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='from' label='Per sender' />
-                  <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='to' label='Per recipient' />
-                  <ApprovalAmountsComponent approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId} type='initiatedBy' label='Per approver' />
+              },
+              name: newApprovalToAdd.details?.name || '',
+              description: newApprovalToAdd.details?.description || ''
+            } as any;
+            merkleChallenge.root = codesRoot ? codesRoot : '';
+            merkleChallenge.expectedProofLength = BigInt(codesTree.getLayerCount() - 1);
+            merkleChallenge.useCreatorAddressAsLeaf = false;
+            merkleChallenge.maxUsesPerLeaf = 1n;
 
-                  {!approvalHasApprovalAmounts(approvalToAdd.approvalCriteria.approvalAmounts) && <div style={{ textAlign: 'center' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <WarningOutlined style={{ color: '#FF5733' }} />
-                      <span style={{ marginLeft: 8, color: '#FF5733' }}>
-                        Without any selections, there will be no amount restrictions (unlimited quantity approved).
-                      </span>
-                    </div>
-                  </div>}
-                  <br />
-                  {AllMaxUses}
-                </>}
+            details.challengeDetails.leavesDetails.leaves = hashedCodes;
+            details.challengeDetails.leavesDetails.isHashed = true;
+            details.challengeDetails.leavesDetails.seedCode = seedCode;
+            details.challengeDetails.numLeaves = BigInt(numRecipients);
+            details.challengeDetails.password = claimPassword;
+            details.challengeDetails.hasPassword = claimPassword ? true : false;
+            details.challengeDetails.treeOptions = treeOptions;
 
-                {amountType === AmountType.Tally && predeterminedType === PredeterminedType.Same && <>
-                  {<>
+            const pluginsToAdd = [];
+            if (!plugins.find((x) => x.id === 'numUses')) {
+              pluginsToAdd.push({
+                id: 'numUses',
+                privateParams: getPlugin('numUses').getBlankPrivateParams(),
+                publicParams: {
+                  maxUses: codes.length
+                },
+                publicState: getPlugin('numUses').getBlankPublicState()
+              });
+            }
+            pluginsToAdd.push(getBlankPlugin('requiresProofOfAddress'));
+            pluginsToAdd.push(...plugins);
 
-                    {<div style={{ textAlign: 'center', margin: 10 }}>
-                      <div style={{ textAlign: 'center', margin: 10 }}>
-                        <NumberInput
-                          title={'Amount per Use'}
-                          min={1}
-                          value={startBalances.length > 0 ? Number(startBalances[0].amount) : 0}
-                          setValue={(amount) => {
-                            if (amount < 0) amount = 0;
-                            setApprovalToAdd({
-                              ...approvalToAdd,
-                              approvalCriteria: {
-                                ...approvalToAdd.approvalCriteria,
-                                predeterminedBalances: {
-                                  ...approvalToAdd.approvalCriteria.predeterminedBalances,
-                                  incrementedBalances: {
-                                    ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
-                                    startBalances: [{
-                                      badgeIds: approvalToAdd.badgeIds,
-                                      ownershipTimes: approvalToAdd.ownershipTimes,
-                                      amount: BigInt(amount),
-                                    }],
-                                  },
-                                  orderCalculationMethod: {
-                                    ...approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod,
-                                    useOverallNumTransfers: true,
-                                    usePerFromAddressNumTransfers: false,
-                                    usePerInitiatedByAddressNumTransfers: false,
-                                    usePerToAddressNumTransfers: false,
-                                    useMerkleChallengeLeafIndex: false,
-                                  }
-                                }
-                              }
-                            });
-
-
-
-                          }
-                          }
-                        />
-                      </div>
-
-                    </div>}
-                    <br />
-                    <BalanceDisplay
-                      message={`Approved Badges ${getMaxIncrementsApplied(approvalToAdd) > 0n ? `(${getMaxIncrementsApplied(approvalToAdd)} Uses)` : 'per Use'}`}
-                      collectionId={collectionId}
-                      balances={startBalances}
-                      incrementBadgeIdsBy={0n}
-                      numIncrements={getMaxIncrementsApplied(approvalToAdd)}
-                    />
-
-                    {!approvalHasMaxNumTransfers(approvalToAdd.approvalCriteria.maxNumTransfers) && <div style={{ textAlign: 'center' }}>
-                      <div style={{ textAlign: 'center' }}>
-                        <WarningOutlined style={{ color: '#FF5733' }} />
-                        <span style={{ marginLeft: 8, color: '#FF5733' }}>
-                          This approval approves x{startBalances.length > 0 ? Number(startBalances[0].amount) : 0}{' '}of the selected badges
-                          {' '}<b>per use</b> in an all or nothing manner.
-                          However, you have not set a limit on max uses,
-                          meaning an unlimited quantity is approved.
-                        </span>
-                      </div>
-                    </div>}
-
-                    <br />
-                    {AllMaxUses}
-                  </>}
-                </>}
-              </>}
-              {amountType === AmountType.Predetermined && <>
-                {predeterminedType === PredeterminedType.Dynamic && <>
-                  <b style={{ fontSize: 16 }}> 1) Assigning Partitions</b>
-                  <OrderCalculationMethod
-                    expectedPartitions={expectedPartitions}
-                    approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-                    amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-                    increment={increment} startBalances={startBalances}
-                    keyId='useOverallNumTransfers' label='Increment per use?' />
-                  <OrderCalculationMethod
-                    expectedPartitions={expectedPartitions}
-                    approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-                    amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-                    increment={increment} startBalances={startBalances}
-                    keyId='usePerToAddressNumTransfers' label='Increment per unique recipient?' />
-                  <OrderCalculationMethod
-                    expectedPartitions={expectedPartitions}
-                    approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-                    amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-                    increment={increment} startBalances={startBalances}
-                    keyId='usePerFromAddressNumTransfers' label='Increment per unique sender' />
-                  <OrderCalculationMethod
-                    expectedPartitions={expectedPartitions}
-                    approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-                    amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-                    increment={increment} startBalances={startBalances}
-                    keyId='usePerInitiatedByAddressNumTransfers' label='Increment per unique approved address?' />
-                  <OrderCalculationMethod
-                    expectedPartitions={expectedPartitions}
-                    approvalToAdd={approvalToAdd} setApprovalToAdd={setApprovalToAdd} collectionId={collectionId}
-                    amountType={amountType} codeType={codeType} distributionMethod={distributionMethod}
-                    increment={increment} startBalances={startBalances}
-                    keyId='useMerkleChallengeLeafIndex' label='Specific codes / whitelisted addresses?' />
-                  {/* if all are false watning message */}
-                  {approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers === false &&
-                    approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerToAddressNumTransfers === false &&
-                    approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerFromAddressNumTransfers === false &&
-                    approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerInitiatedByAddressNumTransfers === false &&
-                    approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex === false &&
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ textAlign: 'center' }}>
-                        <WarningOutlined style={{ color: 'red' }} />
-                        <span style={{ marginLeft: 8, color: 'red' }}>
-                          You must select at least one order calculation method.
-                        </span>
-                      </div>
-                    </div>
-                  }
-                </>}
-              </>
+            details.offChainClaims = [
+              {
+                claimId: '',
+                plugins: pluginsToAdd,
+                manualDistribution: distributionType === DistributionType.Manual
               }
-            </Col>
-          </div>}
-        </InformationDisplayCard>
-      </div >
+            ];
 
+            newApprovalToAdd.details = details;
 
-      <div className='flex flex-wrap full-width'>
-        <InformationDisplayCard title='Transfer Times' md={8} xs={24} sm={24} subtitle='When can this approval be used?'>
-          <br />
-          <Switch
-            checked={isFullUintRanges(approvalToAdd.transferTimes)}
-            checkedChildren="All Times"
-            unCheckedChildren="Custom"
-            onChange={(checked) => {
-              if (checked) {
-                setApprovalToAdd({
-                  ...approvalToAdd,
-                  transferTimes: [{ start: 1n, end: GO_MAX_UINT_64 }],
-                });
-              } else {
-                setApprovalToAdd({
-                  ...approvalToAdd,
-                  transferTimes: [],
-                });
-              }
-            }}
-          />
-          <br /> <br />
-          <>
-            {isFullUintRanges(approvalToAdd.transferTimes) ? <></> : <>
-              {approvalToAdd.transferTimes.length == 0 && <div style={{ color: 'red' }}>
-                <WarningOutlined /> Transfer times cannot be empty.
-              </div>}
-              <DateRangeInput
-                timeRanges={approvalToAdd.transferTimes}
-                setTimeRanges={(transferTimes) => {
-                  setApprovalToAdd({
-                    ...approvalToAdd,
-                    transferTimes,
-                  });
-                }}
-              />
-            </>
-            }</>
+            newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>;
+          } else if (distributionMethod === DistributionMethod.Whitelist) {
+            const toAddresses = approvalToAdd.initiatedByList.addresses;
+            newApprovalToAdd.initiatedByList = AddressList.AllAddresses();
+            newApprovalToAdd.initiatedByListId = 'All';
 
-        </InformationDisplayCard>
-        <InformationDisplayCard title='Approval Info' md={16} xs={24} sm={24} subtitle='Provide optional metadata for the approval. Explain what it is for, how to get approved, etc.'>
-          <ClaimMetadataSelect approvalDetails={approvalToAdd.details} setApprovalDetails={(details) => {
-            setApprovalToAdd({
-              ...approvalToAdd,
-              details,
-            });
-          }} />
+            addresses.push(...toAddresses.map((x) => convertToCosmosAddress(x)));
+            const treeOptions = {
+              fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000'
+            };
+            const addressesTree = new MerkleTree(
+              addresses.map((x) => SHA256(x)),
+              SHA256,
+              treeOptions
+            );
+            const addressesRoot = addressesTree.getRoot().toString('hex');
 
-        </InformationDisplayCard>
-      </div>
-    </Row >
-    < button className='landing-button' style={{ width: '100%', marginTop: 16 }
-    }
-      disabled={isAddressListEmpty(approvalToAdd.fromList) || isAddressListEmpty(approvalToAdd.toList) || isAddressListEmpty(approvalToAdd.initiatedByList)
-        || approvalToAdd.badgeIds.length === 0 || approvalToAdd.ownershipTimes.length === 0 || approvalToAdd.transferTimes.length === 0
-        || uintRangesOverlap || uintRangesLengthEqualsZero || ownedTimesOverlap || ownedTimesLengthEqualsZero
-        || (requireFromDoesNotEqualInitiatedBy && requireFromEqualsInitiatedBy) || (requireToDoesNotEqualInitiatedBy && requireToEqualsInitiatedBy)
-        || (distributionMethod === DistributionMethod.Codes && codeType === CodeType.None || !!(distributionMethod === DistributionMethod.Codes && codeType === CodeType.Reusable && !claimPassword))
-        || approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances.startBalances.find(x => x.amount <= 0n || checkIfUintRangesOverlap(x.badgeIds) || checkIfUintRangesOverlap(x.ownershipTimes) || x.badgeIds.length === 0 || x.ownershipTimes.length === 0) ? true : false
-        || ((approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0n || approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances.incrementOwnershipTimesBy > 0n) &&
-          (!approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useOverallNumTransfers && !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerToAddressNumTransfers && !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerFromAddressNumTransfers && !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.usePerInitiatedByAddressNumTransfers && !approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod.useMerkleChallengeLeafIndex))
-        || (nonMintOnlyApproval && isInAddressList(approvalToAdd.fromList, "Mint"))
-        || (!!approvalsToAdd.find(x => x.approvalId === approvalToAdd.approvalId) && !defaultApproval)
-        || (nonMintOnlyApproval && isInAddressList(approvalToAdd.fromList, "Mint"))
-        || transferTimesOverlap || transferTimesLengthEqualsZero
-      || (amountType === AmountType.Tally && predeterminedType === PredeterminedType.Same && ((startBalances.length > 0 ? Number(startBalances[0].amount) : 0) <= 0))
-      }
-      onClick={() => {
-        //Set them here
-        const codes = [];
-        const addresses = [];
+            const merkleChallenge: any = {
+              root: '',
+              expectedProofLength: 0n,
+              uri: '',
+              customData: '',
+              useCreatorAddressAsLeaf: false,
+              maxUsesPerLeaf: 0n
+            };
+            const details = {
+              challengeDetails: {
+                leavesDetails: {
+                  leaves: [],
+                  isHashed: false
+                }
+              },
+              name: newApprovalToAdd.details?.name || '',
+              description: newApprovalToAdd.details?.description || ''
+            } as any;
+            merkleChallenge.root = addressesRoot ? addressesRoot : '';
+            merkleChallenge.expectedProofLength = BigInt(addressesTree.getLayerCount() - 1);
+            merkleChallenge.useCreatorAddressAsLeaf = true;
+            merkleChallenge.maxUsesPerLeaf = 0n;
 
-        const newApprovalToAdd: CollectionApprovalWithDetails<bigint> & { approvalCriteria: ApprovalCriteriaWithDetails<bigint> } = deepCopy(approvalToAdd);
+            details.challengeDetails.leavesDetails.leaves = addresses;
+            details.challengeDetails.leavesDetails.isHashed = false;
+            details.challengeDetails.numLeaves = BigInt(numRecipients);
+            details.challengeDetails.password = '';
+            details.challengeDetails.hasPassword = false;
+            details.challengeDetails.treeOptions = treeOptions;
 
-        if (distributionMethod === DistributionMethod.Codes) {
-          for (let i = 0; i < numRecipients; i++) {
-            const code = crypto.randomBytes(32).toString('hex');
-            codes.push(code);
+            newApprovalToAdd.details = details;
+            newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>;
+          } else {
+            newApprovalToAdd.approvalCriteria.merkleChallenge = undefined;
+            const details = {
+              challengeDetails: {
+                leavesDetails: {
+                  leaves: [],
+                  isHashed: false
+                }
+              },
+              name: newApprovalToAdd.details?.name || '',
+              description: newApprovalToAdd.details?.description || ''
+            } as any;
+            newApprovalToAdd.details = details;
           }
 
-          const hashedCodes = codes.map(x => SHA256(x).toString());
-          const treeOptions = { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }
-          const codesTree = new MerkleTree(hashedCodes, SHA256, treeOptions);
-          const codesRoot = codesTree.getRoot().toString('hex');
+          const autoGenerateIds = true;
+          if (autoGenerateIds) {
+            newApprovalToAdd.amountTrackerId = amountTrackerId.current;
+            newApprovalToAdd.approvalId = amountTrackerId.current;
+            newApprovalToAdd.challengeTrackerId = amountTrackerId.current;
+          }
 
-          const merkleChallenge: any = {
-            root: '',
-            expectedProofLength: 0n,
-            uri: '',
-            customData: '',
-            useCreatorAddressAsLeaf: false,
-            maxUsesPerLeaf: 0n,
+          if (
+            !newApprovalToAdd.details?.name &&
+            !newApprovalToAdd.details?.description &&
+            !newApprovalToAdd.details?.challengeDetails?.leavesDetails.leaves.length
+          ) {
+            newApprovalToAdd.details = undefined;
+          }
 
-          };
-
-          const details = {
-            challengeDetails: {
-              leavesDetails: {
-                leaves: [],
-                isHashed: false
-              }
-            },
-            name: newApprovalToAdd.details?.name || '',
-            description: newApprovalToAdd.details?.description || ''
-          } as any
-          merkleChallenge.root = codesRoot ? codesRoot : '';
-          merkleChallenge.expectedProofLength = BigInt(codesTree.getLayerCount() - 1);
-          merkleChallenge.useCreatorAddressAsLeaf = false;
-          merkleChallenge.maxUsesPerLeaf = 1n;
-
-          details.challengeDetails.leavesDetails.leaves = hashedCodes;
-          details.challengeDetails.leavesDetails.isHashed = true;
-          details.challengeDetails.leavesDetails.preimages = codes;
-          details.challengeDetails.numLeaves = BigInt(numRecipients);
-          details.challengeDetails.password = claimPassword;
-          details.challengeDetails.hasPassword = claimPassword ? true : false;
-          details.challengeDetails.treeOptions = treeOptions;
-
-
-
-          newApprovalToAdd.details = details
-
-          newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>
-        } else if (distributionMethod === DistributionMethod.Whitelist) {
-          const toAddresses = approvalToAdd.initiatedByList.addresses;
-          newApprovalToAdd.initiatedByList = getReservedAddressList("All");
-          newApprovalToAdd.initiatedByListId = "All";
-
-          addresses.push(...toAddresses.map(x => convertToCosmosAddress(x)));
-          const treeOptions = { fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000' }
-          const addressesTree = new MerkleTree(addresses.map(x => SHA256(x)), SHA256, treeOptions);
-          const addressesRoot = addressesTree.getRoot().toString('hex');
-
-          const merkleChallenge: any = {
-            root: '',
-            expectedProofLength: 0n,
-            uri: '',
-            customData: '',
-            useCreatorAddressAsLeaf: false,
-            maxUsesPerLeaf: 0n,
-
-          };
-          const details = {
-            challengeDetails: {
-              leavesDetails: {
-                leaves: [],
-                isHashed: false
-              }
-            },
-            name: newApprovalToAdd.details?.name || '',
-            description: newApprovalToAdd.details?.description || ''
-          } as any
-          merkleChallenge.root = addressesRoot ? addressesRoot : '';
-          merkleChallenge.expectedProofLength = BigInt(addressesTree.getLayerCount() - 1);
-          merkleChallenge.useCreatorAddressAsLeaf = true;
-          merkleChallenge.maxUsesPerLeaf = 0n;
-
-
-          details.challengeDetails.leavesDetails.leaves = addresses
-          details.challengeDetails.leavesDetails.isHashed = false;
-          details.challengeDetails.numLeaves = BigInt(numRecipients);
-          details.challengeDetails.password = ''
-          details.challengeDetails.hasPassword = false;
-          details.challengeDetails.treeOptions = treeOptions;
-
-          newApprovalToAdd.details = details
-          newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>
-        } else {
-          newApprovalToAdd.approvalCriteria.merkleChallenge = undefined;
-          const details = {
-            challengeDetails: {
-              leavesDetails: {
-                leaves: [],
-                isHashed: false
-              }
-            },
-            name: newApprovalToAdd.details?.name || '',
-            description: newApprovalToAdd.details?.description || ''
-          } as any
-          newApprovalToAdd.details = details
-        }
-
-        const autoGenerateIds = true;
-        if (autoGenerateIds) {
-          newApprovalToAdd.amountTrackerId = amountTrackerId.current;
-          newApprovalToAdd.approvalId = amountTrackerId.current;
-          newApprovalToAdd.challengeTrackerId = amountTrackerId.current;
-        }
-
-        if (!newApprovalToAdd.details?.name && !newApprovalToAdd.details?.description && !newApprovalToAdd.details?.challengeDetails.leavesDetails.leaves.length) {
-          newApprovalToAdd.details = undefined;
-        }
-
-
-        if (amountType === AmountType.Predetermined) {
           //We have been using approvalToAdd.badgeIds as the start badges, but we need to now set this to all possible badges
-          const allPossibleBadgeIds = getAllApprovedBadges(approvalToAdd, amountType, startBalances, increment);
-          newApprovalToAdd.badgeIds = allPossibleBadgeIds;
-        }
+          if (isPartitionView) {
+            const allPossibleBadgeIds = getAllApprovedBadges(approvalToAdd, BalanceArray.From(startBalances), increment);
+            newApprovalToAdd.badgeIds = allPossibleBadgeIds;
+          }
 
-        const newApprovalsToAdd = [...approvalsToAdd, deepCopy(newApprovalToAdd)]
+          const newApprovalsToAdd = [...approvalsToAdd, deepCopyPrimitives(newApprovalToAdd)];
 
-        let isValidUpdateError = validateCollectionApprovalsUpdate(startingApprovals, newApprovalsToAdd, approvalPermissions);
+          const isValidUpdateError = validateCollectionApprovalsUpdate(
+            startingApprovals,
+            newApprovalsToAdd.map((x) => new CollectionApprovalWithDetails(x)),
+            approvalPermissions
+          );
 
+          if (
+            isValidUpdateError &&
+            !confirm(
+              'This update is disallowed by the collection permissions. Please confirm this was intended. Details: ' + isValidUpdateError.message
+            )
+          ) {
+            return;
+          }
 
-        if (isValidUpdateError && !confirm("This update is disallowed by the collection permissions. Please confirm this was intended. Details: " + isValidUpdateError.message)) {
+          //We need to replace the existing one
+          if (defaultApproval) {
+            setApprovalsToAdd(
+              [...approvalsToAdd.map((x) => (x.approvalId === approvalToAdd.approvalId ? deepCopyPrimitives(newApprovalToAdd) : x))].map(
+                (x) => new CollectionApprovalWithDetails(x)
+              )
+            );
+          } else {
+            setApprovalsToAdd([...approvalsToAdd, deepCopyPrimitives(newApprovalToAdd)].map((x) => new CollectionApprovalWithDetails(x)));
+          }
 
-          return;
-        }
+          setApprovalToAdd(deepCopyPrimitives(defaultApprovalToAdd));
 
-        //We need to replace the existing one
-        if (defaultApproval) {
-          setApprovalsToAdd([...approvalsToAdd.map(x => x.approvalId === approvalToAdd.approvalId ? deepCopy(newApprovalToAdd) : x)]);
-
-        } else {
-          setApprovalsToAdd([...approvalsToAdd, deepCopy(newApprovalToAdd)]);
-        }
-
-        setApprovalToAdd(deepCopy(defaultApprovalToAdd));
-
-        if (setVisible) setVisible(false);
-      }
-      }>
-
-      {isEdit ? 'Edit Approval' : 'Set Approval'}
-    </button >
-    {
-      isEdit && <div className='flex-center secondary-text'>
-        <InfoCircleOutlined /> This will overwrite the approval you selected to edit.
-      </div>
-    }
-    <br />
-
-  </>
+          if (setVisible) setVisible(false);
+        }}>
+        {isEdit ? 'Edit Approval' : 'Set Approval'}
+      </button>
+      {isEdit && (
+        <div className="flex-center secondary-text">
+          <InfoCircleOutlined /> This will overwrite the approval you selected to edit.
+        </div>
+      )}
+      <br />
+    </>
+  );
 }

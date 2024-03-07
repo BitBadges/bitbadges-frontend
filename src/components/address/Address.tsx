@@ -1,19 +1,18 @@
-import { Spin, Tooltip, Typography } from "antd"
+import { Spin, Tooltip, Typography } from 'antd';
 import {
-  MINT_ACCOUNT,
   SupportedChain,
+  convertToBtcAddress,
   convertToCosmosAddress,
-  cosmosToBtc,
-  cosmosToEth,
+  convertToEthAddress,
   getAbbreviatedAddress,
   getChainForAddress,
-  isAddressValid,
-} from "bitbadgesjs-sdk"
-import { useRouter } from "next/router"
-import { useAccount } from "../../bitbadges-api/contexts/accounts/AccountsContext"
-import { AddressDisplay } from "./AddressDisplay"
+  isAddressValid
+} from 'bitbadgesjs-sdk';
+import { useRouter } from 'next/router';
+import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { AddressDisplay } from './AddressDisplay';
 
-const { Text } = Typography
+const { Text } = Typography;
 
 export function Address({
   addressOrUsername,
@@ -22,36 +21,33 @@ export function Address({
   hideTooltip,
   hidePortfolioLink,
   overrideChain,
-  doNotShowName,
+  doNotShowName
 }: {
-  addressOrUsername: string
-  fontSize?: number | string
-  fontColor?: string
-  hideTooltip?: boolean
-  hidePortfolioLink?: boolean
-  overrideChain?: SupportedChain
-  doNotShowName?: boolean
+  addressOrUsername: string;
+  fontSize?: number | string;
+  fontColor?: string;
+  hideTooltip?: boolean;
+  hidePortfolioLink?: boolean;
+  overrideChain?: SupportedChain;
+  doNotShowName?: boolean;
 }) {
-  const router = useRouter()
-  const userInfo = useAccount(addressOrUsername)
+  const router = useRouter();
+  const userInfo = useAccount(addressOrUsername);
 
-  let newAddress = ""
-  if (userInfo && overrideChain && userInfo?.chain !== overrideChain) {
-    if (overrideChain === SupportedChain.BTC)
-      newAddress = cosmosToBtc(userInfo.cosmosAddress)
-    else if (overrideChain === SupportedChain.ETH)
-      newAddress = cosmosToEth(userInfo.cosmosAddress)
-    else if (overrideChain === SupportedChain.COSMOS)
-      newAddress = userInfo.cosmosAddress
+  let newAddress = '';
+  if (userInfo && overrideChain != null && userInfo?.chain !== overrideChain) {
+    if (overrideChain === SupportedChain.BTC) newAddress = userInfo.btcAddress;
+    else if (overrideChain === SupportedChain.ETH) newAddress = userInfo.ethAddress;
+    else if (overrideChain === SupportedChain.COSMOS) newAddress = userInfo.cosmosAddress;
   }
 
-  const addressName = !doNotShowName ? userInfo?.username : ""
-  const resolvedName = !doNotShowName ? userInfo?.resolvedName : ""
-  let address = (overrideChain ? newAddress : userInfo?.address) || addressOrUsername || ""
-  let chain = overrideChain ?? userInfo?.chain
+  const addressName = !doNotShowName ? userInfo?.username : '';
+  const resolvedName = !doNotShowName ? userInfo?.resolvedName : '';
+  const address = (overrideChain != null ? newAddress : userInfo?.address) || addressOrUsername || '';
+  const chain = overrideChain ?? userInfo?.chain;
 
-  const isValidAddress = isAddressValid(address) || address == "All";
-  const displayAddress = addressName ? addressName : resolvedName ? resolvedName : getAbbreviatedAddress(address)
+  const isValidAddress = isAddressValid(address) || address == 'All';
+  const displayAddress = addressName ? addressName : resolvedName ? resolvedName : getAbbreviatedAddress(address);
 
   const innerContent =
     !hideTooltip && userInfo ? (
@@ -61,22 +57,20 @@ export function Address({
         title={
           <>
             <div className="dark">
-              {address === MINT_ACCOUNT.address ? (
+              {address === 'Mint' ? (
                 <div
                   className="primary-text"
                   style={{
-                    textAlign: "center",
+                    textAlign: 'center'
                   }}
                 >
-                  This is a special escrow address used when badges are first
-                  created. Badges can only be transferred from this address, not
-                  to it.
+                  This is a special escrow address used when badges are first created. Badges can only be transferred from this address, not to it.
                 </div>
-              ) : address == "All" ? (
+              ) : address == 'All' ? (
                 <div
                   className="primary-text"
                   style={{
-                    textAlign: "center",
+                    textAlign: 'center'
                   }}
                 >
                   This represents all possible user addresses.
@@ -85,7 +79,7 @@ export function Address({
                 <div
                   className="primary-text"
                   style={{
-                    textAlign: "center",
+                    textAlign: 'center'
                   }}
                 >
                   {`${chain} Address`}
@@ -95,7 +89,7 @@ export function Address({
                       {`${resolvedName}`}
                     </>
                   ) : (
-                    ""
+                    ''
                   )}
 
                   <br />
@@ -106,146 +100,117 @@ export function Address({
                   {userInfo.alias || userInfo.cosmosAddress.length > 45 ? (
                     <>
                       <div className="flex-center">
-                        This is a reserved alias account. It is not a real account and cannot initiate
-                        transactions. However, it has a portfolio and can
-                        receive badges.
+                        This is a reserved alias account. It is not a real account and cannot initiate transactions. However, it has a portfolio and
+                        can receive badges.
                       </div>
                     </>
                   ) : (
                     <>
-                      {"Other equivalent addresses: "}
+                      {'Other equivalent addresses: '}
                       <br />
                       {!doNotShowName && (addressName || resolvedName) && (
                         <div className="flex-center">
+                          <AddressDisplay addressOrUsername={address} hidePortfolioLink hideTooltip doNotShowName />
+                          <br />
+                        </div>
+                      )}
+                      {getChainForAddress(address) === SupportedChain.ETH && isAddressValid(address) && (
+                        <div className="flex-center flex-column">
                           <AddressDisplay
-                            addressOrUsername={address}
+                            addressOrUsername={convertToCosmosAddress(address)}
+                            overrideChain={SupportedChain.COSMOS}
                             hidePortfolioLink
                             hideTooltip
                             doNotShowName
                           />
-                          <br />
+                          <AddressDisplay
+                            addressOrUsername={convertToBtcAddress(address)}
+                            overrideChain={SupportedChain.BTC}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
                         </div>
                       )}
-                      {getChainForAddress(address) === SupportedChain.ETH &&
-                        isAddressValid(address) && (
-                          <div className="flex-center flex-column">
-                            <AddressDisplay
-                              addressOrUsername={convertToCosmosAddress(
-                                address
-                              )}
-                              overrideChain={SupportedChain.COSMOS}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                            <AddressDisplay
-                              addressOrUsername={cosmosToBtc(
-                                convertToCosmosAddress(address)
-                              )}
-                              overrideChain={SupportedChain.BTC}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                          </div>
-                        )}
 
-                      {getChainForAddress(address) === SupportedChain.COSMOS &&
-                        isAddressValid(address) && (
-                          <div className="flex-center flex-column">
-                            <AddressDisplay
-                              addressOrUsername={cosmosToEth(address)}
-                              overrideChain={SupportedChain.ETH}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                            <AddressDisplay
-                              addressOrUsername={cosmosToBtc(
-                                convertToCosmosAddress(address)
-                              )}
-                              overrideChain={SupportedChain.BTC}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                          </div>
-                        )}
+                      {getChainForAddress(address) === SupportedChain.COSMOS && isAddressValid(address) && (
+                        <div className="flex-center flex-column">
+                          <AddressDisplay
+                            addressOrUsername={convertToEthAddress(address)}
+                            overrideChain={SupportedChain.ETH}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
+                          <AddressDisplay
+                            addressOrUsername={convertToBtcAddress(address)}
+                            overrideChain={SupportedChain.BTC}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
+                        </div>
+                      )}
 
-                      {getChainForAddress(address) === SupportedChain.BTC &&
-                        isAddressValid(address) && (
-                          <div className="flex-center flex-column">
-                            <AddressDisplay
-                              addressOrUsername={cosmosToEth(
-                                convertToCosmosAddress(address)
-                              )}
-                              overrideChain={SupportedChain.ETH}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                            <AddressDisplay
-                              addressOrUsername={convertToCosmosAddress(
-                                address
-                              )}
-                              overrideChain={SupportedChain.COSMOS}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                          </div>
-                        )}
+                      {getChainForAddress(address) === SupportedChain.BTC && isAddressValid(address) && (
+                        <div className="flex-center flex-column">
+                          <AddressDisplay
+                            addressOrUsername={convertToEthAddress(address)}
+                            overrideChain={SupportedChain.ETH}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
+                          <AddressDisplay
+                            addressOrUsername={convertToCosmosAddress(address)}
+                            overrideChain={SupportedChain.COSMOS}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
+                        </div>
+                      )}
 
-                      {getChainForAddress(address) !== SupportedChain.SOLANA &&
-                        isAddressValid(address) &&
-                        userInfo.solAddress && (
-                          <div className="flex-center flex-column">
-                            <AddressDisplay
-                              addressOrUsername={userInfo.solAddress}
-                              overrideChain={SupportedChain.SOLANA}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                          </div>
-                        )}
-                      {getChainForAddress(address) === SupportedChain.SOLANA &&
-                        isAddressValid(address) && (
-                          <div className="flex-center flex-column">
-                            <AddressDisplay
-                              addressOrUsername={convertToCosmosAddress(
-                                address
-                              )}
-                              overrideChain={SupportedChain.COSMOS}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                            <AddressDisplay
-                              addressOrUsername={cosmosToBtc(
-                                convertToCosmosAddress(address)
-                              )}
-                              overrideChain={SupportedChain.BTC}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                          </div>
-                        )}
-                      {getChainForAddress(address) === SupportedChain.SOLANA &&
-                        isAddressValid(address) && (
-                          <div className="flex-center">
-                            <AddressDisplay
-                              addressOrUsername={cosmosToEth(
-                                convertToCosmosAddress(address)
-                              )}
-                              overrideChain={SupportedChain.ETH}
-                              hidePortfolioLink
-                              hideTooltip
-                              doNotShowName
-                            />
-                          </div>
-                        )}
+                      {getChainForAddress(address) !== SupportedChain.SOLANA && isAddressValid(address) && userInfo.solAddress && (
+                        <div className="flex-center flex-column">
+                          <AddressDisplay
+                            addressOrUsername={userInfo.solAddress}
+                            overrideChain={SupportedChain.SOLANA}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
+                        </div>
+                      )}
+                      {getChainForAddress(address) === SupportedChain.SOLANA && isAddressValid(address) && (
+                        <div className="flex-center flex-column">
+                          <AddressDisplay
+                            addressOrUsername={convertToCosmosAddress(address)}
+                            overrideChain={SupportedChain.COSMOS}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
+                          <AddressDisplay
+                            addressOrUsername={convertToBtcAddress(address)}
+                            overrideChain={SupportedChain.BTC}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
+                        </div>
+                      )}
+                      {getChainForAddress(address) === SupportedChain.SOLANA && isAddressValid(address) && (
+                        <div className="flex-center">
+                          <AddressDisplay
+                            addressOrUsername={convertToEthAddress(address)}
+                            overrideChain={SupportedChain.ETH}
+                            hidePortfolioLink
+                            hideTooltip
+                            doNotShowName
+                          />
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -254,56 +219,49 @@ export function Address({
           </>
         }
         overlayStyle={{
-          minWidth: 320,
+          minWidth: 320
         }}
       >
         {displayAddress}
       </Tooltip>
     ) : (
       displayAddress
-    )
+    );
 
-  const showLink = !hidePortfolioLink &&
-    address &&
-    address !== MINT_ACCOUNT.address &&
-    address != "All"
-  const invalidAddress = !isValidAddress
+  const showLink = !hidePortfolioLink && address && address !== 'Mint' && address != 'All';
+  const invalidAddress = !isValidAddress;
 
   return (
     <div>
       <div
         style={{
-          verticalAlign: "middle",
+          verticalAlign: 'middle',
           paddingLeft: 5,
-          fontSize: fontSize,
+          fontSize: fontSize
         }}
         className="whitespace-nowrap"
       >
         <Text
-          className={"primary-text " + (!showLink ? "" : " link-button-nav")}
+          className={'primary-text ' + (!showLink ? '' : ' link-button-nav')}
           onClick={
             !showLink
               ? undefined
               : () => {
-                router.push(`/account/${address}`)
-              }
+                  router.push(`/account/${address}`);
+                }
           }
           copyable={{
             text: address,
-            tooltips: ["Copy Address", "Copied!"],
+            tooltips: ['Copy Address', 'Copied!']
           }}
           style={{
-            color: invalidAddress ? "red" : fontColor,
-            display: "inline-flex",
+            color: invalidAddress ? 'red' : fontColor,
+            display: 'inline-flex'
           }}
         >
-          <b>
-            {userInfo ? (
-              <>{innerContent}</>
-            ) : !invalidAddress ? (<Spin />) : (<>{displayAddress}</>)}
-          </b>
+          <b>{userInfo ? <>{innerContent}</> : !invalidAddress ? <Spin /> : <>{displayAddress}</>}</b>
         </Text>
       </div>
     </div>
-  )
+  );
 }

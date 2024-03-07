@@ -4,13 +4,13 @@
 @tailwind utilities;
 
 body {
-    font-family: 'DM Sans', sans-serif !important;
+  font-family: 'DM Sans', sans-serif !important;
 }
 
 :root {
-    --primary-color: #1890ff;
-    --secondry-color: #001529;
-    --color-white: #fff;
+  --primary-color: #1890ff;
+  --secondry-color: #001529;
+  --color-white: #fff;
 }
 
 /* .styled-button {
@@ -26,37 +26,41 @@ body {
 } */
 
 .primary-text-custom {
-    color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
 }
 
 .anticon-custom svg {
-    font-size: 30px;
+  font-size: 30px;
 }
 
 /* .anticon-down svg{
     color: var(--primary-color) !important;
 } */
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: inherit !important;
 }
-
 
 /* 
 .ant-menu.ant-menu-dark, .ant-menu-dark .ant-menu-sub, .ant-menu.ant-menu-dark .ant-menu-sub{
     background-color: rgb(15 23 42) !important;
 } */
 
-.accounting{
-    line-height: 30px !important;
+.accounting {
+  line-height: 30px !important;
 }
 
-.accounting svg{
-    font-size: 30px;
+.accounting svg {
+  font-size: 30px;
 }
 
-.blockin-global .main-display{
-    border: none;
+.blockin-global .main-display {
+  border: none;
 }
 
 /* overrides tailwind classes */

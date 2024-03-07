@@ -1,12 +1,12 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Divider, StepProps, Typography } from 'antd';
-import { MsgTransferBadges } from 'bitbadgesjs-sdk';
+import { BalanceArray, MsgTransferBadges } from 'bitbadgesjs-sdk';
 import { CollectionApprovalWithDetails, TransferWithIncrements, convertToCosmosAddress } from 'bitbadgesjs-sdk';
 import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { fetchAccounts, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
+import { fetchAccounts, fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchBalanceForUser, fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressSelect } from '../address/AddressSelect';
@@ -14,42 +14,67 @@ import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TransferSelect } from '../transfers/TransferOrClaimSelect';
 import { TxModal } from './TxModal';
 
+export const getTreeForApproval = (approval: CollectionApprovalWithDetails<bigint>) => {
+  const leavesDetails = approval.details?.challengeDetails?.leavesDetails;
+  const treeOptions = approval.details?.challengeDetails?.treeOptions;
 
-export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisible, children, defaultAddress, approval, fromTransferabilityDisplay }: {
-  collectionId: bigint,
-  visible: boolean,
-  setVisible: (visible: boolean) => void,
-  children?: React.ReactNode
-  defaultAddress?: string
-  approval?: CollectionApprovalWithDetails<bigint>,
-  fromTransferabilityDisplay?: boolean
+  return new MerkleTree(leavesDetails?.leaves.map((x) => (leavesDetails?.isHashed ? x : SHA256(x))) ?? [], SHA256, treeOptions);
+};
+
+export const getProofDetails = (tree: MerkleTree, leaf: string) => {
+  const proofObj = tree?.getProof(leaf);
+  const isValidProof = (proofObj && tree && proofObj.length === tree.getLayerCount() - 1) ?? false;
+
+  return { proofObj, isValidProof };
+};
+
+export function CreateTxMsgTransferBadgesModal({
+  collectionId,
+  visible,
+  setVisible,
+  children,
+  defaultAddress,
+  approval,
+  fromTransferabilityDisplay
+}: {
+  collectionId: bigint;
+  visible: boolean;
+  setVisible: (visible: boolean) => void;
+  children?: React.ReactNode;
+  defaultAddress?: string;
+  approval?: CollectionApprovalWithDetails<bigint>;
+  fromTransferabilityDisplay?: boolean;
 }) {
   const chain = useChainContext();
+  const collection = useCollection(collectionId);
+
+  const [transfers, setTransfers] = useState<Array<TransferWithIncrements<bigint>>>([]);
+  const [sender, setSender] = useState<string>(defaultAddress ?? chain.address);
+
+  const senderAccount = useAccount(sender);
+  const senderBalance = collection?.getBadgeBalances(senderAccount?.cosmosAddress ?? '') ?? new BalanceArray<bigint>();
 
   const approvalCriteria = approval?.approvalCriteria;
-  const merkleChallenge = approval?.approvalCriteria && approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
-  const leavesDetails = approval?.details?.challengeDetails?.leavesDetails;
-  const treeOptions = approval?.details?.challengeDetails?.treeOptions;
+  const merkleChallenge = approvalCriteria && approvalCriteria?.merkleChallenge?.root ? approvalCriteria?.merkleChallenge : undefined;
 
   const tree = useMemo(() => {
     if (INFINITE_LOOP_MODE) console.log('useMemo:  tree');
     if (!visible) return null;
-    if (!merkleChallenge) return null;
-    return new MerkleTree(leavesDetails?.leaves.map(x => leavesDetails?.isHashed ? x : SHA256(x)) ?? [], SHA256, treeOptions);
-  }, [merkleChallenge, leavesDetails, treeOptions, visible]);
+    if (!approval) return null;
 
+    return getTreeForApproval(approval);
+  }, [approval, visible]);
 
-  const collection = useCollection(collectionId);
-
-  const requiresWhitelistProof = !!(approval && approval.approvalCriteria?.merkleChallenge?.root && approval.approvalCriteria?.merkleChallenge.useCreatorAddressAsLeaf) ?? false;
+  const requiresWhitelistProof = !!(merkleChallenge?.root && merkleChallenge.useCreatorAddressAsLeaf) ?? false;
   const leaf = requiresWhitelistProof ? SHA256(chain.cosmosAddress).toString() : '';
-  const proofObj = tree?.getProof(leaf);
-  const isValidProof = (proofObj && tree && proofObj.length === tree.getLayerCount() - 1) ?? false;
 
-  const [transfers, setTransfers] = useState<TransferWithIncrements<bigint>[]>([]);
-  const [sender, setSender] = useState<string>(defaultAddress ?? chain.address);
-  const senderAccount = useAccount(sender);
-  const senderBalance = collection?.owners.find(x => x.cosmosAddress === senderAccount?.cosmosAddress)?.balances ?? [];
+  const { proofObj, isValidProof } = useMemo(() => {
+    if (INFINITE_LOOP_MODE) console.log('useMemo:  proofObj');
+    if (!visible) return { proofObj: undefined, isValidProof: false };
+    if (!approval || !tree) return { proofObj: undefined, isValidProof: false };
+
+    return getProofDetails(tree, leaf);
+  }, [tree, leaf, visible, approval]);
 
   const DELAY_MS = 500;
   useEffect(() => {
@@ -61,75 +86,84 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
 
     const delayDebounceFn = setTimeout(async () => {
       getSenderBalance();
-    }, DELAY_MS)
+    }, DELAY_MS);
 
-    return () => clearTimeout(delayDebounceFn)
+    return () => {
+      clearTimeout(delayDebounceFn);
+    };
   }, [sender, collectionId]);
 
   useEffect(() => {
     if (INFINITE_LOOP_MODE) console.log('useEffect:  fetch accounts');
-    fetchAccounts(transfers.map(x => x.toAddresses).flat());
+    fetchAccounts(transfers.map((x) => x.toAddresses).flat());
   }, [transfers]);
 
   const items = [
-    approval?.fromList.addresses.length === 1 && approval.fromList.whitelist ? undefined :
-      {
-        title: 'Sender',
-        description: <div>
-          <InformationDisplayCard
-            title='Sender'
-            span={24}
-            style={{
-              padding: '0',
-              textAlign: 'center',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: 20,
-            }}
-            noBorder
-            inheritBg
-          >
-            <AddressSelect
-              defaultValue={(senderAccount?.username || senderAccount?.address) ?? ''}
-              onUserSelect={setSender}
-              allowMintSearch
-            />
-            {!fromTransferabilityDisplay && sender === 'Mint' && <>
-              <Divider />
-              <Typography.Text style={{ color: '#FF5733' }} >
-                <WarningOutlined /> {"Certain features for minting may not be supported using this modal. This could cause your transaction to fail. Please use the Transferability tab to transfer badges from the Mint address."}
-              </Typography.Text>
-            </>}
-            <Divider />
-            <Typography.Text className='secondary-text'>
-              <InfoCircleOutlined /> {"All transfers must satisfy the collection transferability, the sender's outgoing approvals, and the recipient's incoming approvals (if applicable)."}
-            </Typography.Text>
-          </InformationDisplayCard>
-        </div >
-      },
+    //No need to select sender if from is already hardcoded
+    approval?.fromList.addresses.length === 1 && approval.fromList.whitelist
+      ? undefined
+      : {
+          title: 'Sender',
+          description: (
+            <div>
+              <InformationDisplayCard
+                title="Sender"
+                span={24}
+                style={{
+                  padding: '0',
+                  textAlign: 'center',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: 20
+                }}
+                noBorder
+                inheritBg>
+                <AddressSelect defaultValue={(senderAccount?.username || senderAccount?.address) ?? ''} onUserSelect={setSender} allowMintSearch />
+                {!fromTransferabilityDisplay && sender === 'Mint' && (
+                  <>
+                    <Divider />
+                    <Typography.Text style={{ color: '#FF5733' }}>
+                      <WarningOutlined />{' '}
+                      {
+                        'Certain features for minting may not be supported using this modal. This could cause your transaction to fail. Please use the Transferability tab to transfer badges from the Mint address.'
+                      }
+                    </Typography.Text>
+                  </>
+                )}
+                <Divider />
+                <Typography.Text className="secondary-text">
+                  <InfoCircleOutlined />{' '}
+                  {
+                    "All transfers must satisfy the collection transferability, the sender's outgoing approvals, and the recipient's incoming approvals (if applicable)."
+                  }
+                </Typography.Text>
+              </InformationDisplayCard>
+            </div>
+          )
+        },
     {
       title: 'Add Transfers',
-      description: <div>
-
-
-        <div className=''>
-          <TransferSelect
-            collectionId={collectionId}
-            sender={sender}
-            originalSenderBalances={senderBalance}
-            setTransfers={setTransfers}
-            transfers={transfers}
-            plusButton
-            showApprovalsMessage
-          />
-        </div >
-      </div>,
+      description: (
+        <div>
+          <div className="">
+            <TransferSelect
+              collectionId={collectionId}
+              sender={sender}
+              originalSenderBalances={senderBalance}
+              setTransfers={setTransfers}
+              transfers={transfers}
+              plusButton
+              showApprovalsMessage
+            />
+          </div>
+        </div>
+      ),
       disabled: transfers.length === 0
     }
   ];
 
   const txsInfo = useMemo(() => {
-    const convertedTransfers = transfers.map(x => {
+    const convertedTransfers = transfers.map((x) => {
       return {
         from: senderAccount?.cosmosAddress ?? '',
         balances: x.balances,
@@ -137,37 +171,47 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
         precalculateBalancesFromApproval: {
           approvalId: '',
           approvalLevel: '',
-          approverAddress: '',
+          approverAddress: ''
         },
-        merkleProofs: requiresWhitelistProof ? [{
-          aunts: proofObj ? proofObj.map((proof) => {
-            return {
-              aunt: proof.data.toString('hex'),
-              onRight: proof.position === 'right'
-            }
-          }) : [],
-          leaf: '',
-        }] : [],
+        merkleProofs: requiresWhitelistProof
+          ? [
+              {
+                aunts: proofObj
+                  ? proofObj.map((proof) => {
+                      return {
+                        aunt: proof.data.toString('hex'),
+                        onRight: proof.position === 'right'
+                      };
+                    })
+                  : [],
+                leaf: ''
+              }
+            ]
+          : [],
         memo: '',
-        prioritizedApprovals: approval ? [{
-          approvalId: approval?.approvalId ?? '',
-          approvalLevel: 'collection',
-          approverAddress: '',
-        }] : [],
-        onlyCheckPrioritizedApprovals: false,
-      }
-    })
+        prioritizedApprovals: approval
+          ? [
+              {
+                approvalId: approval?.approvalId ?? '',
+                approvalLevel: 'collection',
+                approverAddress: ''
+              }
+            ]
+          : [],
+        onlyCheckPrioritizedApprovals: false
+      };
+    });
 
-    const txCosmosMsg: MsgTransferBadges<bigint> = {
+    const txCosmosMsg = new MsgTransferBadges({
       creator: chain.cosmosAddress,
       collectionId: collectionId,
-      transfers: convertedTransfers.map(x => {
+      transfers: convertedTransfers.map((x) => {
         return {
           ...x,
-          toAddresses: x.toAddresses.map(y => convertToCosmosAddress(y)),
-        }
+          toAddresses: x.toAddresses.map((y) => convertToCosmosAddress(y))
+        };
       })
-    };
+    });
 
     return [
       {
@@ -183,14 +227,15 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
           }
 
           //Anything after the first 10 addresses will not be fetched and they can just refresh the page, if necessary
-          const prunedAddresses = [...new Set(addressesToFetch.map(x => convertToCosmosAddress(x)))].slice(0, 10);
+          const prunedAddresses = [...new Set(addressesToFetch.map((x) => convertToCosmosAddress(x)))].slice(0, 10);
           await fetchAccounts(prunedAddresses, true);
+          await fetchAccountsWithOptions([{ address: chain.cosmosAddress, fetchSequence: true }], true);
         }
       }
-    ]
-  }, [chain.cosmosAddress, collectionId, transfers, proofObj, requiresWhitelistProof, senderAccount]);
+    ];
+  }, [chain.cosmosAddress, collectionId, transfers, proofObj, requiresWhitelistProof, senderAccount, approval]);
 
-  const filteredSteps = items.filter(x => x) as StepProps[];
+  const filteredSteps = items.filter((x) => x) as StepProps[];
   return (
     <TxModal
       msgSteps={filteredSteps}
@@ -199,8 +244,7 @@ export function CreateTxMsgTransferBadgesModal({ collectionId, visible, setVisib
       setVisible={setVisible}
       txsInfo={txsInfo}
       txName="Transfer Badge(s)"
-      width={'90%'}
-    >
+      width={'90%'}>
       {children}
     </TxModal>
   );

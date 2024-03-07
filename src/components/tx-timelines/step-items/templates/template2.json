@@ -4,7 +4,7 @@
   "balancesType": "Off-Chain - Indexed",
   "defaultBalances": {
     "balances": [],
-    "incomingApprovals":  [],
+    "incomingApprovals": [],
     "outgoingApprovals": [],
     "userPermissions": {
       "canUpdateOutgoingApprovals": [],

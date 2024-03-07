@@ -1,18 +1,10 @@
-import { ClockCircleOutlined } from "@ant-design/icons"
-import { Avatar, Spin, Tooltip, notification } from "antd"
-import { Balance } from "bitbadgesjs-sdk"
-import {
-  DefaultPlaceholderMetadata,
-  Metadata,
-  getBalanceForIdAndTime,
-  getMaxBadgeIdForCollection,
-  getMetadataForBadgeId,
-  isFullUintRanges,
-} from "bitbadgesjs-sdk"
-import { useRouter } from "next/router"
-import { NEW_COLLECTION_ID } from "../../bitbadges-api/contexts/TxTimelineContext"
-import { useCollection } from "../../bitbadges-api/contexts/collections/CollectionsContext"
-import { getTimeRangesString } from "../../utils/dates"
+import { ClockCircleOutlined } from '@ant-design/icons';
+import { Avatar, Spin, Tooltip, notification } from 'antd';
+import { BalanceArray, Metadata, getBalanceForIdAndTime } from 'bitbadgesjs-sdk';
+import { useRouter } from 'next/router';
+import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
+import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
+import { getTimeRangesString } from '../../utils/dates';
 
 export function BadgeAvatar({
   collectionId,
@@ -27,55 +19,40 @@ export function BadgeAvatar({
   showMultimedia,
   autoPlay
 }: {
-  collectionId: bigint
-  badgeId?: bigint
-  size?: number
-  balances?: Balance<bigint>[]
-  showId?: boolean
-  showSupplys?: boolean
-  noHover?: boolean
-  metadataOverride?: Metadata<bigint>
-  onClick?: () => void,
-  showMultimedia?: boolean
-  autoPlay?: boolean
+  collectionId: bigint;
+  badgeId?: bigint;
+  size?: number;
+  balances?: BalanceArray<bigint>;
+  showId?: boolean;
+  showSupplys?: boolean;
+  noHover?: boolean;
+  metadataOverride?: Metadata<bigint>;
+  onClick?: () => void;
+  showMultimedia?: boolean;
+  autoPlay?: boolean;
 }) {
-  const router = useRouter()
-  const collection = useCollection(collectionId)
-  let metadata = metadataOverride ? metadataOverride : badgeId
-    ? getMetadataForBadgeId(badgeId, collection?.cachedBadgeMetadata ?? [])
-    : collection?.cachedCollectionMetadata
+  const router = useRouter();
+  const collection = useCollection(collectionId);
+  let metadata = metadataOverride ? metadataOverride : badgeId ? collection?.getBadgeMetadata(badgeId) : collection?.getCollectionMetadata();
 
   // If the badgeId is greater than the max badgeId for the collection, then it is a placeholder badge
-  if (!metadata && badgeId && collection && badgeId > getMaxBadgeIdForCollection(collection)) {
-    metadata = DefaultPlaceholderMetadata
+  if (!metadata && badgeId && collection && badgeId > collection.getMaxBadgeId()) {
+    metadata = Metadata.DefaultPlaceholderMetadata();
   }
 
-  const currBalanceAmount = badgeId && balances
-    ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances)
-    : 0n
-  const showOwnershipTimesIcon = badgeId && balances && showSupplys
-    ? balances.some((x) => !isFullUintRanges(x.ownershipTimes))
-    : false
+  const currBalanceAmount = badgeId && balances ? getBalanceForIdAndTime(badgeId, BigInt(Date.now()), balances.filterZeroBalances()) : 0n;
+  const showOwnershipTimesIcon = badgeId && balances && showSupplys && balances.some((x) => !x.ownershipTimes.isFull()) ? true : false;
 
-  const metadataImageUrl = metadata?.image
-    ? metadata.image.replace(
-      "ipfs://",
-      "https://bitbadges-ipfs.infura-ipfs.io/ipfs/"
-    ) : undefined
+  const metadataImageUrl = metadata?.image ? metadata.image.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/') : undefined;
 
-  const metadataImage = metadataImageUrl ?? <Spin />
+  const metadataImage = metadataImageUrl ?? <Spin />;
 
-  let videoUri = metadata?.video ? (
-    metadata.video.replace(
-      "ipfs://",
-      "https://bitbadges-ipfs.infura-ipfs.io/ipfs/"
-    )
-  ) : '';
+  let videoUri = metadata?.video ? metadata.video.replace('ipfs://', 'https://bitbadges-ipfs.infura-ipfs.io/ipfs/') : '';
 
-  const isYoutubeUri = videoUri && (videoUri.includes('youtube.com') || videoUri.includes('youtu.be'))
+  const isYoutubeUri = videoUri && (videoUri.includes('youtube.com') || videoUri.includes('youtu.be'));
   if (isYoutubeUri) {
-    const videoId = videoUri.split('/').pop()
-    videoUri = `https://www.youtube.com/embed/${videoId}`
+    const videoId = videoUri.split('/').pop();
+    videoUri = `https://www.youtube.com/embed/${videoId}`;
   }
 
   function getVideoType(videoUrl: string) {
@@ -99,76 +76,64 @@ export function BadgeAvatar({
     }
   }
 
-
-
   const avatar = (
     <div>
-      {(!showMultimedia || (!videoUri)) &&
-
+      {(!showMultimedia || !videoUri) && (
         <Avatar
           shape="square"
           style={{
-            verticalAlign: "middle",
+            verticalAlign: 'middle',
             margin: 4,
-            cursor: collection && badgeId ? "pointer" : undefined,
-
+            cursor: collection && badgeId ? 'pointer' : undefined
           }}
-          className={'rounded-lg ' + (badgeId && !noHover ? "badge-avatar" : undefined)}
+          className={'rounded-lg ' + (badgeId && !noHover ? 'badge-avatar' : undefined)}
           src={metadataImage}
-
           size={size ? size : 65}
           onClick={() => {
-
-
             if (onClick) {
-              onClick()
-              return
+              onClick();
+              return;
             }
-            if (!badgeId) return
+            if (!badgeId) return;
             if (collectionId == NEW_COLLECTION_ID) {
               notification.info({
-                message: "Navigating to a preview badge is not supported.",
-                description: 'You will be able to see a preview of the pages on the last step of this form.',
-              })
-              return
+                message: 'Navigating to a preview badge is not supported.',
+                description: 'You will be able to see a preview of the pages on the last step of this form.'
+              });
+              return;
             }
-            router.push(`/collections/${collectionId}/${badgeId}`)
+            router.push(`/collections/${collectionId}/${badgeId}`);
           }}
           onError={() => {
-            return false
+            return false;
           }}
-        />}
+        />
+      )}
 
-
-      {showMultimedia && videoUri && metadataImageUrl && !isYoutubeUri &&
-
+      {showMultimedia && videoUri && metadataImageUrl && !isYoutubeUri && (
         <video
           style={{
-            verticalAlign: "middle",
+            verticalAlign: 'middle',
             margin: 4,
-            cursor: collection && badgeId ? "pointer" : undefined,
+            cursor: collection && badgeId ? 'pointer' : undefined,
             borderRadius: '8%'
           }}
           autoPlay={autoPlay}
-          className={collectionId + "-" + badgeId + '-multimedia'}
+          className={collectionId + '-' + badgeId + '-multimedia'}
           height={size ? size : 65}
           width={size ? size : 65}
           controls
           controlsList="nodownload"
           playsInline
           loop
-          poster={metadataImageUrl}
-        >
-          <source
-            src={videoUri}
-            type={getVideoType(videoUri)}
-          />
+          poster={metadataImageUrl}>
+          <source src={videoUri} type={getVideoType(videoUri)} />
         </video>
-      }
+      )}
 
-      {isYoutubeUri && showMultimedia && videoUri && metadataImageUrl &&
+      {isYoutubeUri && showMultimedia && videoUri && metadataImageUrl && (
         <iframe
-          className='rounded-2xl'
+          className="rounded-2xl"
           width={300}
           height={300}
           src={videoUri}
@@ -176,24 +141,20 @@ export function BadgeAvatar({
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         />
-      }
+      )}
     </div>
-  )
+  );
 
   return (
     <div>
       {noHover ? (
         avatar
       ) : (
-        <Tooltip
-          placement="bottom"
-          title={`${metadata?.name ? metadata.name : ""} ${badgeId ? `(#${badgeId})` : ""
-            }`}
-        >
-          <div style={{ textAlign: "center" }}>{avatar}</div>
+        <Tooltip placement="bottom" title={`${metadata?.name ? metadata.name : ''} ${badgeId ? `(#${badgeId})` : ''}`}>
+          <div style={{ textAlign: 'center' }}>{avatar}</div>
         </Tooltip>
       )}
-      <div style={{ textAlign: "center" }}>
+      <div style={{ textAlign: 'center' }}>
         {showId && (
           <b>
             <span>{`${badgeId}`}</span>
@@ -205,12 +166,7 @@ export function BadgeAvatar({
             <b className="primary-text">
               {showSupplys && (
                 <>
-                  x
-                  <span
-                    style={{ color: currBalanceAmount < 0 ? "red" : undefined }}
-                  >
-                    {`${currBalanceAmount}`}
-                  </span>
+                  x<span style={{ color: currBalanceAmount < 0 ? 'red' : undefined }}>{`${currBalanceAmount}`}</span>
                 </>
               )}
 
@@ -223,14 +179,12 @@ export function BadgeAvatar({
                         return (
                           <>
                             {idx > 0 && <br />}
-                            {idx > 0 && <br />}x{x.amount.toString()} from{" "}
-                            {getTimeRangesString(x.ownershipTimes, "", true)}
+                            {idx > 0 && <br />}x{x.amount.toString()} from {getTimeRangesString(x.ownershipTimes, '', true)}
                           </>
-                        )
+                        );
                       })}
                     </div>
-                  }
-                >
+                  }>
                   <ClockCircleOutlined style={{ marginLeft: 4 }} />
                 </Tooltip>
               )}
@@ -239,5 +193,5 @@ export function BadgeAvatar({
         )}
       </div>
     </div>
-  )
+  );
 }
