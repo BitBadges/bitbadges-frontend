@@ -413,13 +413,12 @@ export const ClaimInputs = ({
   const [loading, setLoading] = useState(false);
   const [disabledMap, setDisabledMap] = useState<{ [key: string]: string }>({});
   const [stepNum, setStepNum] = useState(1);
-
   const [selectedAddress, setSelectedAddress] = useState(chain.cosmosAddress);
 
   const requiresSignIn = plugins.some((x) => x.id === 'requiresProofOfAddress');
   let recipientAddress = requiresSignIn ? chain.cosmosAddress : selectedAddress;
 
-  const fetchCodeForPassword = useCallback(
+  const fetchCodeForClaim = useCallback(
     async (customBody: object) => {
       const res = await checkAndCompleteClaim(docId, recipientAddress, customBody);
       if (res.code && setOnChainCode) {
@@ -508,7 +507,7 @@ export const ClaimInputs = ({
                 disabled={success || loading || Object.values(disabledMap).some((x) => x) || isPreview}
                 onClick={async () => {
                   setLoading(true);
-                  await fetchCodeForPassword(customBody);
+                  await fetchCodeForClaim(customBody);
 
                   setSuccess(true);
 
@@ -539,7 +538,7 @@ export const ClaimInputs = ({
     loading,
     isPreview,
     claimId,
-    fetchCodeForPassword,
+    fetchCodeForClaim,
     setOnChainCode,
     onSuccess,
     requiresSignIn,

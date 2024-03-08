@@ -229,11 +229,8 @@ export function CodesDisplay({
     let used = false;
     if (isClaimBuilderCodesDisplay) {
       const code = codes?.[codePage - 1];
-      console.log(offChainClaim);
       const usedCodes = getPluginDetails('codes', offChainClaim?.plugins ?? [])?.publicState?.usedCodes ?? [];
       used = usedCodes.some((x) => x === code);
-
-      console.log('used', isClaimBuilderCodesDisplay, usedCodes);
     } else {
       used = !!(merkleChallenge && !hasPassword && !!merkleChallenge.maxUsesPerLeaf && codes
         ? challengeTracker && (challengeTracker.usedLeafIndices?.find((x) => x == BigInt(codePage - 1)) ?? -1) >= 0

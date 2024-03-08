@@ -23,7 +23,7 @@ export const NumUsesPluginDetails: ClaimIntegrationPlugin<'numUses'> = {
 
     return (
       <>
-        <div className="flex-center flex-wrap" style={{ alignItems: 'normal' }}>
+        <div className="flex-center flex-wrap mt-4" style={{ alignItems: 'normal' }}>
           <div className="mx-5">
             <NumberInput
               title="Total Number of Claims"
@@ -66,15 +66,15 @@ export const NumUsesPluginDetails: ClaimIntegrationPlugin<'numUses'> = {
         </div>
 
         <br />
-        <div className="secondary-text flex-center">
+        <div className="secondary-text text-center">
           <InfoCircleOutlined className="mr-1" />
           {numRecipients ? ` ${numRecipients} claims allowed total.` : ''} {numRecipientsPerAddress ? numRecipientsPerAddress : 'No limit on'}{' '}
           claim(s) per address.{' '}
           {!numRecipientsPerAddress && (
-            <div className="secondary-text flex-center">
+            <>
               <WarningOutlined style={{ color: 'orange' }} className="mr-1" /> Please make sure this is intended, and the other criteria properly
               gates this claim.
-            </div>
+            </>
           )}
         </div>
         <br />

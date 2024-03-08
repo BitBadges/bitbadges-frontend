@@ -1,5 +1,5 @@
 import { CheckCircleFilled } from '@ant-design/icons';
-import { Input, Typography } from 'antd';
+import { Input, Typography, notification } from 'antd';
 import { CollectionApprovalWithDetails, MsgTransferBadges, applyIncrementsToBalances, convertToCosmosAddress } from 'bitbadgesjs-sdk';
 import SHA256 from 'crypto-js/sha256';
 import { useRouter } from 'next/router';
@@ -18,6 +18,7 @@ import { ErrDisplay } from '../common/ErrDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { getTreeForApproval } from './CreateTxMsgTransferBadges';
 import { TxModal } from './TxModal';
+import { checkAndCompleteClaim } from '../../bitbadges-api/api';
 
 //Claim badge is exclusively used for predetermined balances
 //For other standard tramsfers, use CreateTxMsgTransferBadgesModal
@@ -80,6 +81,38 @@ export function CreateTxMsgClaimBadgeModal({
       if (setOnChainCode) setOnChainCode(passwordQuery);
     }
   }, [codeQuery, passwordQuery, setOnChainCode, visible]);
+
+  const [fetchedReservedCodes, setFetchedReservedCodes] = useState<boolean>(false);
+  useEffect(() => {
+    async function fetchReservedCodes() {
+      const docId = claimId;
+      const recipientAddress = chain.cosmosAddress;
+      if (!challengeTracker || !docId || !recipientAddress || !merkleChallenge || !visible || !setOnChainCode) return;
+      if (challengeTracker.usedLeafIndices.length == 0) return;
+      if (fetchedReservedCodes) return;
+
+      const res = await checkAndCompleteClaim(docId, recipientAddress, { prevCodesOnly: true });
+      setFetchedReservedCodes(true);
+
+      if (res.prevCodes) {
+        for (const code of res.prevCodes) {
+          const leafIndex = approval.details?.challengeDetails?.leavesDetails.leaves.findIndex((x) => x === SHA256(code).toString()) ?? -1;
+          const used = challengeTracker && (challengeTracker.usedLeafIndices?.find((x) => x == BigInt(leafIndex)) ?? -1) >= 0;
+
+          if (!used) {
+            setOnChainCode(code);
+            notification.success({
+              message: 'Success',
+              description:
+                'You previously proved you satisfy the criteria but did not claim. We have auto-completed the form for you using the prior criteria.'
+            });
+          }
+        }
+      }
+    }
+
+    fetchReservedCodes();
+  }, [claimId, chain.cosmosAddress, merkleChallenge, visible, approval.details, challengeTracker, setOnChainCode]);
 
   const calculationMethod = approvalCriteria?.predeterminedBalances?.orderCalculationMethod;
 

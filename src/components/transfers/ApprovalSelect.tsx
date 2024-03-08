@@ -570,7 +570,8 @@ export function ApprovalSelect({
                       {
                         id: 'numUses',
                         publicParams: {
-                          maxUses: 1
+                          maxUses: 1,
+                          maxUsesPerAddress: 1
                         },
                         privateParams: getPlugin('numUses').getBlankPrivateParams(),
                         publicState: getPlugin('numUses').getBlankPublicState()
@@ -670,7 +671,8 @@ export function ApprovalSelect({
                   const maxUses = getPluginDetails('numUses', plugins)?.publicParams?.maxUses || 0;
                   setPlugins(plugins);
                   setMaxUses(BigInt(maxUses), 'overall');
-                  setMaxUses(1n, 'initiatedBy');
+                  const maxUsesPerAddress = getPluginDetails('numUses', plugins)?.publicParams?.maxUsesPerAddress || 0;
+                  setMaxUses(BigInt(maxUsesPerAddress), 'initiatedBy');
                   setExpectedPartitions(BigInt(maxUses));
                 }}
                 offChainSelect={false}

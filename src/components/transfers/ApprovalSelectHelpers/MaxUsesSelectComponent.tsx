@@ -176,7 +176,7 @@ export const MaxUses = ({
       {disabled && !hasWhitelist && (
         <div className="secondary-text px-2" style={{ textAlign: 'start' }}>
           <LockOutlined /> {type === 'overall' ? 'To edit this, edit the number of claims.' : ''}
-          {type !== 'overall' && <>Claims are locked to one use per address.</>}
+          {type !== 'overall' && <>To edit this, edit the number of claims per address.</>}
           <br /> <br />
         </div>
       )}
