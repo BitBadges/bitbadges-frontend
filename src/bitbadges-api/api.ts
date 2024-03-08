@@ -35,8 +35,6 @@ import {
   GetAccountsRouteSuccessResponse,
   GetAddressListsRouteRequestBody,
   GetAddressListsRouteSuccessResponse,
-  GetAllCodesAndPasswordsRouteRequestBody,
-  GetAllCodesAndPasswordsRouteSuccessResponse,
   GetBadgeActivityRouteRequestBody,
   GetBadgeActivityRouteSuccessResponse,
   GetBadgeBalanceByAddressRouteRequestBody,
@@ -214,20 +212,6 @@ export async function refreshMetadata(
     assertPositiveInteger(collectionId);
 
     return await BitBadgesApi.refreshMetadata(collectionId, requestBody);
-  } catch (error) {
-    await handleApiError(error);
-    return await Promise.reject(error);
-  }
-}
-
-export async function getAllPasswordsAndCodes(
-  collectionId: NumberType,
-  requestBody?: GetAllCodesAndPasswordsRouteRequestBody
-): Promise<GetAllCodesAndPasswordsRouteSuccessResponse> {
-  try {
-    assertPositiveInteger(collectionId);
-
-    return await BitBadgesApi.getAllPasswordsAndCodes(collectionId, requestBody);
   } catch (error) {
     await handleApiError(error);
     return await Promise.reject(error);

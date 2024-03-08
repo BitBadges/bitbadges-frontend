@@ -35,7 +35,6 @@ export interface OffChainClaim<T extends NumberType> {
   plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
   balancesToSet?: IncrementedBalances<T>;
   claimId: string;
-  manualDistribution?: boolean;
 }
 
 export const OffChainClaimBuilder = ({

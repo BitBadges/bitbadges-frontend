@@ -4,6 +4,7 @@ import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { CheckCircleFilled, CloseCircleFilled, DeleteOutlined, WarningOutlined } from '@ant-design/icons';
 import { BigIntify, BitBadgesAddressList, BlockinAuthSignatureDoc, getAbbreviatedAddress } from 'bitbadgesjs-sdk';
 import { AndGroup, AssetConditionGroup, OrGroup, OwnershipRequirements, createChallenge } from 'blockin';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { deleteAuthCode, getAddressLists, getAuthCode } from '../../bitbadges-api/api';
 import { updateAccount, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -369,6 +370,7 @@ export const AuthCode = ({
 
 export function AuthCodes() {
   const chain = useChainContext();
+  const router = useRouter();
   const signedInAccount = useAccount(chain.address);
 
   const [loading, setLoading] = useState(false);
@@ -492,6 +494,17 @@ export function AuthCodes() {
           </InformationDisplayCard>
         </div>
         <Divider />
+        <div className="text-center secondary-text">
+          Become an authentication provider to create codes. See
+          <a
+            onClick={() => {
+              router.push('/auth/linkgen');
+            }}>
+            {' '}
+            here
+          </a>{' '}
+          to get started (requires technical knowledge).
+        </div>
       </Content>
     </>
   );

@@ -58,19 +58,22 @@ export const ApprovalSelectAmountsCard = ({
   const initiatedByDefaultsToOther = initiatedByHasMaxOneAddress;
   const fromDefaultsToOther = fromListLocked || approvalToAdd.approvalCriteria.requireFromEqualsInitiatedBy || fromHasMaxOneAddress;
   const toDefaultsToOther = toListLocked || approvalToAdd.approvalCriteria.requireToEqualsInitiatedBy || toHasMaxOneAddress;
+
+  const customClaim = distributionMethod === DistributionMethod.Codes && distributionType === DistributionType.Builder;
+
   //If we are using increments, we should always be on the AllOrNothing tab
   //Else, we default to Tally
   useEffect(() => {
     console.log('useEffect 0', isPartitionView, tab);
-    if (isPartitionView && tab !== PredeterminedTab.AllOrNothing) {
+    if ((isPartitionView || customClaim) && tab !== PredeterminedTab.AllOrNothing) {
       setTab(PredeterminedTab.AllOrNothing);
     }
-  }, [isPartitionView, tab]);
+  }, [isPartitionView, tab, customClaim]);
 
   //If we are using predetermined balances, we have to set the start balances
   useEffect(() => {
     console.log('useEffect 1', isPartitionView, tab);
-    if (isPartitionView || tab === PredeterminedTab.AllOrNothing) {
+    if (isPartitionView || customClaim || tab === PredeterminedTab.AllOrNothing) {
       setApprovalToAdd((approvalToAdd) => {
         return {
           ...approvalToAdd,
@@ -133,7 +136,7 @@ export const ApprovalSelectAmountsCard = ({
         };
       });
     }
-  }, [tab, isPartitionView, setApprovalToAdd]);
+  }, [tab, isPartitionView, setApprovalToAdd, customClaim, approvalToAdd.badgeIds, approvalToAdd.ownershipTimes]);
 
   const AllMaxUses = (
     <div className="full-width">

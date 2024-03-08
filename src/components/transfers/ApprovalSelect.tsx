@@ -294,9 +294,7 @@ export function ApprovalSelect({
   );
 
   const [showMustOwnBadges, setShowMustOwnBadges] = useState(approvalCriteria?.mustOwnBadges?.length > 0);
-  const [distributionType, setDistributionType] = useState<DistributionType>(
-    defaultClaim ? (defaultClaim.manualDistribution ? DistributionType.Manual : DistributionType.Builder) : DistributionType.None
-  );
+  const [distributionType, setDistributionType] = useState<DistributionType>(defaultClaim ? DistributionType.Builder : DistributionType.None);
   const [plugins, setPlugins] = useState<IntegrationPluginDetails<ClaimIntegrationPluginType>[]>(defaultClaim?.plugins || []);
   const [disabled, setDisabled] = useState(false);
 
@@ -593,10 +591,6 @@ export function ApprovalSelect({
                   key: 'address'
                 },
                 {
-                  content: 'Codes',
-                  key: 'codes'
-                },
-                {
                   content: 'Claims',
                   key: 'builder'
                 }
@@ -664,6 +658,10 @@ export function ApprovalSelect({
             <>
               <br />
               <BitBadgesClaimLogo />
+
+              <div className="secondary-text text-center" style={{ fontSize: 12 }}>
+                Feel free to combine these claims with other self-implemented solutions (e.g. give codes to in-person customers).
+              </div>
               <br />
               <ClaimBuilder
                 isUpdate={false} // no updates for approvals are currently supported
@@ -1164,8 +1162,7 @@ export function ApprovalSelect({
             details.offChainClaims = [
               {
                 claimId: '',
-                plugins: pluginsToAdd,
-                manualDistribution: distributionType === DistributionType.Manual
+                plugins: pluginsToAdd
               }
             ];
 

@@ -25,6 +25,7 @@ import QrCodeDisplay from '../display/QrCodeDisplay';
 import { NumberInput } from '../inputs/NumberInput';
 import { Tabs } from '../navigation/Tabs';
 import { ShareButton } from '../../pages/saveforlater';
+import { ErrDisplay } from '../common/ErrDisplay';
 
 export const CopyButton = ({
   copyText,
@@ -548,9 +549,9 @@ export function CodesDisplay({
                                       </button>
                                       {!hasPassword && codes && (
                                         <div className="secondary-text">
-                                          <InfoCircleOutlined /> We will send claim alerts for the codes {startCodeIdx + 1} to{' '}
-                                          {startCodeIdx + 1 + claimAlertAddresses.length - 1} to the selected addresses ({claimAlertAddresses.length})
-                                          in the order they were entered, respectively.
+                                          <InfoCircleOutlined style={{ color: 'orange' }} /> We will send claim alerts for the codes{' '}
+                                          {startCodeIdx + 1} to {startCodeIdx + 1 + claimAlertAddresses.length - 1} to the selected addresses (
+                                          {claimAlertAddresses.length}) in the order they were entered, respectively.
                                         </div>
                                       )}
                                     </>
@@ -754,6 +755,9 @@ export function CodesDisplay({
                             }}>
                             Send {loading && <Spin />}
                           </button>
+                        </div>
+                        <div className="text-center">
+                          <ErrDisplay warning err="This will reveal the current code to the recipient." />
                         </div>
                       </>
                     )}

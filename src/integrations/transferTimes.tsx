@@ -43,6 +43,7 @@ export const TransferTimesPluginDetails: ClaimIntegrationPlugin<'transferTimes'>
     scoped: true,
     onChainCompatible: false
   },
+  stateString: () => '',
   createNode({ publicParams, setParams, setDisabled }) {
     return <TransferTimesCreateNode publicParams={publicParams} setParams={setParams} setDisabled={setDisabled} />;
   },

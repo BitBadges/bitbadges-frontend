@@ -24,7 +24,7 @@ import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
 import { fetchCollectionsWithOptions, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
-import { approvalCriteriaHasNoAmountRestrictions, approvalCriteriaUsesPredeterminedBalances } from '../../../bitbadges-api/utils/claims';
+import { approvalCriteriaHasNoAmountRestrictions } from '../../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/settings';
 import { AddressSelect } from '../../address/AddressSelect';
@@ -96,7 +96,6 @@ export function TransferabilityDisplay({
   const [fetchCodesModalIsVisible, setFetchCodesModalIsVisible] = useState<boolean>(false);
 
   const currentManager = getCurrentValueForTimeline(collection?.managerTimeline ?? [])?.manager ?? '';
-  const hasPredetermined = approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria);
 
   //Doesn't make sense to transfer to mint or have mint intiate so we remove these
   const toAddresses = useMemo(() => {
@@ -306,14 +305,7 @@ export function TransferabilityDisplay({
       )}
     </td>
   );
-  const isPasswordClaim =
-    approval.approvalCriteria?.merkleChallenge?.root &&
-    approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria) &&
-    approval.details?.hasPassword;
-  const isCodeClaim =
-    approval.approvalCriteria?.merkleChallenge?.root &&
-    approvalCriteriaUsesPredeterminedBalances(approval.approvalCriteria) &&
-    !approval.details?.hasPassword;
+  const isClaim = approval.details?.offChainClaims && approval.details?.offChainClaims?.length > 0;
 
   let isCurrentlyValid = true;
   if (chain.cosmosAddress && !approval.initiatedByList.checkAddress(chain.cosmosAddress)) {
@@ -500,29 +492,57 @@ export function TransferabilityDisplay({
                           approval.approvalCriteria?.merkleChallenge?.root &&
                           !approval.approvalCriteria.merkleChallenge.useCreatorAddressAsLeaf && (
                             <>
-                              {approval.details?.hasPassword ||
-                              (approval.details?.offChainClaims &&
-                                approval.details?.offChainClaims?.length > 0 &&
-                                approval.details?.offChainClaims[0].manualDistribution) ? (
-                                <div>
-                                  <IconButton
-                                    secondary
-                                    src={<DatabaseOutlined size={40} />}
-                                    onClick={() => {
-                                      setFetchCodesModalIsVisible(true);
-                                    }}
-                                    text={approval.details?.hasPassword ? 'Password' : 'Codes'}
-                                    tooltipMessage={'Since you are the manager of this collection, you can view the codes / password for this claim.'}
-                                    size={40}
-                                  />
+                              {approval.details?.offChainClaims && approval.details?.offChainClaims?.length > 0 ? (
+                                <>
+                                  {approval.details.offChainClaims[0].plugins.find((x) => x.id === 'codes') && (
+                                    <div>
+                                      <IconButton
+                                        secondary
+                                        src={<DatabaseOutlined size={40} />}
+                                        onClick={() => {
+                                          setFetchCodesModalIsVisible(true);
+                                        }}
+                                        text={'Codes'}
+                                        tooltipMessage={
+                                          'Since you are the manager of this collection, you can view the codes / password for this claim.'
+                                        }
+                                        size={40}
+                                      />
 
-                                  <FetchCodesModal
-                                    visible={fetchCodesModalIsVisible}
-                                    setVisible={setFetchCodesModalIsVisible}
-                                    collectionId={collectionId}
-                                    approvalId={approval.approvalId}
-                                  />
-                                </div>
+                                      <FetchCodesModal
+                                        visible={fetchCodesModalIsVisible}
+                                        setVisible={setFetchCodesModalIsVisible}
+                                        collectionId={collectionId}
+                                        approvalId={approval.approvalId}
+
+                                      />
+                                    </div>
+                                  )}
+                                  {approval.details.offChainClaims[0].plugins.find((x) => x.id === 'password') && (
+                                    <div>
+                                      <IconButton
+                                        secondary
+                                        src={<DatabaseOutlined size={40} />}
+                                        onClick={() => {
+                                          setFetchCodesModalIsVisible(true);
+                                        }}
+                                        text={'Password'}
+                                        tooltipMessage={
+                                          'Since you are the manager of this collection, you can view the codes / password for this claim.'
+                                        }
+                                        size={40}
+                                      />
+
+                                      <FetchCodesModal
+                                        visible={fetchCodesModalIsVisible}
+                                        setVisible={setFetchCodesModalIsVisible}
+                                        collectionId={collectionId}
+                                        approvalId={approval.approvalId}
+                                        passwordModal
+                                      />
+                                    </div>
+                                  )}
+                                </>
                               ) : (
                                 <></>
                               )}
@@ -560,19 +580,17 @@ export function TransferabilityDisplay({
                         {!editable && !onDelete && !hideActions && !disapproved && approval.transferTimes.searchIfExists(BigInt(Date.now())) && (
                           <IconButton
                             secondary
-                            src={refreshing ? <Spin /> : isPasswordClaim || isCodeClaim ? <GiftOutlined /> : <SwapOutlined size={40} />}
+                            src={refreshing ? <Spin /> : isClaim ? <GiftOutlined /> : <SwapOutlined size={40} />}
                             onClick={async () => {
                               if (!hideActions) await refreshTrackers();
                               setTransferIsVisible(!transferIsVisible);
                             }}
                             disabled={refreshing || !isCurrentlyValid}
-                            text={isPasswordClaim || isCodeClaim ? 'Claim' : 'Transfer'}
+                            text={isClaim ? 'Claim' : 'Transfer'}
                             tooltipMessage={
-                              isPasswordClaim
-                                ? 'Claim by entering the password for this approval.'
-                                : isCodeClaim
-                                  ? 'Claim by entering a valid code for this approval.'
-                                  : 'Transfer badges to another address via use of this approval.'
+                              isClaim
+                                ? 'Claim by satisfying the criteria for this approval.'
+                                : 'Transfer badges to another address via use of this approval.'
                             }
                             size={40}
                           />
@@ -638,7 +656,7 @@ export function TransferabilityDisplay({
                         </>
                       )}
 
-                      {approval && isMint && hasPredetermined && (
+                      {approval && isMint && isClaim && (
                         <CreateTxMsgClaimBadgeModal
                           collectionId={collectionId}
                           visible={transferIsVisible}
@@ -646,7 +664,7 @@ export function TransferabilityDisplay({
                           approval={approval}
                         />
                       )}
-                      {approval && !(isMint && hasPredetermined) && (
+                      {approval && !(isMint && isClaim) && (
                         <CreateTxMsgTransferBadgesModal
                           collectionId={collectionId}
                           visible={transferIsVisible}

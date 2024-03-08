@@ -1,12 +1,14 @@
 import { Empty } from 'antd';
 import { CodesAndPasswords } from 'bitbadgesjs-sdk';
 import React, { useEffect, useState } from 'react';
-import { getAllPasswordsAndCodes } from '../../bitbadges-api/api';
+import { getCollections } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
+import { getPluginDetails } from '../../integrations/integrations';
 import { CodesPasswordsTab } from '../codes/CodesPasswordsTab';
+import { generateCodesFromSeed } from '../collection-page/transferability/OffChainTransferabilityTab';
 import { GenericModal } from '../display/GenericModal';
 
 export function FetchCodesModal({
@@ -14,13 +16,15 @@ export function FetchCodesModal({
   setVisible,
   children,
   collectionId,
-  approvalId
+  approvalId,
+  passwordModal
 }: {
   collectionId: bigint;
   visible: boolean;
   setVisible: (visible: boolean) => void;
   children?: React.ReactNode;
   approvalId?: string;
+  passwordModal?: boolean;
 }) {
   const chain = useChainContext();
   const collection = useCollection(collectionId);
@@ -28,7 +32,7 @@ export function FetchCodesModal({
   const [codesAndPasswords, setCodesAndPasswords] = useState<CodesAndPasswords[] | undefined>(undefined);
   const [fetched, setFetched] = useState(false);
 
-  //TOOD: Eventually deprecate this in favor of fetchPrivateParams
+  //TOOD: Eventually deprecate this in favor of fetchPrivateParams only
   useEffect(() => {
     if (!visible) return;
     if (!collection) return;
@@ -36,17 +40,33 @@ export function FetchCodesModal({
 
     if (collectionId && chain.connected && chain.loggedIn && visible && !fetched) {
       const getAll = async () => {
-        const codesRes = await getAllPasswordsAndCodes(collectionId);
-        const codesAndPasswords = [];
-        for (const approval of collection.collectionApprovals) {
-          const cid = approval.uri?.split('/').pop();
-          const correspondingCode = codesRes.codesAndPasswords.find((x) => x.cid === cid);
+        const collectionRes = await getCollections({ collectionsToFetch: [{ collectionId: collectionId, fetchPrivateParams: true }] });
 
-          if (correspondingCode) {
-            codesAndPasswords.push(correspondingCode);
-          } else {
-            codesAndPasswords.push({ cid: cid ?? '', codes: [], password: '' });
-          }
+        const codesAndPasswords = [];
+
+        for (let i = 0; i < collection.collectionApprovals.length; i++) {
+          const approval = collection.collectionApprovals[i];
+          const approvalWithPrivateParams = collectionRes.collections[0].collectionApprovals[i];
+          const approvalWithPrivateParamsDetails = approvalWithPrivateParams.details;
+          const claim =
+            approvalWithPrivateParamsDetails?.offChainClaims && approvalWithPrivateParamsDetails?.offChainClaims?.length
+              ? approvalWithPrivateParamsDetails?.offChainClaims[0]
+              : undefined;
+          const plugins = claim?.plugins ?? [];
+
+          const numCodes = getPluginDetails('codes', plugins)?.publicParams.numCodes ?? 0;
+          const seedCode = getPluginDetails('codes', plugins)?.privateParams.seedCode;
+          const codes = seedCode
+            ? generateCodesFromSeed(seedCode, numCodes)
+            : getPluginDetails('codes', plugins)?.privateParams.codes?.map((x) => x) ?? [];
+          const password = getPluginDetails('password', plugins)?.privateParams.password ?? '';
+
+          const cid = approval.uri?.split('/').pop();
+          codesAndPasswords.push({
+            cid: cid ?? '',
+            codes: passwordModal ? [] : codes ?? [],
+            password: passwordModal ? password ?? '' : ''
+          });
         }
 
         setCodesAndPasswords(codesAndPasswords);
@@ -54,7 +74,7 @@ export function FetchCodesModal({
       };
       getAll();
     }
-  }, [collectionId, chain, visible, collection, fetched]);
+  }, [collectionId, chain, visible, collection, fetched, passwordModal]);
 
   return (
     <GenericModal title="Distribute" visible={visible} setVisible={setVisible} style={{ minWidth: '90%' }} requireConnected requireLoggedIn>

@@ -100,7 +100,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
     }
   } else if (isBitBadgesHosted) {
     info = {
-      host: "Balance storage is outsourced to BitBadges.",
+      host: 'Balance storage is outsourced to BitBadges.',
       assignMethod: 'Balances can be assigned by the collection manager (if permitted).'
     };
   } else if (offChainBalancesMetadata?.uri === 'https://api.bitbadges.io/api/v0/ethFirstTx/{address}') {

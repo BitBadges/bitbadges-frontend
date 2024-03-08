@@ -11,7 +11,7 @@ import { getMaxUses } from '../../../integrations/integrations';
 
 
 //TODO: Eventually deprecate this to the use fetchPrivateParams
-const getCodesAndPasswordsFromCollection = (collection: Readonly<BitBadgesCollection<bigint>>): CodesAndPasswords[] => {
+export const getCodesAndPasswordsFromCollection = (collection: Readonly<BitBadgesCollection<bigint>>): CodesAndPasswords[] => {
   const approvalDetails = collection?.collectionApprovals.map((x) => x.details) ?? [];
 
   const codesAndPasswords: CodesAndPasswords[] = [];
@@ -23,7 +23,7 @@ const getCodesAndPasswordsFromCollection = (collection: Readonly<BitBadgesCollec
 
     const { challengeDetails, offChainClaims } = details;
     const claim = offChainClaims?.length ? offChainClaims[0] : undefined;
-    if (claim?.manualDistribution || !challengeDetails) {
+    if (!challengeDetails) {
       codesAndPasswords.push({ codes: [], password: '', cid: '' });
       continue;
     }

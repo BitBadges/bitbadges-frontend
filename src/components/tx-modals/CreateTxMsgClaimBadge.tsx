@@ -51,8 +51,7 @@ export function CreateTxMsgClaimBadgeModal({
   const claim = merkleChallenge;
   const fetchedPlugins =
     approval.details?.offChainClaims && approval.details?.offChainClaims.length > 0 ? approval.details?.offChainClaims[0].plugins : [];
-  const isManualDistribution =
-    approval.details?.offChainClaims && approval.details?.offChainClaims.length > 0 ? approval.details?.offChainClaims[0].manualDistribution : false;
+  const isManualDistribution = fetchedPlugins.length == 0; //Not using plugins
   const claimId = approval.details?.offChainClaims && approval.details?.offChainClaims.length > 0 ? approval.details?.offChainClaims[0].claimId : '';
 
   const query = router.query;
@@ -263,7 +262,7 @@ export function CreateTxMsgClaimBadgeModal({
                       {isMint && hasPredetermined && chain.connected && (
                         <div className="full-width" style={{ textAlign: 'center' }}>
                           <>
-                            <div style={{ textAlign: 'start' }}>
+                            <div className="text-center mt-4">
                               <Typography.Text strong className="primary-text" style={{ marginBottom: 12 }}>
                                 {' '}
                                 Recipient
@@ -303,14 +302,16 @@ export function CreateTxMsgClaimBadgeModal({
                         <>
                           {isMint && claim?.root && !claim.useCreatorAddressAsLeaf && setOnChainCode ? (
                             <div className="full-width" style={{ textAlign: 'center' }}>
-                              {/* Little confusing but this is for the action codes (manually distributed). not plugin codes. */}
-                              {!details?.hasPassword && isManualDistribution && (
+                              {/* If the claim is self-created (not via our claim builder) in a compatible format */}
+                              {!details?.hasPassword && isManualDistribution && details?.challengeDetails?.leavesDetails.leaves.length ? (
                                 <>
-                                  <div style={{ textAlign: 'start' }}>
-                                    <Typography.Text strong className="primary-text" style={{ marginBottom: 12, textAlign: 'start' }}>
-                                      {'Code'}
+                                  <div className="text-center mt-4">
+                                    <Typography.Text strong className="primary-text" style={{ marginBottom: 12 }}>
+                                      {' '}
+                                      Code
                                     </Typography.Text>
                                   </div>
+
                                   <Input
                                     placeholder={`Enter Code`}
                                     value={onChainCode}
@@ -328,10 +329,21 @@ export function CreateTxMsgClaimBadgeModal({
                                   />
                                   <br />
                                 </>
+                              ) : (
+                                <></>
                               )}
 
                               {!isManualDistribution && !onChainCode && (
-                                <ClaimInputs claimId={claimId} plugins={fetchedPlugins} docId={claimId} setOnChainCode={setOnChainCode} />
+                                <>
+                                  <div className="text-center mt-4">
+                                    <Typography.Text strong className="primary-text" style={{ marginBottom: 12 }}>
+                                      {' '}
+                                      Criteria
+                                    </Typography.Text>
+                                  </div>
+
+                                  <ClaimInputs claimId={claimId} plugins={fetchedPlugins} docId={claimId} setOnChainCode={setOnChainCode} />
+                                </>
                               )}
 
                               {claim?.useCreatorAddressAsLeaf ||

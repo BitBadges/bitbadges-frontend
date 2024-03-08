@@ -41,10 +41,11 @@ export const MinBalancesPluginDetails: ClaimIntegrationPlugin<'greaterThanXBADGE
     description: 'Users must have a minimum balance of $BADGE.',
     image: 'https://avatars.githubusercontent.com/u/86890740',
     createdBy: 'BitBadges',
-    stateless: false,
+    stateless: true,
     scoped: true,
     onChainCompatible: true
   },
+  stateString: () => '',
   createNode: MinBalanceCreateNode,
   detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'greaterThanXBADGEBalance'> }) => {
     return `Must have a balance greater than ${publicParams.minBalance} $BADGE.`;

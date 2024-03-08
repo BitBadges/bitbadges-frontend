@@ -93,6 +93,7 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
   getBlankPublicParams: () => ClaimIntegrationPublicParamsType<P>;
   getBlankPrivateParams: () => ClaimIntegrationPrivateParamsType<P>;
   getBlankPublicState: () => ClaimIntegrationPublicStateType<P>;
+  stateString: () => string;
 }
 
 export const getPlugin = <T extends ClaimIntegrationPluginType>(id: T): ClaimIntegrationPlugin<T> => {

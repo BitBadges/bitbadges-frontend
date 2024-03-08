@@ -154,41 +154,35 @@ const ClaimBuilderRow = ({
         value={<></>}
       />
       {!!currPlugin && isUpdate && !pluginInstance.metadata.stateless && (
-        <TableRow
-          labelSpan={8}
-          valueSpan={16}
-          label={<></>}
-          value={
-            <div style={{ float: 'right' }}>
-              <RadioGroup
-                value={currPlugin.resetState ? 'yes' : 'no'}
-                onChange={(e) => {
-                  setPlugins(
-                    plugins.map((x) => {
-                      if (x.id === id) {
-                        return {
-                          ...x,
-                          resetState: e === 'yes'
-                        };
-                      }
-                      return x;
-                    })
-                  );
-                }}
-                options={[
-                  {
-                    label: 'Reset State',
-                    value: 'yes'
-                  },
-                  {
-                    label: 'Keep State',
-                    value: 'no'
+        <div className="flex-center flex-column mb-8">
+          <RadioGroup
+            value={currPlugin.resetState ? 'yes' : 'no'}
+            onChange={(e) => {
+              setPlugins(
+                plugins.map((x) => {
+                  if (x.id === id) {
+                    return {
+                      ...x,
+                      resetState: e === 'yes'
+                    };
                   }
-                ]}
-              />
-            </div>
-          }
-        />
+                  return x;
+                })
+              );
+            }}
+            options={[
+              {
+                label: 'Reset State',
+                value: 'yes'
+              },
+              {
+                label: 'Keep State',
+                value: 'no'
+              }
+            ]}
+          />
+          <div className="secondary-text mt-2">Reset the state? {pluginInstance.stateString()}</div>
+        </div>
       )}
       {currPlugin &&
         pluginInstance.createNode({

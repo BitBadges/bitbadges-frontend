@@ -1,12 +1,13 @@
-import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
-import { Spin, Input, Tag, Divider } from "antd";
-import { ClaimIntegrationPublicParamsType, ClaimIntegrationPrivateParamsType } from "bitbadgesjs-sdk";
-import { useState, useCallback, useEffect } from "react";
-import { BitBadgesApi } from "../bitbadges-api/api";
-import { useChainContext } from "../bitbadges-api/contexts/ChainContext";
-import { BlockinDisplay } from "../components/blockin/BlockinDisplay";
-import { BACKEND_URL } from "../constants";
-import { ClaimIntegrationPlugin } from "./integrations";
+import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { Spin, Input, Tag, Divider } from 'antd';
+import { ClaimIntegrationPublicParamsType, ClaimIntegrationPrivateParamsType } from 'bitbadgesjs-sdk';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { BitBadgesApi } from '../bitbadges-api/api';
+import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
+import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
+import { BACKEND_URL } from '../constants';
+import { ClaimIntegrationPlugin } from './integrations';
+import { PublicPrivateSelect } from './whitelist';
 
 const TwitterInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => void }) => {
   const [currTwitterUser, setCurrTwitterUser] = useState<
@@ -92,16 +93,48 @@ const TwitterInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => 
 
 const TwitterCreateNode = ({
   publicParams,
+  privateParams,
   setParams
 }: {
   publicParams: ClaimIntegrationPublicParamsType<'twitter'>;
+  privateParams: ClaimIntegrationPrivateParamsType<'twitter'>;
   setParams: (publicParams: ClaimIntegrationPublicParamsType<'twitter'>, privateParams: ClaimIntegrationPrivateParamsType<'twitter'>) => void;
 }) => {
-  const usernames = publicParams.users ?? [];
-  const [inputStr, setInputStr] = useState(publicParams.users?.join(', '));
+  const [privateValues, setPrivateValues] = useState<boolean>(!!privateParams.users?.length);
+
+  const usernames = useMemo(() => {
+    if (privateValues) {
+      return privateParams.users ?? [];
+    }
+
+    return publicParams.users ?? [];
+  }, [publicParams.users, privateParams.users, privateValues]);
+
+  const [inputStr, setInputStr] = useState(usernames?.join(', '));
+
+  const setUsers = (users: string[], privateUsers?: boolean) => {
+    if (privateUsers) {
+      setParams({}, { users });
+    } else {
+      setParams({ users }, {});
+    }
+  };
+
+  console.log('privateValues', privateValues);
+  console.log('usernames', usernames);
+  console.log(publicParams, privateParams);
 
   return (
     <div>
+      <div className="flex-center flex-column">
+        <PublicPrivateSelect
+          privateVal={privateValues}
+          setPrivateVal={setPrivateValues}
+          onChange={(val) => {
+            setUsers(usernames, val);
+          }}
+        />
+      </div>
       <br />
       <Input.TextArea
         value={inputStr}
@@ -112,8 +145,9 @@ const TwitterCreateNode = ({
             .filter((name) => name)
             .map((name) => (name.startsWith('@') ? name.slice(1) : name));
           setInputStr(e.target.value);
+          console.log(names);
 
-          setParams({ users: names }, {});
+          setUsers(names, privateValues);
         }}
         className="primary-text inherit-bg"
       />
@@ -128,7 +162,10 @@ const TwitterCreateNode = ({
             key={name}
             closable
             onClose={() => {
-              setParams({ users: usernames.filter((n) => n !== name) }, {});
+              setUsers(
+                usernames.filter((n) => n !== name),
+                privateValues
+              );
               setInputStr(usernames.filter((n) => n !== name).join(', '));
             }}>
             {displayname}
@@ -147,36 +184,75 @@ const ProofOfAddressInputNode = ({ setDisabled }: { setDisabled: (disabled: stri
   }, [chain?.loggedIn]);
 
   return (
-    <>
-      <div className="flex-center flex-column">
-        <BlockinDisplay />
-      </div>
-    </>
+    <div className="flex-center flex-column">
+      <BlockinDisplay />
+    </div>
   );
 };
 
-
 const DiscordCreateNode = ({
   publicParams,
+  privateParams,
   setParams
 }: {
+  privateParams: ClaimIntegrationPrivateParamsType<'discord'>;
   publicParams: ClaimIntegrationPublicParamsType<'discord'>;
   setParams: (publicParams: ClaimIntegrationPublicParamsType<'discord'>, privateParams: ClaimIntegrationPrivateParamsType<'discord'>) => void;
 }) => {
-  const usernames = publicParams.users ?? [];
-  const serverId = publicParams.serverId;
-  const serverName = publicParams.serverName;
+  const isPrivate = !!privateParams?.users?.length;
 
+  const [privateValues, setPrivateValues] = useState<boolean>(isPrivate);
   const [inputStr, setInputStr] = useState(publicParams.users?.join(', '));
+
+  const setUsers = (users: string[], serverId: string, serverName: string, privateUsers?: boolean) => {
+    if (privateUsers) {
+      setParams({}, { users, serverId, serverName });
+    } else {
+      setParams({ users, serverId, serverName }, {});
+    }
+  };
+
+  const usernames = useMemo(() => {
+    if (privateValues) {
+      return privateParams.users ?? [];
+    }
+
+    return publicParams.users ?? [];
+  }, [publicParams.users, privateParams.users, privateValues]);
+
+  const serverId = useMemo(() => {
+    if (privateValues) {
+      return privateParams.serverId ?? '';
+    }
+
+    return publicParams.serverId ?? '';
+  }, [publicParams.serverId, privateParams.serverId, privateValues]);
+
+  const serverName = useMemo(() => {
+    if (privateValues) {
+      return privateParams.serverName ?? '';
+    }
+
+    return publicParams.serverName ?? '';
+  }, [publicParams.serverName, privateParams.serverName, privateValues]);
 
   return (
     <div>
+      <div className="flex-center flex-column">
+        <PublicPrivateSelect
+          privateVal={privateValues}
+          setPrivateVal={setPrivateValues}
+          onChange={(val) => {
+            setUsers(usernames, serverId, serverName, val);
+          }}
+        />
+      </div>
       <br />
       <b>Server ID</b>
       <Input
         value={serverId}
         onChange={(e) => {
-          setParams({ serverId: e.target.value, users: usernames ?? [], serverName }, {});
+          setUsers(usernames ?? [], e.target.value, serverName, privateValues);
         }}
         className="primary-text inherit-bg"
       />
@@ -195,7 +271,7 @@ const DiscordCreateNode = ({
           <Input
             value={serverName}
             onChange={(e) => {
-              setParams({ serverName: e.target.value, users: usernames ?? [], serverId }, {});
+              setUsers(usernames ?? [], serverId, e.target.value, privateValues);
             }}
             className="primary-text inherit-bg"
           />
@@ -218,7 +294,7 @@ const DiscordCreateNode = ({
             .map((name) => (name.startsWith('@') ? name.slice(1) : name));
           setInputStr(e.target.value);
 
-          setParams({ serverId, users: names, serverName }, {});
+          setUsers(names, serverId, serverName, privateValues);
         }}
         className="primary-text inherit-bg"
       />
@@ -234,7 +310,12 @@ const DiscordCreateNode = ({
               key={name}
               closable
               onClose={() => {
-                setParams({ serverId, users: usernames.filter((n) => n !== name), serverName }, {});
+                setUsers(
+                  usernames.filter((n) => n !== name),
+                  serverId,
+                  serverName,
+                  privateValues
+                );
                 setInputStr(usernames.filter((n) => n !== name).join(', '));
               }}>
               {displayname}
@@ -327,7 +408,6 @@ const DiscordInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => 
   );
 };
 
-
 export const ProofOfAddressPluginDetails: ClaimIntegrationPlugin<'requiresProofOfAddress'> = {
   id: 'requiresProofOfAddress',
   metadata: {
@@ -340,6 +420,7 @@ export const ProofOfAddressPluginDetails: ClaimIntegrationPlugin<'requiresProofO
     scoped: true,
     onChainCompatible: false
   },
+  stateString: () => '',
   createNode() {
     return (
       <div className="px-2">
@@ -389,14 +470,17 @@ export const TwitterPluginDetails: ClaimIntegrationPlugin<'twitter'> = {
     scoped: true,
     onChainCompatible: true
   },
-  createNode: ({ publicParams, setParams }) => {
-    return <TwitterCreateNode publicParams={publicParams} setParams={setParams} />;
+  stateString: () => 'The state is the list of Twitter usernames that have claimed.',
+  createNode: ({ publicParams, setParams, privateParams }) => {
+    return <TwitterCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
   },
   inputNode: ({ setDisabled }) => {
     return <TwitterInputNode setDisabled={setDisabled} />;
   },
   detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'twitter'> }) => {
-    return `One claim per Twitter user in list: ${publicParams.users.map((x) => `@${x}`).join(', ')}.`;
+    const isPublicList = !!publicParams.users?.length;
+
+    return `One claim per Twitter user${isPublicList ? ` in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : ' (private list).'}`;
   },
   getBlankPrivateParams() {
     return {};
@@ -424,6 +508,7 @@ export const DiscordPluginDetails: ClaimIntegrationPlugin<'discord'> = {
     scoped: true,
     onChainCompatible: true
   },
+  stateString: () => 'The state is the list of Discord usernames that have claimed.',
   inputNode: ({ setDisabled }) => {
     return (
       <div>
@@ -431,12 +516,17 @@ export const DiscordPluginDetails: ClaimIntegrationPlugin<'discord'> = {
       </div>
     );
   },
-  createNode: ({ publicParams, setParams }) => {
-    return <DiscordCreateNode publicParams={publicParams} setParams={setParams} />;
+  createNode: ({ publicParams, privateParams, setParams }) => {
+    return <DiscordCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
   },
   detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'discord'> }) => {
+    const isPublicList = !!publicParams.users?.length;
+    if (!isPublicList) {
+      return `One claim per Discord user (private user list).`;
+    }
+
     return `One claim per Discord user${publicParams.serverId ? ` in the ${publicParams.serverName} server` : ''}${
-      publicParams.users.length > 0 ? ` with usernames ${publicParams.users.map((x) => '@' + x).join(', ')}` : ''
+      publicParams.users && publicParams.users.length > 0 ? ` with usernames ${publicParams.users.map((x) => '@' + x).join(', ')}` : ''
     }.`;
   },
   getBlankPrivateParams() {

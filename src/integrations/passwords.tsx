@@ -19,6 +19,7 @@ export const PasswordPluginDetails: ClaimIntegrationPlugin<'password'> = {
     scoped: true,
     onChainCompatible: true
   },
+  stateString: () => '',
   inputNode: ({ setCustomBody }) => {
     return <PasswordInputNode setCustomBody={setCustomBody} />;
   },

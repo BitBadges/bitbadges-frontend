@@ -1,5 +1,5 @@
 import { ApiFilled, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { Statistic, Tooltip } from 'antd';
+import { Avatar, Statistic, Tooltip } from 'antd';
 import { BalanceArray, ClaimIntegrationPluginType, CollectionApprovalWithDetails } from 'bitbadgesjs-sdk';
 import { useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 import { useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
@@ -16,7 +16,7 @@ export const PluginTextDisplay = <T extends ClaimIntegrationPluginType>({ plugin
   if (!pluginInstance.detailsString) return null;
 
   return (
-    <div className="flex flex-center-if-mobile" style={{ alignItems: 'center' }}>
+    <>
       <Tooltip
         style={{ minWidth: 300 }}
         title={
@@ -35,14 +35,15 @@ export const PluginTextDisplay = <T extends ClaimIntegrationPluginType>({ plugin
         color="black">
         <ApiFilled className="mr-2" />
       </Tooltip>
+      <Avatar
+        shape="square"
+        src={typeof pluginInstance.metadata.image === 'string' ? (pluginInstance.metadata.image as string) : pluginInstance.metadata.image}
+        style={{ marginRight: 8 }}
+        size={24}
+      />
 
-      {typeof pluginInstance.metadata.image === 'string' ? (
-        <img src={pluginInstance.metadata.image as string} style={{ height: 20 }} className="mr-2" />
-      ) : (
-        pluginInstance.metadata.image
-      )}
       {text}
-    </div>
+    </>
   );
 };
 
@@ -88,8 +89,6 @@ export const DetailsCard = ({
   );
 
   const plugins = approval.details?.offChainClaims && approval.details.offChainClaims.length > 0 ? approval.details.offChainClaims[0].plugins : [];
-  const isManualDistribution =
-    approval.details?.offChainClaims && approval.details.offChainClaims.length > 0 ? approval.details.offChainClaims[0].manualDistribution : false;
 
   return (
     <InformationDisplayCard title="" inheritBg noBorder md={24} xs={24} sm={24}>
@@ -165,7 +164,7 @@ export const DetailsCard = ({
               </>
             ) : (
               <>
-                {(approval.details?.offChainClaims?.length == 0 || isManualDistribution) && ( //handled below via plugins
+                {(approval.details?.offChainClaims?.length == 0) && ( //handled below via plugins if using in-site claim builder
                   <li>
                     {`Must provide valid ${
                       approval.details ? (approval.details?.challengeDetails?.hasPassword ? 'password' : 'code') : 'password / code'
@@ -187,8 +186,7 @@ export const DetailsCard = ({
           </>
         )}
 
-        {!isManualDistribution &&
-          plugins.map((x) => {
+        {plugins.map((x) => {
             const pluginInstance = getPlugin(x.id);
             if (!pluginInstance.detailsString) return null;
 

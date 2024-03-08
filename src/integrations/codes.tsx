@@ -22,8 +22,9 @@ export const CodesPluginDetails: ClaimIntegrationPlugin<'codes'> = {
     createdBy: 'BitBadges',
     stateless: false,
     scoped: true,
-    onChainCompatible: false
+    onChainCompatible: true
   },
+  stateString: () => 'The state tracks the codes that have been used.',
   createNode: ({ privateParams, setParams, numClaims, setDisabled }) => {
     return <CodesCreateNode privateParams={privateParams} setParams={setParams} numClaims={numClaims} setDisabled={setDisabled} />;
   },

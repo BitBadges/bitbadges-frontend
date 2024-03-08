@@ -553,9 +553,7 @@ function AddressListPage() {
                         })}
                       </div>
                       {actions.length == 0 && (
-                        <>
-                          <Empty className="primary-text" description="No actions can be taken." image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                        </>
+                        <Empty className="primary-text" description="No actions can be taken." image={Empty.PRESENTED_IMAGE_SIMPLE} />
                       )}
                     </div>
                   </>

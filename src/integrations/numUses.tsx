@@ -14,6 +14,7 @@ export const NumUsesPluginDetails: ClaimIntegrationPlugin<'numUses'> = {
     scoped: true,
     onChainCompatible: true
   },
+  stateString: () => 'The state tracks the number of claims that have been used overall and by for each user.',
   createNode({ publicParams, setParams }) {
     const numRecipients = publicParams.maxUses;
     return (
