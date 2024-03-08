@@ -17,7 +17,7 @@ import { updateCollection, useCollection } from '../../../bitbadges-api/contexts
 import { areBalancesBitBadgesHosted } from '../../../bitbadges-api/utils/balances';
 import { IntegrationPluginDetails, getMaxUses, getPlugin, getPluginDetails } from '../../../integrations/integrations';
 import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/settings';
-import { BitBadgesClaimLogo, hasAlreadyClaimed } from '../../../pages/lists/[listId]';
+import { BitBadgesClaimLogo, hasAlreadyUsedAllClaims } from '../../../pages/lists/[listId]';
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { AddressSelect } from '../../address/AddressSelect';
 import {
@@ -64,7 +64,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
   const fetchedPlugins = collection && (collection?.offChainClaims ?? []).length > 0 ? collection.offChainClaims[0].plugins : [];
   const claimId = collection && (collection?.offChainClaims ?? []).length > 0 ? collection.offChainClaims[0].claimId : '';
   const claim = collection && (collection?.offChainClaims ?? []).length > 0 ? collection.offChainClaims[0] : undefined;
-  const alreadyClaimed = claimed || (claim && hasAlreadyClaimed(claim, chain));
+  const alreadyClaimed = claimed || (claim && hasAlreadyUsedAllClaims(claim, chain));
 
   useEffect(() => {
     if (codesModalVisible) {
@@ -208,9 +208,10 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
                       const newColl = await BitBadgesApi.getCollections({
                         collectionsToFetch: [{ collectionId: collectionId }]
                       });
-                      const claimNumber =
-                        (getPluginDetails('numUses', newColl.collections[0].offChainClaims[0].plugins)?.publicState.claimedUsers[recipientAddress] ??
-                          0) + 1;
+                      const usedIndices = getPluginDetails('numUses', newColl.collections[0].offChainClaims[0].plugins)?.publicState.claimedUsers[
+                        recipientAddress
+                      ];
+                      const claimNumber = Math.max(...(usedIndices ?? [0])) + 1;
 
                       notification.success({
                         message: 'Success',
@@ -288,7 +289,8 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
                 {alreadyClaimed && !claimed && (
                   <>
                     <div className="secondary-text mt-4">
-                      You have already claimed (claim #{(numUsesPlugin?.publicState.claimedUsers[chain.cosmosAddress] ?? 0) + 1})
+                      You have already used all your claims (claim{' '}
+                      {(numUsesPlugin?.publicState.claimedUsers[chain.cosmosAddress].map((x) => `#${x + 1}`) ?? []).join(', ')})
                     </div>
                     <div className="flex-center">
                       <AddressDisplay addressOrUsername={chain.address} />

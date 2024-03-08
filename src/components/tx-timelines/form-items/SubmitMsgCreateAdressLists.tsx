@@ -121,7 +121,7 @@ export function SubmitMsgCreateAddressList() {
         <>
           {!isUpdateAddressList && <Divider />}
           <div className="flex-center full-width" style={{ textAlign: 'start' }}>
-            <InformationDisplayCard md={24} xs={24} sm={24} title="Additional Options" subtitle="">
+            <InformationDisplayCard md={12} xs={24} sm={24} title="Additional Options" subtitle="">
               <TableRow
                 label="Show in search results?"
                 value={

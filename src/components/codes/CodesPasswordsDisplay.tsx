@@ -1,6 +1,7 @@
 import { CopyOutlined, DownloadOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Divider, Empty, Row, Spin, Tooltip, Typography, notification } from 'antd';
 import {
+  BitBadgesAddressList,
   ClaimAlertDoc,
   CollectionApprovalWithDetails,
   PaginationInfo,
@@ -100,19 +101,24 @@ export const DownloadTxtButton = ({
 export function CodesDisplay({
   approval,
   collectionId,
-  listId,
+  list,
   codes,
   claimPassword
 }: {
   approval?: CollectionApprovalWithDetails<bigint>;
   collectionId?: bigint;
-  listId?: string;
+  list?: BitBadgesAddressList<bigint>;
   codes?: string[];
   claimPassword?: string;
 }) {
   const collection = useCollection(collectionId);
   const isClaimBuilderCodesDisplay = !approval;
-  const offChainClaim = (collection?.offChainClaims ?? []).length > 0 ? collection?.offChainClaims[0] : undefined;
+  let offChainClaim = (list?.editClaims ?? []).length > 0 ? list?.editClaims[0] : undefined;
+  if (collection) {
+    offChainClaim = (collection?.offChainClaims ?? []).length > 0 ? collection?.offChainClaims[0] : undefined;
+  }
+
+  const listId = list?.listId;
 
   const [tab, setTab] = useState('individual');
   const [codePage, setCodePage] = useState(1);
@@ -223,8 +229,11 @@ export function CodesDisplay({
     let used = false;
     if (isClaimBuilderCodesDisplay) {
       const code = codes?.[codePage - 1];
+      console.log(offChainClaim);
       const usedCodes = getPluginDetails('codes', offChainClaim?.plugins ?? [])?.publicState?.usedCodes ?? [];
       used = usedCodes.some((x) => x === code);
+
+      console.log('used', isClaimBuilderCodesDisplay, usedCodes);
     } else {
       used = !!(merkleChallenge && !hasPassword && !!merkleChallenge.maxUsesPerLeaf && codes
         ? challengeTracker && (challengeTracker.usedLeafIndices?.find((x) => x == BigInt(codePage - 1)) ?? -1) >= 0

@@ -1,6 +1,6 @@
 import { CheckCircleFilled, OrderedListOutlined, FormOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
-import { ClaimIntegrationPublicParamsType, ClaimIntegrationPrivateParamsType } from 'bitbadgesjs-sdk';
+import { ClaimIntegrationPublicParamsType, ClaimIntegrationPrivateParamsType, BitBadgesAddressList } from 'bitbadgesjs-sdk';
 import { SHA256 } from 'crypto-js';
 import { useRouter } from 'next/router';
 import { useState, useEffect, useMemo } from 'react';
@@ -17,7 +17,7 @@ export const CodesPluginDetails: ClaimIntegrationPlugin<'codes'> = {
   id: 'codes',
   metadata: {
     name: 'Codes',
-    description: 'Users must provide a valid code to claim.',
+    description: 'Users must provide a valid one-time use code to claim.',
     image: 'https://avatars.githubusercontent.com/u/86890740',
     createdBy: 'BitBadges',
     stateless: false,
@@ -206,10 +206,10 @@ const CodesCreateNode = ({
                 ? txTimelineContext.existingCollectionId
                 : NEW_COLLECTION_ID
           }
-          listId={
+          list={
             txTimelineContext.mintType === MintType.AddressList
               ? txTimelineContext.isUpdateAddressList
-                ? txTimelineContext.addressList.listId
+                ? txTimelineContext.addressList
                 : undefined
               : undefined
           }
@@ -225,20 +225,20 @@ export const PluginCodesModal = ({
   codes,
   password,
   collectionId,
-  listId,
+  list,
   visible,
   setVisible
 }: {
   codes?: string[];
   password?: string;
-  listId?: string;
+  list?: BitBadgesAddressList<bigint>;
   collectionId?: bigint;
   visible: boolean;
   setVisible: (visible: boolean) => void;
 }) => {
   return (
     <GenericModal title="Codes" setVisible={setVisible} visible={visible} style={{ minWidth: '90%' }}>
-      <CodesDisplay collectionId={collectionId} codes={codes} claimPassword={password} listId={listId} />
+      <CodesDisplay collectionId={collectionId} codes={codes} claimPassword={password} list={list} />
     </GenericModal>
   );
 };

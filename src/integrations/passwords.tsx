@@ -12,7 +12,7 @@ export const PasswordPluginDetails: ClaimIntegrationPlugin<'password'> = {
   id: 'password',
   metadata: {
     name: 'Password',
-    description: 'Users must provide a password to claim.',
+    description: 'Users must enter the password to claim.',
     image: 'https://avatars.githubusercontent.com/u/86890740',
     createdBy: 'BitBadges',
     stateless: true,

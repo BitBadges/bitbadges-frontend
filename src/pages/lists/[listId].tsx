@@ -75,13 +75,17 @@ export const AddressListClaimModal = ({
   );
 };
 
-export const hasAlreadyClaimed = (claim: OffChainClaim<bigint>, chain: ReturnType<typeof useChainContext>) => {
+export const hasAlreadyUsedAllClaims = (claim: OffChainClaim<bigint>, chain: ReturnType<typeof useChainContext>) => {
   if (!claim.plugins.find((plugin) => plugin.id === 'requiresProofOfAddress')) {
     // If the claim does not require proof of address, then we don't know until the user selects an address and that is too late to display on criteria.
     return false;
   }
 
-  return getPluginDetails('numUses', claim?.plugins ?? [])?.publicState.claimedUsers[chain.cosmosAddress] !== undefined;
+  const maxUsesPerAddress = getPluginDetails('numUses', claim?.plugins ?? [])?.publicParams.maxUsesPerAddress;
+  if (!maxUsesPerAddress) return false;
+
+  const usedIndices = getPluginDetails('numUses', claim?.plugins ?? [])?.publicState.claimedUsers[chain.cosmosAddress];
+  return usedIndices && usedIndices.length >= maxUsesPerAddress;
 };
 
 export const BitBadgesClaimLogo = () => {
@@ -109,7 +113,7 @@ export const AddressListClaimCardWithModal = ({
   const chain = useChainContext();
   const [visible, setVisible] = useState(false);
 
-  const alreadyClaimed = hasAlreadyClaimed(claim, chain);
+  const alreadyClaimed = hasAlreadyUsedAllClaims(claim, chain);
   const maxUses = getMaxUses(claim?.plugins ?? []);
   const numUsesPlugin = getPluginDetails('numUses', claim?.plugins ?? []);
   const exceedsMaxUses = numUsesPlugin && numUsesPlugin.publicState.numUses >= maxUses;
@@ -468,7 +472,7 @@ function AddressListPage() {
                                           />
                                           <PluginCodesModal
                                             codes={codes ?? []}
-                                            listId={listId as string}
+                                            list={list}
                                             visible={codesModalVisible}
                                             setVisible={setCodesModalVisible}
                                             password={getPluginDetails('password', fetchedPlugins)?.privateParams.password}
