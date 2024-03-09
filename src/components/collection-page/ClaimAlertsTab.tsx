@@ -11,6 +11,17 @@ import { AddressDisplayList } from '../address/AddressDisplayList';
 import { BadgeAvatar } from '../badges/BadgeAvatar';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 
+export const ScrollLoader = () => {
+  return (
+    <div>
+      <br />
+      <Spin size={'large'} />
+      <br />
+      <br />
+    </div>
+  );
+}
+
 export function ClaimAlertsTab({
   claimAlerts,
   fetchMore,
@@ -44,14 +55,7 @@ export function ClaimAlertsTab({
         dataLength={claimAlerts.length}
         next={fetchMore}
         hasMore={hasMore}
-        loader={
-          <div>
-            <br />
-            <Spin size={'large'} />
-            <br />
-            <br />
-          </div>
-        }
+        loader={<ScrollLoader />}
         scrollThreshold="200px"
         endMessage={null}
         style={{ width: '100%', overflow: 'hidden' }}>

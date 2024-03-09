@@ -10,6 +10,7 @@ import { fetchCollectionsWithOptions } from '../../bitbadges-api/contexts/collec
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { CollectionDisplayWithBadges } from '../badges/MultiCollectionBadgeDisplay';
+import { ScrollLoader } from '../collection-page/ClaimAlertsTab';
 import { EmptyIcon } from '../common/Empty';
 import { Tabs } from '../navigation/Tabs';
 import { FollowProtocolMessage, FollowProtocolSubmit } from '../tx-timelines/step-items/TemplateCollections';
@@ -149,14 +150,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                           await fetchMore();
                         }}
                         hasMore={followersPagination?.hasMore ?? true}
-                        loader={
-                          <div>
-                            <br />
-                            <Spin size={'large'} />
-                            <br />
-                            <br />
-                          </div>
-                        }
+                        loader={<ScrollLoader />}
                         scrollThreshold="200px"
                         endMessage={null}
                         style={{ width: '100%' }}>
@@ -189,14 +183,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
                     await fetchMore();
                   }}
                   hasMore={followingPagination?.hasMore ?? true}
-                  loader={
-                    <div>
-                      <br />
-                      <Spin size={'large'} />
-                      <br />
-                      <br />
-                    </div>
-                  }
+                  loader={<ScrollLoader />}
                   scrollThreshold="200px"
                   endMessage={null}
                   style={{ width: '100%' }}>

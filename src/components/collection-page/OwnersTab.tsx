@@ -16,6 +16,7 @@ import { BalanceDisplay } from '../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { TableRow } from '../display/TableRow';
 import { SelectWithOptions } from '../inputs/Selects';
+import { ScrollLoader } from './ClaimAlertsTab';
 
 function BalanceInfiniteScroll({
   collectionId,
@@ -222,14 +223,7 @@ function BalanceInfiniteScroll({
               }}
               className="flex-center flex-wrap full-width"
               hasMore={isPreview ? false : pagination.hasMore}
-              loader={
-                <div>
-                  <br />
-                  <Spin size={'large'} />
-                  <br />
-                  <br />
-                </div>
-              }
+              loader={<ScrollLoader />}
               scrollThreshold="200px"
               endMessage={null}
               style={{ width: '100%' }}>

@@ -1,16 +1,17 @@
-import { Button, Col, Divider, Empty, Input, Row, Spin, Tooltip, Typography } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
+import { Button, Col, Divider, Empty, Input, Row, Tooltip, Typography } from 'antd';
 import { Numberify, ReviewDoc } from 'bitbadgesjs-sdk';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ReactStars from 'react-stars';
 import { addReviewForCollection, addReviewForUser, deleteReview } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
-import { DeleteOutlined } from '@ant-design/icons';
 import { fetchAccounts, fetchNextForAccountViews, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { AddressDisplay } from '../address/AddressDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
+import { ScrollLoader } from './ClaimAlertsTab';
 
 export function ReputationTab({
   reviews,
@@ -111,14 +112,7 @@ export function ReputationTab({
         dataLength={reviews.length}
         next={fetchMore}
         hasMore={hasMore}
-        loader={
-          <div>
-            <br />
-            <Spin size={'large'} />
-            <br />
-            <br />
-          </div>
-        }
+        loader={<ScrollLoader />}
         scrollThreshold="200px"
         endMessage={null}
         style={{ width: '100%', overflow: 'hidden' }}>

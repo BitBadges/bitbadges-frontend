@@ -1,6 +1,7 @@
-import { Spin, Empty } from 'antd';
+import { Empty } from 'antd';
 import { BitBadgesAddressList } from 'bitbadgesjs-sdk';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { ScrollLoader } from '../collection-page/ClaimAlertsTab';
 import { AddressListCard } from './AddressListCard';
 
 export const ListInfiniteScroll = ({
@@ -28,19 +29,11 @@ export const ListInfiniteScroll = ({
         dataLength={listsView.length}
         next={fetchMore}
         hasMore={hasMore}
-        loader={
-          <div>
-            <br />
-            <Spin size={'large'} />
-            <br />
-            <br />
-          </div>
-        }
+        loader={<ScrollLoader />}
         scrollThreshold={'300px'}
         endMessage={<></>}
         initialScrollY={0}
-        style={{ width: '100%', overflow: 'hidden' }}
-      >
+        style={{ width: '100%', overflow: 'hidden' }}>
         <div className="full-width flex-center flex-wrap">
           {listsView.map((addressList, idx) => {
             return (

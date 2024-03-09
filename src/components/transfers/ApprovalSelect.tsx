@@ -1159,6 +1159,14 @@ export function ApprovalSelect({
               });
             }
             pluginsToAdd.push(getBlankPlugin('requiresProofOfAddress'));
+            pluginsToAdd.push({
+              id: 'transferTimes',
+              privateParams: getPlugin('transferTimes').getBlankPrivateParams(),
+              publicParams: {
+                transferTimes: UintRangeArray.From(approvalToAdd.transferTimes)
+              },
+              publicState: getPlugin('transferTimes').getBlankPublicState()
+            });
             pluginsToAdd.push(...plugins);
 
             details.offChainClaims = [

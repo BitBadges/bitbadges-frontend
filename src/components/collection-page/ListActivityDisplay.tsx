@@ -1,5 +1,5 @@
 import { BellFilled, DeleteOutlined } from '@ant-design/icons';
-import { Col, Collapse, Row, Spin } from 'antd';
+import { Col, Collapse, Row } from 'antd';
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel';
 import { BitBadgesAddressList, ListActivityDoc } from 'bitbadgesjs-sdk';
 import { useRouter } from 'next/router';
@@ -14,6 +14,7 @@ import { DevMode } from '../common/DevMode';
 import { EmptyIcon } from '../common/Empty';
 import { Pagination } from '../common/Pagination';
 import IconButton from '../display/IconButton';
+import { ScrollLoader } from './ClaimAlertsTab';
 import { PanelHeaderAddresses } from './TransferActivityDisplay';
 
 function PanelHeader({
@@ -278,14 +279,7 @@ export function ListActivityTab({
             dataLength={numShown}
             next={fetchMoreWrapper}
             hasMore={hasMore || numShown < activity.length}
-            loader={
-              <div>
-                <br />
-                <Spin size={'large'} />
-                <br />
-                <br />
-              </div>
-            }
+            loader={<ScrollLoader />}
             scrollThreshold={'300px'}
             endMessage={<></>}
             initialScrollY={0}

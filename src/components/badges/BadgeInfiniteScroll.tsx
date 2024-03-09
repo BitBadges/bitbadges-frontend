@@ -1,4 +1,4 @@
-import { Empty, Spin } from 'antd';
+import { Empty } from 'antd';
 import { BatchBadgeDetailsArray, Numberify } from 'bitbadgesjs-sdk';
 import { useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { GlobalReduxState } from '../../pages/_app';
 import { GO_MAX_UINT_64 } from '../../utils/dates';
+import { ScrollLoader } from '../collection-page/ClaimAlertsTab';
 import { MultiCollectionBadgeDisplay } from './MultiCollectionBadgeDisplay';
 
 export const BadgeInfiniteScroll = ({
@@ -71,14 +72,7 @@ export const BadgeInfiniteScroll = ({
           setNumBadgesDisplayed(numBadgesDisplayed + 25);
         }}
         hasMore={hasMore}
-        loader={
-          <div>
-            <br />
-            <Spin size={'large'} />
-            <br />
-            <br />
-          </div>
-        }
+        loader={<ScrollLoader />}
         scrollThreshold={'300px'}
         endMessage={<></>}
         initialScrollY={0}
