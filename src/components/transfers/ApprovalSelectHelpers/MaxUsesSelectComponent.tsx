@@ -27,7 +27,7 @@ export const MaxUses = ({
 }) => {
   const hasWhitelist = disabled && distributionMethod === DistributionMethod.Whitelist;
 
-  const noun = distributionMethod === DistributionMethod.Codes ? 'Claims' : 'Uses';
+  const noun = distributionMethod === DistributionMethod.Claims ? 'Claims' : 'Uses';
   const label =
     type === 'overall'
       ? `Max ${noun}`
@@ -197,7 +197,7 @@ export const MaxUses = ({
           <InfoCircleOutlined style={{ color: '#FF5733' }} />{' '}
           {list?.whitelist
             ? `There are potentially ${list.addresses.length} users.`
-            : distributionMethod === DistributionMethod.Codes && type === 'initiatedBy'
+            : distributionMethod === DistributionMethod.Claims && type === 'initiatedBy'
               ? 'Each unique initiator must provide a valid unused code. This restricts the number of codes used per user.'
               : 'There are potentially an unlimited possible number of users.'}
         </div>

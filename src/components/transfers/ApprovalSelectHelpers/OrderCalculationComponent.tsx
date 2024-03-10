@@ -5,14 +5,13 @@ import { DistributionMethod } from '../../../bitbadges-api/types';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
 import { TableRow } from '../../display/TableRow';
 import { BalanceAmountInput } from '../../inputs/BalanceAmountInput';
-import { DistributionType, RequiredApprovalProps, getMaxIncrementsApplied } from '../ApprovalSelect';
+import { RequiredApprovalProps, getMaxIncrementsApplied } from '../ApprovalSelect';
 import { MaxUses } from './MaxUsesSelectComponent';
 
 export const OrderCalculationMethod = ({
   approvalToAdd,
   setApprovalToAdd,
   distributionMethod,
-  distributionType,
   increment,
   startBalances,
   collectionId,
@@ -21,7 +20,6 @@ export const OrderCalculationMethod = ({
   label
 }: {
   expectedPartitions: bigint;
-  distributionType: DistributionType;
   distributionMethod: DistributionMethod;
   increment: bigint;
   startBalances: BalanceArray<bigint>;
@@ -90,7 +88,14 @@ export const OrderCalculationMethod = ({
   ) {
     maxUsesErrorMessage = 'To calculate number of increments, you must set overall max uses or max uses per recipient.';
   } else if (maxIncrementsApplied !== expectedPartitions) {
-    maxUsesErrorMessage = `Expected ${expectedPartitions} increments but got ${maxIncrementsApplied}.`;
+    maxUsesErrorMessage = `Expected ${expectedPartitions} increments but got ${maxIncrementsApplied}`;
+    if (distributionMethod === DistributionMethod.Claims) {
+      if (keyId === 'useOverallNumTransfers') {
+        maxUsesErrorMessage += ` (i.e. ${maxIncrementsApplied} claims allowed total and increment once per claim).`;
+      } else {
+        maxUsesErrorMessage += ` (i.e. ${maxIncrementsApplied} claims allowed per user and increment once per such claim).`;
+      }
+    }
   }
 
   return (
@@ -104,7 +109,7 @@ export const OrderCalculationMethod = ({
             <Switch
               disabled={
                 keyId === 'useMerkleChallengeLeafIndex' &&
-                distributionMethod !== DistributionMethod.Codes &&
+                distributionMethod !== DistributionMethod.Claims &&
                 distributionMethod !== DistributionMethod.Whitelist
               }
               checked={checked}
@@ -134,7 +139,7 @@ export const OrderCalculationMethod = ({
             {keyId == 'useMerkleChallengeLeafIndex'
               ? distributionMethod === DistributionMethod.Whitelist
                 ? ' Reserve specific increments for specific whitelisted users.'
-                : distributionMethod === DistributionMethod.Codes
+                : distributionMethod === DistributionMethod.Claims
                   ? ' Reserve specific increments for specific claims.'
                   : ' Reserve specific increments for specific users / codes.'
               : ''}
@@ -162,7 +167,7 @@ export const OrderCalculationMethod = ({
             setApprovalToAdd={setApprovalToAdd}
             type="overall"
             distributionMethod={distributionMethod}
-            disabled={distributionMethod === DistributionMethod.Codes}
+            disabled={distributionMethod === DistributionMethod.Claims || distributionMethod === DistributionMethod.Whitelist}
           />
 
           {!(approvalToAdd.initiatedByList.addresses.length <= 1 && approvalToAdd.initiatedByList.whitelist) && (
@@ -171,10 +176,7 @@ export const OrderCalculationMethod = ({
               setApprovalToAdd={setApprovalToAdd}
               type="initiatedBy"
               distributionMethod={distributionMethod}
-              disabled={
-                (distributionMethod === DistributionMethod.Codes && distributionType === DistributionType.Builder) ||
-                distributionMethod === DistributionMethod.Whitelist
-              }
+              disabled={distributionMethod === DistributionMethod.Claims || distributionMethod === DistributionMethod.Whitelist}
             />
           )}
           {!approvalToAdd.approvalCriteria.requireFromEqualsInitiatedBy &&

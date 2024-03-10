@@ -102,7 +102,7 @@ export const ApprovalAmounts = ({
           <InfoCircleOutlined style={{ color: '#FF5733' }} />{' '}
           {list?.whitelist
             ? `There are potentially ${list.addresses.length} users.`
-            : distributionMethod === DistributionMethod.Codes
+            : distributionMethod === DistributionMethod.Claims
               ? 'Each unique initiator must have a valid unused code. This restricts the number of codes used per user.'
               : 'There are potentially an unlimited number of users because you have selected a blacklist.'}
         </div>

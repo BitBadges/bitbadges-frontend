@@ -1,9 +1,8 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { ClaimIntegrationPublicStateType, ClaimIntegrationPublicParamsType } from 'bitbadgesjs-sdk';
+import { ClaimIntegrationPublicParamsType, ClaimIntegrationPublicStateType } from 'bitbadgesjs-sdk';
+import { ErrDisplay } from '../components/common/ErrDisplay';
 import { NumberInput } from '../components/inputs/NumberInput';
 import { ClaimIntegrationPlugin } from './integrations';
-import { Switch } from 'antd';
-import { ErrDisplay } from '../components/common/ErrDisplay';
 
 export const NumUsesPluginDetails: ClaimIntegrationPlugin<'numUses'> = {
   id: 'numUses',
@@ -26,7 +25,7 @@ export const NumUsesPluginDetails: ClaimIntegrationPlugin<'numUses'> = {
         <div className="flex-center flex-wrap mt-4" style={{ alignItems: 'normal' }}>
           <div className="mx-5">
             <NumberInput
-              title="Total Number of Claims"
+              title="Total"
               value={numRecipients}
               setValue={(val) => {
                 setParams({ maxUses: val, maxUsesPerAddress: numRecipientsPerAddress }, {});
@@ -36,9 +35,9 @@ export const NumUsesPluginDetails: ClaimIntegrationPlugin<'numUses'> = {
           </div>
           <div className="mx-5">
             <div className="text-center">
-              <b>Number of Claims per Address</b>
+              <b>Per Address</b>
             </div>
-            <div className="my-2 secondary-text flex-center">
+            {/* <div className="my-2 secondary-text flex-center">
               <Switch
                 checked={!!numRecipientsPerAddress}
                 checkedChildren="Limited"
@@ -47,7 +46,7 @@ export const NumUsesPluginDetails: ClaimIntegrationPlugin<'numUses'> = {
                   setParams({ maxUses: numRecipients, maxUsesPerAddress: checked ? 1 : 0 }, {});
                 }}
               />
-            </div>
+            </div> */}
             {!!numRecipientsPerAddress && (
               <>
                 <NumberInput

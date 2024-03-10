@@ -318,7 +318,7 @@ export function BadgeIdRangesInput({
               <br />
             </div>
           )}
-          {setIncrementBadgeIdsBy && (numRecipients > 1 || setNumRecipients) && uintRanges.length > 0 && (
+          {setIncrementBadgeIdsBy && setNumRecipients && uintRanges.length > 0 && (
             <>
               <br />
 

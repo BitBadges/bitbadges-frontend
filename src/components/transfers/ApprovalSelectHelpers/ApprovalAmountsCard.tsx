@@ -1,29 +1,29 @@
-import { WarningOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { BalanceArray } from 'bitbadgesjs-sdk';
-import { Dispatch, SetStateAction, useState, useEffect } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { DistributionMethod } from '../../../bitbadges-api/types';
 import {
-  approvalCriteriaUsesPredeterminedBalances,
   approvalHasApprovalAmounts,
   approvalHasMaxNumTransfers
 } from '../../../bitbadges-api/utils/claims';
 import { getBadgeIdsString } from '../../../utils/badgeIds';
 import { getTimeRangesElement } from '../../../utils/dates';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
-import { ApprovalAmounts as ApprovalAmountsComponent } from './ApprovalAmountsSelectComponent';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { NumberInput } from '../../inputs/NumberInput';
 import { RadioGroup } from '../../inputs/Selects';
-import { RequiredApprovalProps, DistributionType, PredeterminedTab, getMaxIncrementsApplied } from '../ApprovalSelect';
+import { PredeterminedTab, RequiredApprovalProps, getMaxIncrementsApplied } from '../ApprovalSelect';
+import { ApprovalAmounts as ApprovalAmountsComponent } from './ApprovalAmountsSelectComponent';
 import { MaxUses } from './MaxUsesSelectComponent';
 import { OrderCalculationMethod } from './OrderCalculationComponent';
 
 export const ApprovalSelectAmountsCard = ({
+  tab,
+  setTab,
   approvalToAdd,
   setApprovalToAdd,
   expectedPartitions,
   distributionMethod,
-  distributionType,
   collectionId,
   fromListLocked,
   toListLocked,
@@ -33,16 +33,13 @@ export const ApprovalSelectAmountsCard = ({
   approvalToAdd: RequiredApprovalProps;
   setApprovalToAdd: Dispatch<SetStateAction<RequiredApprovalProps>>;
   distributionMethod: DistributionMethod;
-  distributionType: DistributionType;
   collectionId: bigint;
   fromListLocked: boolean;
   toListLocked: boolean;
   initiatedByListLocked: boolean;
+  tab: PredeterminedTab;
+  setTab: (tab: PredeterminedTab) => void;
 }) => {
-  const [tab, setTab] = useState(
-    approvalCriteriaUsesPredeterminedBalances(approvalToAdd.approvalCriteria) ? PredeterminedTab.AllOrNothing : PredeterminedTab.Tally
-  );
-
   const predeterminedBalances = approvalToAdd.approvalCriteria.predeterminedBalances;
   const isPartitionView = predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0n;
   const orderCalculationMethod = approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod;
@@ -59,84 +56,21 @@ export const ApprovalSelectAmountsCard = ({
   const fromDefaultsToOther = fromListLocked || approvalToAdd.approvalCriteria.requireFromEqualsInitiatedBy || fromHasMaxOneAddress;
   const toDefaultsToOther = toListLocked || approvalToAdd.approvalCriteria.requireToEqualsInitiatedBy || toHasMaxOneAddress;
 
-  const customClaim = distributionMethod === DistributionMethod.Codes && distributionType === DistributionType.Builder;
+  // const customClaim = distributionMethod === DistributionMethod.Claims;
 
-  //If we are using increments, we should always be on the AllOrNothing tab
-  //Else, we default to Tally
-  useEffect(() => {
-    console.log('useEffect 0', isPartitionView, tab);
-    if ((isPartitionView || customClaim) && tab !== PredeterminedTab.AllOrNothing) {
-      setTab(PredeterminedTab.AllOrNothing);
-    }
-  }, [isPartitionView, tab, customClaim]);
-
-  //If we are using predetermined balances, we have to set the start balances
-  useEffect(() => {
-    console.log('useEffect 1', isPartitionView, tab);
-    if (isPartitionView || customClaim || tab === PredeterminedTab.AllOrNothing) {
-      setApprovalToAdd((approvalToAdd) => {
-        return {
-          ...approvalToAdd,
-          approvalCriteria: {
-            ...approvalToAdd.approvalCriteria,
-            approvalAmounts: {
-              overallApprovalAmount: 0n,
-              perFromAddressApprovalAmount: 0n,
-              perToAddressApprovalAmount: 0n,
-              perInitiatedByAddressApprovalAmount: 0n
-            },
-            predeterminedBalances: {
-              ...approvalToAdd.approvalCriteria.predeterminedBalances,
-
-              incrementedBalances: {
-                ...approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances,
-                startBalances: [
-                  {
-                    badgeIds: approvalToAdd.badgeIds,
-                    ownershipTimes: approvalToAdd.ownershipTimes,
-                    amount: 1n
-                  }
-                ]
-              },
-              orderCalculationMethod: {
-                ...approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod,
-                useOverallNumTransfers: false,
-                usePerFromAddressNumTransfers: false,
-                usePerInitiatedByAddressNumTransfers: false,
-                usePerToAddressNumTransfers: false,
-                useMerkleChallengeLeafIndex: false
-              }
-            }
-          }
-        };
-      });
-    } else {
-      setApprovalToAdd((approvalToAdd) => {
-        return {
-          ...approvalToAdd,
-          approvalCriteria: {
-            ...approvalToAdd.approvalCriteria,
-            predeterminedBalances: {
-              ...approvalToAdd.approvalCriteria.predeterminedBalances,
-              incrementedBalances: {
-                startBalances: [],
-                incrementBadgeIdsBy: 0n,
-                incrementOwnershipTimesBy: 0n
-              },
-              orderCalculationMethod: {
-                ...approvalToAdd.approvalCriteria.predeterminedBalances.orderCalculationMethod,
-                useOverallNumTransfers: false,
-                usePerFromAddressNumTransfers: false,
-                usePerInitiatedByAddressNumTransfers: false,
-                usePerToAddressNumTransfers: false,
-                useMerkleChallengeLeafIndex: false
-              }
-            }
-          }
-        };
-      });
-    }
-  }, [tab, isPartitionView, setApprovalToAdd, customClaim, approvalToAdd.badgeIds, approvalToAdd.ownershipTimes]);
+  // // //If we are using increments, we should always be on the AllOrNothing tab
+  // // //Else, we default to Tally
+  // // useEffect(() => {
+  // //   console.log('useEffect 0', isPartitionView, tab);
+  // //   if (
+  // //     approvalCriteriaUsesPredeterminedBalances(approvalToAdd.approvalCriteria) &&
+  // //     tab !== PredeterminedTab.AllOrNothing &&
+  // //     !isPartitionView &&
+  // //     !customClaim
+  // //   ) {
+  // //     setTab(PredeterminedTab.AllOrNothing);
+  // //   }
+  // // }, [tab, setTab, approvalToAdd.approvalCriteria, isPartitionView, customClaim]);
 
   const AllMaxUses = (
     <div className="full-width">
@@ -145,7 +79,7 @@ export const ApprovalSelectAmountsCard = ({
         setApprovalToAdd={setApprovalToAdd}
         type="overall"
         distributionMethod={distributionMethod}
-        disabled={distributionMethod === DistributionMethod.Codes || distributionMethod === DistributionMethod.Whitelist}
+        disabled={distributionMethod === DistributionMethod.Claims || distributionMethod === DistributionMethod.Whitelist}
       />
       {!initiatedByDefaultsToOther && (
         <MaxUses
@@ -153,10 +87,7 @@ export const ApprovalSelectAmountsCard = ({
           setApprovalToAdd={setApprovalToAdd}
           type="initiatedBy"
           distributionMethod={distributionMethod}
-          disabled={
-            (distributionMethod === DistributionMethod.Codes && distributionType === DistributionType.Builder) ||
-            distributionMethod === DistributionMethod.Whitelist
-          }
+          disabled={distributionMethod === DistributionMethod.Claims || distributionMethod === DistributionMethod.Whitelist}
         />
       )}
       {!fromDefaultsToOther && (
@@ -233,7 +164,7 @@ export const ApprovalSelectAmountsCard = ({
         <div className="">
           {!isPartitionView && (
             <>
-              {distributionMethod !== DistributionMethod.Codes && (
+              {distributionMethod !== DistributionMethod.Claims && (
                 <>
                   <RadioGroup
                     value={tab !== PredeterminedTab.AllOrNothing ? (tab === PredeterminedTab.NoLimit ? 'none' : 'tally') : 'all'}
@@ -260,8 +191,7 @@ export const ApprovalSelectAmountsCard = ({
                 <>
                   <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className="secondary-text full-width">
                     <div className="">
-                      <InfoCircleOutlined /> No Limit - No amount restrictions. Amounts will not be tracked. You can optionally choose to restrict the
-                      max number of uses, but each use will still approve an unlimited amount.
+                      <InfoCircleOutlined /> No Limit - No amount restrictions. Amounts will not be tracked.
                     </div>
                   </div>
 
@@ -280,16 +210,6 @@ export const ApprovalSelectAmountsCard = ({
                   </div>
                 </>
               )}
-              {tab === PredeterminedTab.AllOrNothing && (
-                <>
-                  <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12 }} className="secondary-text">
-                    <div className="">
-                      <InfoCircleOutlined /> All or Nothing - The approval is only valid if all are transferred together.
-                    </div>
-                  </div>
-                </>
-              )}
-              {/* <br /> */}
               {!isPartitionView && tab === PredeterminedTab.Tally && (
                 <>
                   {AllApprovalAmounts}
@@ -379,7 +299,6 @@ export const ApprovalSelectAmountsCard = ({
                     approvalToAdd={approvalToAdd}
                     setApprovalToAdd={setApprovalToAdd}
                     collectionId={collectionId}
-                    distributionType={distributionType}
                     distributionMethod={distributionMethod}
                     increment={increment}
                     startBalances={BalanceArray.From(startBalances)}
@@ -392,7 +311,6 @@ export const ApprovalSelectAmountsCard = ({
                       approvalToAdd={approvalToAdd}
                       setApprovalToAdd={setApprovalToAdd}
                       collectionId={collectionId}
-                      distributionType={distributionType}
                       distributionMethod={distributionMethod}
                       increment={increment}
                       startBalances={BalanceArray.From(startBalances)}
@@ -406,7 +324,6 @@ export const ApprovalSelectAmountsCard = ({
                       approvalToAdd={approvalToAdd}
                       setApprovalToAdd={setApprovalToAdd}
                       collectionId={collectionId}
-                      distributionType={distributionType}
                       distributionMethod={distributionMethod}
                       increment={increment}
                       startBalances={BalanceArray.From(startBalances)}
@@ -414,13 +331,12 @@ export const ApprovalSelectAmountsCard = ({
                       label="Increment per unique sender"
                     />
                   )}
-                  {!initiatedByListLocked && distributionType !== DistributionType.Builder && !initiatedByHasMaxOneAddress && (
+                  {!initiatedByListLocked && !initiatedByHasMaxOneAddress && (
                     <OrderCalculationMethod
                       expectedPartitions={expectedPartitions}
                       approvalToAdd={approvalToAdd}
                       setApprovalToAdd={setApprovalToAdd}
                       collectionId={collectionId}
-                      distributionType={distributionType}
                       distributionMethod={distributionMethod}
                       increment={increment}
                       startBalances={BalanceArray.From(startBalances)}
@@ -428,13 +344,12 @@ export const ApprovalSelectAmountsCard = ({
                       label="Increment per unique approved address?"
                     />
                   )}
-                  {distributionType !== DistributionType.Builder && (
+                  {distributionMethod != DistributionMethod.Claims && (
                     <OrderCalculationMethod
                       expectedPartitions={expectedPartitions}
                       approvalToAdd={approvalToAdd}
                       setApprovalToAdd={setApprovalToAdd}
                       collectionId={collectionId}
-                      distributionType={distributionType}
                       distributionMethod={distributionMethod}
                       increment={increment}
                       startBalances={BalanceArray.From(startBalances)}
