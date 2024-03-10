@@ -360,7 +360,7 @@ export const AssetConditionGroupUI = ({
 
     return (
       <>
-        <Collapse className="primary-text m-2" style={{ alignItems: 'center' }} expandIconPosition="start">
+        <Collapse className="primary-text " style={{ alignItems: 'center' }} expandIconPosition="start">
           <Collapse.Panel className="full-width card-bg" key={bulletNumber + depthLetter + parentBullet + nextDepthLetter} header={panelHeader}>
             {innerContent}
           </Collapse.Panel>

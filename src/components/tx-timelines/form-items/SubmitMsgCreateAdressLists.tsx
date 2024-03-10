@@ -61,7 +61,7 @@ export function SubmitMsgCreateAddressList() {
           setAddressList(
             new BitBadgesAddressList({
               ...addressList,
-              listId: e.target.value
+              listId: e.target.value.trim()
             })
           );
         }}

@@ -15,36 +15,58 @@ export const PluginTextDisplay = <T extends ClaimIntegrationPluginType>({ plugin
   const pluginInstance = getPlugin(pluginId);
   if (!pluginInstance.detailsString) return null;
 
-  return (
-    <>
-      <Tooltip
-        style={{ minWidth: 300 }}
-        title={
-          <div className="text-center">
-            <b>{pluginInstance.metadata.name}</b>
-            <br />
-            <br />
-            {pluginInstance.metadata.description}
-            <br />
-            <br />
-            <div className="secondary-text">
-              <InfoCircleOutlined /> This is checked off-chain through a centralized service ({pluginInstance.metadata.createdBy}).
-            </div>
+  const PluginIcon = (
+    <Tooltip
+      style={{ minWidth: 300 }}
+      title={
+        <div className="text-center">
+          <b>{pluginInstance.metadata.name}</b>
+          <br />
+          <br />
+          {pluginInstance.metadata.description}
+          <br />
+          <br />
+          <div className="secondary-text">
+            <InfoCircleOutlined /> This is checked off-chain through a centralized service ({pluginInstance.metadata.createdBy}).
           </div>
-        }
-        color="black">
-        <ApiFilled className="mr-2" />
-      </Tooltip>
-      <Avatar
-        shape="square"
-        src={typeof pluginInstance.metadata.image === 'string' ? (pluginInstance.metadata.image as string) : pluginInstance.metadata.image}
-        style={{ marginRight: 8 }}
-        size={24}
-      />
-
-      {text}
-    </>
+        </div>
+      }
+      color="black">
+      <ApiFilled className="mr-2" />
+    </Tooltip>
   );
+
+  const LogoAvatar = (
+    <Avatar
+      shape="square"
+      src={typeof pluginInstance.metadata.image === 'string' ? (pluginInstance.metadata.image as string) : pluginInstance.metadata.image}
+      style={{ marginRight: 8 }}
+      size={24}
+    />
+  );
+
+  if (typeof text === 'string') {
+    return (
+      <>
+        {PluginIcon}
+        {LogoAvatar}
+
+        {text}
+      </>
+    );
+  } else {
+    return (
+      <div className="flex full-width">
+        <div>
+          {PluginIcon}
+          {LogoAvatar}
+        </div>
+        <div className="flex-center flex-column" style={{ flex: 1, flexGrow: 1 }}>
+          {text}
+        </div>
+      </div>
+    );
+  }
 };
 
 export const DetailsCard = ({
@@ -164,7 +186,7 @@ export const DetailsCard = ({
               </>
             ) : (
               <>
-                {(approval.details?.offChainClaims?.length == 0) && ( //handled below via plugins if using in-site claim builder
+                {approval.details?.offChainClaims?.length == 0 && ( //handled below via plugins if using in-site claim builder
                   <li>
                     {`Must provide valid ${
                       approval.details ? (approval.details?.challengeDetails?.hasPassword ? 'password' : 'code') : 'password / code'
@@ -187,25 +209,25 @@ export const DetailsCard = ({
         )}
 
         {plugins.map((x) => {
-            const pluginInstance = getPlugin(x.id);
-            if (!pluginInstance.detailsString) return null;
+          const pluginInstance = getPlugin(x.id);
+          if (!pluginInstance.detailsString) return null;
 
-            return (
-              <li key={x.id}>
-                <div className="flex">
-                  <PluginTextDisplay
-                    pluginId={x.id}
-                    text={pluginInstance.detailsString({
-                      publicState: x.publicState,
-                      metadata: pluginInstance.metadata,
-                      publicParams: x.publicParams,
-                      id: x.id
-                    })}
-                  />
-                </div>
-              </li>
-            );
-          })}
+          return (
+            <li key={x.id}>
+              <div className="flex">
+                <PluginTextDisplay
+                  pluginId={x.id}
+                  text={pluginInstance.detailsString({
+                    publicState: x.publicState,
+                    metadata: pluginInstance.metadata,
+                    publicParams: x.publicParams,
+                    id: x.id
+                  })}
+                />
+              </div>
+            </li>
+          );
+        })}
 
         <MaxNumTransfersComponent hideDisplay approval={approval} collectionId={collectionId} address={address} type="overall" componentType="list" />
         <MaxNumTransfersComponent hideDisplay approval={approval} collectionId={collectionId} address={address} type="to" componentType="list" />

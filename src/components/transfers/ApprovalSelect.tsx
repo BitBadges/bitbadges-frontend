@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, LockOutlined, WarningOutlined } from '@ant-design/icons';
-import { Row, Switch, Tooltip, Typography } from 'antd';
+import { Row, Switch, Typography } from 'antd';
 import {
   AddressList,
   ApprovalInfoDetails,
@@ -24,6 +24,7 @@ import { SHA256 } from 'crypto-js';
 import MerkleTree from 'merkletreejs';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DistributionMethod } from '../../bitbadges-api/types';
+import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../constants';
 import { IntegrationPluginDetails, getBlankPlugin, getPlugin, getPluginDetails } from '../../integrations/integrations';
 import { BitBadgesClaimLogo } from '../../pages/lists/[listId]';
@@ -40,7 +41,6 @@ import { ApprovalSelectAmountsCard } from './ApprovalSelectHelpers/ApprovalAmoun
 import { ApprovalTemplates } from './ApprovalSelectHelpers/ApprovalTemplates';
 import { ClaimBuilder } from './ClaimBuilder';
 import { ClaimMetadataSelect } from './ClaimMetadataSelectStep';
-import { approvalCriteriaUsesPredeterminedBalances } from '../../bitbadges-api/utils/claims';
 
 const crypto = require('crypto');
 
@@ -412,6 +412,7 @@ export function ApprovalSelect({
     setAmountProperties({
       distributionMethod
     });
+    setAmountsTab(PredeterminedTab.AllOrNothing);
 
     if (distributionMethod === DistributionMethod.Claims) {
       setPlugins([
@@ -582,20 +583,6 @@ export function ApprovalSelect({
     setAmount
   ]);
 
-  const LearnMore = (
-    <div style={{ textAlign: 'center' }} className="secondary-text">
-      <br />
-      <p>
-        <InfoCircleOutlined /> This is a centralized solution.{' '}
-        <Tooltip
-          color="black"
-          title="For a better user experience, codes, passwords, and challenges are facilitated by BitBadges to make it easier for you. Decentralized alternatives are always available (see documentation).">
-          Hover to learn more.
-        </Tooltip>
-      </p>
-    </div>
-  );
-
   let isFormDisabled = false;
   isFormDisabled = isFormDisabled || (approvalToAdd.approvalCriteria.mustOwnBadges.length > 0 && !showMustOwnBadges);
   isFormDisabled = isFormDisabled || (distributionMethod === DistributionMethod.Claims && disabled);
@@ -686,7 +673,7 @@ export function ApprovalSelect({
               }}
               tabInfo={[
                 {
-                  content: 'By Address',
+                  content: 'Decentralized',
                   key: 'address'
                 },
                 {
@@ -695,6 +682,15 @@ export function ApprovalSelect({
                 }
               ]}
             />
+          )}
+          {distributionMethod !== DistributionMethod.Claims && (
+            <>
+              <br />
+              <div className="secondary-text text-center" style={{ fontSize: 12 }}>
+                <InfoCircleOutlined /> These options are enforced in a decentralized manner.
+              </div>
+              <br />
+            </>
           )}
 
           {(distributionMethod === DistributionMethod.None || distributionMethod === DistributionMethod.Whitelist) && (
@@ -708,20 +704,25 @@ export function ApprovalSelect({
           )}
 
           {approvalToAdd.initiatedByList.whitelist && showMintingOnlyFeatures && (
-            <TableRow
-              labelSpan={16}
-              valueSpan={8}
-              label={'Store whitelist off-chain?'}
-              value={
-                <Switch
-                  disabled={initiatedByListLocked || distributionMethod === DistributionMethod.Claims}
-                  checked={distributionMethod === DistributionMethod.Whitelist}
-                  onChange={(checked) => {
-                    setDistributionMethodAndReset(checked ? DistributionMethod.Whitelist : DistributionMethod.None);
-                  }}
-                />
-              }
-            />
+            <>
+              <TableRow
+                labelSpan={16}
+                valueSpan={8}
+                label={'Store whitelist off-chain?'}
+                value={
+                  <Switch
+                    disabled={initiatedByListLocked || distributionMethod === DistributionMethod.Claims}
+                    checked={distributionMethod === DistributionMethod.Whitelist}
+                    onChange={(checked) => {
+                      setDistributionMethodAndReset(checked ? DistributionMethod.Whitelist : DistributionMethod.None);
+                    }}
+                  />
+                }
+              />
+              <div className="px-2 secondary-text" style={{ fontSize: 12, textAlign: 'start' }}>
+                This will still be decentralized using the IPFS protocol.
+              </div>
+            </>
           )}
 
           {distributionMethod === DistributionMethod.Claims && (
@@ -730,7 +731,8 @@ export function ApprovalSelect({
               <BitBadgesClaimLogo />
 
               <div className="secondary-text text-center" style={{ fontSize: 12 }}>
-                Feel free to combine these claims with other self-implemented solutions (e.g. give codes to in-person customers).
+                Add custom criteria for a claim that BitBadges will enforce. Feel free to combine these claims with other self-implemented solutions
+                (e.g. give codes to in-person customers). This is an off-chain solution.
               </div>
               <br />
               <ClaimBuilder
@@ -748,7 +750,6 @@ export function ApprovalSelect({
               />
             </>
           )}
-          {distributionMethod === DistributionMethod.Claims && LearnMore}
 
           {distributionMethod !== DistributionMethod.Claims && (
             <TableRow

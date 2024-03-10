@@ -22,12 +22,9 @@ const { Text } = Typography;
 function BlockinCodesScreen() {
   const [messageType, setMessageType] = useState<'blockin' | 'custom'>('blockin');
   console.log(!!setMessageType);
-  const chain = useChainContext();
   const [customMessage, setCustomMessage] = useState<string>('');
   const [image, setImage] = useState<string>('');
-  const [lists, setLists] = useState<Array<BitBadgesAddressList<bigint>>>([]);
-  const [selectedLists, setSelectedLists] = useState<string[]>([]);
-  const [tab, setTab] = useState<string>('badges');
+  
   const [codeGenParams, setCodeGenParams] = useState<Required<CodeGenQueryParams>>({
     name: '',
     description: '',
@@ -442,208 +439,15 @@ function BlockinCodesScreen() {
                           Ownership Requirements
                         </Text>
                       }>
-                      <div className="primary-text">
-                        <br />
-                        <Tabs
-                          fullWidth
-                          tab={tab}
-                          setTab={setTab}
-                          tabInfo={[
-                            {
-                              key: 'badges',
-                              content: 'Badges'
-                            },
-                            {
-                              key: 'lists',
-                              content: 'Lists'
-                            }
-                          ]}
-                          type="underline"
-                        />
-                        {tab === 'badges' && (
-                          <>
-                            <br />
-                            <BalanceInput
-                              fullWidthCards
-                              isMustOwnBadgesInput
-                              message="Badge Requirements"
-                              hideMessage
-                              timeString="Authentication Time"
-                              balancesToShow={BalanceArray.From(
-                                (codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>)?.$and
-                                  .map((item) => {
-                                    const assetGroup = item as OwnershipRequirements<bigint>;
-
-                                    return (
-                                      assetGroup.assets.map((x) => {
-                                        const badgeIds = new UintRangeArray<bigint>();
-                                        for (const asset of x.assetIds) {
-                                          if (typeof asset !== 'string') {
-                                            badgeIds.push(asset);
-                                          }
-                                        }
-                                        return {
-                                          ...x,
-                                          mustOwnAmounts: x.mustOwnAmounts,
-                                          amount: x.mustOwnAmounts.start,
-                                          badgeIds: badgeIds,
-                                          ownershipTimes: UintRangeArray.FullRanges(),
-                                          mustSatisfyForAllAssets: true
-                                        };
-                                      }) ?? []
-                                    );
-                                  })
-                                  .flat() ?? []
-                              )}
-                              mustOwnBadges={(
-                                (codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>)?.$and
-                                  .map((item) => {
-                                    const assetGroup = item as OwnershipRequirements<bigint>;
-
-                                    return (
-                                      assetGroup.assets
-                                        .filter((x) => x.collectionId !== 'BitBadges Lists')
-                                        .map((x) => {
-                                          const badgeIds = [];
-                                          for (const asset of x.assetIds) {
-                                            if (typeof asset !== 'string') {
-                                              badgeIds.push(asset);
-                                            }
-                                          }
-                                          return {
-                                            collectionId: BigInt(x.collectionId),
-                                            overrideWithCurrentTime: (x.ownershipTimes ?? []).length === 0,
-                                            amountRange: x.mustOwnAmounts,
-                                            badgeIds: badgeIds,
-                                            ownershipTimes: x.ownershipTimes ?? [],
-                                            mustSatisfyForAllAssets:
-                                              !assetGroup.options?.numMatchesForVerification || assetGroup.options?.numMatchesForVerification === 0n
-                                          };
-                                        }) ?? []
-                                    );
-                                  })
-                                  .flat() ?? []
-                              ).map((x) => new MustOwnBadges(x))}
-                              onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets, overrideWithCurrentTime) => {
-                                if (!collectionId || !amountRange) return;
-
-                                const currAssets = codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>;
-                                currAssets.$and.push({
-                                  assets: [
-                                    {
-                                      assetIds: balance.badgeIds,
-                                      collectionId: collectionId,
-                                      mustOwnAmounts: amountRange,
-                                      chain: 'BitBadges',
-                                      ownershipTimes: overrideWithCurrentTime ? [] : balance.ownershipTimes
-                                    }
-                                  ],
-                                  options: {
-                                    numMatchesForVerification: mustSatisfyForAllAssets ? undefined : 1n
-                                  }
-                                });
-
-                                // mustSatisfyForAllAssets: !!mustSatisfyForAllAssets,
-                                setCodeGenParams({
-                                  ...codeGenParams,
-                                  challengeParams: {
-                                    ...codeGenParams.challengeParams,
-                                    assetOwnershipRequirements: {
-                                      ...codeGenParams.challengeParams.assetOwnershipRequirements,
-                                      $and: currAssets.$and
-                                    }
-                                  }
-                                });
-                              }}
-                              onRemoveAll={() => {
-                                setCodeGenParams({
-                                  ...codeGenParams,
-                                  challengeParams: {
-                                    ...codeGenParams.challengeParams,
-                                    assetOwnershipRequirements: { $and: [] }
-                                  }
-                                });
-                              }}
-                              // setBalances={setBalances}
-                              collectionId={0n}
-                            />
-                          </>
-                        )}
-                        {tab == 'lists' && (
-                          <>
-                            <CustomizeAddRemoveListFromPage
-                              span={24}
-                              addressOrUsername={chain.address}
-                              currItems={selectedLists}
-                              showIncludeExclude
-                              onAdd={async (listId, onList) => {
-                                if (selectedLists.includes(listId)) return;
-                                setSelectedLists([...selectedLists, listId]);
-
-                                const res = await getAddressLists({ listsToFetch: [{ listId }] });
-                                const list = res.addressLists[0];
-                                if (!list) return;
-
-                                setLists([...lists, list]);
-
-                                const currAssets = codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>;
-
-                                currAssets.$and.push({
-                                  assets: [
-                                    {
-                                      assetIds: [listId],
-                                      collectionId: 'BitBadges Lists',
-                                      mustOwnAmounts: { start: onList ? 1n : 0n, end: onList ? 1n : 0n },
-                                      chain: 'BitBadges',
-                                      ownershipTimes: UintRangeArray.FullRanges()
-                                    }
-                                  ],
-                                  options: {
-                                    numMatchesForVerification: undefined //must satisfy all
-                                  }
-                                });
-
-                                setCodeGenParams({
-                                  ...codeGenParams,
-                                  challengeParams: {
-                                    ...codeGenParams.challengeParams,
-                                    assetOwnershipRequirements: {
-                                      ...codeGenParams.challengeParams.assetOwnershipRequirements,
-                                      $and: currAssets.$and
-                                    }
-                                  }
-                                });
-                              }}
-                              onRemove={async (listId) => {
-                                setSelectedLists(selectedLists.filter((x) => x !== listId));
-
-                                setCodeGenParams({
-                                  ...codeGenParams,
-                                  challengeParams: {
-                                    ...codeGenParams.challengeParams,
-                                    assetOwnershipRequirements: {
-                                      ...codeGenParams.challengeParams.assetOwnershipRequirements,
-                                      $and: (codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>).$and.filter((x) => {
-                                        const assetGroup = x as OwnershipRequirements<bigint>;
-                                        return assetGroup.assets.filter((y) => y.assetIds.includes(listId)).length === 0;
-                                      })
-                                    }
-                                  }
-                                });
-                              }}
-                            />
-                            <ListInfiniteScroll
-                              hasMore={false}
-                              fetchMore={async () => {}}
-                              listsView={
-                                selectedLists.map((x) => lists.find((y) => y.listId === x)).filter((x) => !!x) as Array<BitBadgesAddressList<bigint>>
-                              }
-                              addressOrUsername={''}
-                              showInclusionDisplay={false}
-                            />
-                          </>
-                        )}
-                      </div>
+                      <AssetConditionGroupSelect
+                        assetOwnershipRequirements={codeGenParams.challengeParams.assetOwnershipRequirements as AndGroup<bigint>}
+                        setAssetOwnershipRequirements={(x) => {
+                          setCodeGenParams({
+                            ...codeGenParams,
+                            challengeParams: { ...codeGenParams.challengeParams, assetOwnershipRequirements: x }
+                          });
+                        }}
+                      />
                     </Form.Item>
                     <br />
                     <Form.Item
@@ -979,5 +783,199 @@ function BlockinCodesScreen() {
     />
   );
 }
+
+export const AssetConditionGroupSelect = ({
+  assetOwnershipRequirements,
+  setAssetOwnershipRequirements
+}: {
+  assetOwnershipRequirements: AndGroup<bigint>;
+  setAssetOwnershipRequirements: (x: AndGroup<bigint>) => void;
+}) => {
+  const chain = useChainContext();
+  const [lists, setLists] = useState<Array<BitBadgesAddressList<bigint>>>([]);
+  const [selectedLists, setSelectedLists] = useState<string[]>([]);
+  const [tab, setTab] = useState<string>('badges');
+
+  return (
+    <div className="primary-text">
+      <br />
+      <Tabs
+        fullWidth
+        tab={tab}
+        setTab={setTab}
+        tabInfo={[
+          {
+            key: 'badges',
+            content: 'Badges'
+          },
+          {
+            key: 'lists',
+            content: 'Lists'
+          }
+        ]}
+        type="underline"
+      />
+      {tab === 'badges' && (
+        <>
+          <br />
+          <BalanceInput
+            fullWidthCards
+            isMustOwnBadgesInput
+            message="Badge Requirements"
+            hideMessage
+            timeString="Authentication Time"
+            balancesToShow={BalanceArray.From(
+              (assetOwnershipRequirements as AndGroup<bigint>)?.$and
+                .map((item) => {
+                  const assetGroup = item as OwnershipRequirements<bigint>;
+
+                  return (
+                    assetGroup.assets.map((x) => {
+                      const badgeIds = new UintRangeArray<bigint>();
+                      for (const asset of x.assetIds) {
+                        if (typeof asset !== 'string') {
+                          badgeIds.push(asset);
+                        }
+                      }
+                      return {
+                        ...x,
+                        mustOwnAmounts: x.mustOwnAmounts,
+                        amount: x.mustOwnAmounts.start,
+                        badgeIds: badgeIds,
+                        ownershipTimes: UintRangeArray.FullRanges(),
+                        mustSatisfyForAllAssets: true
+                      };
+                    }) ?? []
+                  );
+                })
+                .flat() ?? []
+            )}
+            mustOwnBadges={(
+              (assetOwnershipRequirements as AndGroup<bigint>)?.$and
+                .map((item) => {
+                  const assetGroup = item as OwnershipRequirements<bigint>;
+
+                  return (
+                    assetGroup.assets
+                      .filter((x) => x.collectionId !== 'BitBadges Lists')
+                      .map((x) => {
+                        const badgeIds = [];
+                        for (const asset of x.assetIds) {
+                          if (typeof asset !== 'string') {
+                            badgeIds.push(asset);
+                          }
+                        }
+                        return {
+                          collectionId: BigInt(x.collectionId),
+                          overrideWithCurrentTime: (x.ownershipTimes ?? []).length === 0,
+                          amountRange: x.mustOwnAmounts,
+                          badgeIds: badgeIds,
+                          ownershipTimes: x.ownershipTimes ?? [],
+                          mustSatisfyForAllAssets:
+                            !assetGroup.options?.numMatchesForVerification || assetGroup.options?.numMatchesForVerification === 0n
+                        };
+                      }) ?? []
+                  );
+                })
+                .flat() ?? []
+            ).map((x) => new MustOwnBadges(x))}
+            onAddBadges={(balance, amountRange, collectionId, mustSatisfyForAllAssets, overrideWithCurrentTime) => {
+              if (!collectionId || !amountRange) return;
+
+              const currAssets = assetOwnershipRequirements as AndGroup<bigint>;
+              currAssets.$and.push({
+                assets: [
+                  {
+                    assetIds: balance.badgeIds,
+                    collectionId: collectionId,
+                    mustOwnAmounts: amountRange,
+                    chain: 'BitBadges',
+                    ownershipTimes: overrideWithCurrentTime ? [] : balance.ownershipTimes
+                  }
+                ],
+                options: {
+                  numMatchesForVerification: mustSatisfyForAllAssets ? undefined : 1n
+                }
+              });
+
+              setAssetOwnershipRequirements({
+                ...assetOwnershipRequirements,
+                $and: currAssets.$and
+              });
+            }}
+            onRemoveAll={() => {
+              setAssetOwnershipRequirements({
+                ...assetOwnershipRequirements,
+                $and: []
+              });
+            }}
+            // setBalances={setBalances}
+            collectionId={0n}
+          />
+        </>
+      )}
+      {tab == 'lists' && (
+        <>
+          <CustomizeAddRemoveListFromPage
+            span={24}
+            addressOrUsername={chain.address}
+            currItems={selectedLists}
+            showIncludeExclude
+            onAdd={async (listId, onList) => {
+              if (selectedLists.includes(listId)) return;
+              setSelectedLists([...selectedLists, listId]);
+
+              const res = await getAddressLists({ listsToFetch: [{ listId }] });
+              const list = res.addressLists[0];
+              if (!list) return;
+
+              setLists([...lists, list]);
+
+              const currAssets = assetOwnershipRequirements as AndGroup<bigint>;
+
+              currAssets.$and.push({
+                assets: [
+                  {
+                    assetIds: [listId],
+                    collectionId: 'BitBadges Lists',
+                    mustOwnAmounts: { start: onList ? 1n : 0n, end: onList ? 1n : 0n },
+                    chain: 'BitBadges',
+                    ownershipTimes: UintRangeArray.FullRanges()
+                  }
+                ],
+                options: {
+                  numMatchesForVerification: undefined //must satisfy all
+                }
+              });
+
+              setAssetOwnershipRequirements({
+                ...assetOwnershipRequirements,
+                $and: currAssets.$and
+              });
+            }}
+            onRemove={async (listId) => {
+              setSelectedLists(selectedLists.filter((x) => x !== listId));
+
+              setAssetOwnershipRequirements({
+                ...assetOwnershipRequirements,
+                $and: (assetOwnershipRequirements as AndGroup<bigint>).$and.filter((x) => {
+                  const assetGroup = x as OwnershipRequirements<bigint>;
+                  return assetGroup.assets.filter((y) => y.assetIds.includes(listId)).length === 0;
+                })
+              });
+            }}
+          />
+          <ListInfiniteScroll
+            hasMore={false}
+            fetchMore={async () => {}}
+            listsView={selectedLists.map((x) => lists.find((y) => y.listId === x)).filter((x) => !!x) as Array<BitBadgesAddressList<bigint>>}
+            addressOrUsername={''}
+            showInclusionDisplay={false}
+          />
+        </>
+      )}
+    </div>
+  );
+};
 
 export default BlockinCodesScreen;

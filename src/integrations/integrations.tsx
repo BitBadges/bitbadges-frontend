@@ -12,6 +12,7 @@ import { NumUsesPluginDetails } from './numUses';
 import { PasswordPluginDetails } from './passwords';
 import { TransferTimesPluginDetails } from './transferTimes';
 import { WhitelistPluginDetails } from './whitelist';
+import { MustOwnPluginDetails } from './mustOwn';
 
 interface ContextInfo {
   address: string;
@@ -89,7 +90,7 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     id: P;
     publicState: ClaimIntegrationPublicStateType<P>;
     unknownPublicState?: boolean;
-  }) => string;
+  }) => string | ReactNode;
   getBlankPublicParams: () => ClaimIntegrationPublicParamsType<P>;
   getBlankPrivateParams: () => ClaimIntegrationPrivateParamsType<P>;
   getBlankPublicState: () => ClaimIntegrationPublicStateType<P>;
@@ -132,5 +133,6 @@ export const Plugins: { [key in ClaimIntegrationPluginType]: ClaimIntegrationPlu
   discord: DiscordPluginDetails,
   codes: CodesPluginDetails,
   password: PasswordPluginDetails,
-  greaterThanXBADGEBalance: MinBalancesPluginDetails
+  greaterThanXBADGEBalance: MinBalancesPluginDetails,
+  mustOwnBadges: MustOwnPluginDetails
 };
