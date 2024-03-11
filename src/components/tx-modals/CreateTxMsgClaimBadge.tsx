@@ -54,6 +54,7 @@ export function CreateTxMsgClaimBadgeModal({
     approval.details?.offChainClaims && approval.details?.offChainClaims.length > 0 ? approval.details?.offChainClaims[0].plugins : [];
   const isManualDistribution = fetchedPlugins.length == 0; //Not using plugins
   const claimId = approval.details?.offChainClaims && approval.details?.offChainClaims.length > 0 ? approval.details?.offChainClaims[0].claimId : '';
+  const hasPassword = fetchedPlugins.find((x) => x.id === 'password') ? true : false;
 
   const query = router.query;
   const codeQuery = query.code as string;
@@ -166,7 +167,7 @@ export function CreateTxMsgClaimBadgeModal({
   } else if (onChainCode && leafIndex < 0) {
     cantClaim = true;
     errorMessage = 'The entered code / password is invalid!';
-  } else if (claim?.root && !claim.useCreatorAddressAsLeaf && !onChainCode && (details?.hasPassword || fetchedPlugins.length == 0)) {
+  } else if (claim?.root && !claim.useCreatorAddressAsLeaf && !onChainCode && (hasPassword || fetchedPlugins.length == 0)) {
     cantClaim = true;
     errorMessage = 'No code / password has been entered.';
   } else if (approval && !(approval.initiatedByList.checkAddress(chain.cosmosAddress) || approval.initiatedByList.checkAddress(chain.address))) {
@@ -328,7 +329,7 @@ export function CreateTxMsgClaimBadgeModal({
                       {notConnected ? (
                         <>
                           <div>
-                            <BlockinDisplay hideLogo hideLogin={!(claim?.root && details?.hasPassword)} />
+                            <BlockinDisplay hideLogo hideLogin={!(claim?.root && hasPassword)} />
                           </div>
                         </>
                       ) : (
@@ -336,7 +337,7 @@ export function CreateTxMsgClaimBadgeModal({
                           {isMint && claim?.root && !claim.useCreatorAddressAsLeaf && setOnChainCode ? (
                             <div className="full-width" style={{ textAlign: 'center' }}>
                               {/* If the claim is self-created (not via our claim builder) in a compatible format */}
-                              {!details?.hasPassword && isManualDistribution && details?.challengeDetails?.leavesDetails.leaves.length ? (
+                              {!hasPassword && isManualDistribution && details?.challengeDetails?.leavesDetails.leaves.length ? (
                                 <>
                                   <div className="text-center mt-4">
                                     <Typography.Text strong className="primary-text" style={{ marginBottom: 12 }}>
@@ -402,7 +403,7 @@ export function CreateTxMsgClaimBadgeModal({
                                 </>
                               )}
 
-                              {onChainCode && leafIndex >= 0 && !errorMessage && !details?.hasPassword && isManualDistribution && (
+                              {onChainCode && leafIndex >= 0 && !errorMessage && !hasPassword && isManualDistribution && (
                                 <>
                                   <Typography.Text strong className="secondary-text" style={{ fontSize: 16 }}>
                                     {`The code is valid`} <CheckCircleFilled style={{ color: '#00FF00' }} />

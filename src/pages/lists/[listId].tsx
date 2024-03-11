@@ -524,7 +524,7 @@ function AddressListPage() {
                             {list && (
                               <>
                                 <InformationDisplayCard title="Addresses">
-                                  <AddressDisplayList users={list?.addresses || []} allExcept={!list?.whitelist} />
+                                  <AddressDisplayList users={list?.addresses || []} allExcept={!list?.whitelist} showCopyAll />
 
                                   <Divider />
                                   {list?.addresses.length > 10 && (

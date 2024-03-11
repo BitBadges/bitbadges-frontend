@@ -245,8 +245,7 @@ const RowContentDetails = ({
                     neverHasManager={neverHasManager(collection)}
                   />
                 </div>
-              }
-            >
+              }>
               <Tag
                 style={{
                   margin: 4,
@@ -255,8 +254,7 @@ const RowContentDetails = ({
                   color: 'white',
                   alignItems: 'center'
                 }}
-                className="primary-text "
-              >
+                className="primary-text ">
                 <FontAwesomeIcon icon={faSnowflake} /> Frozen
               </Tag>
             </Popover>
@@ -266,21 +264,18 @@ const RowContentDetails = ({
               Whitelist
             </Tag>
           )}
-          {approval.approvalCriteria?.merkleChallenge?.root &&
-            !approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
-            !approval.details?.challengeDetails?.hasPassword && (
-              <Tag style={{ margin: 4, backgroundColor: '#1890ff' }} color="#1890ff" className="primary-text">
-                Codes
-              </Tag>
-            )}
 
-          {approval.approvalCriteria?.merkleChallenge?.root &&
-            !approval.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf &&
-            approval.details?.challengeDetails?.hasPassword && (
-              <Tag style={{ margin: 4, backgroundColor: '#df3372' }} color="#1890ff" className="primary-text">
-                Password
-              </Tag>
-            )}
+          {approval.details?.offChainClaims?.find((x) => x.plugins.find((plugin) => plugin.id === 'codes')) && (
+            <Tag style={{ margin: 4, backgroundColor: '#1890ff' }} color="#1890ff" className="primary-text">
+              Codes
+            </Tag>
+          )}
+
+          {approval.details?.offChainClaims?.find((x) => x.plugins.find((plugin) => plugin.id === 'password')) && (
+            <Tag style={{ margin: 4, backgroundColor: '#df3372' }} color="#1890ff" className="primary-text">
+              Password
+            </Tag>
+          )}
           {approval.approvalCriteria?.overridesFromOutgoingApprovals && approval.fromListId !== 'Mint' && (
             <Tag style={{ margin: 4, backgroundColor: '#FF5733' }} color="#1890ff" className="primary-text">
               <WarningOutlined /> Overrides Outgoing Approvals

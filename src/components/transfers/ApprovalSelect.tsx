@@ -145,6 +145,14 @@ export function ApprovalSelect({
   const nonMintOnlyApproval = defaultFromList?.listId === '!Mint';
   const mintOnlyApproval = defaultFromList?.listId === 'Mint' && fromListLocked;
 
+  const hybridWhitelistClaim = defaultApproval?.approvalCriteria?.merkleChallenge?.useCreatorAddressAsLeaf;
+  const hybridWhitelistedAddresses = defaultApproval?.details?.challengeDetails?.leavesDetails.leaves || [];
+  defaultApproval = defaultApproval?.clone();
+  if (defaultApproval && hybridWhitelistClaim && hybridWhitelistedAddresses.length > 0) {
+    defaultApproval.initiatedByList.addresses = hybridWhitelistedAddresses;
+    defaultApproval.initiatedByList.whitelist = true;
+  }
+
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
   const claimId = useRef(crypto.randomBytes(32).toString('hex'));
   const defaultApprovalToAdd: iCollectionApprovalWithDetails<bigint> & {
@@ -169,7 +177,6 @@ export function ApprovalSelect({
     details: {
       name: '',
       description: '',
-      hasPassword: false,
       challengeDetails: {
         leavesDetails: {
           leaves: [],
@@ -262,7 +269,11 @@ export function ApprovalSelect({
   const transferTimesLengthEqualsZero = approvalToAdd?.transferTimes.length === 0;
 
   const [distributionMethod, setDistributionMethod] = useState<DistributionMethod>(
-    defaultClaim ? DistributionMethod.Claims : DistributionMethod.None
+    defaultClaim
+      ? DistributionMethod.Claims
+      : hybridWhitelistClaim && hybridWhitelistedAddresses.length > 0
+        ? DistributionMethod.Whitelist
+        : DistributionMethod.None
   );
 
   const [showMustOwnBadges, setShowMustOwnBadges] = useState(approvalCriteria?.mustOwnBadges?.length > 0);
@@ -739,7 +750,7 @@ export function ApprovalSelect({
               <ClaimBuilder
                 claim={{
                   claimId: claimId.current,
-                  plugins: plugins,
+                  plugins: plugins
                 }}
                 isUpdate={false} // no updates for approvals are currently supported
                 plugins={plugins}
@@ -1068,6 +1079,7 @@ export function ApprovalSelect({
           const newApprovalToAdd: iCollectionApprovalWithDetails<bigint> & {
             approvalCriteria: iApprovalCriteriaWithDetails<bigint>;
           } = approvalToAdd;
+
           const treeOptions = {
             fillDefaultHash: '0000000000000000000000000000000000000000000000000000000000000000'
           };
@@ -1093,7 +1105,7 @@ export function ApprovalSelect({
           } as any;
 
           if (distributionMethod === DistributionMethod.Claims) {
-            const seedCode = crypto.randomBytes(32).toString('hex');
+            const seedCode = defaultApproval?.details?.challengeDetails?.leavesDetails.seedCode || crypto.randomBytes(32).toString('hex');
             codes.push(...generateCodesFromSeed(seedCode, Number(numRecipients)));
 
             const hashedCodes = codes.map((x) => SHA256(x).toString());
@@ -1109,8 +1121,6 @@ export function ApprovalSelect({
             details.challengeDetails.leavesDetails.isHashed = true;
             details.challengeDetails.leavesDetails.seedCode = seedCode;
             details.challengeDetails.numLeaves = BigInt(numRecipients);
-            details.challengeDetails.password = claimPassword;
-            details.challengeDetails.hasPassword = claimPassword ? true : false;
             details.challengeDetails.treeOptions = treeOptions;
 
             const pluginsToAdd = [];
@@ -1156,13 +1166,11 @@ export function ApprovalSelect({
             merkleChallenge.root = addressesRoot ? addressesRoot : '';
             merkleChallenge.expectedProofLength = BigInt(addressesTree.getLayerCount() - 1);
             merkleChallenge.useCreatorAddressAsLeaf = true;
-            merkleChallenge.maxUsesPerLeaf = 0n;
+            merkleChallenge.maxUsesPerLeaf = 1n;
 
             details.challengeDetails.leavesDetails.leaves = addresses;
             details.challengeDetails.leavesDetails.isHashed = false;
             details.challengeDetails.numLeaves = BigInt(numRecipients);
-            details.challengeDetails.password = '';
-            details.challengeDetails.hasPassword = false;
             details.challengeDetails.treeOptions = treeOptions;
 
             newApprovalToAdd.details = details;
@@ -1174,9 +1182,9 @@ export function ApprovalSelect({
 
           const autoGenerateIds = true;
           if (autoGenerateIds) {
-            newApprovalToAdd.amountTrackerId = amountTrackerId.current;
-            newApprovalToAdd.approvalId = amountTrackerId.current;
-            newApprovalToAdd.challengeTrackerId = amountTrackerId.current;
+            newApprovalToAdd.amountTrackerId = newApprovalToAdd.amountTrackerId ? newApprovalToAdd.amountTrackerId : amountTrackerId.current;
+            newApprovalToAdd.approvalId = newApprovalToAdd.approvalId ? newApprovalToAdd.approvalId : amountTrackerId.current;
+            newApprovalToAdd.challengeTrackerId = newApprovalToAdd.challengeTrackerId ? newApprovalToAdd.challengeTrackerId : amountTrackerId.current;
           }
 
           //If we have no off-chain details, it doesn't make sense to add them to storage

@@ -170,14 +170,8 @@ export const DetailsCard = ({
                   <></>
                 )}
                 {(approval.details?.challengeDetails?.leavesDetails.leaves.length ?? 0n) > 0n && (
-                  <div className="flex-center flex-column">
-                    <br />
-                    {
-                      <>
-                        <AddressDisplayList users={approval.details?.challengeDetails?.leavesDetails.leaves ?? []} allExcept={false} />
-                        <br />
-                      </>
-                    }
+                  <div className="flex">
+                    <AddressDisplayList center={false} users={approval.details?.challengeDetails?.leavesDetails.leaves ?? []} allExcept={false} />
                   </div>
                 )}
               </>
@@ -185,17 +179,12 @@ export const DetailsCard = ({
               <>
                 {approval.details?.offChainClaims?.length == 0 && ( //handled below via plugins if using in-site claim builder
                   <li>
-                    {`Must provide valid ${
-                      approval.details ? (approval.details?.challengeDetails?.hasPassword ? 'password' : 'code') : 'password / code'
-                    }`}
+                    {`Must provide valid code`}
                     {(approval.details?.challengeDetails?.leavesDetails.leaves.length ?? 0) > 0 && (
                       <>
                         {' '}
                         ({approval.details?.challengeDetails?.leavesDetails.leaves.length.toString()}{' '}
-                        {`${approval.details?.challengeDetails?.hasPassword ? 'password use' : 'valid code'}${
-                          (approval.details?.challengeDetails?.leavesDetails.leaves.length ?? 0) > 1 ? 's' : ''
-                        } total`}
-                        )
+                        {`valid code${(approval.details?.challengeDetails?.leavesDetails.leaves.length ?? 0) > 1 ? 's' : ''} total`})
                       </>
                     )}
                   </li>

@@ -23,7 +23,8 @@ export function AddressDisplayList({
   allExcept,
   filterMint,
   trackerIdList,
-  hideIcons
+  hideIcons,
+  showCopyAll
 }: {
   users: string[];
   setUsers?: (users: string[]) => void;
@@ -38,6 +39,7 @@ export function AddressDisplayList({
   filterMint?: boolean;
   trackerIdList?: boolean;
   hideIcons?: boolean;
+  showCopyAll?: boolean;
 }) {
   const [currPage, setCurrPage] = useState<number>(1);
 
@@ -129,8 +131,7 @@ export function AddressDisplayList({
         color: fontColor,
         fontSize: fontSize,
         alignItems: 'center'
-      }}
-    >
+      }}>
       {!hideTitle && title ? <h3 style={{ color: fontColor }}>{title}</h3> : <></>}
       <Pagination
         total={usersToDisplay.length}
@@ -147,13 +148,12 @@ export function AddressDisplayList({
         const allowedMessage = invalidUsers ? invalidUsers[user] : undefined;
 
         return (
-          <div key={index} className={center ? 'flex-center' : undefined} style={{ marginRight: 8, marginLeft: 8 }}>
+          <div key={index} className={center ? 'flex-center' : undefined} style={{  }}>
             {trackerIdList ? (
               <div
                 style={{
                   color: (allowedMessage || allExcept) && user != 'All' ? 'red' : fontColor
-                }}
-              >
+                }}>
                 <Tooltip title={user}>{user.length > 10 ? `${user.substring(0, 10)}...` : user}</Tooltip>
               </div>
             ) : (
@@ -181,7 +181,7 @@ export function AddressDisplayList({
         );
       })}
 
-      {usersToDisplay.filter((x) => x != 'All').length > 1 && !trackerIdList && (
+      {showCopyAll && usersToDisplay.filter((x) => x != 'All').length > 1 && !trackerIdList && (
         <div className="flex-center flex-column" style={{ marginTop: 8 }}>
           <a
             onClick={async () => {
@@ -200,8 +200,7 @@ export function AddressDisplayList({
                 message: 'Addresses Copied!',
                 description: 'The addresses have been copied to your clipboard.'
               });
-            }}
-          >
+            }}>
             Copy All <CopyOutlined />
           </a>
 
