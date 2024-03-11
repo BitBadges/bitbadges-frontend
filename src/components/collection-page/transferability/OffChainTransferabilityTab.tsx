@@ -383,6 +383,13 @@ export const ClaimCriteriaDisplay = ({
                   publicState: fetchedPlugin.publicState,
                   unknownPublicState: unknownPublicState
                 })}
+                node={plugin.detailsNode?.({
+                  id: plugin.id,
+                  metadata: plugin.metadata,
+                  publicParams: fetchedPlugin.publicParams,
+                  publicState: fetchedPlugin.publicState,
+                  unknownPublicState: unknownPublicState
+                })}
               />
             </li>
           );

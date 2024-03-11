@@ -12,7 +12,9 @@ export const ListInfiniteScroll = ({
   showInclusionDisplay,
   showCustomizeButtons,
   currPageName,
-  isWatchlist
+  isWatchlist,
+  mustBeOnLists,
+  mustNotBeOnLists
 }: {
   addressOrUsername: string;
   showInclusionDisplay?: boolean;
@@ -22,6 +24,8 @@ export const ListInfiniteScroll = ({
   currPageName?: string;
   isWatchlist?: boolean;
   listsView: Array<BitBadgesAddressList<bigint>>;
+  mustBeOnLists?: string[];
+  mustNotBeOnLists?: string[];
 }) => {
   return (
     <div className="flex-center flex-wrap">
@@ -45,6 +49,8 @@ export const ListInfiniteScroll = ({
                 currPageName={currPageName}
                 showCustomizeButtons={showCustomizeButtons}
                 isWatchlist={isWatchlist}
+                showMustBeOn={mustBeOnLists?.includes(addressList.listId)}
+                showMustNotBeOn={mustNotBeOnLists?.includes(addressList.listId)}
               />
             );
           })}

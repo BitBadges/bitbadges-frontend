@@ -11,7 +11,15 @@ import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { MustOwnBadgesCard } from './MustOwnBadgesCard';
 import { ReactNode } from 'react';
 
-export const PluginTextDisplay = <T extends ClaimIntegrationPluginType>({ pluginId, text }: { pluginId: T; text: string | ReactNode }) => {
+export const PluginTextDisplay = <T extends ClaimIntegrationPluginType>({
+  pluginId,
+  text,
+  node
+}: {
+  pluginId: T;
+  text: string | ReactNode;
+  node: ReactNode;
+}) => {
   const pluginInstance = getPlugin(pluginId);
   if (!pluginInstance.detailsString) return null;
 
@@ -45,27 +53,19 @@ export const PluginTextDisplay = <T extends ClaimIntegrationPluginType>({ plugin
     />
   );
 
-  if (typeof text === 'string') {
+  if (true) {
     return (
       <>
-        {PluginIcon}
-        {LogoAvatar}
-
-        {text}
-      </>
-    );
-  } else {
-    return (
-      <div className="flex full-width">
         <div>
           {PluginIcon}
           {LogoAvatar}
-        </div>
-        <div className="flex-center flex-column" style={{ flex: 1, flexGrow: 1 }}>
+
           {text}
         </div>
-      </div>
+        <div className="mt-1">{node}</div>
+      </>
     );
+  } else {
   }
 };
 
@@ -218,6 +218,12 @@ export const DetailsCard = ({
                 <PluginTextDisplay
                   pluginId={x.id}
                   text={pluginInstance.detailsString({
+                    publicState: x.publicState,
+                    metadata: pluginInstance.metadata,
+                    publicParams: x.publicParams,
+                    id: x.id
+                  })}
+                  node={pluginInstance.detailsNode?.({
                     publicState: x.publicState,
                     metadata: pluginInstance.metadata,
                     publicParams: x.publicParams,

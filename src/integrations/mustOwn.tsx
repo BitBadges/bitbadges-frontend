@@ -7,7 +7,7 @@ import {
   NumberType
 } from 'bitbadgesjs-sdk';
 import { AndGroup } from 'blockin';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getAddressLists } from '../bitbadges-api/api';
 import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
 import { AssetConditionGroupUI } from '../pages/auth/codegen';
@@ -46,9 +46,9 @@ const MustOwnCreateNode = ({
 };
 
 const DetailsUi = ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'mustOwnBadges'> }) => {
-  const assetConditionGroup = new BlockinAndGroup(publicParams.ownershipRequirements as AndGroup<NumberType>).convert(
-    BigIntify
-  ) as BlockinAndGroup<bigint>;
+  const assetConditionGroup = useMemo(() => {
+    return new BlockinAndGroup(publicParams.ownershipRequirements as AndGroup<NumberType>).convert(BigIntify) as BlockinAndGroup<bigint>;
+  }, [publicParams]);
 
   const [lists, setLists] = useState<BitBadgesAddressList<bigint>[]>([]);
   const chain = useChainContext();
@@ -85,7 +85,6 @@ const DetailsUi = ({ publicParams }: { publicParams: ClaimIntegrationPublicParam
 
   return (
     <div className="full-width">
-      <div>Must meet specific badge / list requirements</div>
       <AssetConditionGroupUI assetConditionGroup={assetConditionGroup} bulletNumber={1} parentBullet={''} address={chain.address} lists={lists} />
     </div>
   );
@@ -104,7 +103,14 @@ export const MustOwnPluginDetails: ClaimIntegrationPlugin<'mustOwnBadges'> = {
   },
   stateString: () => '',
   createNode: MustOwnCreateNode,
-  detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'mustOwnBadges'> }) => {
+  detailsString: () => {
+    return `Must meet specific badge / list requirements`;
+  },
+  detailsNode: ({ publicParams }: { publicParams?: ClaimIntegrationPublicParamsType<'mustOwnBadges'> }) => {
+    if (!publicParams) {
+      return <></>;
+    }
+    
     return <DetailsUi publicParams={publicParams} />;
   },
   getBlankPrivateParams() {

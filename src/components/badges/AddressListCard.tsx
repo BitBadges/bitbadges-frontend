@@ -12,7 +12,9 @@ export function AddressListCard({
   hideInclusionDisplay,
   showCustomizeButtons,
   currPageName,
-  isWatchlist
+  isWatchlist,
+  showMustBeOn,
+  showMustNotBeOn
 }: {
   addressList: BitBadgesAddressList<bigint>;
   addressOrUsername?: string;
@@ -20,6 +22,8 @@ export function AddressListCard({
   showCustomizeButtons?: boolean;
   currPageName?: string;
   isWatchlist?: boolean;
+  showMustBeOn?: boolean;
+  showMustNotBeOn?: boolean;
 }) {
   const router = useRouter();
   const accountInfo = useAccount(addressOrUsername);
@@ -71,7 +75,18 @@ export function AddressListCard({
       ) : (
         <></>
       )}
+
       <br />
+      {showMustBeOn && (
+        <Typography.Text strong style={{ color: 'green' }}>
+          Must Be On List
+        </Typography.Text>
+      )}
+      {showMustNotBeOn && (
+        <Typography.Text strong style={{ color: 'red' }}>
+          Must Not Be On List
+        </Typography.Text>
+      )}
       {showCustomizeButtons && (
         <div
           onClick={(e) => {

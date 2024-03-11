@@ -91,6 +91,19 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     publicState: ClaimIntegrationPublicStateType<P>;
     unknownPublicState?: boolean;
   }) => string | ReactNode;
+  detailsNode?: ({
+    metadata,
+    publicParams,
+    id,
+    publicState,
+    unknownPublicState
+  }: {
+    metadata?: IntegrationMetadata;
+    publicParams?: ClaimIntegrationPublicParamsType<P>;
+    id: P;
+    publicState?: ClaimIntegrationPublicStateType<P>;
+    unknownPublicState?: boolean;
+  }) => ReactNode;
   getBlankPublicParams: () => ClaimIntegrationPublicParamsType<P>;
   getBlankPrivateParams: () => ClaimIntegrationPrivateParamsType<P>;
   getBlankPublicState: () => ClaimIntegrationPublicStateType<P>;

@@ -3,7 +3,7 @@ import { Checkbox, DatePicker, Form, Input, Tooltip, Typography, message } from 
 import { BalanceArray, BitBadgesAddressList, MustOwnBadges, UintRangeArray } from 'bitbadgesjs-sdk';
 import { AndGroup, ChallengeParams, OwnershipRequirements } from 'blockin/dist/types/verify.types';
 import moment from 'moment';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { addMetadataToIpfs, fetchMetadataDirectly, getAddressLists } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { ListInfiniteScroll } from '../../components/badges/ListInfiniteScroll';
@@ -24,7 +24,7 @@ function BlockinCodesScreen() {
   console.log(!!setMessageType);
   const [customMessage, setCustomMessage] = useState<string>('');
   const [image, setImage] = useState<string>('');
-  
+
   const [codeGenParams, setCodeGenParams] = useState<Required<CodeGenQueryParams>>({
     name: '',
     description: '',
@@ -793,8 +793,46 @@ export const AssetConditionGroupSelect = ({
 }) => {
   const chain = useChainContext();
   const [lists, setLists] = useState<Array<BitBadgesAddressList<bigint>>>([]);
-  const [selectedLists, setSelectedLists] = useState<string[]>([]);
   const [tab, setTab] = useState<string>('badges');
+
+  const mustBeOnLists = useMemo(() => {
+    return (assetOwnershipRequirements as AndGroup<bigint>).$and
+      .map((x) => {
+        const assetGroup = x as OwnershipRequirements<bigint>;
+        return assetGroup.assets.filter((x) => x.collectionId === 'BitBadges Lists' && x.mustOwnAmounts.start > 0n).map((x) => x.assetIds);
+      })
+      .flat()
+      .flat() as string[];
+  }, [assetOwnershipRequirements]);
+
+  const mustNotBeOnLists = useMemo(() => {
+    return (assetOwnershipRequirements as AndGroup<bigint>).$and
+      .map((x) => {
+        const assetGroup = x as OwnershipRequirements<bigint>;
+        return assetGroup.assets.filter((x) => x.collectionId === 'BitBadges Lists' && x.mustOwnAmounts.start === 0n).map((x) => x.assetIds);
+      })
+      .flat()
+      .flat() as string[];
+  }, [assetOwnershipRequirements]);
+
+  useEffect(() => {
+    async function fetchLists() {
+      const idsToFetch = [];
+      for (const listId of [...mustBeOnLists, ...mustNotBeOnLists]) {
+        if (!lists.find((x) => x.listId === listId)) {
+          idsToFetch.push(listId);
+        }
+      }
+      if (idsToFetch.length === 0) return;
+
+      const res = await getAddressLists({ listsToFetch: idsToFetch.map((x) => ({ listId: x })) });
+      setLists(lists => [...lists, ...res.addressLists]);
+    }
+
+    fetchLists();
+  }, [mustBeOnLists, mustNotBeOnLists]);
+
+  const selectedLists = [...mustBeOnLists, ...mustNotBeOnLists];
 
   return (
     <div className="primary-text">
@@ -923,7 +961,6 @@ export const AssetConditionGroupSelect = ({
             showIncludeExclude
             onAdd={async (listId, onList) => {
               if (selectedLists.includes(listId)) return;
-              setSelectedLists([...selectedLists, listId]);
 
               const res = await getAddressLists({ listsToFetch: [{ listId }] });
               const list = res.addressLists[0];
@@ -954,8 +991,6 @@ export const AssetConditionGroupSelect = ({
               });
             }}
             onRemove={async (listId) => {
-              setSelectedLists(selectedLists.filter((x) => x !== listId));
-
               setAssetOwnershipRequirements({
                 ...assetOwnershipRequirements,
                 $and: (assetOwnershipRequirements as AndGroup<bigint>).$and.filter((x) => {
@@ -971,6 +1006,8 @@ export const AssetConditionGroupSelect = ({
             listsView={selectedLists.map((x) => lists.find((y) => y.listId === x)).filter((x) => !!x) as Array<BitBadgesAddressList<bigint>>}
             addressOrUsername={''}
             showInclusionDisplay={false}
+            mustBeOnLists={mustBeOnLists}
+            mustNotBeOnLists={mustNotBeOnLists}
           />
         </>
       )}
