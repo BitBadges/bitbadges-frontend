@@ -285,8 +285,6 @@ export function ApprovalSelect({
     approvalCriteriaUsesPredeterminedBalances(approvalToAdd.approvalCriteria) ? PredeterminedTab.AllOrNothing : PredeterminedTab.Tally
   );
 
-  const passwordPlugin = getPluginDetails('password', plugins);
-  const claimPassword = passwordPlugin?.privateParams?.password;
   const increment = approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy;
   const hasIncrements = increment > 0n;
   const toUsePredeterminedBalances =

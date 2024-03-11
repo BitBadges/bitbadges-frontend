@@ -215,7 +215,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
 
             if (
               approval.details &&
-              (approval.details?.name || approval.details?.description || approval.details?.challengeDetails || approval.details?.password) &&
+              (approval.details?.name || approval.details?.description || approval.details?.challengeDetails) &&
               (!approval.uri || approval.uri == 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs')
             ) {
               const res = await addApprovalDetailsToOffChainStorage({

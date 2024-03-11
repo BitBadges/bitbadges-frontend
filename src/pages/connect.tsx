@@ -4,11 +4,12 @@ import { DEV_MODE } from '../constants';
 import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
 import { useRouter } from 'next/router';
 import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
+import { ErrDisplay } from '../components/common/ErrDisplay';
 
 const { Content } = Layout;
 const { Text } = Typography;
 
-function ConnectScreen({ message }: { message?: string }) {
+function ConnectScreen({ message, showSignatureMessage }: { message?: string; showSignatureMessage?: boolean }) {
   const router = useRouter();
   const { loggedIn, connected } = useChainContext();
 
@@ -19,13 +20,17 @@ function ConnectScreen({ message }: { message?: string }) {
         minHeight: '100vh',
         textAlign: 'center',
         marginTop: 16
-      }}
-    >
+      }}>
       <div>
         <Content>
           <Text strong style={{ fontSize: 20 }} className="primary-text">
             {message ? message : 'Welcome!'}
           </Text>
+          {connected && showSignatureMessage && (
+            <div className="text-center">
+              <ErrDisplay warning err="This page requires wallet signatures, so you must connect with a web3 wallet." />
+            </div>
+          )}
         </Content>
         <Content style={{ paddingTop: '15px' }}>
           <BlockinDisplay />
@@ -40,8 +45,7 @@ function ConnectScreen({ message }: { message?: string }) {
               style={{ width: '50%' }}
               onClick={() => {
                 router.back();
-              }}
-            >
+              }}>
               Go Back to Previous Page
             </Button>
           </Content>

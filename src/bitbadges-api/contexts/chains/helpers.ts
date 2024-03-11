@@ -23,7 +23,9 @@ export const ChainDefaultState = {
 
   lastSeenActivity: 0,
   challengeParams: undefined,
-  setChallengeParams: () => {}
+  setChallengeParams: () => {},
+  offChainOnlyMode: false,
+  setOffChainOnlyMode: () => {}
 };
 
 export async function fetchDefaultViews(address: string, loggedIn: boolean) {
@@ -81,7 +83,6 @@ export async function fetchDefaultViews(address: string, loggedIn: boolean) {
     );
   }
 
-  
   await fetchAccountsWithOptions([
     {
       address: address,

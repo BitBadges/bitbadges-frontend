@@ -21,11 +21,8 @@ import { INFINITE_LOOP_MODE } from '../../../constants';
 import '@uiw/react-markdown-preview/markdown.css';
 import '@uiw/react-md-editor/markdown-editor.css';
 import IconButton from '../../../components/display/IconButton';
-import {
-  GenericMarkdownFormInput,
-  GenericTextFormInput,
-  SocialsFormItems
-} from '../../../components/tx-timelines/form-items/MetadataForm';
+import { GenericMarkdownFormInput, GenericTextFormInput, SocialsFormItems } from '../../../components/tx-timelines/form-items/MetadataForm';
+import { DiscordInputNode } from '../../../integrations/auth';
 
 const MDEditor = dynamic(async () => await import('@uiw/react-md-editor').then((mod) => mod.default), { ssr: false });
 const EditerMarkdown = dynamic(
@@ -142,6 +139,11 @@ export function AccountSettings() {
   const telegram = newAccount?.telegram ? newAccount.telegram : '';
   const readme = newAccount?.readme ? newAccount.readme : '';
   const customLinks = newAccount?.customLinks ? newAccount.customLinks : [];
+
+  const approvedSignInMethods = newAccount?.approvedSignInMethods ? newAccount.approvedSignInMethods : undefined;
+  const setApprovedSignInMethods = (approvedSignInMethods: { discord?: { id: string; username: string; discriminator?: string } }) => {
+    setNewAccount(new BitBadgesUserInfo<bigint>({ ...newAccount, approvedSignInMethods }));
+  };
 
   const setReadme = (readme: string) => {
     setNewAccount(new BitBadgesUserInfo<bigint>({ ...newAccount, readme }));
@@ -286,6 +288,7 @@ export function AccountSettings() {
                       setNewAccount(new BitBadgesUserInfo<bigint>({ ...newAccount, twitter, discord, github, telegram }));
                     }}
                   />
+
                   <br />
                   <Form.Item
                     label={
@@ -299,6 +302,7 @@ export function AccountSettings() {
                   <GenericTextFormInput label="Link Title" value={newCustomLinkTitle} setValue={setNewCustomLinkTitle} />
                   <GenericTextFormInput label="Link URL" value={newCustomLinkUrl} setValue={setNewCustomLinkUrl} />
                   <GenericTextFormInput label="Image URL" value={newCustomLinkImage} setValue={setNewCustomLinkImage} />
+
                   <Form.Item label={<></>}>
                     <div className="flex-center full-width">
                       <IconButton
@@ -319,6 +323,31 @@ export function AccountSettings() {
                           setNewCustomLinkImage('');
                         }}></IconButton>
                     </div>
+                  </Form.Item>
+                  <Divider />
+                  <b className="primary-text" style={{ fontSize: 24, textAlign: 'center' }}>
+                    Sign-Ins
+                  </b>
+                  <Form.Item
+                    label={
+                      <Text className="primary-text" strong>
+                        Discord Sign-In
+                      </Text>
+                    }>
+                    <div className="flex-center text-center primary-text">
+                      <DiscordInputNode
+                        setDisabled={() => {}}
+                        onSuccess={(username, id, discriminator) => {
+                          setApprovedSignInMethods({ discord: { id, username, discriminator } });
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        setApprovedSignInMethods({});
+                      }}>
+                      Remove
+                    </button>
                   </Form.Item>
                   {/*
                   <Divider />
@@ -444,8 +473,10 @@ export function AccountSettings() {
                             notifications?.emailVerification?.antiPhishingCode !== signedInAccount.notifications?.emailVerification?.antiPhishingCode
                               ? notifications?.emailVerification?.antiPhishingCode
                               : undefined
-                        }
+                        },
+                        approvedSignInMethods: approvedSignInMethods !== signedInAccount.approvedSignInMethods ? approvedSignInMethods : undefined
                       };
+                      console.log('data:', data);
 
                       let updatedEmail = false;
                       if (Object.keys(data.notifications).length === 0) delete data.notifications;

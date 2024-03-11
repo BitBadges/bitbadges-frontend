@@ -35,7 +35,7 @@ export const getCodesAndPasswordsFromCollection = (collection: Readonly<BitBadge
 
     codesAndPasswords.push({
       codes: codes,
-      password: challengeDetails?.password ?? '',
+      password: '',
       cid: ''
     });
   }

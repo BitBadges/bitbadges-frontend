@@ -29,6 +29,7 @@ import { SolanaContextProvider } from '../bitbadges-api/contexts/chains/SolanaCo
 import { collectionReducer } from '../bitbadges-api/contexts/collections/reducer';
 import { WalletFooter } from '../components/navigation/WebsiteFooter';
 import { WalletHeader } from '../components/navigation/WebsiteHeader';
+import { Web2ContextProvider } from '../bitbadges-api/contexts/chains/Web2Context';
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -91,8 +92,7 @@ export const PopupContent = ({ children, style }: { style?: any; children: React
         width: '100%',
         zIndex: 200,
         ...style
-      }}
-    >
+      }}>
       {children}
     </div>
   );
@@ -108,34 +108,29 @@ export const CookiePopup = ({ visible, onClose, placement }: { visible: boolean;
           style={{
             bottom: placement === 'top' ? 'unset' : 0,
             top: placement === 'top' ? 0 : 'unset'
-          }}
-        >
+          }}>
           <div
             style={{
               display: 'flex',
               justifyContent: 'center',
               flexWrap: 'wrap'
-            }}
-          >
+            }}>
             This website uses cookies to ensure you get the best experience. By continuing to use this website, you agree to our
             <p
               style={{ marginLeft: 3 }}
-              onClick={async () => await router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Cookies%20Policy')}
-            >
+              onClick={async () => await router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Cookies%20Policy')}>
               <a className="text-vivid-blue">cookie policy</a>
             </p>
             ,
             <p
               style={{ marginLeft: 3 }}
-              onClick={async () => await router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Privacy%20Policy.pdf')}
-            >
+              onClick={async () => await router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Privacy%20Policy.pdf')}>
               <a className="text-vivid-blue">privacy policy</a>
             </p>
             , and
             <p
               style={{ marginLeft: 3 }}
-              onClick={async () => await router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Terms%20of%20Service.pdf')}
-            >
+              onClick={async () => await router.push('https://github.com/BitBadges/bitbadges-frontend/raw/main/public/Terms%20of%20Service.pdf')}>
               <a className="text-vivid-blue">terms of service</a>
             </p>
             .
@@ -145,8 +140,7 @@ export const CookiePopup = ({ visible, onClose, placement }: { visible: boolean;
             className="bg-vivid-blue rounded border-0 text-white hover:bg-transparent hover:text-vivid-blue focus:bg-vivid-blue focus:text-white focus:border-0 hover:border-color-pink-600 hover:border hover:border-vivid-blue mt-3"
             onClick={() => {
               onClose();
-            }}
-          >
+            }}>
             Close
           </Button>
           <br />
@@ -244,40 +238,41 @@ const App = ({ Component, pageProps }: AppProps) => {
   return (
     <WagmiConfig config={wagmiConfig}>
       <Provider store={store}>
-        <BitcoinContextProvider>
-          <CosmosContextProvider>
-            <EthereumContextProvider>
-              <SolanaContextProvider>
-                <ChainContextProvider>
-                  <BrowseContextProvider>
-                    <StatusContextProvider>
-                      <TxTimelineContextProvider>
-                        <Head>
-                          <meta property="og:title" content="BitBadges" />
-                          <meta property="og:image" content="/logo192.png" />
-                          <meta
-                            property="og:description"
-                            content="BitBadges is the all-in-one platform for creating, maintaining, displaying, and verifying digital blockchain badges."
-                          />
+        <Web2ContextProvider>
+          <BitcoinContextProvider>
+            <CosmosContextProvider>
+              <EthereumContextProvider>
+                <SolanaContextProvider>
+                  <ChainContextProvider>
+                    <BrowseContextProvider>
+                      <StatusContextProvider>
+                        <TxTimelineContextProvider>
+                          <Head>
+                            <meta property="og:title" content="BitBadges" />
+                            <meta property="og:image" content="/logo192.png" />
+                            <meta
+                              property="og:description"
+                              content="BitBadges is the all-in-one platform for creating, maintaining, displaying, and verifying digital blockchain badges."
+                            />
 
-                          <meta name="title" content="BitBadges" />
-                          <meta
-                            name="description"
-                            content="BitBadges is the all-in-one platform for creating, maintaining, displaying, and verifying digital blockchain badges."
-                          />
-                          <meta
-                            name="keywords"
-                            content="BitBadges, badges, blockchain, NFT, non-fungible token, digital badges, digital credentials, digital certificates, digital certificates, digital certificates, digital certificates"
-                          />
-                          <link rel="apple-touch-icon" href="/logo192.png" />
-                          <link rel="manifest" href="/manifest.json" />
-                          <title>BitBadges</title>
-                        </Head>
+                            <meta name="title" content="BitBadges" />
+                            <meta
+                              name="description"
+                              content="BitBadges is the all-in-one platform for creating, maintaining, displaying, and verifying digital blockchain badges."
+                            />
+                            <meta
+                              name="keywords"
+                              content="BitBadges, badges, blockchain, NFT, non-fungible token, digital badges, digital credentials, digital certificates, digital certificates, digital certificates, digital certificates"
+                            />
+                            <link rel="apple-touch-icon" href="/logo192.png" />
+                            <link rel="manifest" href="/manifest.json" />
+                            <title>BitBadges</title>
+                          </Head>
 
-                        <div className="">
-                          <div className="layout gradient-bg">
-                            <WalletHeader />
-                            {/* {topPopupIsVisible &&
+                          <div className="">
+                            <div className="layout gradient-bg">
+                              <WalletHeader />
+                              {/* {topPopupIsVisible &&
                           <PopupContent>
                             <div style={{ textAlign: 'center' }}>Important announcement</div>
                            
@@ -285,25 +280,26 @@ const App = ({ Component, pageProps }: AppProps) => {
                               Close
                             </Button>
                           </PopupContent>} */}
-                            <Component {...pageProps} />
-                            <CookiePopup
-                              visible={myCookieValue !== 'accepted'}
-                              onClose={() => {
-                                handleCookieResponse(true);
-                              }}
-                              placement="bottom"
-                            />
-                            <WalletFooter />
+                              <Component {...pageProps} />
+                              <CookiePopup
+                                visible={myCookieValue !== 'accepted'}
+                                onClose={() => {
+                                  handleCookieResponse(true);
+                                }}
+                                placement="bottom"
+                              />
+                              <WalletFooter />
+                            </div>
                           </div>
-                        </div>
-                      </TxTimelineContextProvider>
-                    </StatusContextProvider>
-                  </BrowseContextProvider>
-                </ChainContextProvider>
-              </SolanaContextProvider>
-            </EthereumContextProvider>
-          </CosmosContextProvider>
-        </BitcoinContextProvider>
+                        </TxTimelineContextProvider>
+                      </StatusContextProvider>
+                    </BrowseContextProvider>
+                  </ChainContextProvider>
+                </SolanaContextProvider>
+              </EthereumContextProvider>
+            </CosmosContextProvider>
+          </BitcoinContextProvider>
+        </Web2ContextProvider>
       </Provider>
     </WagmiConfig>
   );

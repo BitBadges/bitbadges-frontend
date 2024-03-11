@@ -675,6 +675,7 @@ function BlockinCodesScreen() {
   return (
     <DisconnectedWrapper
       message="Please connect a wallet to access this page."
+      requiresSignature
       node={
         <div
           style={{

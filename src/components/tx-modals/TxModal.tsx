@@ -921,7 +921,7 @@ export function TxModal({
       cancelText={'Cancel'}
       destroyOnClose={true}>
       <DisconnectedWrapper
-        message={`Please connect ${requireLogin ? 'and sign in' : ''}.`}
+        message={`Please connect${requireLogin ? ' and sign in' : ''} to access.`}
         node={
           <Row>
             <Col md={24} xs={24} sm={24}>
@@ -930,6 +930,7 @@ export function TxModal({
           </Row>
         }
         requireLogin={requireLogin}
+        requiresSignature={true}
       />
     </Modal>
   );

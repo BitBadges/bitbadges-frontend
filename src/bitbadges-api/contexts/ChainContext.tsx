@@ -10,6 +10,7 @@ import { useCosmosContext } from './chains/CosmosContext';
 import { useEthereumContext } from './chains/EthereumContext';
 import { useSolanaContext } from './chains/SolanaContext';
 import { ChainDefaultState, fetchDefaultViews } from './chains/helpers';
+import { useWeb2Context } from './chains/Web2Context';
 
 export interface SignChallengeResponse {
   signature: string;
@@ -28,9 +29,13 @@ export type ChainContextType = ChainSpecificContextType & {
 
   loggedIn: boolean;
   connected: boolean;
+
   loggedInExpiration: number;
 
   lastSeenActivity: number;
+
+  offChainOnlyMode: boolean;
+  setOffChainOnlyMode: Dispatch<SetStateAction<boolean>>;
 };
 
 //These are assumed to remain constant, but included because they are chain-specific
@@ -55,11 +60,13 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
 
   const [challengeParams, setChallengeParams] = useState<BlockinChallengeParams<bigint>>();
   const [lastSeenActivity, setLastSeenActivity] = useState<number>(0);
+  const [offChainOnlyMode, setOffChainOnlyMode] = useState<boolean>(false);
 
   const ethereumContext = useEthereumContext();
   const cosmosContext = useCosmosContext();
   const solanaContext = useSolanaContext();
   const bitcoinContext = useBitcoinContext();
+  const web2Context = useWeb2Context();
 
   //Handle setting chain by default based on last signed in cookie
   useEffect(() => {
@@ -86,6 +93,11 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
   } else {
     currentChainContext = ethereumContext;
   }
+
+  if (offChainOnlyMode) {
+    currentChainContext = web2Context;
+  }
+
   const loggedInCookie = cookies.blockincookie === convertToCosmosAddress(currentChainContext.address);
 
   useEffect(() => {
@@ -94,6 +106,16 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
       if (signedInRes.message) {
         const params = constructChallengeObjectFromString(signedInRes.message, BigIntify);
         setChallengeParams(new BlockinChallengeParams<bigint>(params));
+
+        web2Context.setAddress(params.address);
+      }
+
+      if (signedInRes.discord && signedInRes.discord.id && signedInRes.discord.username) {
+        web2Context.setDiscord({
+          id: signedInRes.discord.id,
+          username: signedInRes.discord.username,
+          discriminator: signedInRes.discord.discriminator
+        });
       }
     }
     checkSignIn();
@@ -124,7 +146,9 @@ export const ChainContextProvider: React.FC<Props> = ({ children }) => {
     loggedInExpiration: challengeParams?.expirationDate ? new Date(challengeParams.expirationDate).getTime() : 0,
     cosmosAddress: convertToCosmosAddress(currentChainContext.address),
     chain,
-    setChain
+    setChain,
+    offChainOnlyMode,
+    setOffChainOnlyMode
   };
 
   return <ChainContext.Provider value={chainContext}>{children}</ChainContext.Provider>;

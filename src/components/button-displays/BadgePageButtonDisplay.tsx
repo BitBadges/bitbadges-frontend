@@ -157,6 +157,8 @@ export function BadgeButtonDisplay({
                       lists: newAccountInfo?.watchlists?.lists ?? []
                     };
 
+                    
+
                     await updateAccountInfo(newAccountInfo);
                     updateAccount(newAccountInfo);
 
