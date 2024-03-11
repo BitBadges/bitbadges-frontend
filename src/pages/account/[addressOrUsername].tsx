@@ -289,6 +289,19 @@ function PortfolioPage() {
     return applyClientSideBadgeFilters(allBadgeIds, onlySpecificCollections, oldestFirst, collections);
   }, [accountInfo, badgeTab, onlySpecificCollections, badgesView?.ids, collections, oldestFirst, isBaseBadgeTab]);
 
+  useEffect(() => {
+    if (isBaseBadgeTab) return;
+
+    //Edge case to fetch non-indexed balances
+    for (const badgeIdObj of finalBadgeView) {
+      const collection = collections[`${badgeIdObj.collectionId}`];
+      if (collection && collection.balancesType === 'Off-Chain - Non-Indexed' && accountInfo?.address) {
+        console.log("fetching non-indexed balances");
+        fetchBalanceForUser(badgeIdObj.collectionId, accountInfo?.address);
+      }
+    }
+  }, [finalBadgeView, collections, accountInfo?.address, isBaseBadgeTab]);
+
   useMemo(async () => {
     //Little hacky but if baseListView is not altered above, it has no more pagination, and thus we can handle all filters client-side
     if (isBaseListTab) {

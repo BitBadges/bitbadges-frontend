@@ -91,7 +91,7 @@ export function CollectionDisplayWithBadges({
         badgeIds={badgeObj.badgeIds}
         hideCollectionLink={false}
         showIds
-        showSupplys={!!addressOrUsernameToShowBalance}
+        showSupplys={!isWatchlist && !!addressOrUsernameToShowBalance}
         showOnSinglePage
         fromMultiCollectionDisplay
         sortBy={sortBy}
@@ -282,11 +282,8 @@ export function MultiCollectionBadgeDisplay({
                                   badgeId={badgeId}
                                   hideCollectionLink={hideCollectionLink}
                                   key={idx}
-                                  showSupplys={!!addressOrUsernameToShowBalance}
-                                  balances={getBalancesForId(
-                                    badgeId,
-                                    badgesToShow.find((collected) => collected.collectionId == badgeIdObj.collectionId)?.balances ?? []
-                                  )}
+                                  showSupplys={!!addressOrUsernameToShowBalance && !isWatchlist}
+                                  balances={getBalancesForId(badgeId, accountInfo?.getBadgeBalances(badgeIdObj.collectionId) ?? [])}
                                   showCustomizeButtons={showCustomizeButtons}
                                   isWatchlist={isWatchlist}
                                   addressOrUsername={addressOrUsernameToShowBalance}
@@ -299,11 +296,8 @@ export function MultiCollectionBadgeDisplay({
                                 key={idx}
                                 collectionId={badgeIdObj.collectionId}
                                 badgeId={badgeId}
-                                showSupplys={!!addressOrUsernameToShowBalance}
-                                balances={getBalancesForId(
-                                  badgeId,
-                                  badgesToShow.find((collected) => collected.collectionId == badgeIdObj.collectionId)?.balances ?? []
-                                )}
+                                showSupplys={!!addressOrUsernameToShowBalance && !isWatchlist}
+                                balances={getBalancesForId(badgeId, accountInfo?.getBadgeBalances(badgeIdObj.collectionId) ?? [])}
                               />
                             )}
                           </>

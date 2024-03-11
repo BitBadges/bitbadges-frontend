@@ -36,6 +36,7 @@ export const BadgeInfiniteScroll = ({
   const accountInfo = useAccount(addressOrUsername);
   const collections = useSelector((state: GlobalReduxState) => state.collections.collections);
 
+
   const numTotalBadges = useMemo(() => {
     //Calculate total number of badge IDs
     let total = 0n;

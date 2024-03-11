@@ -81,9 +81,6 @@ export const fetchBalanceForUser = async (collectionId: DesiredNumberType, addre
   let res;
   if (forceful || collection.balancesType === 'Off-Chain - Non-Indexed') {
     res = await getBadgeBalanceByAddress(collectionId, account.cosmosAddress);
-    if (collection.balancesType === 'Off-Chain - Non-Indexed') {
-      return res;
-    }
   } else {
     const cachedBalance = collection.getBadgeBalanceInfo(account.cosmosAddress);
     if (cachedBalance) {

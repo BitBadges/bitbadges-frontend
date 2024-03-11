@@ -1,4 +1,4 @@
-import { Col, Dropdown, Input, Switch } from 'antd';
+import { Col, Dropdown, Form, Input, Switch } from 'antd';
 import { BatchBadgeDetails, BatchBadgeDetailsArray, BitBadgesAddressList, UintRangeArray } from 'bitbadgesjs-sdk';
 import { useEffect, useState } from 'react';
 import { getAddressLists } from '../../bitbadges-api/api';
@@ -26,15 +26,16 @@ export const NewPageInputForm = ({
       {visible && (
         <div className="flex-center ">
           <Col md={12} xs={24} style={{ marginBottom: 8 }}>
-            <GenericTextFormInput required label="Name" value={newPageTitle} setValue={setNewPageTitle} placeholder="Title of your page" />
-            <br />
-            <br />
-            <GenericTextAreaFormInput
-              label="Description"
-              value={newPageDescription}
-              setValue={setNewPageDescription}
-              placeholder="Give a brief description of your page."
-            />
+            <Form layout="vertical">
+              <GenericTextFormInput required label="Name" value={newPageTitle} setValue={setNewPageTitle} placeholder="Title of your page" />
+
+              <GenericTextAreaFormInput
+                label="Description"
+                value={newPageDescription}
+                setValue={setNewPageDescription}
+                placeholder="Give a brief description of your page."
+              />
+            </Form>
             <br />
             <br />
             <div className="flex-center full-width">
