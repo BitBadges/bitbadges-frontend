@@ -422,8 +422,7 @@ export const ProofOfAddressPluginDetails: ClaimIntegrationPlugin<'requiresProofO
   id: 'requiresProofOfAddress',
   metadata: {
     name: 'Verify Address Ownership',
-    description:
-      'Require users to prove they own the address they via signing into BitBadges. Otherwise, they can simply select any recipient address.',
+    description: 'Require users to prove they own the claiming address via signing into BitBadges.',
     image: 'https://avatars.githubusercontent.com/u/86890740',
     createdBy: 'BitBadges',
     stateless: true,
