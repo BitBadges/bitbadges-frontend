@@ -45,7 +45,6 @@ export function ExperiencesProtocolDisplay({ addressOrUsername }: { addressOrUse
         {
           collectionId: res.collectionId,
           fetchTotalAndMintBalances: true,
-
           metadataToFetch: { badgeIds: [{ start: 1n, end: 10n }] }
         }
       ]);
@@ -56,55 +55,54 @@ export function ExperiencesProtocolDisplay({ addressOrUsername }: { addressOrUse
   return (
     <InformationDisplayCard
       title={<div className="flex-center">Experiences Protocol</div>}
-      md={8}
+      md={12}
       xs={24}
       sm={24}
       subtitle={'Share how your experiences went with specific users via badges.'}>
       <br />
-      {
-        <div className="" style={{ textAlign: 'center' }}>
-          {!!protocolCollectionId && (
-            <div className="">
-              <div className="secondary-text">
-                <InfoCircleOutlined /> This is the collection that this user uses for their experiences. Their experiences are determined by who owns
-                the badges in this collection.
-              </div>
-              <br />
-              <div className="flex-center full-width">
-                <CollectionDisplayWithBadges
-                  browseDisplay
-                  hideCollectionLink
-                  span={24}
-                  badgeObj={
-                    new BatchBadgeDetails({
-                      collectionId: protocolCollectionId,
-                      badgeIds: [{ start: 1n, end: 10n }]
-                    })
-                  }
-                />
-              </div>
-            </div>
-          )}
-          {(!protocolCollectionId || !BigInt(protocolCollectionId)) && (
+
+      <div className="" style={{ textAlign: 'center' }}>
+        {!!protocolCollectionId && (
+          <div className="">
             <div className="secondary-text">
-              <EmptyIcon description="This user has not set up their experiences collection yet." />
-              {chain.cosmosAddress && chain.cosmosAddress === accountInfo?.cosmosAddress && (
-                <>
-                  <div className="secondary-text">
-                    <InfoCircleOutlined /> You can set yours up via the template below.
-                  </div>
-                  <Divider />
-                  <div className="primary-text" style={{ fontSize: 20, fontWeight: 'bolder' }}>
-                    Experiences Collection Template
-                  </div>
-                  <ExperiencesProtocolMessage />
-                  <ExperiencesProtocolSubmit />
-                </>
-              )}
+              <InfoCircleOutlined /> This is the collection that this user uses for their experiences. Their experiences are determined by who owns
+              the badges in this collection.
             </div>
-          )}
-        </div>
-      }
+            <br />
+            <div className="flex-center full-width">
+              <CollectionDisplayWithBadges
+                browseDisplay
+                hideCollectionLink
+                span={24}
+                badgeObj={
+                  new BatchBadgeDetails({
+                    collectionId: protocolCollectionId,
+                    badgeIds: [{ start: 1n, end: 10n }]
+                  })
+                }
+              />
+            </div>
+          </div>
+        )}
+        {(!protocolCollectionId || !BigInt(protocolCollectionId)) && (
+          <div className="secondary-text">
+            <EmptyIcon description="This user has not set up their experiences collection yet." />
+            {chain.cosmosAddress && chain.cosmosAddress === accountInfo?.cosmosAddress && (
+              <>
+                <div className="secondary-text">
+                  <InfoCircleOutlined /> You can set yours up via the template below.
+                </div>
+                <Divider />
+                <div className="primary-text" style={{ fontSize: 20, fontWeight: 'bolder' }}>
+                  Experiences Collection Template
+                </div>
+                <ExperiencesProtocolMessage />
+                <ExperiencesProtocolSubmit />
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </InformationDisplayCard>
   );
 }

@@ -110,7 +110,7 @@ export function FollowProtocolDisplay({ addressOrUsername }: { addressOrUsername
       {!loading && (
         <InformationDisplayCard
           title={<div className="flex-center">BitBadges Follow Protocol</div>}
-          md={8}
+          md={12}
           xs={24}
           sm={24}
           subtitle={'Follow users by sending them follow badges.'}>
