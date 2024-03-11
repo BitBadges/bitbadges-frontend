@@ -18,7 +18,7 @@ export const PluginTextDisplay = <T extends ClaimIntegrationPluginType>({
 }: {
   pluginId: T;
   text: string | ReactNode;
-  node: ReactNode;
+  node?: ReactNode;
 }) => {
   const pluginInstance = getPlugin(pluginId);
   if (!pluginInstance.detailsString) return null;
@@ -53,20 +53,17 @@ export const PluginTextDisplay = <T extends ClaimIntegrationPluginType>({
     />
   );
 
-  if (true) {
-    return (
-      <>
-        <div>
-          {PluginIcon}
-          {LogoAvatar}
+  return (
+    <>
+      <div>
+        {PluginIcon}
+        {LogoAvatar}
 
-          {text}
-        </div>
-        <div className="mt-1">{node}</div>
-      </>
-    );
-  } else {
-  }
+        {text}
+      </div>
+      <div className="mt-1">{node}</div>
+    </>
+  );
 };
 
 export const DetailsCard = ({
