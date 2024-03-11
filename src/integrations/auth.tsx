@@ -360,7 +360,7 @@ const DiscordInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => 
 
   useEffect(() => {
     setDisabled(!currDiscordUser?.username ? 'Not signed in' : '');
-  }, [currDiscordUser, setDisabled]);
+  }, [currDiscordUser]);
 
   return (
     <>

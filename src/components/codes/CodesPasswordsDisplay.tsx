@@ -27,6 +27,7 @@ import { NumberInput } from '../inputs/NumberInput';
 import { Tabs } from '../navigation/Tabs';
 import { ShareButton } from '../../pages/saveforlater';
 import { ErrDisplay } from '../common/ErrDisplay';
+import { OffChainClaim } from '../tx-timelines/step-items/OffChainBalancesStepItem';
 
 export const CopyButton = ({
   copyText,
@@ -103,20 +104,19 @@ export function CodesDisplay({
   collectionId,
   list,
   codes,
-  claimPassword
+  claimPassword,
+  claim
 }: {
   approval?: CollectionApprovalWithDetails<bigint>;
   collectionId?: bigint;
   list?: BitBadgesAddressList<bigint>;
   codes?: string[];
   claimPassword?: string;
+  claim: OffChainClaim<bigint>;
 }) {
   const collection = useCollection(collectionId);
   const isClaimBuilderCodesDisplay = !approval;
-  let offChainClaim = (list?.editClaims ?? []).length > 0 ? list?.editClaims[0] : undefined;
-  if (collection) {
-    offChainClaim = (collection?.offChainClaims ?? []).length > 0 ? collection?.offChainClaims[0] : undefined;
-  }
+  let offChainClaim = claim;
 
   const listId = list?.listId;
 

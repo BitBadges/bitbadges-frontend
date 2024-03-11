@@ -8,26 +8,29 @@ import { ErrDisplay } from '../common/ErrDisplay';
 import { TableRow } from '../display/TableRow';
 import { RadioGroup } from '../inputs/Selects';
 import { Tabs } from '../navigation/Tabs';
+import { OffChainClaim } from '../tx-timelines/step-items/OffChainBalancesStepItem';
 
 export const ClaimBuilder = ({
   plugins,
   setPlugins,
   offChainSelect,
   setDisabled,
-  isUpdate
+  isUpdate,
+  claim
 }: {
   plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
   setPlugins: (plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[]) => void;
   offChainSelect?: boolean;
   setDisabled: (disabled: boolean) => void;
   isUpdate: boolean;
+  claim: Readonly<OffChainClaim<bigint>>;
 }) => {
   const [disabledMap, setDisabledMap] = useState<{ [key: string]: string }>({});
   const [tab, setTab] = useState('criteria');
 
   useEffect(() => {
     setDisabled(Object.keys(disabledMap).some((x) => disabledMap[x] && plugins.find((y) => y.id == x)) || plugins.length === 0);
-  }, [disabledMap, plugins, setDisabled]);
+  }, [disabledMap, plugins]);
 
   return (
     <>
@@ -81,6 +84,7 @@ export const ClaimBuilder = ({
                 plugins={plugins}
                 setPlugins={setPlugins}
                 setDisabledMap={setDisabledMap}
+                claim={claim}
               />
             );
           })}
@@ -96,7 +100,8 @@ const ClaimBuilderRow = ({
   setPlugins,
   disabledMap,
   setDisabledMap,
-  isUpdate
+  isUpdate,
+  claim
 }: {
   id: ClaimIntegrationPluginType;
   plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
@@ -104,6 +109,7 @@ const ClaimBuilderRow = ({
   disabledMap: { [key: string]: string };
   setDisabledMap: (disabledMap: { [key: string]: string }) => void;
   isUpdate?: boolean;
+  claim: Readonly<OffChainClaim<bigint>>;
 }) => {
   const pluginInstance = getPlugin(id);
   const currPlugin = getPluginDetails(id, plugins);
@@ -188,6 +194,7 @@ const ClaimBuilderRow = ({
         pluginInstance.createNode({
           disabled: disabledMap[id],
           setDisabled: setDisabled,
+          claim: claim,
           numClaims: getPluginDetails('numUses', plugins)?.publicParams?.maxUses || 0,
           id: id,
           metadata: pluginInstance.metadata,

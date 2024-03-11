@@ -15,6 +15,7 @@ import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { TableRow } from '../../display/TableRow';
 import { ClaimBuilder } from '../../transfers/ClaimBuilder';
 import { SwitchForm } from './SwitchForm';
+import { ClaimPaginationWithEditButtons } from '../step-items/OffChainBalancesStepItem';
 const crypto = require('crypto');
 
 export function SubmitMsgCreateAddressList() {
@@ -26,14 +27,30 @@ export function SubmitMsgCreateAddressList() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [visible, setVisible] = useState<boolean>(false);
+  const [claimIdx, setClaimIdx] = useState<number>(0);
 
   const router = useRouter();
 
   const [onChainStorage, setOnChainStorage] = useState<boolean>(false);
   const [clicked, setClicked] = useState<boolean>(!!isUpdateAddressList);
 
-  const [disabled, setDisabled] = useState<boolean>(false);
+  const [disabledArr, setDisabledArr] = useState<boolean[]>([]);
   const collection = useCollection(NEW_COLLECTION_ID);
+
+  useEffect(() => {
+    if (disabledArr.length < addressList.editClaims.length) {
+      setDisabledArr((disabledArr) => [...disabledArr, ...Array(addressList.editClaims.length - disabledArr.length).fill(false)]);
+    }
+
+    if (disabledArr.length > addressList.editClaims.length) {
+      setDisabledArr((disabledArr) => disabledArr.slice(0, addressList.editClaims.length));
+    }
+    console.log('in use effect');
+  }, [addressList.editClaims]);
+
+  useEffect(() => {
+    console.log('disabled')
+  }, [disabledArr]);
 
   useEffect(() => {
     if (!isUpdateAddressList) {
@@ -73,7 +90,6 @@ export function SubmitMsgCreateAddressList() {
 
   const privateMode = addressList.private;
   const viewableWithLink = addressList.viewableWithLink;
-  const plugins = addressList.editClaims.length > 0 ? addressList.editClaims[0].plugins : [];
 
   return (
     <div className="full-width" style={{ marginTop: 20 }}>
@@ -181,7 +197,7 @@ export function SubmitMsgCreateAddressList() {
                 label="Claimable?"
                 value={
                   <Switch
-                    checked={plugins.length > 0}
+                    checked={addressList.editClaims.length > 0}
                     checkedChildren="Claimable"
                     unCheckedChildren="Admin Mode"
                     onChange={(checked) => {
@@ -206,32 +222,69 @@ export function SubmitMsgCreateAddressList() {
               />
               <div className="secondary-text" style={{ fontSize: 14, marginLeft: 10 }}>
                 <InfoCircleOutlined />{' '}
-                {plugins.length > 0
+                {addressList.editClaims.length > 0
                   ? 'Others can also claim a spot on the list, according to the criteria specified. You can also edit and delete if necessary.'
                   : 'Only you will be able to update and delete the list.'}
               </div>
-              {plugins.length > 0 && (
+
+              {addressList.editClaims.length > 0 && (
                 <>
                   <br />
-                  <ClaimBuilder
-                    isUpdate={!!txState.isUpdateAddressList}
-                    plugins={plugins}
-                    setPlugins={(plugins) => {
+                  <ClaimPaginationWithEditButtons
+                    idx={claimIdx}
+                    setIdx={setClaimIdx}
+                    total={addressList.editClaims.length}
+                    claims={addressList.editClaims}
+                    setClaims={(claims) => {
                       setAddressList(
                         new BitBadgesAddressList({
                           ...addressList,
-                          editClaims: [
-                            {
-                              plugins: plugins,
-                              claimId: addressList.editClaims.length > 0 ? addressList.editClaims[0].claimId : crypto.randomBytes(32).toString('hex')
-                            }
-                          ]
+                          editClaims: claims
                         })
                       );
                     }}
-                    offChainSelect={true}
-                    setDisabled={setDisabled}
                   />
+
+                  {addressList.editClaims.map((claim, i) => {
+                    const plugins = claim.plugins;
+
+                    if (i !== claimIdx) return <></>;
+
+                    return (
+                      <>
+                        <br />
+                        <ClaimBuilder
+                          claim={claim}
+                          isUpdate={!!txState.isUpdateAddressList}
+                          plugins={plugins}
+                          setPlugins={(plugins) => {
+                            setAddressList(
+                              new BitBadgesAddressList({
+                                ...addressList,
+                                editClaims: addressList.editClaims.map((x, j) => {
+                                  if (j === i) {
+                                    return {
+                                      ...x,
+                                      plugins: plugins
+                                    };
+                                  }
+                                  return x;
+                                })
+                              })
+                            );
+                          }}
+                          offChainSelect={true}
+                          setDisabled={(disabled) => {
+                            setDisabledArr((disabledArr) => {
+                              const newArr = [...disabledArr];
+                              newArr[i] = disabled;
+                              return newArr;
+                            });
+                          }}
+                        />
+                      </>
+                    );
+                  })}
                 </>
               )}
             </InformationDisplayCard>
@@ -241,7 +294,7 @@ export function SubmitMsgCreateAddressList() {
       <br />
       <button
         className="landing-button"
-        disabled={loading || !clicked || !addressList.listId || disabled}
+        disabled={loading || !clicked || !addressList.listId || disabledArr.some((x) => x)}
         style={{ width: '100%' }}
         onClick={async () => {
           if (!collection) return;
@@ -256,7 +309,6 @@ export function SubmitMsgCreateAddressList() {
 
             const metadataUrl = metadataRes.collectionMetadataResult?.cid ? 'ipfs://' + metadataRes.collectionMetadataResult?.cid : '';
             const listId = onChainStorage ? addressList.listId : chain.cosmosAddress + '_' + addressList.listId;
-            const prevClaimId = addressList.editClaims.length > 0 ? addressList.editClaims[0].claimId : undefined;
 
             await updateAddressLists({
               addressLists: [
@@ -264,15 +316,7 @@ export function SubmitMsgCreateAddressList() {
                   ...addressList,
                   listId: !isUpdateAddressList ? listId : addressList.listId,
                   uri: metadataUrl,
-                  editClaims:
-                    plugins.length > 0
-                      ? [
-                          {
-                            plugins: plugins,
-                            claimId: prevClaimId ?? crypto.randomBytes(32).toString('hex')
-                          }
-                        ]
-                      : [],
+                  editClaims: addressList.editClaims,
                   private: privateMode,
                   viewableWithLink: viewableWithLink
                 }

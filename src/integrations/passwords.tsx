@@ -7,6 +7,7 @@ import { useTxTimelineContext, NEW_COLLECTION_ID } from '../bitbadges-api/contex
 import IconButton from '../components/display/IconButton';
 import { ClaimIntegrationPlugin } from './integrations';
 import { PluginCodesModal } from './codes';
+import { OffChainClaim } from '../components/tx-timelines/step-items/OffChainBalancesStepItem';
 
 export const PasswordPluginDetails: ClaimIntegrationPlugin<'password'> = {
   id: 'password',
@@ -23,8 +24,10 @@ export const PasswordPluginDetails: ClaimIntegrationPlugin<'password'> = {
   inputNode: ({ setCustomBody }) => {
     return <PasswordInputNode setCustomBody={setCustomBody} />;
   },
-  createNode: ({ publicParams, privateParams, setParams }) => {
-    return <PasswordCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} />;
+  createNode: ({ publicParams, privateParams, setParams, claim, setDisabled }) => {
+    return (
+      <PasswordCreateNode claim={claim} publicParams={publicParams} privateParams={privateParams} setParams={setParams} setDisabled={setDisabled} />
+    );
   },
   detailsString: () => {
     return 'Must provide valid password.';
@@ -45,15 +48,23 @@ export const PasswordPluginDetails: ClaimIntegrationPlugin<'password'> = {
 const PasswordCreateNode = ({
   publicParams,
   privateParams,
-  setParams
+  setParams,
+  claim,
+  setDisabled
 }: {
   publicParams: ClaimIntegrationPublicParamsType<'password'>;
   privateParams: ClaimIntegrationPrivateParamsType<'password'>;
   setParams: (publicParams: ClaimIntegrationPublicParamsType<'password'>, privateParams: ClaimIntegrationPrivateParamsType<'password'>) => void;
+  claim: Readonly<OffChainClaim<bigint>>;
+  setDisabled: (disabled: string) => void;
 }) => {
   const claimPassword = privateParams?.password;
   const txTimelineContext = useTxTimelineContext();
   const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    setDisabled(!claimPassword ? 'Password cannot be empty.' : '');
+  }, [claimPassword]);
 
   const PasswordSelect = (
     <div style={{ textAlign: 'center' }}>
@@ -79,6 +90,7 @@ const PasswordCreateNode = ({
           secondary
         />
         <PluginCodesModal
+          claim={claim}
           password={claimPassword}
           collectionId={txTimelineContext.existingCollectionId ? txTimelineContext.existingCollectionId : NEW_COLLECTION_ID}
           visible={visible}

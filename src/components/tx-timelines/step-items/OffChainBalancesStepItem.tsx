@@ -14,7 +14,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { EmptyStepItem, NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
-import { InfoCircleOutlined } from '@ant-design/icons';
+import { DeleteOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import crypto from 'crypto';
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MetadataAddMethod } from '../../../bitbadges-api/types';
@@ -23,12 +23,14 @@ import { INFINITE_LOOP_MODE } from '../../../constants';
 import { IntegrationPluginDetails, getBlankPlugin, getMaxUses } from '../../../integrations/integrations';
 import { BalanceInput } from '../../balances/BalanceInput';
 import { ErrDisplay } from '../../common/ErrDisplay';
+import { Pagination } from '../../common/Pagination';
+import IconButton from '../../display/IconButton';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { Tabs } from '../../navigation/Tabs';
 import { ClaimBuilder } from '../../transfers/ClaimBuilder';
 import { TransferSelect } from '../../transfers/TransferOrClaimSelect';
 import { getExistingBalanceMap } from '../../tx-modals/UpdateBalancesModal';
-import { GenericTextFormInput, GenericMarkdownFormInput } from '../form-items/MetadataForm';
+import { GenericMarkdownFormInput, GenericTextFormInput } from '../form-items/MetadataForm';
 import { UpdateSelectWrapper } from '../form-items/UpdateSelectWrapper';
 
 export interface OffChainClaim<T extends NumberType> {
@@ -36,6 +38,73 @@ export interface OffChainClaim<T extends NumberType> {
   balancesToSet?: IncrementedBalances<T>;
   claimId: string;
 }
+
+export const ClaimPaginationWithEditButtons = ({
+  claims,
+  setClaims,
+  idx,
+  setIdx,
+  total
+}: {
+  idx: number;
+  setIdx: (idx: number) => void;
+  total: number;
+  claims: OffChainClaim<bigint>[];
+  setClaims: (claims: OffChainClaim<bigint>[]) => void;
+}) => {
+  const offChainClaims = claims;
+  const setOffChainClaims = setClaims;
+
+  return (
+    <>
+      <Pagination
+        showOnSinglePage
+        currPage={idx + 1}
+        onChange={(idx) => {
+          setIdx(idx - 1);
+        }}
+        total={total}
+        pageSize={1}
+      />
+      <div className="flex-center flex-wrap mt-4">
+        <IconButton
+          src={<DeleteOutlined />}
+          onClick={() => {
+            setOffChainClaims(offChainClaims.filter((_x, i) => i !== idx));
+
+            setIdx(0);
+          }}
+          disabled={total == 1}
+          tooltipMessage="Remove Claim"
+          text="Delete"
+        />
+        <IconButton
+          src={<PlusOutlined />}
+          onClick={() => {
+            const newIdx = offChainClaims.length;
+
+            setOffChainClaims([
+              ...offChainClaims,
+              {
+                claimId: crypto.randomBytes(32).toString('hex'),
+                balancesToSet: new IncrementedBalances<bigint>({
+                  startBalances: new BalanceArray(),
+                  incrementBadgeIdsBy: 0n,
+                  incrementOwnershipTimesBy: 0n
+                }),
+                plugins: [getBlankPlugin('numUses')]
+              }
+            ]);
+
+            setIdx(newIdx);
+          }}
+          text="Add"
+          tooltipMessage="Add Claim"
+        />
+      </div>
+    </>
+  );
+};
 
 export const OffChainClaimBuilder = ({
   collectionId,
@@ -53,105 +122,143 @@ export const OffChainClaimBuilder = ({
   const collection = useCollection(collectionId);
   const txTimelineContext = useTxTimelineContext();
 
+  const [idx, setIdx] = useState(0);
+  const total = offChainClaims.length;
+
+  const [disabledArr, setDisabledArr] = useState<boolean[]>([]);
+
+  useEffect(() => {
+    if (!collection) return;
+
+    if (disabledArr.length < collection?.offChainClaims.length) {
+      setDisabledArr((disabledArr) => [...disabledArr, ...Array(collection?.offChainClaims.length - disabledArr.length).fill(false)]);
+    }
+
+    if (disabledArr.length > collection?.offChainClaims.length) {
+      setDisabledArr((disabledArr) => disabledArr.slice(0, collection?.offChainClaims.length));
+    }
+  }, [collection?.offChainClaims]);
+
+  useEffect(() => {
+    setDisabled(disabledArr.some((x) => x));
+  }, [disabledArr]);
+
   if (!collection) return <></>;
 
-  if (!offChainClaims || offChainClaims.length == 0 || !offChainClaims[0].balancesToSet) {
+  if (!offChainClaims || offChainClaims.length <= idx || !offChainClaims[idx].balancesToSet) {
     return <ErrDisplay err="No claims to set balances for." />;
   }
 
-  const claim = offChainClaims[0];
+  const claim = offChainClaims?.[idx];
   const claimBalancesToSet = claim.balancesToSet;
   const plugins = claim.plugins;
   const numRecipients = getMaxUses(plugins);
 
+  console.log(offChainClaims);
+
+  const setClaim = (claim: OffChainClaim<bigint>) => {
+    setOffChainClaims(
+      offChainClaims.map((x, i) => {
+        if (i === idx) {
+          return claim;
+        }
+        return x;
+      })
+    );
+  };
+
   return (
     <>
       <br />
-      <div className="flex flex-wrap" style={{ alignItems: 'normal' }}>
-        <InformationDisplayCard
-          md={8}
-          xs={24}
-          sm={24}
-          title="Claim Builder"
-          subtitle="Set up criteria for users to meet to claim. Limited to one claim per address.">
-          <br />
 
-          <ClaimBuilder
-            isUpdate={!!txTimelineContext.existingCollectionId || !!isUpdateBalancesModal}
-            offChainSelect={true}
-            plugins={plugins}
-            setPlugins={(plugins) => {
-              setOffChainClaims([
-                {
-                  ...claim,
-                  plugins: plugins
-                }
-              ]);
-            }}
-            setDisabled={setDisabled}
-          />
-        </InformationDisplayCard>
+      <ClaimPaginationWithEditButtons idx={idx} setIdx={setIdx} total={total} claims={offChainClaims} setClaims={setOffChainClaims} />
+      {offChainClaims.map((claim, i) => {
+        if (i !== idx) return <></>;
 
-        {/* <InformationDisplayCard md={12} xs={24} sm={24} noBorder noPadding inheritBg> */}
-        <Col md={16} xs={24} sm={24}>
-          {numRecipients == 0 && (
-            <>
-              <ErrDisplay err="Please set the number of recipients (i.e. number of claims)." />
-            </>
-          )}
-          <BalanceInput
-            suggestedBalances={collection.getBadgeBalances('Total') ?? new BalanceArray()}
-            balancesToShow={claimBalancesToSet?.startBalances ?? new BalanceArray()}
-            onAddBadges={(balance) => {
-              setOffChainClaims([
-                {
-                  ...claim,
-                  balancesToSet: new IncrementedBalances<bigint>({
-                    incrementBadgeIdsBy: claimBalancesToSet?.incrementBadgeIdsBy ?? 0n,
-                    incrementOwnershipTimesBy: claimBalancesToSet?.incrementOwnershipTimesBy ?? 0n,
-                    startBalances: BalanceArray.From([balance])
-                  })
-                }
-              ]);
-            }}
-            oneBalanceOnly
-            hideDisplay
-            message="asd"
-            onRemoveAll={() => {
-              setOffChainClaims([
-                {
-                  ...claim,
-                  balancesToSet: new IncrementedBalances({
-                    ...claimBalancesToSet,
-                    startBalances: BalanceArray.From([]),
-                    incrementBadgeIdsBy: 0n,
-                    incrementOwnershipTimesBy: 0n
-                  })
-                }
-              ]);
-            }}
-            increment={claimBalancesToSet?.incrementBadgeIdsBy ?? 0n}
-            setIncrement={
-              numRecipients > 1n
-                ? (val) => {
-                    setOffChainClaims([
-                      {
-                        ...claim,
-                        balancesToSet: new IncrementedBalances<bigint>({
-                          incrementBadgeIdsBy: val,
-                          incrementOwnershipTimesBy: claimBalancesToSet?.incrementOwnershipTimesBy ?? 0n,
-                          startBalances: claimBalancesToSet?.startBalances ?? new BalanceArray()
-                        })
-                      }
-                    ]);
+        let originalBalances = collection.getBadgeBalances('Total') ?? new BalanceArray();
+        for (let j = 0; j < offChainClaims.length; j++) {
+          if (j === i) continue;
+          originalBalances = getBalancesAfterClaims(originalBalances, [offChainClaims[j]]);
+        }
+
+        return (
+          <>
+            <div className="flex flex-wrap" style={{ alignItems: 'normal' }}>
+              <InformationDisplayCard
+                md={8}
+                xs={24}
+                sm={24}
+                title="Claim Builder"
+                subtitle="Set up criteria for users to meet to claim. Limited to one claim per address.">
+                <br />
+
+                <ClaimBuilder
+                  claim={claim}
+                  isUpdate={!!txTimelineContext.existingCollectionId || !!isUpdateBalancesModal}
+                  offChainSelect={true}
+                  plugins={plugins}
+                  setPlugins={(plugins) => {
+                    setClaim({
+                      ...claim,
+                      plugins
+                    });
+                  }}
+                  setDisabled={(disabled) => {
+                    setDisabledArr((disabledArr) => {
+                      return disabledArr.map((x, j) => (j === idx ? disabled : x));
+                    });
+                  }}
+                />
+              </InformationDisplayCard>
+
+              {/* <InformationDisplayCard md={12} xs={24} sm={24} noBorder noPadding inheritBg> */}
+              <Col md={16} xs={24} sm={24}>
+                {numRecipients == 0 && (
+                  <>
+                    <ErrDisplay err="Please set the number of recipients (i.e. number of claims)." />
+                  </>
+                )}
+                <BalanceInput
+                  suggestedBalances={collection.getBadgeBalances('Total') ?? new BalanceArray()}
+                  balancesToShow={claimBalancesToSet?.startBalances ?? new BalanceArray()}
+                  onAddBadges={(balance) => {
+                    console.log(JSON.stringify(balance));
+
+                    setClaim({
+                      ...claim,
+                      balancesToSet: new IncrementedBalances<bigint>({
+                        incrementBadgeIdsBy: claimBalancesToSet?.incrementBadgeIdsBy ?? 0n,
+                        incrementOwnershipTimesBy: claimBalancesToSet?.incrementOwnershipTimesBy ?? 0n,
+                        startBalances: BalanceArray.From([balance]).clone()
+                      })
+                    });
+                  }}
+                  oneBalanceOnly
+                  hideDisplay
+                  message="asd"
+                  increment={claimBalancesToSet?.incrementBadgeIdsBy ?? 0n}
+                  setIncrement={
+                    numRecipients > 1n
+                      ? (val) => {
+                          setClaim({
+                            ...claim,
+                            balancesToSet: new IncrementedBalances<bigint>({
+                              incrementBadgeIdsBy: val,
+                              incrementOwnershipTimesBy: claimBalancesToSet?.incrementOwnershipTimesBy ?? 0n,
+                              startBalances: claimBalancesToSet?.startBalances ?? new BalanceArray()
+                            })
+                          });
+                        }
+                      : undefined
                   }
-                : undefined
-            }
-            numIncrements={BigInt(numRecipients)}
-            originalBalances={collection.getBadgeBalances('Total') ?? new BalanceArray()}
-          />
-        </Col>
-      </div>
+                  numIncrements={BigInt(numRecipients)}
+                  originalBalances={originalBalances}
+                />
+              </Col>
+            </div>
+          </>
+        );
+      })}
     </>
   );
 };
@@ -212,6 +319,34 @@ export const DistributionComponent = ({
   );
 };
 
+export const getBalancesAfterClaims = (originalBalances: BalanceArray<bigint>, claims: Array<OffChainClaim<bigint>>): BalanceArray<bigint> => {
+  if (!claims || claims.length == 0) return new BalanceArray();
+
+  let balances = originalBalances.clone();
+  for (const claim of claims) {
+    const claimBalancesToSet =
+      claim?.balancesToSet ??
+      new IncrementedBalances<bigint>({ startBalances: new BalanceArray(), incrementBadgeIdsBy: 0n, incrementOwnershipTimesBy: 0n });
+    const numRecipients = getMaxUses(claim.plugins);
+
+    balances = getBalancesAfterTransfers(
+      balances,
+      [
+        new TransferWithIncrements({
+          from: 'Mint',
+          toAddresses: [],
+          toAddressesLength: BigInt(numRecipients),
+          balances: claimBalancesToSet.startBalances,
+          incrementBadgeIdsBy: claimBalancesToSet.incrementBadgeIdsBy,
+          incrementOwnershipTimesBy: claimBalancesToSet.incrementOwnershipTimesBy
+        })
+      ],
+      true
+    );
+  }
+  return balances;
+};
+
 // This is the first custom step in the off-chain balances creation flow. It allows the user to select between
 // uploading metadata themselves or having it outsourced. It uses the SwitchForm component to render the options.
 export function OffChainBalancesStorageSelectStepItem() {
@@ -259,49 +394,14 @@ export function OffChainBalancesStorageSelectStepItem() {
     };
   }, [uri]);
 
-  const claim = collection?.offChainClaims && collection?.offChainClaims.length > 0 ? collection.offChainClaims[0] : undefined;
-  const claimBalancesToSet =
-    claim?.balancesToSet ??
-    new IncrementedBalances<bigint>({ startBalances: new BalanceArray(), incrementBadgeIdsBy: 0n, incrementOwnershipTimesBy: 0n });
-  const plugins = claim?.plugins ?? [];
-
-  const numRecipients = getMaxUses(plugins);
   const offChainClaims = collection?.offChainClaims;
   const balancesAfterClaims = useMemo(() => {
     if (!offChainClaims || offChainClaims.length == 0) return new BalanceArray();
-    const claim = collection?.offChainClaims && collection?.offChainClaims.length > 0 ? collection.offChainClaims[0] : undefined;
-    const claimBalancesToSet =
-      claim?.balancesToSet ??
-      new IncrementedBalances<bigint>({ startBalances: new BalanceArray(), incrementBadgeIdsBy: 0n, incrementOwnershipTimesBy: 0n });
+    return getBalancesAfterClaims(collection.getBadgeBalances('Total') ?? new BalanceArray(), offChainClaims);
+  }, [collection, offChainClaims]);
 
-    return getBalancesAfterTransfers(
-      collection?.getBadgeBalances('Total') ?? new BalanceArray(),
-      offChainClaims.length == 0
-        ? []
-        : [
-            new TransferWithIncrements({
-              from: 'Mint',
-              toAddresses: [],
-              toAddressesLength: BigInt(numRecipients),
-              balances: claimBalancesToSet.startBalances,
-              incrementBadgeIdsBy: claimBalancesToSet.incrementBadgeIdsBy,
-              incrementOwnershipTimesBy: claimBalancesToSet.incrementOwnershipTimesBy
-            })
-          ],
-      true
-    );
-  }, [collection, offChainClaims, numRecipients]);
-
-  const hasLeftover =
-    offChainClaims &&
-    offChainClaims.length > 0 &&
-    claimBalancesToSet.startBalances.length > 0 &&
-    balancesAfterClaims.some((x) => BigInt(x.amount) > 0n);
-  const underflows =
-    offChainClaims &&
-    offChainClaims.length > 0 &&
-    claimBalancesToSet.startBalances.length > 0 &&
-    balancesAfterClaims.some((x) => BigInt(x.amount) < 0n);
+  const hasLeftover = offChainClaims && offChainClaims.length > 0 && balancesAfterClaims.some((x) => BigInt(x.amount) > 0n);
+  const underflows = offChainClaims && offChainClaims.length > 0 && balancesAfterClaims.some((x) => BigInt(x.amount) < 0n);
 
   useEffect(() => {
     txTimelineContext.setTransfers([]);
@@ -420,12 +520,6 @@ export function OffChainBalancesStorageSelectStepItem() {
       {addMethod === MetadataAddMethod.Plugins && collection.offChainClaims.length > 0 && (
         <>
           <br />
-          {offChainClaims && claimBalancesToSet.startBalances.length == 0 && (
-            <>
-              <ErrDisplay err="No claim balances selected." />
-              <br />
-            </>
-          )}
           {underflows && (
             <>
               <ErrDisplay err="The balances you are allocating will exceed the total supply." />
@@ -520,9 +614,12 @@ export function OffChainBalancesStorageSelectStepItem() {
       addMethod === MetadataAddMethod.None ||
       !!err ||
       disabled ||
-      (addMethod === MetadataAddMethod.Plugins && (collection.offChainClaims.length === 0 || plugins.length == 0)) ||
+      (addMethod === MetadataAddMethod.Plugins &&
+        (collection.offChainClaims.length === 0 || collection.offChainClaims.some((x) => x.plugins.length === 0))) ||
       (addMethod === MetadataAddMethod.Plugins && underflows) ||
-      (addMethod === MetadataAddMethod.Plugins && (collection.offChainClaims.length === 0 || claimBalancesToSet.startBalances.length == 0)) ||
+      (addMethod === MetadataAddMethod.Plugins &&
+        (collection.offChainClaims.length === 0 ||
+          collection.offChainClaims.some((x) => !x.balancesToSet || x.balancesToSet.startBalances.length === 0))) ||
       (addMethod === MetadataAddMethod.UploadUrl && !uri)
   };
 }

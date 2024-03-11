@@ -3,7 +3,6 @@ import {
   BalanceArray,
   BigIntify,
   BitBadgesCollection,
-  ClaimIntegrationPluginType,
   IncrementedBalances,
   OffChainBalancesMap,
   TransferWithIncrements,
@@ -17,7 +16,7 @@ import { BitBadgesApi, addBalancesToOffChainStorage, fetchMetadataDirectly, getC
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getCollection, updateCollection, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MetadataAddMethod } from '../../bitbadges-api/types';
-import { IntegrationPluginDetails, getBlankPlugin } from '../../integrations/integrations';
+import { getBlankPlugin } from '../../integrations/integrations';
 import { GenericModal } from '../display/GenericModal';
 import { RadioGroup } from '../inputs/Selects';
 import { DistributionComponent, OffChainClaim, OffChainClaimBuilder } from '../tx-timelines/step-items/OffChainBalancesStepItem';
@@ -156,9 +155,7 @@ export const createBalancesMapAndAddToStorage = async (
 export const createBalancesClaimWithPlugins = async (
   collectionId: bigint,
   method: 'ipfs' | 'centralized',
-  plugins: Array<IntegrationPluginDetails<ClaimIntegrationPluginType>>,
-  balancesToSet: IncrementedBalances<bigint>,
-  claimId: string,
+  claims: Array<OffChainClaim<bigint>>,
   isGenesis: boolean,
   notify: boolean
 ) => {
@@ -166,7 +163,7 @@ export const createBalancesClaimWithPlugins = async (
   const res = await BitBadgesApi.addBalancesToOffChainStorage({
     // If plugins, we instantiate a new map initially (genesis) but leave as is if not
     balances: isGenesis ? balanceMap : undefined,
-    offChainClaims: plugins.length > 0 ? [{ balancesToSet, plugins, claimId }] : undefined,
+    offChainClaims: claims,
     collectionId: collectionId,
     method
   });
@@ -286,8 +283,8 @@ export function UpdateBalancesModal({
           disabled ||
           (addMethod === MetadataAddMethod.Manual && transfers.length == 0) ||
           (addMethod === MetadataAddMethod.Plugins && offChainClaims.length == 0) ||
-          (addMethod === MetadataAddMethod.Plugins && offChainClaims[0].balancesToSet?.startBalances.length == 0) ||
-          (addMethod === MetadataAddMethod.Plugins && !offChainClaims[0].plugins.some((x) => x.id !== 'numUses'))
+          (addMethod === MetadataAddMethod.Plugins && offChainClaims.some((claim) => claim.balancesToSet?.startBalances.length == 0)) ||
+          (addMethod === MetadataAddMethod.Plugins && offChainClaims.every((claim) => claim.plugins.find((x) => x.id === 'numUses')))
         }
         className="landing-button"
         style={{ width: '100%', marginTop: 20 }}
@@ -298,16 +295,7 @@ export function UpdateBalancesModal({
             await createBalancesMapAndAddToStorage(collectionId, transfers, 'centralized', true);
           } else if (addMethod === MetadataAddMethod.Plugins) {
             if (offChainClaims.length > 0) {
-              await createBalancesClaimWithPlugins(
-                collectionId,
-                'centralized',
-                offChainClaims[0].plugins,
-                offChainClaims[0].balancesToSet ??
-                  new IncrementedBalances({ startBalances: new BalanceArray(), incrementBadgeIdsBy: 0n, incrementOwnershipTimesBy: 0n }),
-                offChainClaims[0].claimId,
-                false,
-                true
-              );
+              await createBalancesClaimWithPlugins(collectionId, 'centralized', offChainClaims, false, true);
             } else {
               throw new Error('No offChainClaims');
             }

@@ -5,14 +5,15 @@ import {
   ClaimIntegrationPublicStateType
 } from 'bitbadgesjs-sdk';
 import { ReactNode } from 'react';
+import { OffChainClaim } from '../components/tx-timelines/step-items/OffChainBalancesStepItem';
 import { DiscordPluginDetails, ProofOfAddressPluginDetails, TwitterPluginDetails } from './auth';
 import { CodesPluginDetails } from './codes';
 import { MinBalancesPluginDetails } from './minBalances';
+import { MustOwnPluginDetails } from './mustOwn';
 import { NumUsesPluginDetails } from './numUses';
 import { PasswordPluginDetails } from './passwords';
 import { TransferTimesPluginDetails } from './transferTimes';
 import { WhitelistPluginDetails } from './whitelist';
-import { MustOwnPluginDetails } from './mustOwn';
 
 interface ContextInfo {
   address: string;
@@ -48,7 +49,8 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     setParams,
     numClaims,
     disabled,
-    setDisabled
+    setDisabled,
+    claim
   }: {
     id: P;
     metadata: IntegrationMetadata;
@@ -58,6 +60,7 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     numClaims: number;
     disabled: string;
     setDisabled: (disabled: string) => void;
+    claim: Readonly<OffChainClaim<bigint>>;
   }) => ReactNode;
   inputNode?: ({
     id,

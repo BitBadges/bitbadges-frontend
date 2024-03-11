@@ -12,6 +12,7 @@ import IconButton from '../components/display/IconButton';
 import { MintType } from '../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
 import { ClaimIntegrationPlugin } from './integrations';
 import crypto from 'crypto';
+import { OffChainClaim } from '../components/tx-timelines/step-items/OffChainBalancesStepItem';
 
 export const CodesPluginDetails: ClaimIntegrationPlugin<'codes'> = {
   id: 'codes',
@@ -25,8 +26,8 @@ export const CodesPluginDetails: ClaimIntegrationPlugin<'codes'> = {
     onChainCompatible: true
   },
   stateString: () => 'The state tracks the codes that have been used.',
-  createNode: ({ privateParams, setParams, numClaims, setDisabled }) => {
-    return <CodesCreateNode privateParams={privateParams} setParams={setParams} numClaims={numClaims} setDisabled={setDisabled} />;
+  createNode: ({ privateParams, setParams, numClaims, setDisabled, claim }) => {
+    return <CodesCreateNode privateParams={privateParams} setParams={setParams} numClaims={numClaims} setDisabled={setDisabled} claim={claim} />;
   },
   inputNode: ({ setCustomBody }) => {
     return <CodesInputNode setCustomBody={setCustomBody} />;
@@ -81,12 +82,14 @@ const CodesCreateNode = ({
   privateParams,
   setParams,
   numClaims,
-  setDisabled
+  setDisabled,
+  claim
 }: {
   privateParams: ClaimIntegrationPrivateParamsType<'codes'>;
   setParams: (publicParams: ClaimIntegrationPublicParamsType<'codes'>, privateParams: ClaimIntegrationPrivateParamsType<'codes'>) => void;
   numClaims: number;
   setDisabled: (disabled: string) => void;
+  claim: Readonly<OffChainClaim<bigint>>;
 }) => {
   const codes = useMemo(() => {
     let codes = privateParams?.codes ?? [];
@@ -198,6 +201,7 @@ const CodesCreateNode = ({
           secondary
         />
         <PluginCodesModal
+          claim={claim}
           codes={codes ?? []}
           collectionId={
             txTimelineContext.mintType === MintType.AddressList
@@ -227,7 +231,8 @@ export const PluginCodesModal = ({
   collectionId,
   list,
   visible,
-  setVisible
+  setVisible,
+  claim
 }: {
   codes?: string[];
   password?: string;
@@ -235,10 +240,11 @@ export const PluginCodesModal = ({
   collectionId?: bigint;
   visible: boolean;
   setVisible: (visible: boolean) => void;
+  claim: OffChainClaim<bigint>;
 }) => {
   return (
     <GenericModal title="Codes" setVisible={setVisible} visible={visible} style={{ minWidth: '90%' }}>
-      <CodesDisplay collectionId={collectionId} codes={codes} claimPassword={password} list={list} />
+      <CodesDisplay collectionId={collectionId} codes={codes} claimPassword={password} list={list} claim={claim} />
     </GenericModal>
   );
 };

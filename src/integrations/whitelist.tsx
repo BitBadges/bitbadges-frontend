@@ -56,7 +56,7 @@ const WhitelistCreateNode = ({
 
   useEffect(() => {
     setDisabled(list.isEmpty() ? 'No addresses in whitelist.' : '');
-  }, [list, setDisabled]);
+  }, [list]);
 
   const setList = (val: AddressList, privateList?: boolean) => {
     if (privateList) {

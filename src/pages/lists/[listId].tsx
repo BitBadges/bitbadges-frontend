@@ -33,6 +33,7 @@ import { OffChainClaim } from '../../components/tx-timelines/step-items/OffChain
 import { ReportedWrapper } from '../../components/wrappers/ReportedWrapper';
 import { getMaxUses, getPluginDetails } from '../../integrations/integrations';
 import { PluginCodesModal } from '../../integrations/codes';
+import { Pagination } from '../../components/common/Pagination';
 
 const { Content } = Layout;
 
@@ -102,13 +103,19 @@ export const AddressListClaimCardWithModal = ({
   onSuccess,
   buttonNode,
   description,
-  unknownPublicState
+  unknownPublicState,
+  claimIdx,
+  setClaimIdx,
+  total
 }: {
   claim: OffChainClaim<bigint>;
   onSuccess: () => Promise<void>;
   buttonNode?: ReactNode;
   description?: string;
   unknownPublicState?: boolean;
+  claimIdx?: number;
+  setClaimIdx?: (idx: number) => void;
+  total?: number;
 }) => {
   const chain = useChainContext();
   const [visible, setVisible] = useState(false);
@@ -122,6 +129,20 @@ export const AddressListClaimCardWithModal = ({
     <>
       <InformationDisplayCard title={<BitBadgesClaimLogo />} subtitle={description ?? "Claim a spot on this list if you're eligible."}>
         <br />
+        {setClaimIdx && total && claimIdx !== undefined && (
+          <>
+            <Pagination
+              currPage={claimIdx + 1}
+              onChange={(page) => {
+                setClaimIdx(page - 1);
+              }}
+              total={total}
+              pageSize={1}
+              showOnSinglePage
+            />
+            <br />
+          </>
+        )}
         {claim && <ClaimCriteriaDisplay plugins={claim?.plugins} unknownPublicState={unknownPublicState} />}
         {!alreadyClaimed && !exceedsMaxUses && claim && (
           <div className="flex-center">
@@ -155,6 +176,8 @@ function AddressListPage() {
   const [addressToCheck, setAddressToCheck] = useState<string>('');
   const [modalIsVisible, setModalIsVisible] = useState<boolean>(false);
   const [codesModalVisible, setCodesModalVisible] = useState<boolean>(false);
+
+  const [claimIdx, setClaimIdx] = useState<number>(0);
 
   const actions: Action[] = [];
 
@@ -271,8 +294,8 @@ function AddressListPage() {
   tabInfo.push({ key: 'history', content: 'Update History' });
   tabInfo.push({ key: 'actions', content: 'Actions' });
 
-  const claimId = list?.editClaims && list.editClaims.length > 0 ? list.editClaims[0].claimId : undefined;
-  const claim = list?.editClaims && list.editClaims.length > 0 ? list.editClaims[0] : undefined;
+  const claimId = list?.editClaims && list.editClaims.length > claimIdx ? list.editClaims[claimIdx].claimId : undefined;
+  const claim = list?.editClaims && list.editClaims.length > claimIdx ? list.editClaims[claimIdx] : undefined;
 
   const numUsesPlugin = getPluginDetails('numUses', claim?.plugins ?? []);
   const maxUses = getMaxUses(claim?.plugins ?? []);
@@ -427,6 +450,9 @@ function AddressListPage() {
                             {claim && (
                               <AddressListClaimCardWithModal
                                 claim={claim}
+                                claimIdx={claimIdx}
+                                setClaimIdx={setClaimIdx}
+                                total={list.editClaims.length}
                                 onSuccess={async () => {
                                   const newLists = await BitBadgesApi.getAddressLists({
                                     listsToFetch: [
@@ -471,6 +497,7 @@ function AddressListPage() {
                                             secondary
                                           />
                                           <PluginCodesModal
+                                            claim={claim}
                                             codes={codes ?? []}
                                             list={list}
                                             visible={codesModalVisible}

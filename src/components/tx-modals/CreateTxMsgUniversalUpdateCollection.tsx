@@ -53,7 +53,6 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
   const collectionId = txTimelineContext.existingCollectionId ?? NEW_COLLECTION_ID;
   const collection = useCollection(NEW_COLLECTION_ID);
 
-  
   const txsInfo = useMemo(() => {
     if (!collection) return [];
 
@@ -99,7 +98,6 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
       const prunedMetadata: Array<BadgeMetadataDetails<bigint>> = collection.cachedBadgeMetadata
         .map((x) => x.clone())
         .filter((x) => x.badgeIds.length > 0 && x.toUpdate && !compareObjects(Metadata.DefaultPlaceholderMetadata(), x.metadata));
-      
 
       //If metadata was added manually, we need to add it to IPFS and update the URIs in msg
       //If metadata was added with a URI, the timeline should already be updated with the final URI
@@ -201,7 +199,6 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
         }
       }
 
-      
       //If distribution method is codes or a whitelist, we need to add the merkle tree to IPFS and update the claim URI
       if (collectionApprovalsTimeline?.length > 0 && txTimelineContext.updateCollectionApprovals) {
         if (simulate) {
@@ -318,9 +315,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
               res = await createBalancesClaimWithPlugins(
                 collectionId,
                 method,
-                collection.offChainClaims[0].plugins,
-                collection.offChainClaims[0].balancesToSet,
-                collection.offChainClaims[0].claimId,
+                collection.offChainClaims,
                 !txTimelineContext.existingCollectionId,
                 false
               );

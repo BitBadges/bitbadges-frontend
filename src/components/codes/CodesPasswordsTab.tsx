@@ -55,8 +55,7 @@ export function CodesPasswordsTab({
       style={{
         justifyContent: 'center',
         width: '100%'
-      }}
-    >
+      }}>
       {numActiveClaims > 1 && (
         <>
           <Pagination currPage={currPage} onChange={setCurrPage} total={numActiveClaims} pageSize={1} />
@@ -77,6 +76,7 @@ export function CodesPasswordsTab({
         {currApproval && (
           <>
             <CodesDisplay
+              claim={collection.offChainClaims?.[0]}
               collectionId={collectionId}
               approval={currApproval}
               codes={normalizedCodesAndPasswords ? normalizedCodesAndPasswords[currPage - 1]?.codes : []}

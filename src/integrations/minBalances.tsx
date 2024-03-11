@@ -48,7 +48,7 @@ export const MinBalancesPluginDetails: ClaimIntegrationPlugin<'greaterThanXBADGE
   stateString: () => '',
   createNode: MinBalanceCreateNode,
   detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'greaterThanXBADGEBalance'> }) => {
-    return `Must have a balance greater than ${publicParams.minBalance} $BADGE.`;
+    return `Must have a minimum balance of ${publicParams.minBalance} $BADGE.`;
   },
   getBlankPrivateParams() {
     return {};

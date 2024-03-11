@@ -146,6 +146,7 @@ export function ApprovalSelect({
   const mintOnlyApproval = defaultFromList?.listId === 'Mint' && fromListLocked;
 
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
+  const claimId = useRef(crypto.randomBytes(32).toString('hex'));
   const defaultApprovalToAdd: iCollectionApprovalWithDetails<bigint> & {
     approvalCriteria: Required<iApprovalCriteriaWithDetails<bigint>>;
     details: iApprovalInfoDetails<bigint>;
@@ -736,6 +737,10 @@ export function ApprovalSelect({
               </div>
               <br />
               <ClaimBuilder
+                claim={{
+                  claimId: claimId.current,
+                  plugins: plugins,
+                }}
                 isUpdate={false} // no updates for approvals are currently supported
                 plugins={plugins}
                 setPlugins={(plugins) => {
@@ -1128,7 +1133,7 @@ export function ApprovalSelect({
 
             details.offChainClaims = [
               {
-                claimId: '',
+                claimId: claimId.current,
                 plugins: pluginsToAdd
               }
             ];

@@ -39,6 +39,7 @@ import { Tabs } from '../../navigation/Tabs';
 import { PluginTextDisplay } from './DetailsCard';
 import { PredeterminedCard } from './PredeterminedCard';
 import { PluginCodesModal } from '../../../integrations/codes';
+import { Pagination } from '../../common/Pagination';
 const { SHA256 } = CryptoJS;
 
 export const generateCodesFromSeed = (seedCode: string, numCodes: number): string[] => {
@@ -60,10 +61,11 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
   const [tab, setTab] = useState('criteria');
   const [claimed, setClaimed] = useState(false);
   const [codesModalVisible, setCodesModalVisible] = useState(false);
+  const [claimIdx, setClaimIdx] = useState(0);
 
-  const fetchedPlugins = collection && (collection?.offChainClaims ?? []).length > 0 ? collection.offChainClaims[0].plugins : [];
-  const claimId = collection && (collection?.offChainClaims ?? []).length > 0 ? collection.offChainClaims[0].claimId : '';
-  const claim = collection && (collection?.offChainClaims ?? []).length > 0 ? collection.offChainClaims[0] : undefined;
+  const fetchedPlugins = collection && (collection?.offChainClaims ?? []).length > claimIdx ? collection.offChainClaims[claimIdx].plugins : [];
+  const claimId = collection && (collection?.offChainClaims ?? []).length > claimIdx ? collection.offChainClaims[claimIdx].claimId : '';
+  const claim = collection && (collection?.offChainClaims ?? []).length > claimIdx ? collection.offChainClaims[claimIdx] : undefined;
   const alreadyClaimed = claimed || (claim && hasAlreadyUsedAllClaims(claim, chain));
 
   useEffect(() => {
@@ -116,13 +118,6 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
     };
   }
 
-  // const claimedBalances = collection.offChainClaims.length > 0 ? collection.offChainClaims[0].balancesToSet.startBalances.clone() : undefined;
-  // claimedBalances?.applyIncrements(
-  //   collection.offChainClaims.length > 0 ? collection.offChainClaims[0].balancesToSet.incrementBadgeIdsBy ?? 0n : 0n,
-  //   collection.offChainClaims.length > 0 ? collection.offChainClaims[0].balancesToSet.incrementOwnershipTimesBy ?? 0n : 0n,
-  //   BigInt(getPluginDetails('numUses', fetchedPlugins)?.publicState.claimedUsers[chain.cosmosAddress] ?? 0n)
-  // );
-
   const numUsesPlugin = getPluginDetails('numUses', fetchedPlugins);
   const currNumUses = numUsesPlugin?.publicState.numUses ?? 0n;
   const maxUses = getMaxUses(fetchedPlugins);
@@ -157,11 +152,9 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
               },
               predeterminedBalances: {
                 incrementedBalances: {
-                  startBalances:
-                    collection.offChainClaims.length > 0 ? collection.offChainClaims[0].balancesToSet.startBalances : BalanceArray.From([]),
-                  incrementBadgeIdsBy: collection.offChainClaims.length > 0 ? collection.offChainClaims[0].balancesToSet.incrementBadgeIdsBy : 0n,
-                  incrementOwnershipTimesBy:
-                    collection.offChainClaims.length > 0 ? collection.offChainClaims[0].balancesToSet.incrementOwnershipTimesBy : 0n
+                  startBalances: claim ? claim?.balancesToSet.startBalances : BalanceArray.From([]),
+                  incrementBadgeIdsBy: claim ? claim?.balancesToSet.incrementBadgeIdsBy : 0n,
+                  incrementOwnershipTimesBy: claim ? claim?.balancesToSet.incrementOwnershipTimesBy : 0n
                 },
                 orderCalculationMethod: {
                   useMerkleChallengeLeafIndex: false,
@@ -208,9 +201,9 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
                       const newColl = await BitBadgesApi.getCollections({
                         collectionsToFetch: [{ collectionId: collectionId }]
                       });
-                      const usedIndices = getPluginDetails('numUses', newColl.collections[0].offChainClaims[0].plugins)?.publicState.claimedUsers[
-                        recipientAddress
-                      ];
+                      const claim = newColl.collections[0].offChainClaims.find((x) => x.claimId === claimId);
+
+                      const usedIndices = getPluginDetails('numUses', claim?.plugins ?? [])?.publicState.claimedUsers[recipientAddress];
                       const claimNumber = Math.max(...(usedIndices ?? [0])) + 1;
 
                       notification.success({
@@ -236,6 +229,19 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
             xs={24}
             sm={24}>
             <br />
+            {collection.offChainClaims.length > 1 && (
+              <>
+                <Pagination
+                  total={collection.offChainClaims.length}
+                  currPage={claimIdx + 1}
+                  onChange={(page) => {
+                    setClaimIdx(page - 1);
+                  }}
+                  pageSize={1}
+                />
+              </>
+            )}
+
             <Tabs
               tab={tab}
               setTab={setTab}
@@ -277,13 +283,14 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
                       }}
                       secondary
                     />
-                    <PluginCodesModal
+                    {claim && <PluginCodesModal
+                      claim={claim}
                       codes={codes ?? []}
                       collectionId={collectionId}
                       visible={codesModalVisible}
                       setVisible={setCodesModalVisible}
                       password={getPluginDetails('password', fetchedPlugins)?.privateParams.password}
-                    />
+                    />}
                   </div>
                 )}
                 {alreadyClaimed && !claimed && (
