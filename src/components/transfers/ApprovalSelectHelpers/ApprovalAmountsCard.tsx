@@ -2,10 +2,7 @@ import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { BalanceArray } from 'bitbadgesjs-sdk';
 import { Dispatch, SetStateAction } from 'react';
 import { DistributionMethod } from '../../../bitbadges-api/types';
-import {
-  approvalHasApprovalAmounts,
-  approvalHasMaxNumTransfers
-} from '../../../bitbadges-api/utils/claims';
+import { approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../../bitbadges-api/utils/claims';
 import { getBadgeIdsString } from '../../../utils/badgeIds';
 import { getTimeRangesElement } from '../../../utils/dates';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
@@ -344,7 +341,7 @@ export const ApprovalSelectAmountsCard = ({
                       label="Increment per unique approved address?"
                     />
                   )}
-                  {distributionMethod != DistributionMethod.Claims && (
+                  {/* {distributionMethod != DistributionMethod.Claims && (
                     <OrderCalculationMethod
                       expectedPartitions={expectedPartitions}
                       approvalToAdd={approvalToAdd}
@@ -355,8 +352,9 @@ export const ApprovalSelectAmountsCard = ({
                       startBalances={BalanceArray.From(startBalances)}
                       keyId="useMerkleChallengeLeafIndex"
                       label="Specific codes / whitelisted addresses?"
+                      
                     />
-                  )}
+                  )} */}
                   {/* if all are false warning message */}
                   {!orderCalculationMethod.useOverallNumTransfers &&
                     !orderCalculationMethod.usePerToAddressNumTransfers &&
