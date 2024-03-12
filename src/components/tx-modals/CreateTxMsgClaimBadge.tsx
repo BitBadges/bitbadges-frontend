@@ -4,6 +4,7 @@ import { CollectionApprovalWithDetails, MsgTransferBadges, applyIncrementsToBala
 import SHA256 from 'crypto-js/sha256';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
+import { checkAndCompleteClaim } from '../../bitbadges-api/api';
 import { useChainContext } from '../../bitbadges-api/contexts/ChainContext';
 import { fetchAccounts, fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
 import { fetchCollections, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
@@ -18,7 +19,6 @@ import { ErrDisplay } from '../common/ErrDisplay';
 import { InformationDisplayCard } from '../display/InformationDisplayCard';
 import { getTreeForApproval } from './CreateTxMsgTransferBadges';
 import { TxModal } from './TxModal';
-import { checkAndCompleteClaim } from '../../bitbadges-api/api';
 
 //Claim badge is exclusively used for predetermined balances
 //For other standard tramsfers, use CreateTxMsgTransferBadgesModal
@@ -88,8 +88,9 @@ export function CreateTxMsgClaimBadgeModal({
     async function fetchReservedCodes() {
       const docId = claimId;
       const recipientAddress = chain.cosmosAddress;
+      console.log('fetchReservedCodes', docId, recipientAddress, merkleChallenge, visible, setOnChainCode, challengeTracker);
+
       if (!challengeTracker || !docId || !recipientAddress || !merkleChallenge || !visible || !setOnChainCode) return;
-      if (challengeTracker.usedLeafIndices.length == 0) return;
       if (fetchedReservedCodes) return;
 
       const res = await checkAndCompleteClaim(docId, recipientAddress, { prevCodesOnly: true });
@@ -400,6 +401,10 @@ export function CreateTxMsgClaimBadgeModal({
                                   <Typography.Text strong className="secondary-text" style={{ fontSize: 16 }}>
                                     {`All criteria is satisfied!`} <CheckCircleFilled style={{ color: '#00FF00' }} />
                                   </Typography.Text>
+                                  <br />
+                                  <Typography.Text strong className="secondary-text" style={{ fontSize: 12 }}>
+                                    {`You have reserved a claim. You can now proceed to claim the badge now or later.`}
+                                  </Typography.Text>
                                 </>
                               )}
 
@@ -447,7 +452,7 @@ export function CreateTxMsgClaimBadgeModal({
       setVisible={setVisible}
       txsInfo={txsInfo}
       txName="Claim Badge"
-      requireLogin={fetchedPlugins.length > 0}
+      requireLogin={fetchedPlugins.find((x) => x.id === 'requiresProofOfAddress') ? true : false}
       disabled={requiresProof && !isValidProof}
       msgSteps={items}>
       {children}

@@ -5,7 +5,7 @@ import { BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-sdk';
 
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
-import { updateAccountInfo } from '../../../bitbadges-api/api';
+import { BitBadgesApi, updateAccountInfo } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 import crypto from 'crypto';
@@ -20,6 +20,7 @@ import { INFINITE_LOOP_MODE } from '../../../constants';
 
 import '@uiw/react-markdown-preview/markdown.css';
 import '@uiw/react-md-editor/markdown-editor.css';
+import { useWeb2Context } from '../../../bitbadges-api/contexts/chains/Web2Context';
 import IconButton from '../../../components/display/IconButton';
 import { GenericMarkdownFormInput, GenericTextFormInput, SocialsFormItems } from '../../../components/tx-timelines/form-items/MetadataForm';
 import { DiscordInputNode } from '../../../integrations/auth';
@@ -140,6 +141,8 @@ export function AccountSettings() {
   const readme = newAccount?.readme ? newAccount.readme : '';
   const customLinks = newAccount?.customLinks ? newAccount.customLinks : [];
 
+  const web2Context = useWeb2Context();
+
   const approvedSignInMethods = newAccount?.approvedSignInMethods ? newAccount.approvedSignInMethods : undefined;
   const setApprovedSignInMethods = (approvedSignInMethods: { discord?: { id: string; username: string; discriminator?: string } }) => {
     setNewAccount(new BitBadgesUserInfo<bigint>({ ...newAccount, approvedSignInMethods }));
@@ -246,7 +249,7 @@ export function AccountSettings() {
                     justifyContent: 'center',
                     flexDirection: 'column'
                   }}>
-                  <b className="primary-text" style={{ fontSize: 24, textAlign: 'center' }}>
+                  <b className="primary-text mb-4" style={{ fontSize: 24 }}>
                     Profile
                   </b>
                   <GenericTextFormInput label="Username" value={username} setValue={setUsername} placeholder="Enter a username" />
@@ -325,7 +328,7 @@ export function AccountSettings() {
                     </div>
                   </Form.Item>
                   <Divider />
-                  <b className="primary-text" style={{ fontSize: 24, textAlign: 'center' }}>
+                  <b className="primary-text mb-4" style={{ fontSize: 24 }}>
                     Sign-Ins
                   </b>
                   <Form.Item
@@ -334,20 +337,59 @@ export function AccountSettings() {
                         Discord Sign-In
                       </Text>
                     }>
-                    <div className="flex-center text-center primary-text">
-                      <DiscordInputNode
-                        setDisabled={() => {}}
-                        onSuccess={(username, id, discriminator) => {
-                          setApprovedSignInMethods({ discord: { id, username, discriminator } });
-                        }}
-                      />
-                    </div>
-                    <button
-                      onClick={() => {
-                        setApprovedSignInMethods({});
-                      }}>
-                      Remove
-                    </button>
+                    {approvedSignInMethods?.discord?.username ? (
+                      <div className="primary-text">
+                        <div className="flex primary-text">
+                          <>Approved to sign in with Discord account: </>
+                          <b>@{approvedSignInMethods?.discord?.username}</b>
+                          <>{Number(approvedSignInMethods?.discord?.discriminator) ? '#' + approvedSignInMethods?.discord?.discriminator : ''}</>
+                        </div>
+                        <br />
+                        <button className="landing-button" onClick={() => setApprovedSignInMethods({})}>
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        {!web2Context.discord.username && (
+                          <div className="flex text-center primary-text">
+                            <DiscordInputNode setDisabled={() => {}} />
+                          </div>
+                        )}
+                        {web2Context.discord.username && (
+                          <>
+                            <div className="secondary-text">
+                              You are currently signed in with Discord account: <b>@{web2Context.discord.username}</b>
+                              {Number(web2Context.discord.discriminator) ? '#' + web2Context.discord.discriminator : ''}. Would you like to approve
+                              this account to sign in to BitBadges?
+                            </div>
+                            <div className="flex flex-wrap">
+                              <button
+                                className="landing-button"
+                                onClick={() => {
+                                  setApprovedSignInMethods({
+                                    discord: {
+                                      id: web2Context.discord.id,
+                                      username: web2Context.discord.username,
+                                      discriminator: web2Context.discord.discriminator
+                                    }
+                                  });
+                                }}>
+                                Approve
+                              </button>
+                              <button
+                                className="landing-button"
+                                onClick={async () => {
+                                  await BitBadgesApi.signOut({ signOutDiscord: true, signOutBlockin: false, signOutTwitter: false });
+                                  web2Context.setDiscord({ username: '', discriminator: '', id: '' });
+                                }}>
+                                Sign Out
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
                   </Form.Item>
                   {/*
                   <Divider />

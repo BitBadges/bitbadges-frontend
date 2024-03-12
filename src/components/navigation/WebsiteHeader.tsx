@@ -15,6 +15,7 @@ import { BlockiesAvatar } from '../address/Blockies';
 import { Tabs } from '../navigation/Tabs';
 import { CreateTxMsgSendModal } from '../tx-modals/CreateTxMsgSendModal';
 import { SearchDropdown } from './SearchDropdown';
+import { useWeb2Context } from '../../bitbadges-api/contexts/chains/Web2Context';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -22,6 +23,7 @@ const { Text } = Typography;
 export function WalletHeader() {
   const router = useRouter();
   const chain = useChainContext();
+  const web2Context = useWeb2Context();
 
   const account = useAccount(chain.address);
   const status = useStatusContext();
@@ -267,7 +269,21 @@ export function WalletHeader() {
             onClick={() => {
               signOut({ signOutBlockin: true, signOutDiscord: true, signOutTwitter: true });
               setCookie('blockincookie', '', { path: '/' });
+              web2Context.setDiscord({ username: '', discriminator: '', id: '' });
+            }}>
+            Sign Out
+          </Menu.Item>
+        </>
+      )}
+      {connected && signedIn && (
+        <>
+          <Menu.Item
+            className="dropdown-item text-sm text-vivid-blue"
+            onClick={() => {
+              signOut({ signOutBlockin: true, signOutDiscord: true, signOutTwitter: true });
+              setCookie('blockincookie', '', { path: '/' });
               chain.disconnect();
+              web2Context.setDiscord({ username: '', discriminator: '', id: '' });
             }}>
             Disconnect and Sign Out
             {chain.loggedInExpiration > 0 ? (

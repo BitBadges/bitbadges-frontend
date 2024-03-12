@@ -228,6 +228,7 @@ function Broadcast() {
 
   return (
     <DisconnectedWrapper
+      requiresSignature
       requireLogin={!!txsInfo.find((x) => txTypesThatRequireLogin.includes(x.type))}
       message="Please connect a wallet and sign in to access this page."
       node={

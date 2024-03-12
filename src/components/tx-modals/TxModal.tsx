@@ -104,6 +104,7 @@ export function TxModal({
   const [finalMsgs, setFinalMsgs] = useState<any[] | null>(null);
 
   const signedInAccount = useAccount(chain.cosmosAddress);
+  const isClaimTransaction = txName === 'Claim Badge';
 
   const txsInfoPopulated = useMemo(() => {
     return txsInfo.map((tx) => {
@@ -565,281 +566,290 @@ export function TxModal({
   const finalSubmitStep = {
     title: <>Submit</>,
     description: (
-      <div>
-        {currentStep === (msgSteps ?? []).length && (
-          <div>
-            <div className="flex-center flex-wrap" style={{ alignItems: 'normal' }}>
-              <Col md={8} xs={24} style={{ textAlign: 'center' }}>
-                <Typography.Text
-                  strong
-                  style={{
-                    textAlign: 'center',
-                    alignContent: 'center',
-                    alignItems: 'center',
-                    fontSize: 24
-                  }}
-                  className="primary-text flex-center">
-                  Signer
-                </Typography.Text>
-                <br />
-                <div className="flex-center">
-                  <AddressDisplay hidePortfolioLink addressOrUsername={chain.address} overrideChain={chain.chain} fontSize={16} />
-                </div>
-                <br />
-                <div style={{ textAlign: 'center' }} className="primary-text">
-                  <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className="primary-text">
-                    Balance: {`${signedInAccount?.balance?.amount ?? 0}`} ${txDetails.fee.denom.toUpperCase()}
-                  </Typography.Text>
-                </div>
-                <br />
-              </Col>
+      <DisconnectedWrapper
+        message={`Please connect${requireLogin ? ' and sign in' : ''} to access.`}
+        requiresSignature={true} //We allow reserving badges without signing
+        requireLogin={requireLogin}
+        node={
+          <>
+            <div>
+              {currentStep === (msgSteps ?? []).length && (
+                <div>
+                  <div className="flex-center flex-wrap" style={{ alignItems: 'normal' }}>
+                    <Col md={8} xs={24} style={{ textAlign: 'center' }}>
+                      <Typography.Text
+                        strong
+                        style={{
+                          textAlign: 'center',
+                          alignContent: 'center',
+                          alignItems: 'center',
+                          fontSize: 24
+                        }}
+                        className="primary-text flex-center">
+                        Signer
+                      </Typography.Text>
+                      <br />
+                      <div className="flex-center">
+                        <AddressDisplay hidePortfolioLink addressOrUsername={chain.address} overrideChain={chain.chain} fontSize={16} />
+                      </div>
+                      <br />
+                      <div style={{ textAlign: 'center' }} className="primary-text">
+                        <Typography.Text strong style={{ textAlign: 'center', alignContent: 'center', fontSize: 16 }} className="primary-text">
+                          Balance: {`${signedInAccount?.balance?.amount ?? 0}`} ${txDetails.fee.denom.toUpperCase()}
+                        </Typography.Text>
+                      </div>
+                      <br />
+                    </Col>
 
-              <Col md={8} xs={24} style={{ textAlign: 'center' }}>
-                <Typography.Text
-                  strong
-                  style={{
-                    textAlign: 'center',
-                    alignContent: 'center',
-                    alignItems: 'center',
-                    fontSize: 24
-                  }}
-                  className="primary-text flex-center">
-                  Fee
-                  <Tooltip
-                    color="black"
-                    title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The recommended fee was calculated based on the current market price of gas and the type of transaction.">
-                    <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
-                  </Tooltip>
-                </Typography.Text>
-                <br />
-                {txDetails?.fee && simulated ? (
-                  <>
-                    <Switch
-                      checked={useRecommendedFee}
-                      onChange={(checked) => {
-                        setUseRecommendedFee(checked);
-                        setAmount(checked ? recommendedAmount : BigIntify(txDetails.fee.amount));
-                      }}
-                      checkedChildren="Recommended"
-                      unCheckedChildren="Custom"
-                    />
-                    <br />
-                    <br />
+                    <Col md={8} xs={24} style={{ textAlign: 'center' }}>
+                      <Typography.Text
+                        strong
+                        style={{
+                          textAlign: 'center',
+                          alignContent: 'center',
+                          alignItems: 'center',
+                          fontSize: 24
+                        }}
+                        className="primary-text flex-center">
+                        Fee
+                        <Tooltip
+                          color="black"
+                          title="The transaction fee is the amount of cryptocurrency that is paid to the network for processing the transaction. The recommended fee was calculated based on the current market price of gas and the type of transaction.">
+                          <InfoCircleOutlined style={{ marginLeft: 5, marginRight: 5 }} />
+                        </Tooltip>
+                      </Typography.Text>
+                      <br />
+                      {txDetails?.fee && simulated ? (
+                        <>
+                          <Switch
+                            checked={useRecommendedFee}
+                            onChange={(checked) => {
+                              setUseRecommendedFee(checked);
+                              setAmount(checked ? recommendedAmount : BigIntify(txDetails.fee.amount));
+                            }}
+                            checkedChildren="Recommended"
+                            unCheckedChildren="Custom"
+                          />
+                          <br />
+                          <br />
+                          <Typography.Text
+                            strong
+                            style={{
+                              textAlign: 'center',
+                              alignContent: 'center',
+                              alignItems: 'center',
+                              fontSize: 16
+                            }}
+                            className="primary-text flex-center">
+                            {useRecommendedFee ? (
+                              <>{recommendedAmount.toString()}</>
+                            ) : (
+                              <InputNumber
+                                value={Numberify(txDetails.fee.amount)}
+                                onChange={(value) => {
+                                  value = value ? Math.round(value) : 0;
+                                  setAmount(BigInt(value));
+                                }}
+                                min={0}
+                                max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
+                                step={1}
+                                style={{ marginLeft: 5, marginRight: 5 }}
+                                className="primary-text inherit-bg"
+                              />
+                            )}{' '}
+                            ${txDetails.fee.denom.toUpperCase()}
+                          </Typography.Text>
+                        </>
+                      ) : (
+                        <div
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            flexDirection: 'column'
+                          }}>
+                          <Spin size="large" />
+                          <Typography.Text className="secondary-text" style={{ textAlign: 'center' }} strong>
+                            Simulating Transaction
+                          </Typography.Text>
+                          <Divider />
+                        </div>
+                      )}
+                    </Col>
+                    <Col md={8} xs={24} style={{ textAlign: 'center' }}>
+                      <Typography.Text
+                        strong
+                        style={{
+                          textAlign: 'center',
+                          alignContent: 'center',
+                          alignItems: 'center',
+                          fontSize: 24
+                        }}
+                        className="primary-text flex-center">
+                        Options
+                      </Typography.Text>
+                      {simulated && (
+                        <>
+                          <div className="flex-center">
+                            <IconButton
+                              src={showJson ? <MinusOutlined /> : <ZoomInOutlined />}
+                              text={'Show Final JSON'}
+                              tooltipMessage="Show the JSON of the Cosmos SDK message sent to the blockchain."
+                              onClick={async () => {
+                                if (showJson) {
+                                  setShowJson(null);
+                                } else {
+                                  if (!finalMsgs?.length) {
+                                    const generatedMsgs: any[] = [];
+                                    for (const tx of txsInfoPopulated) {
+                                      const { generateProtoMsg, beforeTx, msg } = tx;
+
+                                      let cosmosMsg = msg;
+                                      if (beforeTx) {
+                                        const newMsg = await beforeTx(false);
+                                        if (newMsg) cosmosMsg = newMsg;
+                                      }
+
+                                      generatedMsgs.push(generateProtoMsg(cosmosMsg));
+                                    }
+
+                                    setFinalMsgs(generatedMsgs);
+                                    setShowJson(generatedMsgs);
+                                  } else if (finalMsgs.length > 0) {
+                                    setShowJson(finalMsgs);
+                                  } else {
+                                    setShowJson(txsInfoPopulated.map((tx) => tx.msg));
+                                  }
+                                }
+                              }}
+                            />
+
+                            {txName !== 'MsgSend' && (
+                              <IconButton
+                                src={<CodeOutlined />}
+                                text={'Dev Mode'}
+                                tooltipMessage="Go into developer mode and edit this final transaction JSON."
+                                onClick={async () => {
+                                  const msgsToRedirect: any[] = [];
+                                  if (!finalMsgs) {
+                                    const generatedMsgs: any[] = [];
+                                    for (const tx of txsInfoPopulated) {
+                                      const { generateProtoMsg, beforeTx, msg } = tx;
+
+                                      let cosmosMsg = msg;
+                                      if (beforeTx) {
+                                        const newMsg = await beforeTx(false);
+                                        if (newMsg) cosmosMsg = newMsg;
+                                      }
+
+                                      msgsToRedirect.push(cosmosMsg);
+                                      generatedMsgs.push(generateProtoMsg(cosmosMsg));
+                                    }
+
+                                    setFinalMsgs(generatedMsgs);
+                                  } else {
+                                    msgsToRedirect.push(...finalMsgs);
+                                  }
+
+                                  if (msgsToRedirect.length === 0) alert('Cannot enter developer mode for no transactions.');
+
+                                  const populatedTxInfos = txsInfoPopulated.map((tx, idx) => {
+                                    return {
+                                      type: tx.type,
+                                      msg: msgsToRedirect[idx]
+                                    };
+                                  });
+
+                                  if (confirm('Are you sure you want to enter developer mode? This may cause you to lose progress.')) {
+                                    await router.push(`/dev/broadcast?txsInfo=${encodeURIComponent(JSON.stringify(populatedTxInfos))}`);
+                                    setVisible(false);
+                                  }
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div className="secondary-text" style={{ textAlign: 'center' }}>
+                            <InfoCircleOutlined /> These are advanced options.
+                          </div>
+                        </>
+                      )}
+                    </Col>
+                    {exceedsBalance && (
+                      <div style={{ textAlign: 'center' }} className="primary-text">
+                        <Typography.Text
+                          strong
+                          style={{
+                            textAlign: 'center',
+                            alignContent: 'center',
+                            fontSize: 16,
+                            color: 'red'
+                          }}>
+                          This transaction will send more $BADGE than your wallet balance ({amountBadgeTransferred.toString()} {'>'}{' '}
+                          {`${signedInAccount?.balance?.amount ?? 0}`} $BADGE).
+                        </Typography.Text>
+                      </div>
+                    )}
+                  </div>
+                  {showJson && (
+                    <>
+                      <div style={{ textAlign: 'center' }} className="primary-text">
+                        <br />
+                        <DevMode obj={showJson} override />
+                        <br />
+                      </div>
+                    </>
+                  )}
+
+                  <Divider />
+                  <div className="flex-center">
                     <Typography.Text
                       strong
                       style={{
                         textAlign: 'center',
                         alignContent: 'center',
-                        alignItems: 'center',
-                        fontSize: 16
+                        fontSize: 16,
+                        alignItems: 'center'
                       }}
-                      className="primary-text flex-center">
-                      {useRecommendedFee ? (
-                        <>{recommendedAmount.toString()}</>
-                      ) : (
-                        <InputNumber
-                          value={Numberify(txDetails.fee.amount)}
-                          onChange={(value) => {
-                            value = value ? Math.round(value) : 0;
-                            setAmount(BigInt(value));
-                          }}
-                          min={0}
-                          max={signedInAccount?.balance?.amount ? Numberify(signedInAccount?.balance?.amount) : 0}
-                          step={1}
-                          style={{ marginLeft: 5, marginRight: 5 }}
-                          className="primary-text inherit-bg"
-                        />
-                      )}{' '}
-                      ${txDetails.fee.denom.toUpperCase()}
+                      className="primary-text">
+                      I understand that this is a beta version of BitBadges, and there may be bugs.
                     </Typography.Text>
-                  </>
-                ) : (
-                  <div
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      flexDirection: 'column'
-                    }}>
-                    <Spin size="large" />
-                    <Typography.Text className="secondary-text" style={{ textAlign: 'center' }} strong>
-                      Simulating Transaction
-                    </Typography.Text>
-                    <Divider />
                   </div>
-                )}
-              </Col>
-              <Col md={8} xs={24} style={{ textAlign: 'center' }}>
-                <Typography.Text
-                  strong
-                  style={{
-                    textAlign: 'center',
-                    alignContent: 'center',
-                    alignItems: 'center',
-                    fontSize: 24
-                  }}
-                  className="primary-text flex-center">
-                  Options
-                </Typography.Text>
-                {simulated && (
-                  <>
-                    <div className="flex-center">
-                      <IconButton
-                        src={showJson ? <MinusOutlined /> : <ZoomInOutlined />}
-                        text={'Show Final JSON'}
-                        tooltipMessage="Show the JSON of the Cosmos SDK message sent to the blockchain."
-                        onClick={async () => {
-                          if (showJson) {
-                            setShowJson(null);
-                          } else {
-                            if (!finalMsgs?.length) {
-                              const generatedMsgs: any[] = [];
-                              for (const tx of txsInfoPopulated) {
-                                const { generateProtoMsg, beforeTx, msg } = tx;
-
-                                let cosmosMsg = msg;
-                                if (beforeTx) {
-                                  const newMsg = await beforeTx(false);
-                                  if (newMsg) cosmosMsg = newMsg;
-                                }
-
-                                generatedMsgs.push(generateProtoMsg(cosmosMsg));
-                              }
-
-                              setFinalMsgs(generatedMsgs);
-                              setShowJson(generatedMsgs);
-                            } else if (finalMsgs.length > 0) {
-                              setShowJson(finalMsgs);
-                            } else {
-                              setShowJson(txsInfoPopulated.map((tx) => tx.msg));
-                            }
-                          }
-                        }}
-                      />
-
-                      {txName !== 'MsgSend' && (
-                        <IconButton
-                          src={<CodeOutlined />}
-                          text={'Dev Mode'}
-                          tooltipMessage="Go into developer mode and edit this final transaction JSON."
-                          onClick={async () => {
-                            const msgsToRedirect: any[] = [];
-                            if (!finalMsgs) {
-                              const generatedMsgs: any[] = [];
-                              for (const tx of txsInfoPopulated) {
-                                const { generateProtoMsg, beforeTx, msg } = tx;
-
-                                let cosmosMsg = msg;
-                                if (beforeTx) {
-                                  const newMsg = await beforeTx(false);
-                                  if (newMsg) cosmosMsg = newMsg;
-                                }
-
-                                msgsToRedirect.push(cosmosMsg);
-                                generatedMsgs.push(generateProtoMsg(cosmosMsg));
-                              }
-
-                              setFinalMsgs(generatedMsgs);
-                            } else {
-                              msgsToRedirect.push(...finalMsgs);
-                            }
-
-                            if (msgsToRedirect.length === 0) alert('Cannot enter developer mode for no transactions.');
-
-                            const populatedTxInfos = txsInfoPopulated.map((tx, idx) => {
-                              return {
-                                type: tx.type,
-                                msg: msgsToRedirect[idx]
-                              };
-                            });
-
-                            if (confirm('Are you sure you want to enter developer mode? This may cause you to lose progress.')) {
-                              await router.push(`/dev/broadcast?txsInfo=${encodeURIComponent(JSON.stringify(populatedTxInfos))}`);
-                              setVisible(false);
-                            }
-                          }}
-                        />
-                      )}
-                    </div>
-                    <div className="secondary-text" style={{ textAlign: 'center' }}>
-                      <InfoCircleOutlined /> These are advanced options.
-                    </div>
-                  </>
-                )}
-              </Col>
-              {exceedsBalance && (
-                <div style={{ textAlign: 'center' }} className="primary-text">
-                  <Typography.Text
-                    strong
-                    style={{
-                      textAlign: 'center',
-                      alignContent: 'center',
-                      fontSize: 16,
-                      color: 'red'
-                    }}>
-                    This transaction will send more $BADGE than your wallet balance ({amountBadgeTransferred.toString()} {'>'}{' '}
-                    {`${signedInAccount?.balance?.amount ?? 0}`} $BADGE).
-                  </Typography.Text>
+                  <div className="flex-center">
+                    <Checkbox
+                      checked={betaChecked}
+                      onChange={(e) => {
+                        setBetaChecked(e.target.checked);
+                      }}
+                    />
+                  </div>
+                  <br />
+                  <div className="flex-center">
+                    <Typography.Text
+                      strong
+                      style={{
+                        textAlign: 'center',
+                        alignContent: 'center',
+                        fontSize: 16,
+                        alignItems: 'center'
+                      }}
+                      className="primary-text">
+                      I understand that blockchain transactions are permanent and irreversible.
+                    </Typography.Text>
+                  </div>
+                  <div className="flex-center">
+                    <Checkbox
+                      checked={irreversibleChecked}
+                      onChange={(e) => {
+                        setIrreversibleChecked(e.target.checked);
+                      }}
+                    />
+                  </div>
                 </div>
               )}
             </div>
-            {showJson && (
-              <>
-                <div style={{ textAlign: 'center' }} className="primary-text">
-                  <br />
-                  <DevMode obj={showJson} override />
-                  <br />
-                </div>
-              </>
-            )}
-
-            <Divider />
-            <div className="flex-center">
-              <Typography.Text
-                strong
-                style={{
-                  textAlign: 'center',
-                  alignContent: 'center',
-                  fontSize: 16,
-                  alignItems: 'center'
-                }}
-                className="primary-text">
-                I understand that this is a beta version of BitBadges, and there may be bugs.
-              </Typography.Text>
-            </div>
-            <div className="flex-center">
-              <Checkbox
-                checked={betaChecked}
-                onChange={(e) => {
-                  setBetaChecked(e.target.checked);
-                }}
-              />
-            </div>
-            <br />
-            <div className="flex-center">
-              <Typography.Text
-                strong
-                style={{
-                  textAlign: 'center',
-                  alignContent: 'center',
-                  fontSize: 16,
-                  alignItems: 'center'
-                }}
-                className="primary-text">
-                I understand that blockchain transactions are permanent and irreversible.
-              </Typography.Text>
-            </div>
-            <div className="flex-center">
-              <Checkbox
-                checked={irreversibleChecked}
-                onChange={(e) => {
-                  setIrreversibleChecked(e.target.checked);
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+          </>
+        }
+      />
     ),
     disabled: (msgSteps ?? []).find((step) => step.disabled) ? true : false
   };
@@ -930,7 +940,7 @@ export function TxModal({
           </Row>
         }
         requireLogin={requireLogin}
-        requiresSignature={true}
+        requiresSignature={isClaimTransaction ? false : true} //We allow reserving badges without signing
       />
     </Modal>
   );

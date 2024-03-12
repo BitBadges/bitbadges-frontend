@@ -216,6 +216,7 @@ export const BlockinDisplay = ({ hideLogo, hideLogin }: { hideLogo?: boolean; hi
           )}
           <div className="flex-center primary-text img-overrides" style={{ marginTop: 10 }}>
             <SignInModal
+              nonWalletSignIn
               modalIsVisible={web2ModalVisible}
               setModalIsVisible={setWeb2ModalVisible}
               modalStyle={{ color: `white`, textAlign: 'start' }}

@@ -1061,10 +1061,12 @@ export const AttributesSelect = ({
 
 export const SocialsFormItems = ({
   socials,
-  setSocials
+  setSocials,
+  isCollectionSelect
 }: {
   socials: { twitter?: string; github?: string; telegram?: string; discord?: string };
   setSocials: (socials: { twitter?: string; github?: string; telegram?: string; discord?: string }) => void;
+  isCollectionSelect?: boolean;
 }) => {
   return (
     <>
@@ -1132,14 +1134,15 @@ export const SocialsFormItems = ({
           socials = { ...socials, discord: value };
           setSocials(socials);
         }}
-        placeholder="Enter Discord Server ID"
+        placeholder={isCollectionSelect ? 'Enter Discord Server Invite Link' : 'Enter Discord Username'}
         helper={
           <>
-            {socials?.discord && (
+            {socials?.discord && isCollectionSelect && (
               <a href={`https://discord.com/invite/${socials?.discord}`} target="_blank" rel="noopener noreferrer">
                 https://discord.com/invite/{socials?.discord}
               </a>
             )}
+            {socials?.discord && !isCollectionSelect && <b className="primary-text">@{socials?.discord}</b>}
           </>
         }
       />

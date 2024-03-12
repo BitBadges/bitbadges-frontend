@@ -352,6 +352,7 @@ export const DiscordInputNode = ({
       console.log('user.discord', user.discord);
       if (user.discord && user.discord.username) {
         setCurrDiscordUser(user.discord);
+        web2Context.setDiscord(user.discord);
         onSuccess?.(user.discord.username, user.discord.id ?? '', user.discord.discriminator);
       }
     }
@@ -391,6 +392,7 @@ export const DiscordInputNode = ({
                 await BitBadgesApi.signOut({ signOutDiscord: true, signOutBlockin: false, signOutTwitter: false });
                 setCurrDiscordUser(undefined);
                 setClicked(false);
+                web2Context.setDiscord({ username: '', discriminator: '', id: '' });
               } else {
                 setClicked(true);
                 window.open(BACKEND_URL + '/auth/discord', '_blank');

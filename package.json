@@ -39,7 +39,7 @@
     "axios": "^1.6.2",
     "bech32": "^2.0.0",
     "bitbadgesjs-sdk": "^0.1.85",
-    "blockin": "^1.2.112",
+    "blockin": "^1.2.114",
     "bs58": "^5.0.0",
     "dotenv": "^16.0.2",
     "eslint-config-prettier": "^9.1.0",
