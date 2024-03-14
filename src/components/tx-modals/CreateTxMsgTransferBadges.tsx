@@ -118,7 +118,7 @@ export function CreateTxMsgTransferBadgesModal({
                 }}
                 noBorder
                 inheritBg>
-                <AddressSelect defaultValue={(senderAccount?.username || senderAccount?.address) ?? ''} onUserSelect={setSender} allowMintSearch />
+                <AddressSelect addressOrUsername={(senderAccount?.username || senderAccount?.address) ?? ''} onUserSelect={setSender} allowMintSearch />
                 {!fromTransferabilityDisplay && sender === 'Mint' && (
                   <>
                     <Divider />

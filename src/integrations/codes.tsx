@@ -1,18 +1,20 @@
-import { CheckCircleFilled, OrderedListOutlined, FormOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, DatabaseOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
-import { ClaimIntegrationPublicParamsType, ClaimIntegrationPrivateParamsType, BitBadgesAddressList } from 'bitbadgesjs-sdk';
+import { BitBadgesAddressList, ClaimIntegrationPrivateParamsType, ClaimIntegrationPublicParamsType } from 'bitbadgesjs-sdk';
+import crypto from 'crypto';
 import { SHA256 } from 'crypto-js';
 import { useRouter } from 'next/router';
-import { useState, useEffect, useMemo } from 'react';
-import { useTxTimelineContext, NEW_COLLECTION_ID } from '../bitbadges-api/contexts/TxTimelineContext';
+import { useEffect, useMemo, useState } from 'react';
+import { NEW_COLLECTION_ID, useTxTimelineContext } from '../bitbadges-api/contexts/TxTimelineContext';
 import { CodesDisplay } from '../components/codes/CodesPasswordsDisplay';
 import { ErrDisplay } from '../components/common/ErrDisplay';
 import { GenericModal } from '../components/display/GenericModal';
 import IconButton from '../components/display/IconButton';
+import { Tabs } from '../components/navigation/Tabs';
 import { MintType } from '../components/tx-timelines/step-items/ChooseBadgeTypeStepItem';
-import { ClaimIntegrationPlugin } from './integrations';
-import crypto from 'crypto';
 import { OffChainClaim } from '../components/tx-timelines/step-items/OffChainBalancesStepItem';
+import { ClaimIntegrationPlugin } from './integrations';
+import { generateCodesFromSeed } from '../components/collection-page/transferability/OffChainTransferabilityTab';
 
 export const CodesPluginDetails: ClaimIntegrationPlugin<'codes'> = {
   id: 'codes',
@@ -25,9 +27,31 @@ export const CodesPluginDetails: ClaimIntegrationPlugin<'codes'> = {
     scoped: true,
     onChainCompatible: true
   },
-  stateString: () => 'The state tracks the codes that have been used.',
-  createNode: ({ privateParams, setParams, numClaims, setDisabled, claim }) => {
-    return <CodesCreateNode privateParams={privateParams} setParams={setParams} numClaims={numClaims} setDisabled={setDisabled} claim={claim} />;
+  stateString: ({ publicParams, publicState, resetState, privateParams }) => {
+    const codes = privateParams.seedCode ? generateCodesFromSeed(privateParams.seedCode, publicParams.numCodes) : privateParams.codes;
+
+    if (resetState && publicState.usedCodes.find((x) => codes.includes(x))) {
+      return (
+        <>
+          <span>The state tracks which codes have been used or not.</span>
+          <span style={{ color: 'orange' }}> Warning: State has been reset, but some codes have already been used. These can be used again.</span>
+        </>
+      );
+    } else {
+      return 'The state tracks which codes have been used or not.';
+    }
+  },
+  createNode: ({ privateParams, setParams, numClaims, setDisabled, claim, isUpdate }) => {
+    return (
+      <CodesCreateNode
+        privateParams={privateParams}
+        setParams={setParams}
+        numClaims={numClaims}
+        setDisabled={setDisabled}
+        claim={claim}
+        isUpdate={isUpdate}
+      />
+    );
   },
   inputNode: ({ setCustomBody }) => {
     return <CodesInputNode setCustomBody={setCustomBody} />;
@@ -83,13 +107,15 @@ const CodesCreateNode = ({
   setParams,
   numClaims,
   setDisabled,
-  claim
+  claim,
+  isUpdate
 }: {
   privateParams: ClaimIntegrationPrivateParamsType<'codes'>;
   setParams: (publicParams: ClaimIntegrationPublicParamsType<'codes'>, privateParams: ClaimIntegrationPrivateParamsType<'codes'>) => void;
   numClaims: number;
   setDisabled: (disabled: string) => void;
   claim: Readonly<OffChainClaim<bigint>>;
+  isUpdate: boolean;
 }) => {
   const codes = useMemo(() => {
     let codes = privateParams?.codes ?? [];
@@ -107,31 +133,96 @@ const CodesCreateNode = ({
 
   const [inputStr, setInputStr] = useState(codes.join(', '));
   const [visible, setVisible] = useState(false);
-  const [autoGenerate, setAutoGenerate] = useState(false);
+
+  const [origParams] = useState(privateParams);
+  const [origPublicParams] = useState({ numCodes: numClaims });
+
+  const [tab, setTab] = useState(isUpdate ? 'keep' : 'auto-gen');
+
+  let tabInfos = [
+    {
+      key: 'auto-gen',
+      content: 'Auto'
+    },
+    {
+      key: 'keep',
+      content: 'Keep'
+    },
+    {
+      key: 'custom',
+      content: 'Custom'
+    }
+  ];
+  if (!isUpdate) {
+    tabInfos = tabInfos.filter((x) => x.key !== 'keep');
+  }
+
+  const autoGenerate = tab === 'auto-gen';
+
   const txTimelineContext = useTxTimelineContext();
+
+  const autoGenSeed = useMemo(() => {
+    return crypto.randomBytes(32).toString('hex');
+  }, []);
+
+  const autoGenCodes = useMemo(() => {
+    let codes = [];
+    let currCode = crypto.randomBytes(32).toString('hex');
+    const seedCode = currCode;
+    for (let i = 0; i < numClaims; i++) {
+      currCode = SHA256(currCode + seedCode).toString();
+      codes.push(currCode);
+    }
+
+    return codes;
+  }, [numClaims]);
+
+  useEffect(() => {
+    switch (tab) {
+      case 'auto-gen':
+        setParams(
+          {
+            numCodes: autoGenCodes.length
+          },
+          {
+            seedCode: autoGenSeed,
+            codes: []
+          }
+        );
+        break;
+      case 'keep':
+        setParams(origPublicParams, origParams);
+        break;
+      case 'custom':
+        const codes = inputStr.split(',').map((x) => x.trim());
+        setParams({ numCodes: numClaims }, { seedCode: '', codes });
+        break;
+    }
+  }, [tab, numClaims, inputStr, origParams, origPublicParams, setParams, autoGenCodes, autoGenSeed]);
+
+  useEffect(() => {
+    setDisabled(codes.length !== numClaims ? 'Must provide ' + numClaims + ' code(s) to match number of claims.' : '');
+  }, [codes, numClaims]);
 
   return (
     <div>
       <br />
-      {!autoGenerate && (
+      <div className="flex-center flex-wrap mb-8">
+        <Tabs tabInfo={tabInfos} tab={tab} setTab={setTab} type="underline" />
+      </div>
+      {tab == 'keep' && (
+        <div style={{ fontSize: 16 }}>
+          <div className="flex-center flex-wrap">
+            {codes.length} Codes Unchanged <CheckCircleFilled style={{ color: 'green', marginLeft: 8 }} />
+          </div>
+        </div>
+      )}
+      {tab == 'custom' && (
         <>
           <Input
             value={inputStr}
             onChange={(e) => {
               setInputStr(e.target.value);
-              setParams(
-                {
-                  numCodes: e.target.value.split(',').length
-                },
-                {
-                  codes: e.target.value
-                    .split(',')
-                    .map((x) => x.trim())
-                    .filter((x) => x),
-                  seedCode: ''
-                }
-              );
-
               setDisabled(e.target.value.split(',').length !== numClaims ? 'Must provide ' + numClaims + ' code(s) to match number of claims.' : '');
             }}
             className="primary-text inherit-bg"
@@ -144,54 +235,12 @@ const CodesCreateNode = ({
       {autoGenerate && (
         <div style={{ fontSize: 16 }}>
           <div className="flex-center flex-wrap">
-            {codes.length} Codes Generated <CheckCircleFilled style={{ color: 'green', marginLeft: 8 }} />
+            {codes.length} Codes Newly Generated <CheckCircleFilled style={{ color: 'green', marginLeft: 8 }} />
           </div>
         </div>
       )}
       {numClaims !== (codes?.length ?? 0) && <ErrDisplay err={`Must provide ${numClaims} code(s) to match number of claims.`} />}
       <div className="flex-center flex-wrap">
-        {!autoGenerate && (
-          <IconButton
-            src={<OrderedListOutlined />}
-            text="Auto-Gen"
-            onClick={() => {
-              const codes = [];
-
-              let currCode = crypto.randomBytes(32).toString('hex');
-              const seedCode = currCode;
-              for (let i = 0; i < numClaims; i++) {
-                currCode = SHA256(currCode + seedCode).toString();
-                codes.push(currCode);
-              }
-
-              setParams(
-                {
-                  numCodes: codes.length
-                },
-                {
-                  seedCode: seedCode,
-                  codes: []
-                }
-              );
-              setDisabled(codes.length !== numClaims ? 'Must provide ' + numClaims + ' code(s) to match number of claims.' : '');
-              setAutoGenerate(true);
-            }}
-            secondary
-          />
-        )}
-        {autoGenerate && (
-          <IconButton
-            src={<FormOutlined />}
-            text="Custom"
-            onClick={() => {
-              setAutoGenerate(false);
-              const codes = inputStr.split(',').map((x) => x.trim());
-              setParams({ numCodes: numClaims }, { seedCode: '', codes });
-              setDisabled(codes.length !== numClaims ? 'Must provide ' + numClaims + ' code(s) to match number of claims.' : '');
-            }}
-            secondary
-          />
-        )}
         <IconButton
           src={<DatabaseOutlined />}
           text="Distribute"
@@ -243,7 +292,7 @@ export const PluginCodesModal = ({
   claim: OffChainClaim<bigint>;
 }) => {
   return (
-    <GenericModal title="Codes" setVisible={setVisible} visible={visible} style={{ minWidth: '90%' }}>
+    <GenericModal requireConnected requireLoggedIn title="Codes" setVisible={setVisible} visible={visible} style={{ minWidth: '90%' }}>
       <CodesDisplay collectionId={collectionId} codes={codes} claimPassword={password} list={list} claim={claim} />
     </GenericModal>
   );

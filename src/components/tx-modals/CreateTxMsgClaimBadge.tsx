@@ -117,7 +117,6 @@ export function CreateTxMsgClaimBadgeModal({
   }, [claimId, chain.cosmosAddress, merkleChallenge, visible, approval.details, challengeTracker, setOnChainCode]);
 
   const calculationMethod = approvalCriteria?.predeterminedBalances?.orderCalculationMethod;
-
   const claimCode = onChainCode;
 
   const leafIndex: number =
@@ -306,7 +305,7 @@ export function CreateTxMsgClaimBadgeModal({
 
                             <AddressSelect
                               switchable
-                              defaultValue={chain.address}
+                              addressOrUsername={chain.address}
                               onUserSelect={(val) => {
                                 if (setRecipient) setRecipient(val);
                               }}
@@ -393,6 +392,7 @@ export function CreateTxMsgClaimBadgeModal({
                                   <Typography.Text strong className="primary-text" style={{ fontSize: 16 }}>
                                     This is code #{leafIndex + 1} which is reserved claim #{leafIndex + 1}
                                   </Typography.Text>
+                                  <br />
                                 </>
                               )}
 

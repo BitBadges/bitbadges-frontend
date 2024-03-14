@@ -328,9 +328,12 @@ export function AccountSettings() {
                     </div>
                   </Form.Item>
                   <Divider />
-                  <b className="primary-text mb-4" style={{ fontSize: 24 }}>
+                  <b className="primary-text " style={{ fontSize: 24 }}>
                     Sign-Ins
                   </b>
+                  <div className="secondary-text mb-4">
+                    Approve different sign-in methods to log in to your BitBadges account. Signatures will still require a connected wallet.
+                  </div>
                   <Form.Item
                     label={
                       <Text className="primary-text" strong>

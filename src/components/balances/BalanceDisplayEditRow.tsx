@@ -31,7 +31,8 @@ export function BalanceDisplayEditRow({
   setIncrementBadgeIdsBy,
   timeString,
   oneBalanceOnly,
-  originalBalances
+  originalBalances,
+  setNumRecipients
 }: {
   collectionId: bigint;
   balances: BalanceArray<bigint>;
@@ -65,6 +66,7 @@ export function BalanceDisplayEditRow({
   suggestedBalances?: BalanceArray<bigint>;
   oneBalanceOnly?: boolean;
   originalBalances?: BalanceArray<bigint>;
+  setNumRecipients?: (value: bigint) => void;
 }) {
   const [selectIsVisible, setSelectIsVisible] = useState(oneBalanceOnly ? true : false);
   const [mustSatisfyForAllAssets, setmustSatisfyForAllAssets] = useState(true);
@@ -285,6 +287,7 @@ export function BalanceDisplayEditRow({
                     incrementBadgeIdsBy={!isDisabled && !isMustOwnBadgesInput ? incrementBadgeIdsBy : undefined}
                     setIncrementBadgeIdsBy={!isDisabled && !isMustOwnBadgesInput ? setIncrementBadgeIdsBy : undefined}
                     numRecipients={!isDisabled && !isMustOwnBadgesInput ? numRecipients : undefined}
+                    setNumRecipients={!isDisabled && !isMustOwnBadgesInput ? setNumRecipients : undefined}
                   />
                 </>
               )}

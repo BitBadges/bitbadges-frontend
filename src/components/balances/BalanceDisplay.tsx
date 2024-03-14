@@ -44,7 +44,8 @@ export function BalanceDisplay({
   suggestedBalances,
   oneBalanceOnly,
   fullWidthCards,
-  originalBalances
+  originalBalances,
+  setNumRecipients
 }: {
   mustOwnBadges?: Array<MustOwnBadges<bigint>>;
   collectionId: bigint;
@@ -80,6 +81,7 @@ export function BalanceDisplay({
   suggestedBalances?: BalanceArray<bigint>;
   oneBalanceOnly?: boolean;
   originalBalances?: BalanceArray<bigint>;
+  setNumRecipients?: (numRecipients: bigint) => void;
 }) {
   const [defaultBalancesToShow] = useState<BalanceArray<bigint>>(balances);
 
@@ -154,6 +156,7 @@ export function BalanceDisplay({
       fullWidthCards={isMustOwnBadgesInput || fullWidthCards}
       oneBalanceOnly={oneBalanceOnly}
       originalBalances={originalBalances}
+      setNumRecipients={setNumRecipients}
     />
   );
 

@@ -23,7 +23,8 @@ export function BalanceInput({
   hideMessage,
   noOffChainBalances,
   oneBalanceOnly,
-  originalBalances
+  originalBalances,
+  setNumRecipients,
 }: {
   balancesToShow: BalanceArray<bigint>;
   onAddBadges: (
@@ -51,6 +52,7 @@ export function BalanceInput({
   hideMessage?: boolean;
   oneBalanceOnly?: boolean;
   originalBalances?: BalanceArray<bigint>;
+  setNumRecipients?: (numRecipients: bigint) => void;
 }) {
   return (
     <BalanceDisplay
@@ -78,6 +80,7 @@ export function BalanceInput({
       fullWidthCards={fullWidthCards}
       timeString={timeString}
       oneBalanceOnly={oneBalanceOnly}
+      setNumRecipients={setNumRecipients}
     />
   );
 }

@@ -254,6 +254,7 @@ export function SubmitMsgCreateAddressList() {
                       <>
                         <br />
                         <ClaimBuilder
+                          type='list'
                           claim={claim}
                           isUpdate={!!txState.isUpdateAddressList}
                           plugins={plugins}

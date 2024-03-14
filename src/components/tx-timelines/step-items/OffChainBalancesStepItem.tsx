@@ -193,6 +193,7 @@ export const OffChainClaimBuilder = ({
                 <br />
 
                 <ClaimBuilder
+                  type="balances"
                   claim={claim}
                   isUpdate={!!txTimelineContext.existingCollectionId || !!isUpdateBalancesModal}
                   offChainSelect={true}
@@ -252,6 +253,28 @@ export const OffChainClaimBuilder = ({
                       : undefined
                   }
                   numIncrements={BigInt(numRecipients)}
+                  setNumRecipients={
+                    numRecipients > 1n
+                      ? (val) => {
+                          console.log(val);
+                          setClaim({
+                            ...claim,
+                            plugins: claim.plugins.map((x) => {
+                              if (x.id === 'numUses') {
+                                return {
+                                  ...x,
+                                  publicParams: {
+                                    ...x.publicParams,
+                                    maxUses: Number(val)
+                                  }
+                                };
+                              }
+                              return x;
+                            })
+                          });
+                        }
+                      : undefined
+                  }
                   originalBalances={originalBalances}
                 />
               </Col>

@@ -11,7 +11,7 @@ const { Text } = Typography;
 
 function ConnectScreen({ message, showSignatureMessage }: { message?: string; showSignatureMessage?: boolean }) {
   const router = useRouter();
-  const { loggedIn, connected } = useChainContext();
+  const { loggedIn, connected, offChainOnlyMode } = useChainContext();
 
   return (
     <div
@@ -26,7 +26,7 @@ function ConnectScreen({ message, showSignatureMessage }: { message?: string; sh
           <Text strong style={{ fontSize: 20 }} className="primary-text">
             {message ? message : 'Welcome!'}
           </Text>
-          {connected && showSignatureMessage && (
+          {connected && showSignatureMessage && offChainOnlyMode && (
             <div className="text-center">
               <ErrDisplay warning err="This page requires wallet signatures, so you must connect with a web3 wallet." />
             </div>

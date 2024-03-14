@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { BalanceArray } from 'bitbadgesjs-sdk';
+import { BalanceArray, ClaimIntegrationPluginType, IntegrationPluginDetails } from 'bitbadgesjs-sdk';
 import { Dispatch, SetStateAction } from 'react';
 import { DistributionMethod } from '../../../bitbadges-api/types';
 import { approvalHasApprovalAmounts, approvalHasMaxNumTransfers } from '../../../bitbadges-api/utils/claims';
@@ -9,10 +9,11 @@ import { BalanceDisplay } from '../../balances/BalanceDisplay';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { NumberInput } from '../../inputs/NumberInput';
 import { RadioGroup } from '../../inputs/Selects';
-import { PredeterminedTab, RequiredApprovalProps, getMaxIncrementsApplied } from '../ApprovalSelect';
+import { PredeterminedTab, RequiredApprovalProps, getMaxTransfersApplied } from '../ApprovalSelect';
 import { ApprovalAmounts as ApprovalAmountsComponent } from './ApprovalAmountsSelectComponent';
 import { MaxUses } from './MaxUsesSelectComponent';
 import { OrderCalculationMethod } from './OrderCalculationComponent';
+import { getPluginDetails } from '../../../integrations/integrations';
 
 export const ApprovalSelectAmountsCard = ({
   tab,
@@ -24,7 +25,8 @@ export const ApprovalSelectAmountsCard = ({
   collectionId,
   fromListLocked,
   toListLocked,
-  initiatedByListLocked
+  initiatedByListLocked,
+  plugins
 }: {
   expectedPartitions: bigint;
   approvalToAdd: RequiredApprovalProps;
@@ -36,6 +38,7 @@ export const ApprovalSelectAmountsCard = ({
   initiatedByListLocked: boolean;
   tab: PredeterminedTab;
   setTab: (tab: PredeterminedTab) => void;
+  plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
 }) => {
   const predeterminedBalances = approvalToAdd.approvalCriteria.predeterminedBalances;
   const isPartitionView = predeterminedBalances.incrementedBalances.incrementBadgeIdsBy > 0n;
@@ -274,12 +277,12 @@ export const ApprovalSelectAmountsCard = ({
                   {AllMaxUses}
                   <br />
                   <BalanceDisplay
-                    message={`Approved Badges ${getMaxIncrementsApplied(approvalToAdd) > 0n ? `(${getMaxIncrementsApplied(approvalToAdd)} Uses)` : 'per Use'}`}
+                    message={`Approved Badges ${getMaxTransfersApplied(approvalToAdd) > 0n ? `(${getMaxTransfersApplied(approvalToAdd)} Uses)` : 'per Use'}`}
                     hideMessage
                     collectionId={collectionId}
                     balances={BalanceArray.From(startBalances)}
                     incrementBadgeIdsBy={increment}
-                    numIncrements={getMaxIncrementsApplied(approvalToAdd)}
+                    numIncrements={getMaxTransfersApplied(approvalToAdd)}
                   />
                 </>
               )}
@@ -341,20 +344,23 @@ export const ApprovalSelectAmountsCard = ({
                       label="Increment per unique approved address?"
                     />
                   )}
-                  {/* {distributionMethod != DistributionMethod.Claims && (
-                    <OrderCalculationMethod
-                      expectedPartitions={expectedPartitions}
-                      approvalToAdd={approvalToAdd}
-                      setApprovalToAdd={setApprovalToAdd}
-                      collectionId={collectionId}
-                      distributionMethod={distributionMethod}
-                      increment={increment}
-                      startBalances={BalanceArray.From(startBalances)}
-                      keyId="useMerkleChallengeLeafIndex"
-                      label="Specific codes / whitelisted addresses?"
-                      
-                    />
-                  )} */}
+
+                  <OrderCalculationMethod
+                    expectedPartitions={expectedPartitions}
+                    approvalToAdd={approvalToAdd}
+                    setApprovalToAdd={setApprovalToAdd}
+                    collectionId={collectionId}
+                    distributionMethod={distributionMethod}
+                    increment={increment}
+                    startBalances={BalanceArray.From(startBalances)}
+                    disabled={
+                      !(getPluginDetails('numUses', plugins)?.publicParams.assignMethod === 'codeIdx') &&
+                      distributionMethod === DistributionMethod.Claims
+                    }
+                    keyId="useMerkleChallengeLeafIndex"
+                    label="Specific codes / whitelisted addresses?"
+                  />
+
                   {/* if all are false warning message */}
                   {!orderCalculationMethod.useOverallNumTransfers &&
                     !orderCalculationMethod.usePerToAddressNumTransfers &&

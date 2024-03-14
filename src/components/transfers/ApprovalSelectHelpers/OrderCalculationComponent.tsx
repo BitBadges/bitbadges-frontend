@@ -5,7 +5,7 @@ import { DistributionMethod } from '../../../bitbadges-api/types';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
 import { TableRow } from '../../display/TableRow';
 import { BalanceAmountInput } from '../../inputs/BalanceAmountInput';
-import { RequiredApprovalProps, getMaxIncrementsApplied } from '../ApprovalSelect';
+import { RequiredApprovalProps, getMaxTransfersApplied } from '../ApprovalSelect';
 import { MaxUses } from './MaxUsesSelectComponent';
 
 export const OrderCalculationMethod = ({
@@ -17,6 +17,7 @@ export const OrderCalculationMethod = ({
   collectionId,
   expectedPartitions,
   keyId,
+  disabled,
   label
 }: {
   expectedPartitions: bigint;
@@ -27,6 +28,7 @@ export const OrderCalculationMethod = ({
   setApprovalToAdd: (approval: RequiredApprovalProps) => void;
   approvalToAdd: RequiredApprovalProps;
   label: string;
+  disabled?: boolean;
   keyId:
     | 'useOverallNumTransfers'
     | 'usePerToAddressNumTransfers'
@@ -61,7 +63,7 @@ export const OrderCalculationMethod = ({
   );
   if (somethingElseChecked) return <></>;
 
-  const maxIncrementsApplied = getMaxIncrementsApplied(approvalToAdd);
+  const maxIncrementsApplied = getMaxTransfersApplied(approvalToAdd);
 
   let maxUsesErrorMessage = '';
   if (
@@ -108,9 +110,10 @@ export const OrderCalculationMethod = ({
           <>
             <Switch
               disabled={
-                keyId === 'useMerkleChallengeLeafIndex' &&
-                distributionMethod !== DistributionMethod.Claims &&
-                distributionMethod !== DistributionMethod.Whitelist
+                disabled ||
+                (keyId === 'useMerkleChallengeLeafIndex' &&
+                  distributionMethod !== DistributionMethod.Claims &&
+                  distributionMethod !== DistributionMethod.Whitelist)
               }
               checked={checked}
               onChange={(checked) => {
@@ -141,7 +144,7 @@ export const OrderCalculationMethod = ({
                 ? ' Reserve specific increments for specific whitelisted users.'
                 : distributionMethod === DistributionMethod.Claims
                   ? ' Reserve specific increments for specific claims.'
-                  : ' Reserve specific increments for specific users / codes.'
+                  : ' Reserve specific increments for specific users / codes. Must be used with the Code # assign method.'
               : ''}
           </Typography.Text>
         </div>

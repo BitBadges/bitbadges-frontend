@@ -3,7 +3,7 @@ import { ClaimIntegrationPluginType, IntegrationPluginDetails } from 'bitbadgesj
 import { useCallback, useEffect, useState } from 'react';
 import { Plugins, getBlankPlugin, getPlugin, getPluginDetails } from '../../integrations/integrations';
 import { PluginTextDisplay } from '../collection-page/transferability/DetailsCard';
-import { ClaimCriteriaDisplay } from '../collection-page/transferability/OffChainTransferabilityTab';
+import { ClaimCriteriaDisplay, generateCodesFromSeed } from '../collection-page/transferability/OffChainTransferabilityTab';
 import { ErrDisplay } from '../common/ErrDisplay';
 import { TableRow } from '../display/TableRow';
 import { RadioGroup } from '../inputs/Selects';
@@ -16,7 +16,8 @@ export const ClaimBuilder = ({
   offChainSelect,
   setDisabled,
   isUpdate,
-  claim
+  claim,
+  type
 }: {
   plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
   setPlugins: (plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[]) => void;
@@ -24,6 +25,7 @@ export const ClaimBuilder = ({
   setDisabled: (disabled: boolean) => void;
   isUpdate: boolean;
   claim: Readonly<OffChainClaim<bigint>>;
+  type: 'balances' | 'list';
 }) => {
   const [disabledMap, setDisabledMap] = useState<{ [key: string]: string }>({});
   const [tab, setTab] = useState('criteria');
@@ -31,6 +33,9 @@ export const ClaimBuilder = ({
   useEffect(() => {
     setDisabled(Object.keys(disabledMap).some((x) => disabledMap[x] && plugins.find((y) => y.id == x)) || plugins.length === 0);
   }, [disabledMap, plugins]);
+
+  const disabledPluginId = Object.keys(disabledMap).find((x) => disabledMap[x]);
+  const disabledMessage = disabledPluginId ? disabledMap[disabledPluginId] : undefined;
 
   return (
     <>
@@ -68,7 +73,7 @@ export const ClaimBuilder = ({
       )}
       {tab == 'criteria' && (
         <>
-          {!plugins.find((x) => x.id === 'numUses') && <ErrDisplay err={'You must restrict the number of uses.'} />}
+          {disabledMessage && <ErrDisplay err={disabledMessage} />}
           <br />
           {Object.keys(Plugins).map((_id: string) => {
             const id = _id as ClaimIntegrationPluginType;
@@ -85,6 +90,7 @@ export const ClaimBuilder = ({
                 setPlugins={setPlugins}
                 setDisabledMap={setDisabledMap}
                 claim={claim}
+                type={type}
               />
             );
           })}
@@ -101,7 +107,8 @@ const ClaimBuilderRow = ({
   disabledMap,
   setDisabledMap,
   isUpdate,
-  claim
+  claim,
+  type
 }: {
   id: ClaimIntegrationPluginType;
   plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
@@ -110,6 +117,7 @@ const ClaimBuilderRow = ({
   setDisabledMap: (disabledMap: { [key: string]: string }) => void;
   isUpdate?: boolean;
   claim: Readonly<OffChainClaim<bigint>>;
+  type: 'balances' | 'list';
 }) => {
   const pluginInstance = getPlugin(id);
   const currPlugin = getPluginDetails(id, plugins);
@@ -120,6 +128,50 @@ const ClaimBuilderRow = ({
 
   if (!pluginInstance) return <></>;
   if (!pluginInstance.createNode) return null;
+
+  const usedClaimNumbers: number[] = [];
+  const numUsesPlugin = getPluginDetails('numUses', plugins);
+  if (!numUsesPlugin?.resetState) {
+    for (const [, val] of Object.entries(numUsesPlugin?.publicState.claimedUsers ?? {})) {
+      usedClaimNumbers.push(...val.map((x) => x + 1));
+    }
+    usedClaimNumbers.sort((a, b) => a - b);
+  }
+
+  const usedCodeClaimNumbers: number[] = [];
+  const codesPlugin = getPluginDetails('codes', plugins);
+  if (codesPlugin && !codesPlugin.resetState) {
+    const usedCodes = codesPlugin.publicState.usedCodes ?? [];
+    const codes = codesPlugin.privateParams.seedCode
+      ? generateCodesFromSeed(codesPlugin.privateParams.seedCode, codesPlugin.publicParams.numCodes)
+      : codesPlugin.privateParams.codes;
+
+    for (let i = 0; i < codes.length; i++) {
+      if (usedCodes.includes(codes[i])) {
+        usedCodeClaimNumbers.push(i + 1);
+      }
+    }
+
+    usedCodeClaimNumbers.sort((a, b) => a - b);
+  }
+
+  let inconsistentClaimNumbers = [];
+  let inconsistentStr = '';
+  for (let i = 0; i < usedClaimNumbers.length; i++) {
+    if (!usedCodeClaimNumbers.includes(usedClaimNumbers[i])) {
+      inconsistentClaimNumbers.push(usedClaimNumbers[i]);
+    }
+
+    inconsistentStr = inconsistentStr || `claim #${usedClaimNumbers[i]} is used but code #${usedClaimNumbers[i]} is not.`;
+  }
+
+  for (let i = 0; i < usedCodeClaimNumbers.length; i++) {
+    if (!usedClaimNumbers.includes(usedCodeClaimNumbers[i])) {
+      inconsistentClaimNumbers.push(usedCodeClaimNumbers[i]);
+    }
+
+    inconsistentStr = inconsistentStr || `code #${usedCodeClaimNumbers[i]} is used but claim #${usedCodeClaimNumbers[i]} is not.`;
+  }
 
   return (
     <div key={id}>
@@ -160,7 +212,7 @@ const ClaimBuilderRow = ({
         value={<></>}
       />
       {!!currPlugin && isUpdate && !pluginInstance.metadata.stateless && (
-        <div className="flex-center flex-column mb-8">
+        <div className="flex-center flex-column mb-2">
           <RadioGroup
             value={currPlugin.resetState ? 'yes' : 'no'}
             onChange={(e) => {
@@ -187,8 +239,33 @@ const ClaimBuilderRow = ({
               }
             ]}
           />
-          <div className="secondary-text mt-2">Reset the state? {pluginInstance.stateString()}</div>
+          <div className="secondary-text text-center mt-2">
+            Reset the state?{' '}
+            {pluginInstance.stateString({
+              privateParams: currPlugin.privateParams,
+              publicParams: currPlugin.publicParams,
+              publicState: currPlugin.publicState,
+              unknownPublicState: false,
+              resetState: getPluginDetails(id, plugins)?.resetState
+            })}
+          </div>
         </div>
+      )}
+      {currPlugin && isUpdate && (
+        <>
+          {(currPlugin.id === 'numUses' || currPlugin.id === 'codes') && (
+            <>
+              {inconsistentClaimNumbers.length > 0 && (
+                <div className="secondary-text mb-1">
+                  <ErrDisplay
+                    warning
+                    err={`The current update will result in inconsistent claim numbers due to the code # assign method. ${inconsistentClaimNumbers.length} claims inconsistent which may result in unexpected behavior. For example, ${inconsistentStr}`}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </>
       )}
       {currPlugin &&
         pluginInstance.createNode({
@@ -200,6 +277,8 @@ const ClaimBuilderRow = ({
           metadata: pluginInstance.metadata,
           privateParams: currPlugin.privateParams,
           publicParams: currPlugin.publicParams,
+          type,
+          isUpdate: !!isUpdate,
           setParams: (publicParams, privateParams) => {
             setPlugins(
               plugins.map((x) => {

@@ -45,7 +45,7 @@ function AddressCollectionScreen() {
           {tab == 'search' && (
             <div className="flex-center" style={{ textAlign: 'center' }}>
               <AddressSelect
-                defaultValue={selectedUser}
+                addressOrUsername={selectedUser}
                 switchable
                 onUserSelect={async (userInfo) => {
                   setSelectedUser(userInfo);

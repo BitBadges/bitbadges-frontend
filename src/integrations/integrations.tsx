@@ -50,7 +50,9 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     numClaims,
     disabled,
     setDisabled,
-    claim
+    claim,
+    isUpdate,
+    type
   }: {
     id: P;
     metadata: IntegrationMetadata;
@@ -61,6 +63,8 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     disabled: string;
     setDisabled: (disabled: string) => void;
     claim: Readonly<OffChainClaim<bigint>>;
+    type: 'balances' | 'list';
+    isUpdate: boolean;
   }) => ReactNode;
   inputNode?: ({
     id,
@@ -110,7 +114,19 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
   getBlankPublicParams: () => ClaimIntegrationPublicParamsType<P>;
   getBlankPrivateParams: () => ClaimIntegrationPrivateParamsType<P>;
   getBlankPublicState: () => ClaimIntegrationPublicStateType<P>;
-  stateString: () => string;
+  stateString: ({
+    publicState,
+    unknownPublicState,
+    publicParams,
+    privateParams,
+    resetState
+  }: {
+    publicState: ClaimIntegrationPublicStateType<P>;
+    unknownPublicState?: boolean;
+    publicParams: ClaimIntegrationPublicParamsType<P>;
+    privateParams: ClaimIntegrationPrivateParamsType<P>;
+    resetState?: boolean;
+  }) => string | ReactNode;
 }
 
 export const getPlugin = <T extends ClaimIntegrationPluginType>(id: T): ClaimIntegrationPlugin<T> => {

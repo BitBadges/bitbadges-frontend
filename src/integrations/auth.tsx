@@ -436,7 +436,8 @@ export const ProofOfAddressPluginDetails: ClaimIntegrationPlugin<'requiresProofO
     return (
       <div className="px-2">
         <div className="secondary-text">
-          <WarningOutlined style={{ color: 'orange' }} /> Signing in requires a wallet signature. It should be expected that users have wallets handy.
+          <WarningOutlined style={{ color: 'orange' }} /> Signing in requires a wallet signature (unless users previously approved another sign-in
+          method).
         </div>
       </div>
     );
@@ -481,7 +482,7 @@ export const TwitterPluginDetails: ClaimIntegrationPlugin<'twitter'> = {
     scoped: true,
     onChainCompatible: true
   },
-  stateString: () => 'The state is the list of Twitter usernames that have claimed.',
+  stateString: () => 'The state tracks the list of Twitter usernames that have claimed.',
   createNode: ({ publicParams, setParams, privateParams }) => {
     return <TwitterCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
   },
@@ -519,7 +520,7 @@ export const DiscordPluginDetails: ClaimIntegrationPlugin<'discord'> = {
     scoped: true,
     onChainCompatible: true
   },
-  stateString: () => 'The state is the list of Discord usernames that have claimed.',
+  stateString: () => 'The state keeps track of the list of Discord usernames that have claimed.',
   inputNode: ({ setDisabled }) => {
     return (
       <div>

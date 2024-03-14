@@ -15,21 +15,21 @@ export enum EnterMethod {
 }
 
 export function AddressSelect({
-  defaultValue,
+  addressOrUsername,
   onUserSelect,
   disabled,
   allowMintSearch,
   switchable = true,
   fontSize
 }: {
-  defaultValue?: string;
+  addressOrUsername?: string;
   onUserSelect: (currUserInfo: string) => void;
   disabled?: boolean;
   allowMintSearch?: boolean;
   switchable?: boolean;
   fontSize?: number;
 }) {
-  const defaultAccount = useAccount(defaultValue);
+  const defaultAccount = useAccount(addressOrUsername);
   const chain = useChainContext();
 
   const [changed, setChanged] = useState<boolean>(false);
@@ -57,8 +57,7 @@ export function AddressSelect({
           }}
         />
       }
-      trigger={['hover', 'click']}
-    >
+      trigger={['hover', 'click']}>
       <Input
         value={input}
         placeholder="Enter an address or username"

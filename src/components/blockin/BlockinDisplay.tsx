@@ -37,8 +37,6 @@ export const BlockinDisplay = ({ hideLogo, hideLogin }: { hideLogo?: boolean; hi
   const [web2ModalVisible, setWeb2ModalVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  console.log(address, connected, loggedIn);
-  console.log(web2Context.discord);
   /**
    * Update challengeParams when address or chain changes
    */
@@ -168,7 +166,7 @@ export const BlockinDisplay = ({ hideLogo, hideLogin }: { hideLogo?: boolean; hi
           {currentStep === 0 && !loggedIn && (
             <div className="flex-center mt-2">
               <AddressSelect
-                defaultValue={web2Context.address}
+                addressOrUsername={web2Context.address}
                 onUserSelect={(address) => {
                   web2Context.setAddress(address);
                 }}

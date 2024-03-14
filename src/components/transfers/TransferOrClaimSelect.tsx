@@ -157,6 +157,7 @@ export function TransferSelect({
             setIncrement={numRecipients > 1n ? setIncrementAmount : undefined}
             numIncrements={numRecipients}
             originalBalances={postTransferBalancesWithoutCurrent}
+            
           />
         </div>
         <br />

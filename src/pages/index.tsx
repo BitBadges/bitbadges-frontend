@@ -439,7 +439,13 @@ const Home: NextPage = () => {
                     <Typography.Text className="secondary-text" style={{ fontSize: 14, marginTop: 8 }}>
                       Using our suite of authentication tools, you can authenticate users from any supported chain all in one place and all with the
                       same badge. This can be done digitally (e.g. gating websites with the the Sign In with BitBadges button as seen above) or
-                      in-person (e.g. presenting QR codes at an event - Authentication Codes tab).
+                      in-person (e.g. presenting QR codes at an event - Authentication Codes tab). Click{' '}
+                      <a
+                        href="https://bitbadges.io/auth/codegen?name=Event&description=This will get you access to the event.&image=ipfs://QmPfdaLWBUxH6ZrWmX1t7zf6zDiNdyZomafBqY5V5Lgwvj&storeInAccount=true&allowAddressSelect=true&challengeParams=%7B%22domain%22%3A%22https%3A%2F%2Fbitbadges.io%22%2C%22statement%22%3A%22Event%20-%20This%20will%20get%20you%20access%20to%20the%20event.%22%2C%22address%22%3A%22%22%2C%22uri%22%3A%22https%3A%2F%2Fbitbadges.io%22%2C%22nonce%22%3A%22*%22%2C%22version%22%3A%221%22%2C%22chainId%22%3A%221%22%2C%22issuedAt%22%3A%22%22%2C%22expirationDate%22%3A%22%22%2C%22notBefore%22%3A%22%22%2C%22resources%22%3A%5B%5D%7D&verifyOptions=%7B%7D&discord=%7B%22clientId%22%3A%22%22%2C%22redirectUri%22%3A%22%22%7D&"
+                        target="_blank">
+                        here
+                      </a>{' '}
+                      for a QR code demo.
                       <br />
                       <br />
                     </Typography.Text>

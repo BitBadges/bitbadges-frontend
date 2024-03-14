@@ -44,7 +44,7 @@ export function CreateTxMsgSendModal({
       title: 'Recipient',
       description: (
         <div style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-          <AddressSelect onUserSelect={setRecipient} defaultValue={signedInAccount?.address} />
+          <AddressSelect onUserSelect={setRecipient} addressOrUsername={signedInAccount?.address} />
           <br />
           {signedInAccount?.cosmosAddress === currSelectedAccount?.cosmosAddress ? (
             <div style={{ color: 'red' }}>Recipient and sender cannot be the same.</div>

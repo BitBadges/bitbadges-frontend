@@ -93,7 +93,7 @@ export function BalanceOverview({
   return (
     <div className="full-width flex-column">
       <div className="full-width flex-center flex-column">
-        <AddressSelect defaultValue={addressOrUsername} onUserSelect={setAddressOrUsername} disabled={hideSelect} />
+        <AddressSelect addressOrUsername={addressOrUsername} onUserSelect={setAddressOrUsername} disabled={hideSelect} />
       </div>
       <div className="primary-text full-width" style={{ marginTop: 16 }}>
         {isPreview && (

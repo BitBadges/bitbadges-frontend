@@ -451,7 +451,7 @@ export const ClaimInputs = ({
         node: () => {
           return (
             <div style={{ textAlign: 'center' }} className="full-width">
-              <AddressSelect defaultValue={selectedAddress} onUserSelect={(val) => setSelectedAddress(convertToCosmosAddress(val))} />
+              <AddressSelect addressOrUsername={selectedAddress} onUserSelect={(val) => setSelectedAddress(convertToCosmosAddress(val))} />
             </div>
           );
         },

@@ -138,9 +138,7 @@ export const AddressListClaimCardWithModal = ({
               }}
               total={total}
               pageSize={1}
-              showOnSinglePage
             />
-            <br />
           </>
         )}
         {claim && <ClaimCriteriaDisplay plugins={claim?.plugins} unknownPublicState={unknownPublicState} />}
@@ -232,7 +230,7 @@ function AddressListPage() {
         if (currList && !currList?.views?.listActivity?.pagination.hasMore) return;
 
         const list = currList;
-        let newList: BitBadgesAddressList<bigint>;
+        let newListRes: BitBadgesAddressList<bigint>;
         const lists = await getAddressLists({
           listsToFetch: [
             {
@@ -248,25 +246,20 @@ function AddressListPage() {
           ]
         });
 
-        newList = lists.addressLists[0];
-        if (newList.reported) {
-          newList.metadata = Metadata.DefaultPlaceholderMetadata();
+        newListRes = lists.addressLists[0];
+        if (newListRes.reported) {
+          newListRes.metadata = Metadata.DefaultPlaceholderMetadata();
         }
 
-        setList(
-          new BitBadgesAddressList({
-            ...newList,
-            listsActivity: [...(list?.listsActivity ?? []), ...(newList.listsActivity ?? [])],
-            views: {
-              listActivity: {
-                ...newList.views.listActivity,
-                ids: [...(list?.views?.listActivity?.ids ?? []), ...(newList.views.listActivity?.ids ?? [])],
-                pagination: newList.views.listActivity?.pagination ?? list?.views?.listActivity?.pagination ?? { hasMore: false, bookmark: '' },
-                type: newList.views.listActivity?.type ?? list?.views?.listActivity?.type ?? 'listActivity'
-              }
-            }
-          })
-        );
+        let newList: BitBadgesAddressList<bigint> | undefined;
+        if (!list) {
+          newList = newListRes;
+        } else {
+          newList = list.clone();
+          newList.updateWithNewResponse(newListRes);
+        }
+
+        setList(newList);
         const toFetch = [];
         if (newList.createdBy) toFetch.push(newList.createdBy);
         if (newList.aliasAddress) toFetch.push(newList.aliasAddress);
@@ -530,7 +523,7 @@ function AddressListPage() {
                                   {list?.addresses.length > 10 && (
                                     <>
                                       <b>Address Checker</b>
-                                      <AddressSelect defaultValue={addressToCheck} onUserSelect={setAddressToCheck} />
+                                      <AddressSelect addressOrUsername={addressToCheck} onUserSelect={setAddressToCheck} />
                                       <br />
                                       {addressToCheck ? (
                                         isAddressInList ? (

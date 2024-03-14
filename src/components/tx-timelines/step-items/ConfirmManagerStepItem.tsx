@@ -20,7 +20,7 @@ const AddManagerNode = ({ address, setAddress }: { address: string; setAddress: 
   return (
     <div style={{ marginBottom: 10, marginTop: 4, display: 'flex', justifyContent: 'center' }}>
       <AddressSelect
-        defaultValue={address}
+        addressOrUsername={address}
         onUserSelect={(address) => {
           setAddress(address);
         }}

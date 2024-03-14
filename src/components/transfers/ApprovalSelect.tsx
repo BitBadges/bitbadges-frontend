@@ -74,7 +74,7 @@ const minNonZeroValue = (values: bigint[]) => {
 
 //Gets the max increments applied to the approval
 //Basicallly, it is the minimum value set for overall max uses and the selected usePer max uses (where applicable)
-export const getMaxIncrementsApplied = (approvalToAdd: RequiredApprovalProps) => {
+export const getMaxTransfersApplied = (approvalToAdd: RequiredApprovalProps) => {
   const checkedKeyId = Object.entries(approvalToAdd.approvalCriteria?.predeterminedBalances?.orderCalculationMethod || {}).find(
     ([, val]) => val === true
   )?.[0];
@@ -314,31 +314,33 @@ export function ApprovalSelect({
 
         const ownershipTimes = props.ownershipTimes ?? approvalToAdd.ownershipTimes;
         const increment = props.increment ?? approvalToAdd.approvalCriteria.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy;
-        const numIncrements = props.numIncrements ?? getExpectedNumIncrements(approvalToAdd, distributionMethodVal);
+        const numIncrements = props.numIncrements ?? getMaxTransfersApplied(approvalToAdd) - 1n;
+        const numTransfers = numIncrements + 1n;
 
         const hasIncrements = increment > 0n;
         const toUsePredeterminedBalances =
           hasIncrements || distributionMethodVal === DistributionMethod.Claims || amountsTabVal === PredeterminedTab.AllOrNothing;
 
         if (toUsePredeterminedBalances) {
-          const allApprovedBadges = getAllBadgeIdsToBeTransferred([
-            new TransferWithIncrements({
-              from: '',
-              balances: [
-                {
-                  badgeIds: UintRangeArray.From(badgeIds),
-                  ownershipTimes: [...ownershipTimes],
-                  amount: 1n
-                }
-              ],
-              toAddressesLength: numIncrements ? numIncrements + 1n : 1n,
-              toAddresses: [],
-              incrementBadgeIdsBy: increment,
-              incrementOwnershipTimesBy: 0n
-            })
-          ]);
-
-          console.log(allApprovedBadges, badgeIds);
+          const allApprovedBadges =
+            numTransfers > 0n
+              ? getAllBadgeIdsToBeTransferred([
+                  new TransferWithIncrements({
+                    from: '',
+                    balances: [
+                      {
+                        badgeIds: UintRangeArray.From(badgeIds),
+                        ownershipTimes: [...ownershipTimes],
+                        amount: 1n
+                      }
+                    ],
+                    toAddressesLength: numTransfers,
+                    toAddresses: [],
+                    incrementBadgeIdsBy: increment,
+                    incrementOwnershipTimesBy: 0n
+                  })
+                ])
+              : badgeIds;
 
           return {
             ...approvalToAdd,
@@ -430,7 +432,8 @@ export function ApprovalSelect({
           id: 'numUses',
           publicParams: {
             maxUses: 1,
-            maxUsesPerAddress: 1
+            maxUsesPerAddress: 1,
+            assignMethod: 'firstComeFirstServe'
           },
           privateParams: getPlugin('numUses').getBlankPrivateParams(),
           publicState: getPlugin('numUses').getBlankPublicState()
@@ -629,7 +632,7 @@ export function ApprovalSelect({
     isFormDisabled ||
     (toUsePredeterminedBalances &&
       increment > 0 &&
-      getMaxIncrementsApplied(approvalToAdd) !== getExpectedNumIncrements(approvalToAdd, distributionMethod));
+      getMaxTransfersApplied(approvalToAdd) !== getExpectedNumTransfers(approvalToAdd, distributionMethod));
   isFormDisabled = isFormDisabled || (toUsePredeterminedBalances && startBalances.length > 0 && startBalances.some((x) => x.amount <= 0n));
   isFormDisabled =
     isFormDisabled ||
@@ -746,6 +749,7 @@ export function ApprovalSelect({
               </div>
               <br />
               <ClaimBuilder
+                type='balances'
                 claim={{
                   claimId: claimId.current,
                   plugins: plugins
@@ -1055,13 +1059,14 @@ export function ApprovalSelect({
             collectionId={collectionId}
             approvalToAdd={approvalToAdd}
             setApprovalToAdd={setApprovalToAdd}
-            expectedPartitions={getExpectedNumIncrements(approvalToAdd, distributionMethod)}
+            expectedPartitions={getExpectedNumTransfers(approvalToAdd, distributionMethod)}
             distributionMethod={distributionMethod}
             fromListLocked={!!fromListLocked}
             toListLocked={!!toListLocked}
             initiatedByListLocked={!!initiatedByListLocked}
             tab={amountsTab}
             setTab={setAmountsTabAndReset}
+            plugins={plugins}
           />
         </div>
       </Row>
@@ -1122,14 +1127,12 @@ export function ApprovalSelect({
             details.challengeDetails.treeOptions = treeOptions;
 
             const pluginsToAdd = [];
-            if (!plugins.find((x) => x.id === 'numUses')) {
-              pluginsToAdd.push({
-                id: 'numUses',
-                privateParams: getPlugin('numUses').getBlankPrivateParams(),
-                publicParams: { maxUses: codes.length },
-                publicState: getPlugin('numUses').getBlankPublicState()
-              });
-            }
+            pluginsToAdd.push({
+              id: 'numUses',
+              privateParams: getPlugin('numUses').getBlankPrivateParams(),
+              publicParams: { maxUses: codes.length },
+              publicState: getPlugin('numUses').getBlankPublicState()
+            });
             pluginsToAdd.push(getBlankPlugin('requiresProofOfAddress'));
             pluginsToAdd.push({
               id: 'transferTimes',
@@ -1137,11 +1140,13 @@ export function ApprovalSelect({
               publicParams: { transferTimes: UintRangeArray.From(approvalToAdd.transferTimes) },
               publicState: getPlugin('transferTimes').getBlankPublicState()
             });
-            pluginsToAdd.push(...plugins);
 
+            pluginsToAdd.push(...plugins.filter((x) => x.id !== 'numUses' && x.id !== 'transferTimes' && x.id !== 'requiresProofOfAddress'));
+
+            //One claim builder per approvalId
             details.offChainClaims = [
               {
-                claimId: claimId.current,
+                claimId: newApprovalToAdd.amountTrackerId ? newApprovalToAdd.amountTrackerId : amountTrackerId.current,
                 plugins: pluginsToAdd
               }
             ];
@@ -1233,14 +1238,14 @@ export function ApprovalSelect({
   );
 }
 
-const getExpectedNumIncrements = (approval: RequiredApprovalProps, distributionMethod: DistributionMethod) => {
+const getExpectedNumTransfers = (approval: RequiredApprovalProps, distributionMethod: DistributionMethod) => {
   //Else, reverse engineer the approval to find the number of increments applied
   const overallBadgeIdEnd = approval.badgeIds?.[0]?.end || 1n;
   const predeterminedBadgeIdEnd = approval.approvalCriteria.predeterminedBalances.incrementedBalances.startBalances?.[0]?.badgeIds?.[0]?.end || 1n;
   const increment = approval.approvalCriteria.predeterminedBalances.incrementedBalances.incrementBadgeIdsBy || 0n;
   if (increment === 0n) {
     if (distributionMethod === DistributionMethod.Claims) {
-      return getMaxIncrementsApplied(approval); //Min non-zero value of num claims and num claims per initiator
+      return getMaxTransfersApplied(approval); //Min non-zero value of num claims and num claims per initiator
     }
 
     return 1n;
@@ -1248,7 +1253,7 @@ const getExpectedNumIncrements = (approval: RequiredApprovalProps, distributionM
 
   const difference = overallBadgeIdEnd - predeterminedBadgeIdEnd;
   const numIncrements = difference / increment;
-  return numIncrements;
+  return numIncrements + 1n;
 };
 
 const BadgeIdsSelectCard = ({
@@ -1297,7 +1302,7 @@ const BadgeIdsSelectCard = ({
 
   const setNumTransfers = (numTransfers: bigint) => {
     setAmountProperties({
-      numIncrements: numTransfers
+      numIncrements: numTransfers - 1n
     });
   };
 
@@ -1316,7 +1321,7 @@ const BadgeIdsSelectCard = ({
         setIncrementBadgeIdsBy={(increment) => {
           setIncrement(increment);
         }}
-        numRecipients={getExpectedNumIncrements(approvalToAdd, distributionMethod)}
+        numRecipients={getExpectedNumTransfers(approvalToAdd, distributionMethod)}
         setNumRecipients={
           showMintingOnlyFeatures
             ? (numRecipients) => {

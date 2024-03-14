@@ -232,7 +232,7 @@ function UniversalUserApprovalsTab({
         {!(isIncomingApprovalEdit || isOutgoingApprovalEdit) && !hideSelect && (
           <>
             <AddressSelect
-              defaultValue={chain.address}
+              addressOrUsername={chain.address}
               onUserSelect={(value) => {
                 setAddress(value);
               }}

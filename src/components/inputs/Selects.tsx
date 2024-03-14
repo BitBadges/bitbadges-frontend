@@ -5,7 +5,8 @@ export const RadioGroup = ({
   label,
   value,
   onChange,
-  options
+  options,
+  disabled
 }: {
   label?: string | ReactNode;
   value: any;
@@ -18,6 +19,7 @@ export const RadioGroup = ({
       }
     | undefined
   >;
+  disabled?: boolean;
 }) => {
   const toUseSelectedProp = options.some((option) => option?.selected);
 
@@ -44,6 +46,7 @@ export const RadioGroup = ({
                   onChange(option.value);
                 }
               }}
+              disabled={disabled}
               value={currValue}
               key={option.value}
               className="rounded-lg"
