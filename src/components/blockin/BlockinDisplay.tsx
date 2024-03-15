@@ -1,4 +1,4 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
+import { SwapOutlined } from '@ant-design/icons';
 import { Avatar, Steps, Typography, notification } from 'antd';
 import { BalanceArray, BigIntify, BlockinChallengeParams, SupportedChain, UintRangeArray } from 'bitbadgesjs-sdk';
 import { ChallengeParams, SignAndVerifyChallengeResponse, SupportedChainMetadata, constructChallengeObjectFromString } from 'blockin';
@@ -16,7 +16,6 @@ import { AddressDisplay } from '../address/AddressDisplay';
 import { AddressSelect } from '../address/AddressSelect';
 import { BlockiesAvatar } from '../address/Blockies';
 import { BadgeAvatarDisplay } from '../badges/BadgeAvatarDisplay';
-import { RadioGroup } from '../inputs/Selects';
 
 const { Text } = Typography;
 
@@ -116,23 +115,23 @@ export const BlockinDisplay = ({ hideLogo, hideLogin }: { hideLogo?: boolean; hi
 
   return (
     <>
-      <div className="flex-center flex-column">
-        <RadioGroup
-          options={[
-            { label: 'Limited', value: true },
-            { label: 'Full', value: false }
-          ]}
-          value={offChainOnlyMode}
-          onChange={(e) => {
-            setOffChainOnlyMode(e);
-          }}
-        />
+      <div className="flex-center flex-wrap primary-text text-center px-3 mt-2 w-full">
+        <b>Sign in to </b>
+        <img className="px-1" src="/images/bitbadgeslogotext.png" alt="BitBadges Logo" height={30} width={100} />
+        <b>
+          ({offChainOnlyMode ? 'Limited' : 'Full Access'} Mode{' '}
+          <a className="pl-1" onClick={() => setOffChainOnlyMode(!offChainOnlyMode)}>
+            {' '}
+            <SwapOutlined /> Switch
+          </a>
+          )
+        </b>
       </div>
-      <div className="secondary-text text-center px-3 mt-2">
-        <InfoCircleOutlined />
+      <div className="secondary-text text-center px-3">
         {offChainOnlyMode
-          ? ' Limited mode allows you to sign in with an approved, non-crypto sign-in method. This gives access to most features, but you will not be able to sign messages or transactions. '
-          : ' Connect and sign in with a web3 wallet. This gives access to all features.'}
+          ? 'Limited mode allows you to sign in with an approved, non-crypto sign-in method. This gives access to most features, but you will not be able to sign messages or transactions. '
+          : 'Connect and sign in with a web3 wallet. This gives access to all features.'}
+        <br />
       </div>
       {offChainOnlyMode && (
         <>

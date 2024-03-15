@@ -1,4 +1,5 @@
 import { Divider, Spin, message, notification } from 'antd';
+import axios from 'axios';
 import {
   BalanceArray,
   BigIntify,
@@ -12,10 +13,11 @@ import {
 } from 'bitbadgesjs-sdk';
 import crypto from 'crypto';
 import React, { useEffect, useState } from 'react';
-import { BitBadgesApi, addBalancesToOffChainStorage, fetchMetadataDirectly, getCollections } from '../../bitbadges-api/api';
+import { BitBadgesApi, addBalancesToOffChainStorage, getCollections } from '../../bitbadges-api/api';
 import { NEW_COLLECTION_ID } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { getCollection, updateCollection, useCollection } from '../../bitbadges-api/contexts/collections/CollectionsContext';
 import { MetadataAddMethod } from '../../bitbadges-api/types';
+import { BACKEND_URL } from '../../constants';
 import { getBlankPlugin } from '../../integrations/integrations';
 import { GenericModal } from '../display/GenericModal';
 import { RadioGroup } from '../inputs/Selects';
@@ -43,12 +45,13 @@ export const getExistingBalanceMap = async (collection: Readonly<BitBadgesCollec
     throw new Error('The collection you are trying to set balances for is custom created. You will have to assign balances manually.');
   }
 
-  const offChainBalancesMapRes = await fetchMetadataDirectly({
+  //TODO: Change this back to BitBadges API typed SDK
+  const offChainBalancesMapRes = await axios.post(BACKEND_URL + '/api/v0/metadata', {
     uris: [collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri]
   });
 
   //filter undefined entries
-  const filteredMap = Object.entries(offChainBalancesMapRes.metadata[0] as any)
+  const filteredMap = Object.entries(offChainBalancesMapRes.data.metadata[0] as any)
     .filter(([, balances]) => {
       return !!balances;
     })
@@ -68,6 +71,7 @@ export const removeBalancesFromExistingBalancesMapAndAddToStorage = async (
 ) => {
   const followCollection = await getCollectionFromId(collectionId);
   const balancesMap = await getExistingBalanceMap(followCollection);
+
   const newTransfers: Array<TransferWithIncrements<bigint>> = Object.entries(balancesMap)
     .map(([cosmosAddress, balances]) => {
       return new TransferWithIncrements({
