@@ -31,6 +31,8 @@ import {
 } from 'bitbadgesjs-sdk/dist/proto/wasmx/tx_pb';
 import { MsgStoreCode as ProtoMsgStoreCode } from 'bitbadgesjs-sdk/dist/proto/cosmwasm/wasm/v1/tx_pb';
 import { MsgSend as ProtoMsgSend } from 'bitbadgesjs-sdk/dist/proto/cosmos/bank/v1beta1/tx_pb';
+import { MsgDelegate as ProtoMsgDelegate, MsgUndelegate as ProtoMsgUndelegate } from 'bitbadgesjs-sdk/dist/proto/cosmos/staking/v1beta1';
+
 import { createTransactionPayload } from 'bitbadgesjs-sdk';
 import { useTxTimelineContext } from '../../bitbadges-api/contexts/TxTimelineContext';
 import { fetchAccountsWithOptions, useAccount } from '../../bitbadges-api/contexts/accounts/AccountsContext';
@@ -207,6 +209,22 @@ export function TxModal({
             return new ProtoMsgExecuteContractCompat({
               ...params,
               sender: chain.cosmosAddress
+            });
+          };
+          break;
+        case 'MsgDelegate':
+          createFunction = (params: ProtoMsgDelegate) => {
+            return new ProtoMsgDelegate({
+              ...params,
+              delegatorAddress: chain.cosmosAddress
+            });
+          };
+          break;
+        case 'MsgUndelegate':
+          createFunction = (params: ProtoMsgUndelegate) => {
+            return new ProtoMsgUndelegate({
+              ...params,
+              delegatorAddress: chain.cosmosAddress
             });
           };
           break;

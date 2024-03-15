@@ -23,11 +23,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 
-import { fetchCollectionsWithOptions, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { BitBadgesApi } from '../../../bitbadges-api/api';
+import { fetchCollectionsWithOptions, updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { approvalCriteriaHasNoAmountRestrictions, approvalCriteriaUsesPredeterminedBalances } from '../../../bitbadges-api/utils/claims';
 import { INFINITE_LOOP_MODE } from '../../../constants';
 import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/settings';
+import { AddressDisplay } from '../../address/AddressDisplay';
 import { AddressSelect } from '../../address/AddressSelect';
+import { BalanceDisplay } from '../../balances/BalanceDisplay';
 import { Divider } from '../../display/Divider';
 import IconButton from '../../display/IconButton';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
@@ -36,6 +40,7 @@ import { Tabs } from '../../navigation/Tabs';
 import { CreateTxMsgClaimBadgeModal } from '../../tx-modals/CreateTxMsgClaimBadge';
 import { CreateTxMsgTransferBadgesModal } from '../../tx-modals/CreateTxMsgTransferBadges';
 import { FetchCodesModal } from '../../tx-modals/FetchCodesModal';
+import { ScrollLoader } from '../ClaimAlertsTab';
 import { ApprovalBalancesCard } from './ApprovalBalancesCard';
 import { ApprovalSelectWrapper } from './ApprovalsDisplay';
 import { ApprovalAmountsComponent, DetailsCard, MaxNumTransfersComponent } from './DetailsCard';
@@ -200,7 +205,14 @@ export function TransferabilityDisplay({
 
   const [populated, setPopulated] = useState(false);
   const [tab, setTab] = useState('criteria');
-  const [statusTab, setStatusTab] = useState('search');
+  const [statusTab, setStatusTab] = useState('scroll');
+
+  const [numDisplayed, setNumDisplayed] = useState(25);
+  useEffect(() => {
+    if (statusTab !== 'scroll') {
+      setNumDisplayed(25);
+    }
+  }, [statusTab]);
 
   //Auto scroll to page upon claim ID query in URL
   useEffect(() => {
@@ -321,14 +333,6 @@ export function TransferabilityDisplay({
     isCurrentlyValid = false;
   }
 
-  // const [numDisplayed, setNumDisplayed] = useState(25);
-
-  // useEffect(() => {
-  //   if (statusTab !== 'scroll') {
-  //     setNumDisplayed(25);
-  //   }
-  // }, [statusTab]);
-
   const AddressStatus = ({ address }: { address: string }) => {
     return (
       <>
@@ -366,6 +370,11 @@ export function TransferabilityDisplay({
       </>
     );
   };
+
+  const collectionClone = collection?.clone();
+  const approvalTrackers = collectionClone?.approvalTrackers.sort((a, b) => {
+    return a.amountTrackerId.localeCompare(b.amountTrackerId);
+  });
 
   return (
     <>
@@ -428,47 +437,44 @@ export function TransferabilityDisplay({
                         {tab === 'statuses' && (
                           <>
                             <div className="flex-center flex-column full-width">
-                              <br />
                               <div className="flex-center flex-column full-width">
-                                <b style={{ fontSize: 16, marginTop: 24 }}>All Addresses (Cumulative)</b>
-
-                                <div className="flex flex-wrap" style={{ width: '100%' }}>
-                                  <Col md={12} sm={24} xs={24} style={{ padding: 6 }}>
-                                    <MaxNumTransfersComponent
-                                      approval={approval}
-                                      collectionId={collectionId}
-                                      address={address}
-                                      type="overall"
-                                      componentType="card"
-                                    />
-                                  </Col>
-                                  <Col md={12} sm={24} xs={24} style={{ padding: 6 }}>
-                                    <ApprovalAmountsComponent
-                                      approval={approval}
-                                      collectionId={collectionId}
-                                      address={address}
-                                      type="overall"
-                                      componentType="card"
-                                    />
-                                  </Col>
+                                <div className="flex-center">
+                                  <RadioGroup
+                                    value={statusTab}
+                                    onChange={(val) => {
+                                      setStatusTab(val);
+                                    }}
+                                    options={[
+                                      { value: 'scroll', label: 'Feed' },
+                                      { value: 'search', label: 'Search' }
+                                    ]}
+                                  />
                                 </div>
-                              </div>
-                              <br />
-                              <div className="flex-center">
-                                <RadioGroup
-                                  value={statusTab}
-                                  onChange={(val) => {
-                                    setStatusTab(val);
-                                  }}
-                                  options={[
-                                    { value: 'search', label: 'Search' },
-                                    { value: 'scroll', label: 'Scroll' }
-                                  ]}
-                                />
                               </div>
 
                               {statusTab == 'search' && (
                                 <>
+                                  <b style={{ fontSize: 16, marginTop: 24 }}>All Addresses (Cumulative)</b>
+                                  <div className="flex flex-wrap" style={{ width: '100%' }}>
+                                    <Col md={12} sm={24} xs={24} style={{ padding: 6 }}>
+                                      <MaxNumTransfersComponent
+                                        approval={approval}
+                                        collectionId={collectionId}
+                                        address={address}
+                                        type="overall"
+                                        componentType="card"
+                                      />
+                                    </Col>
+                                    <Col md={12} sm={24} xs={24} style={{ padding: 6 }}>
+                                      <ApprovalAmountsComponent
+                                        approval={approval}
+                                        collectionId={collectionId}
+                                        address={address}
+                                        type="overall"
+                                        componentType="card"
+                                      />
+                                    </Col>
+                                  </div>
                                   <div className="flex-center flex-column full-width">
                                     <AddressSelect addressOrUsername={address} onUserSelect={setAddress} />
 
@@ -477,27 +483,77 @@ export function TransferabilityDisplay({
                                   </div>
                                 </>
                               )}
-                              {/* {statusTab == 'scroll' && (
+                              {statusTab == 'scroll' && (
                                 <>
-                                  <InfiniteScroll
-                                    dataLength={numDisplayed}
-                                    next={async () => {
-                                      const collectionClone = collection.clone();
-                                      await collectionClone.fetchNextForView(BitBadgesApi, 'amountTrackers', 'amountTrackers');
-                                      setNumDisplayed(numDisplayed + 25);
-                                    }}
-                                    hasMore={collection.viewHasMore('amountTrackers')}
-                                    loader={<ScrollLoader />}
-                                    scrollThreshold={'300px'}
-                                    endMessage={<></>}
-                                    initialScrollY={0}
-                                    style={{ width: '100%', overflow: 'hidden' }}>
-                                      {collection.approvalTrackers.map((x) => {
+                                  <div className="flex-center mt-2">
+                                    <InfiniteScroll
+                                      dataLength={numDisplayed}
+                                      next={async () => {
+                                        const collectionClone = collection.clone();
+                                        await collectionClone.fetchNextForView(BitBadgesApi, 'amountTrackers', 'amountTrackers');
+                                        updateCollection(collectionClone);
+                                        setNumDisplayed(numDisplayed + 25);
+                                      }}
+                                      hasMore={collection.viewHasMore('amountTrackers')}
+                                      loader={<ScrollLoader />}
+                                      scrollThreshold={'300px'}
+                                      endMessage={<></>}
+                                      initialScrollY={0}
+                                      className="flex flex-column"
+                                      style={{ overflow: 'hidden' }}>
+                                      {approvalTrackers?.map((x) => {
+                                        if (x.numTransfers <= 0) return null;
 
+                                        const transferLimit =
+                                          x.trackerType === 'overall'
+                                            ? approval.approvalCriteria?.maxNumTransfers?.overallMaxNumTransfers
+                                            : x.trackerType === 'initiatedBy'
+                                              ? approval.approvalCriteria?.maxNumTransfers?.perInitiatedByAddressMaxNumTransfers
+                                              : x.trackerType === 'to'
+                                                ? approval.approvalCriteria?.maxNumTransfers?.perToAddressMaxNumTransfers
+                                                : approval.approvalCriteria?.maxNumTransfers?.perFromAddressMaxNumTransfers;
 
+                                        const approvalAmountsLimit =
+                                          x.trackerType === 'overall'
+                                            ? approval.approvalCriteria?.approvalAmounts?.overallApprovalAmount
+                                            : x.trackerType === 'initiatedBy'
+                                              ? approval.approvalCriteria?.approvalAmounts?.perInitiatedByAddressApprovalAmount
+                                              : x.trackerType === 'to'
+                                                ? approval.approvalCriteria?.approvalAmounts?.perToAddressApprovalAmount
+                                                : approval.approvalCriteria?.approvalAmounts?.perFromAddressApprovalAmount;
+
+                                        return (
+                                          <>
+                                            <div className="flex-center flex-wrap">
+                                              <div className="pr-1">
+                                                {x.approvedAddress === '' && <AddressDisplay addressOrUsername="All" />}
+                                                {x.approvedAddress !== '' && <AddressDisplay addressOrUsername={x.approvedAddress} />}
+                                              </div>{' '}
+                                              is at {x.numTransfers.toString()}{' '}
+                                              {transferLimit !== undefined && transferLimit > 0 && `/ ${transferLimit.toString()} `}
+                                              transfers used{' '}
+                                              {x.trackerType === 'overall'
+                                                ? 'overall'
+                                                : x.trackerType === 'initiatedBy'
+                                                  ? 'as initiator'
+                                                  : x.trackerType === 'to'
+                                                    ? 'as recipient'
+                                                    : 'as sender'}{' '}
+                                              {x.amounts.length > 0 && 'with the following balances used'}
+                                              {approvalAmountsLimit !== undefined &&
+                                                approvalAmountsLimit > 0 &&
+                                                ` (x${approvalAmountsLimit.toString()} Limit)`}
+                                            </div>
+                                            {x.amounts.length > 0 && (
+                                              <BalanceDisplay message={<></>} hideBadges balances={x.amounts} collectionId={collectionId} />
+                                            )}{' '}
+                                          </>
+                                        );
+                                      })}
                                     </InfiniteScroll>
+                                  </div>
                                 </>
-                              )} */}
+                              )}
                             </div>
                           </>
                         )}
