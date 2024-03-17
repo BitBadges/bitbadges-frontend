@@ -14,6 +14,7 @@ import { NumUsesPluginDetails } from './numUses';
 import { PasswordPluginDetails } from './passwords';
 import { TransferTimesPluginDetails } from './transferTimes';
 import { WhitelistPluginDetails } from './whitelist';
+import { ApiPluginDetails } from './api';
 
 interface ContextInfo {
   address: string;
@@ -71,6 +72,7 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     metadata,
     publicParams,
     context,
+    customBody,
     setCustomBody,
     publicState,
     disabled,
@@ -80,7 +82,8 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     metadata: IntegrationMetadata;
     publicParams: ClaimIntegrationPublicParamsType<P>;
     context: ContextInfo;
-    setCustomBody: (customBody: object) => void;
+    customBody: object | object[];
+    setCustomBody: (customBody: object | object[]) => void;
     publicState: ClaimIntegrationPublicStateType<P>;
     disabled: string;
     setDisabled: (disabled: string) => void;
@@ -166,5 +169,6 @@ export const Plugins: { [key in ClaimIntegrationPluginType]: ClaimIntegrationPlu
   codes: CodesPluginDetails,
   password: PasswordPluginDetails,
   greaterThanXBADGEBalance: MinBalancesPluginDetails,
-  mustOwnBadges: MustOwnPluginDetails
+  mustOwnBadges: MustOwnPluginDetails,
+  api: ApiPluginDetails
 };

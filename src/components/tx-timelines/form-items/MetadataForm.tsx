@@ -300,6 +300,44 @@ export const GenericTextFormInput = ({
   );
 };
 
+export const GenericCheckboxFormInput = ({
+  label,
+  value,
+  setValue,
+  helper,
+  err,
+  required
+}: {
+  label: string;
+  value: boolean;
+  setValue: (value: boolean) => void;
+  helper?: string | ReactNode;
+  err?: string;
+  required?: boolean;
+}) => {
+  return (
+    <Form.Item required={required} label={<FormInputLabel label={label} />}>
+      <Checkbox
+        checked={value}
+        onChange={(e) => {
+          setValue(e.target.checked);
+        }}
+        className="primary-text"
+      />
+      {helper ? (
+        typeof helper === 'string' ? (
+          <div style={{ fontSize: 12 }}>
+            <Text className="secondary-text">{helper}</Text>
+          </div>
+        ) : (
+          helper
+        )
+      ) : null}
+      {err && <div style={{ fontSize: 12, color: 'red' }}>{err}</div>}
+    </Form.Item>
+  );
+};
+
 export function ImageSelect({ image, setImage }: { image: string; setImage: (image: string) => void }) {
   const sampleImages = [
     {
@@ -921,10 +959,20 @@ export function MetadataForm({
 
 export const AttributesSelect = ({
   attributes,
-  setAttributes
+  setAttributes,
+  title,
+  noValues,
+  subtitle,
+  showLabelSelect
 }: {
-  attributes: Array<{ name: string; value: string | number | boolean; type?: 'date' | 'url' | undefined }>;
-  setAttributes: (attributes: Array<{ name: string; value: string | number | boolean; type?: 'date' | 'url' | undefined }>) => void;
+  attributes: Array<{ label?: string; helper?: string; name: string; value: string | number | boolean; type?: 'date' | 'url' | undefined }>;
+  setAttributes: (
+    attributes: Array<{ label?: string; helper?: string; name: string; value: string | number | boolean; type?: 'date' | 'url' | undefined }>
+  ) => void;
+  title?: string;
+  subtitle?: string;
+  noValues?: boolean;
+  showLabelSelect?: boolean;
 }) => {
   attributes = [...attributes];
 
@@ -932,113 +980,136 @@ export const AttributesSelect = ({
     <Form.Item
       label={
         <Text className="primary-text" strong>
-          Attributes
+          {title ?? 'Attributes'}
         </Text>
       }>
+      {!!subtitle && <div className="secondary-text">{subtitle}</div>}
       {/* Attributes can be string, number, boolea, date, or URL */}
       {attributes?.map((attribute, idx) => {
         return (
-          <div key={idx} className="flex-between">
-            <Col md={8} xs={24} className="full-width" style={{ paddingRight: 8 }}>
-              <Select
-                style={{ marginRight: 8 }}
-                value={attribute.type ? attribute.type : typeof attribute.value}
-                onChange={(e) => {
-                  if (e === 'date') {
-                    attributes![idx].type = 'date';
-                    attributes![idx].value = Date.now();
-                  } else if (e === 'url') {
-                    attributes![idx].type = 'url';
+          <div key={idx} className="flex flex-center mb-6">
+            <Select
+              style={{ marginRight: 8, width: 100 }}
+              value={attribute.type ? attribute.type : typeof attribute.value}
+              onChange={(e) => {
+                if (e === 'date') {
+                  attributes![idx].type = 'date';
+                  attributes![idx].value = Date.now();
+                } else if (e === 'url') {
+                  attributes![idx].type = 'url';
+                } else {
+                  if (attributes![idx].type) delete attributes![idx].type;
+                  if (e === 'number') {
+                    attributes![idx].value = 0;
+                  } else if (e === 'boolean') {
+                    attributes![idx].value = false;
                   } else {
-                    if (attributes![idx].type) delete attributes![idx].type;
-                    if (e === 'number') {
-                      attributes![idx].value = 0;
-                    } else if (e === 'boolean') {
-                      attributes![idx].value = false;
-                    } else {
-                      attributes![idx].value = '';
-                    }
+                    attributes![idx].value = '';
                   }
+                }
 
-                  setAttributes(attributes);
-                }}
-                className="selector primary-text inherit-bg">
-                <Option value="string">String</Option>
-                <Option value="number">Number</Option>
-                <Option value="boolean">Boolean</Option>
-                <Option value="date">Date</Option>
-                <Option value="url">URL</Option>
-              </Select>
-            </Col>
-            <Col md={7} xs={24} className="full-width" style={{ paddingRight: 8 }}>
+                setAttributes(attributes);
+              }}
+              className="selector primary-text inherit-bg">
+              <Option value="string">String</Option>
+              <Option value="number">Number</Option>
+              <Option value="boolean">Boolean</Option>
+              <Option value="date">Date</Option>
+              <Option value="url">URL</Option>
+            </Select>
+            <Input
+              style={{ marginRight: 8, maxWidth: 200 }}
+              value={attribute.name}
+              onChange={(e) => {
+                attributes![idx].name = e.target.value;
+                setAttributes(attributes);
+              }}
+              placeholder="Key"
+              className="primary-text inherit-bg"
+            />
+            {showLabelSelect && (
               <Input
-                style={{ marginRight: 8 }}
-                value={attribute.name}
+                style={{ marginRight: 8, maxWidth: 200 }}
+                value={attribute.label}
                 onChange={(e) => {
-                  attributes![idx].name = e.target.value;
+                  attributes![idx].label = e.target.value;
                   setAttributes(attributes);
                 }}
-                placeholder="Attribute Name"
+                placeholder="Label"
                 className="primary-text inherit-bg"
               />
-            </Col>
-            <Col md={8} xs={24} className="full-width" style={{ paddingRight: 8 }}>
-              {attributes![idx].type === 'date' && (
-                <DatePicker
-                  style={{ width: '100%' }}
-                  value={moment(new Date(Number(attributes![idx].value)))}
-                  onChange={(e) => {
-                    if (!e) return;
-                    attributes![idx].value = new Date(e?.toISOString() ?? '').valueOf() ?? 0;
-                    setAttributes(attributes);
-                  }}
-                  className="primary-text inherit-bg"
-                />
-              )}
-              {(attributes![idx].type === 'url' || typeof attributes![idx].value === 'string') && (
-                <Input
-                  value={attributes![idx].value as string}
-                  onChange={(e) => {
-                    attributes![idx].value = e.target.value;
-                    setAttributes(attributes);
-                  }}
-                  placeholder="Attribute Value"
-                  className="primary-text inherit-bg"
-                />
-              )}
-              {typeof attributes![idx].value === 'number' && attributes![idx].type !== 'date' && (
-                <InputNumber
-                  value={attributes![idx].value as number}
-                  onChange={(e) => {
-                    attributes![idx].value = e as number;
-                    setAttributes(attributes);
-                  }}
-                  className="primary-text inherit-bg"
-                />
-              )}
-              {typeof attributes![idx].value === 'boolean' && (
-                <Switch
-                  checkedChildren="True"
-                  unCheckedChildren="False"
-                  checked={attributes![idx].value as boolean}
-                  onChange={(e) => {
-                    attributes![idx].value = e;
-                    setAttributes(attributes);
-                  }}
-                />
-              )}
-            </Col>
-            <Col md={1} xs={24} className="full-width">
-              <IconButton
-                onClick={() => {
-                  attributes = [...attributes];
-                  attributes!.splice(idx, 1);
+            )}
+            {showLabelSelect && (
+              <Input
+                style={{ marginRight: 8 }}
+                value={attribute.helper}
+                onChange={(e) => {
+                  attributes![idx].helper = e.target.value;
                   setAttributes(attributes);
                 }}
-                src={<MinusOutlined />}
-                text=""
+                placeholder="Helper Message"
+                className="primary-text inherit-bg"
               />
-            </Col>
+            )}
+            {!noValues && (
+              <>
+                <div style={{}}>
+                  {attributes![idx].type === 'date' && (
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      value={moment(new Date(Number(attributes![idx].value)))}
+                      onChange={(e) => {
+                        if (!e) return;
+                        attributes![idx].value = new Date(e?.toISOString() ?? '').valueOf() ?? 0;
+                        setAttributes(attributes);
+                      }}
+                      className="primary-text inherit-bg"
+                    />
+                  )}
+                  {(attributes![idx].type === 'url' || typeof attributes![idx].value === 'string') && (
+                    <Input
+                      value={attributes![idx].value as string}
+                      onChange={(e) => {
+                        attributes![idx].value = e.target.value;
+                        setAttributes(attributes);
+                      }}
+                      placeholder="Attribute Value"
+                      className="primary-text inherit-bg"
+                    />
+                  )}
+                  {typeof attributes![idx].value === 'number' && attributes![idx].type !== 'date' && (
+                    <InputNumber
+                      value={attributes![idx].value as number}
+                      onChange={(e) => {
+                        attributes![idx].value = e as number;
+                        setAttributes(attributes);
+                      }}
+                      className="primary-text inherit-bg"
+                    />
+                  )}
+                  {typeof attributes![idx].value === 'boolean' && (
+                    <Switch
+                      checkedChildren="True"
+                      unCheckedChildren="False"
+                      checked={attributes![idx].value as boolean}
+                      onChange={(e) => {
+                        attributes![idx].value = e;
+                        setAttributes(attributes);
+                      }}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+            <IconButton
+              onClick={() => {
+                attributes = [...attributes];
+                attributes!.splice(idx, 1);
+                setAttributes(attributes);
+              }}
+              src={<MinusOutlined />}
+              text=""
+            />
           </div>
         );
       })}

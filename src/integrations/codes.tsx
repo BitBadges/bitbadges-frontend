@@ -198,7 +198,7 @@ const CodesCreateNode = ({
         setParams({ numCodes: numClaims }, { seedCode: '', codes });
         break;
     }
-  }, [tab, numClaims, inputStr, origParams, origPublicParams, setParams, autoGenCodes, autoGenSeed]);
+  }, [tab, numClaims, inputStr, autoGenCodes, autoGenSeed, origParams, origPublicParams]); //origParams, origPublicParams, setParams
 
   useEffect(() => {
     setDisabled(codes.length !== numClaims ? 'Must provide ' + numClaims + ' code(s) to match number of claims.' : '');

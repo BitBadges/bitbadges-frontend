@@ -482,11 +482,6 @@ export function FreezeSelectStepItem() {
     'canUpdateCollectionApprovals'
   ).dataSource.every((x) => x.forbidden);
 
-  console.log(
-    'completelyFrozen',
-    getDetailsForPermission(collection.collectionPermissions.canUpdateCollectionApprovals, 'canUpdateCollectionApprovals')
-  );
-
   const postMintFrozen =
     !completelyFrozen &&
     getDetailsForPermission(collection.collectionPermissions.canUpdateCollectionApprovals, 'canUpdateCollectionApprovals')

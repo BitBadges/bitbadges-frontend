@@ -79,6 +79,7 @@ export const ClaimBuilder = ({
             const id = _id as ClaimIntegrationPluginType;
             const pluginInstance = getPlugin(id);
             if (!pluginInstance.metadata.onChainCompatible && !offChainSelect) return null;
+            if (pluginInstance.id === 'api') return null;
 
             return (
               <ClaimBuilderRow
@@ -94,8 +95,91 @@ export const ClaimBuilder = ({
               />
             );
           })}
+          <div className="text-center">
+            <b>Custom Queries</b>
+          </div>
+          <div className="text-center">
+            <ErrDisplay warning err="Always use third party tools at your own risk!" />
+          </div>
+          <br />
+          <CreateNodeFromPlugin
+            id="api"
+            plugins={plugins}
+            disabledMap={disabledMap}
+            setDisabledMap={setDisabledMap}
+            isUpdate={isUpdate}
+            type={type}
+            claim={claim}
+            setPlugins={setPlugins}
+          />
         </>
       )}
+    </>
+  );
+};
+
+const CreateNodeFromPlugin = ({
+  id,
+  plugins,
+  disabledMap,
+  setDisabledMap,
+  isUpdate,
+  type,
+  claim,
+  setPlugins
+}: {
+  id: ClaimIntegrationPluginType;
+  plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
+  disabledMap: { [key: string]: string };
+  setDisabledMap: (disabledMap: { [key: string]: string }) => void;
+  isUpdate?: boolean;
+  type: 'balances' | 'list';
+  claim: Readonly<OffChainClaim<bigint>>;
+  setPlugins: (plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[]) => void;
+}) => {
+  const pluginInstance = getPlugin(id);
+  const currPlugin = getPluginDetails(id, plugins);
+
+  const setDisabled = useCallback((disabled: string) => {
+    setDisabledMap({ ...disabledMap, [id]: disabled });
+  }, []);
+
+  if (!pluginInstance) return <></>;
+  if (!pluginInstance.createNode) return null;
+
+  return (
+    <>
+      {pluginInstance?.createNode?.({
+        disabled: disabledMap[id],
+        setDisabled,
+        claim: claim,
+        numClaims: getPluginDetails('numUses', plugins)?.publicParams?.maxUses || 0,
+        id: id,
+        metadata: pluginInstance.metadata,
+        privateParams: currPlugin?.privateParams ?? getBlankPlugin(id).privateParams,
+        publicParams: currPlugin?.publicParams ?? getBlankPlugin(id).publicParams,
+        type,
+        isUpdate: !!isUpdate,
+        setParams: (publicParams, privateParams) => {
+          const newPlugins = plugins;
+          if (newPlugins.find((x) => x.id === id)) {
+            newPlugins.find((x) => x.id === id)!.publicParams = publicParams;
+            newPlugins.find((x) => x.id === id)!.privateParams = privateParams;
+          } else {
+            newPlugins.push({
+              ...getBlankPlugin(id),
+              publicParams: publicParams,
+              privateParams: privateParams
+            });
+          }
+
+          if (getPluginDetails('api', plugins)?.publicParams.apiCalls.length === 0) {
+            setPlugins(newPlugins.filter((x) => x.id !== 'api'));
+          } else {
+            setPlugins(newPlugins);
+          }
+        }
+      })}
     </>
   );
 };
@@ -121,10 +205,6 @@ const ClaimBuilderRow = ({
 }) => {
   const pluginInstance = getPlugin(id);
   const currPlugin = getPluginDetails(id, plugins);
-
-  const setDisabled = useCallback((disabled: string) => {
-    setDisabledMap({ ...disabledMap, [id]: disabled });
-  }, []);
 
   if (!pluginInstance) return <></>;
   if (!pluginInstance.createNode) return null;
@@ -267,33 +347,7 @@ const ClaimBuilderRow = ({
           )}
         </>
       )}
-      {currPlugin &&
-        pluginInstance.createNode({
-          disabled: disabledMap[id],
-          setDisabled: setDisabled,
-          claim: claim,
-          numClaims: getPluginDetails('numUses', plugins)?.publicParams?.maxUses || 0,
-          id: id,
-          metadata: pluginInstance.metadata,
-          privateParams: currPlugin.privateParams,
-          publicParams: currPlugin.publicParams,
-          type,
-          isUpdate: !!isUpdate,
-          setParams: (publicParams, privateParams) => {
-            setPlugins(
-              plugins.map((x) => {
-                if (x.id === id) {
-                  return {
-                    ...x,
-                    publicParams: publicParams,
-                    privateParams: privateParams
-                  };
-                }
-                return x;
-              })
-            );
-          }
-        })}
+      {currPlugin && <CreateNodeFromPlugin {...{ id, plugins, disabledMap, setDisabledMap, isUpdate, type, claim, setPlugins }} />}
       <br />
     </div>
   );

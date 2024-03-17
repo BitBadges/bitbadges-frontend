@@ -15,7 +15,7 @@ import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { EmptyStepItem, NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { areBalancesBitBadgesHosted } from '../../../bitbadges-api/utils/balances';
-import { IntegrationPluginDetails, getMaxUses, getPlugin, getPluginDetails } from '../../../integrations/integrations';
+import { IntegrationPluginDetails, getBlankPlugin, getMaxUses, getPlugin, getPluginDetails } from '../../../integrations/integrations';
 import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/settings';
 import { BitBadgesClaimLogo, hasAlreadyUsedAllClaims } from '../../../pages/lists/[listId]';
 import { AddressDisplay } from '../../address/AddressDisplay';
@@ -283,14 +283,16 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
                       }}
                       secondary
                     />
-                    {claim && <PluginCodesModal
-                      claim={claim}
-                      codes={codes ?? []}
-                      collectionId={collectionId}
-                      visible={codesModalVisible}
-                      setVisible={setCodesModalVisible}
-                      password={getPluginDetails('password', fetchedPlugins)?.privateParams.password}
-                    />}
+                    {claim && (
+                      <PluginCodesModal
+                        claim={claim}
+                        codes={codes ?? []}
+                        collectionId={collectionId}
+                        visible={codesModalVisible}
+                        setVisible={setCodesModalVisible}
+                        password={getPluginDetails('password', fetchedPlugins)?.privateParams.password}
+                      />
+                    )}
                   </div>
                 )}
                 {alreadyClaimed && !claimed && (
@@ -459,9 +461,17 @@ export const ClaimInputs = ({
       });
     }
 
+    const requiresDiscordSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passDiscord);
+    const requiresTwitterSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passTwitter);
+
+    const additionalPlugins = [...plugins];
+    if (requiresDiscordSignIn && !plugins.some((x) => x.id === 'discord')) additionalPlugins.push(getBlankPlugin('discord'));
+    if (requiresTwitterSignIn && !plugins.some((x) => x.id === 'twitter')) additionalPlugins.push(getBlankPlugin('twitter'));
+
     return [
       ...preSteps,
-      ...plugins.map((fetchedPlugin) => {
+
+      ...additionalPlugins.map((fetchedPlugin) => {
         const plugin = getPlugin(fetchedPlugin.id);
         if (!plugin.inputNode) return EmptyStepItem;
 
@@ -475,6 +485,7 @@ export const ClaimInputs = ({
                   [plugin.id]: disabled
                 }));
               },
+              customBody: customBody[plugin.id] ?? {},
               id: plugin.id,
               metadata: plugin.metadata,
               publicParams: fetchedPlugin.publicParams,

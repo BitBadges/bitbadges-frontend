@@ -32,6 +32,7 @@ import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/sett
 import { AddressDisplay } from '../../address/AddressDisplay';
 import { AddressSelect } from '../../address/AddressSelect';
 import { BalanceDisplay } from '../../balances/BalanceDisplay';
+import { ErrDisplay } from '../../common/ErrDisplay';
 import { Divider } from '../../display/Divider';
 import IconButton from '../../display/IconButton';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
@@ -62,7 +63,6 @@ export function TransferabilityDisplay({
   collectionId,
   approvalPermissions,
   filterFromMint,
-  noBorder,
   disapproved,
   isIncomingDisplay,
   isOutgoingDisplay,
@@ -79,7 +79,6 @@ export function TransferabilityDisplay({
   hideActions?: boolean;
   collectionId: bigint;
   filterFromMint?: boolean;
-  noBorder?: boolean;
   disapproved?: boolean;
   isIncomingDisplay?: boolean;
   isOutgoingDisplay?: boolean;
@@ -124,6 +123,8 @@ export function TransferabilityDisplay({
 
   const [refreshing, setRefreshing] = useState(false);
   const [alreadyRefreshed, setAlreadyRefreshed] = useState(false);
+
+  const [approvedEdit, setApprovedEdit] = useState(false);
 
   const refreshTrackers = useCallback(
     async (manualClick?: boolean) => {
@@ -274,7 +275,7 @@ export function TransferabilityDisplay({
   const isReserved = approval.approvalId === 'self-initiated-outgoing' || approval.approvalId === 'self-initiated-incoming';
   const EditableValue = editable && (
     <td>
-      {!disapproved && !isExisting && (
+      {!disapproved && (
         <div
           className="flex-center"
           onClick={(e) => {
@@ -296,6 +297,46 @@ export function TransferabilityDisplay({
       )}
     </td>
   );
+
+  // const CloneValue = editable && setAllApprovals && (
+  //   <td>
+  //     {!disapproved && (
+  //       <div
+  //         className="flex-center"
+  //         onClick={(e) => {
+  //           e.stopPropagation();
+  //         }}>
+  //         <IconButton
+  //           secondary
+  //           src={<BranchesOutlined />}
+  //           onClick={async () => {
+  //             if (!hideActions) await refreshTrackers();
+  //             const id = crypto.randomBytes(32).toString('hex');
+  //             setAllApprovals?.(
+  //               allApprovals.concat([
+  //                 new CollectionApprovalWithDetails<bigint>({
+  //                   ...approval.clone(),
+  //                   approvalId: id,
+  //                   amountTrackerId: id,
+  //                   challengeTrackerId: id
+  //                 })
+  //               ])
+  //             );
+
+  //             notification.success({
+  //               message: 'Cloned!',
+  //               description: 'The approval has been cloned! All state will not be kept. Everything will start from scratch.'
+  //             });
+  //           }}
+  //           text="Clone + Reset"
+  //           tooltipMessage="Clone this approval and reset everything tracked to start from scratch again."
+  //           size={40}
+  //           disabled={approval.approvalId === 'self-initiated-outgoing' || approval.approvalId === 'self-initiated-incoming'}
+  //         />
+  //       </div>
+  //     )}
+  //   </td>
+  // );
 
   const OnDeleteValue = onDelete && (
     <td>
@@ -655,26 +696,32 @@ export function TransferabilityDisplay({
                             size={40}
                           />
                         )}
-                        {!editable && !onDelete && !hideActions && !disapproved && approval.transferTimes.searchIfExists(BigInt(Date.now())) && (
-                          <IconButton
-                            secondary
-                            src={refreshing ? <Spin /> : isClaim ? <GiftOutlined /> : <SwapOutlined size={40} />}
-                            onClick={async () => {
-                              if (!hideActions) await refreshTrackers();
-                              setTransferIsVisible(!transferIsVisible);
-                            }}
-                            disabled={refreshing || !isCurrentlyValid}
-                            text={isClaim ? 'Claim' : 'Transfer'}
-                            tooltipMessage={
-                              isClaim
-                                ? 'Claim by satisfying the criteria for this approval.'
-                                : 'Transfer badges to another address via use of this approval.'
-                            }
-                            size={40}
-                          />
-                        )}
+                        {!onRestore &&
+                          !editable &&
+                          !onDelete &&
+                          !hideActions &&
+                          !disapproved &&
+                          approval.transferTimes.searchIfExists(BigInt(Date.now())) && (
+                            <IconButton
+                              secondary
+                              src={refreshing ? <Spin /> : isClaim ? <GiftOutlined /> : <SwapOutlined size={40} />}
+                              onClick={async () => {
+                                if (!hideActions) await refreshTrackers();
+                                setTransferIsVisible(!transferIsVisible);
+                              }}
+                              disabled={refreshing || !isCurrentlyValid}
+                              text={isClaim ? 'Claim' : 'Transfer'}
+                              tooltipMessage={
+                                isClaim
+                                  ? 'Claim by satisfying the criteria for this approval.'
+                                  : 'Transfer badges to another address via use of this approval.'
+                              }
+                              size={40}
+                            />
+                          )}
                         {EditableValue}
                         {OnRestoreValue}
+                        {/* {CloneValue} */}
                         {OnDeleteValue}
                       </div>
                       <div className="secondary-text" style={{ textAlign: 'center', fontSize: 10 }}>
@@ -708,7 +755,7 @@ export function TransferabilityDisplay({
                         )}
                       </div>
 
-                      {editable && !disapproved && showMoreIsVisible && !isReserved && (
+                      {editable && !disapproved && !isReserved && (
                         <>
                           <br />
                           <div className="flex-center">
@@ -758,17 +805,46 @@ export function TransferabilityDisplay({
                   {editIsVisible && collection && approval && setAllApprovals && (
                     <tr
                       style={{
-                        paddingBottom: 10,
-                        borderBottom: noBorder ? undefined : '1px solid gray'
+                        paddingBottom: 10
                       }}
-                      className="transferability-row-more">
-                      {
-                        <td colSpan={1000} style={{ alignItems: 'center' }}>
-                          <div className="flex-center">
-                            <Typography.Text strong className="primary-text" style={{ fontSize: 24 }}>
-                              Editing Approval
-                            </Typography.Text>
+                      className="transferability-row-more w-full flex-center">
+                      <td colSpan={1000} className="w-full" style={{ alignItems: 'center' }}>
+                        <div className="flex-center">
+                          <Typography.Text strong className="primary-text" style={{ fontSize: 24 }}>
+                            Editing Approval
+                          </Typography.Text>
+                        </div>
+                        {isExisting && (
+                          <div className="flex-center flex-column text-center w-full">
+                            <ErrDisplay
+                              warning
+                              err={`Editing existing approvals that have already been used is strongly discouraged because it is very easy to mess things up behind the scenes. Only proceed if you are 100% sure of the effects and have advanced knowledge of the inner workings of the system.`}
+                            />
+                            <br />
+                            <ErrDisplay
+                              warning
+                              err={`An alternative, safer solution is to create a new approval and delete this one (note this resets the state to scratch).`}
+                            />
+                            <br />
                           </div>
+                        )}
+                        {isExisting && !approvedEdit && (
+                          <>
+                            <div className="flex-center">
+                              <IconButton
+                                secondary
+                                src={<EditOutlined />}
+                                onClick={() => {
+                                  setApprovedEdit(true);
+                                }}
+                                text="I Understand"
+                                size={40}
+                              />
+                            </div>
+                            <br />
+                          </>
+                        )}
+                        {(approvedEdit || !isExisting) && (
                           <ApprovalSelectWrapper
                             collectionId={collectionId}
                             defaultApproval={approval}
@@ -781,8 +857,8 @@ export function TransferabilityDisplay({
                             setVisible={setEditIsVisible}
                             mintingOnly={!filterFromMint}
                           />
-                        </td>
-                      }
+                        )}
+                      </td>
                     </tr>
                   )}
                 </InformationDisplayCard>

@@ -14,7 +14,6 @@ import {
 import { FC, useState } from 'react';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
-import { compareObjects } from '../../../utils/compare';
 import { EmptyIcon } from '../../common/Empty';
 import IconButton from '../../display/IconButton';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
@@ -228,7 +227,7 @@ const FullApprovalsDisplay: FC<FullProps> = ({
   const txTimelineContext = useTxTimelineContext();
   const [address, setAddress] = useState<string>(chain.address);
   const [filterByBadgeId, setFilterByBadgeId] = useState<boolean>(!!badgeId);
-  const deletedApprovals = startingApprovals?.filter((x) => !approvals.find((y) => compareObjects(x, y)));
+  const deletedApprovals = startingApprovals?.filter((x) => !approvals.find((y) => y.approvalId === x.approvalId));
   const [showUserApprovalsOnly, setShowUserApprovalsOnly] = useState<boolean>(false);
 
   approvals = approvals.map((x) => x.clone());

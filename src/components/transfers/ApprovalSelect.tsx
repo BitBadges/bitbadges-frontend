@@ -154,7 +154,6 @@ export function ApprovalSelect({
   }
 
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
-  const claimId = useRef(crypto.randomBytes(32).toString('hex'));
   const defaultApprovalToAdd: iCollectionApprovalWithDetails<bigint> & {
     approvalCriteria: Required<iApprovalCriteriaWithDetails<bigint>>;
     details: iApprovalInfoDetails<bigint>;
@@ -277,7 +276,6 @@ export function ApprovalSelect({
   );
 
   const [showMustOwnBadges, setShowMustOwnBadges] = useState(approvalCriteria?.mustOwnBadges?.length > 0);
-
   const [plugins, setPlugins] = useState<IntegrationPluginDetails<ClaimIntegrationPluginType>[]>(defaultClaim?.plugins || []);
   const [disabled, setDisabled] = useState(false);
 
@@ -749,12 +747,13 @@ export function ApprovalSelect({
               </div>
               <br />
               <ClaimBuilder
-                type='balances'
+                
+                type="balances"
                 claim={{
-                  claimId: claimId.current,
+                  claimId: approvalToAdd.amountTrackerId ? approvalToAdd.amountTrackerId : amountTrackerId.current,
                   plugins: plugins
                 }}
-                isUpdate={false} // no updates for approvals are currently supported
+                isUpdate={startingApprovals.some((x) => x.approvalId === approvalToAdd.approvalId)}
                 plugins={plugins}
                 setPlugins={(plugins) => {
                   const maxUses = getPluginDetails('numUses', plugins)?.publicParams?.maxUses || 0;
@@ -1130,7 +1129,11 @@ export function ApprovalSelect({
             pluginsToAdd.push({
               id: 'numUses',
               privateParams: getPlugin('numUses').getBlankPrivateParams(),
-              publicParams: { maxUses: codes.length },
+              publicParams: {
+                ...getPlugin('numUses').getBlankPublicParams(),
+                ...plugins.find((x) => x.id === 'numUses')?.publicParams,
+                maxUses: codes.length
+              },
               publicState: getPlugin('numUses').getBlankPublicState()
             });
             pluginsToAdd.push(getBlankPlugin('requiresProofOfAddress'));

@@ -31,6 +31,9 @@ import {
 } from 'bitbadgesjs-sdk/dist/proto/wasmx/tx_pb';
 import { MsgStoreCode as ProtoMsgStoreCode } from 'bitbadgesjs-sdk/dist/proto/cosmwasm/wasm/v1/tx_pb';
 import { MsgSend as ProtoMsgSend } from 'bitbadgesjs-sdk/dist/proto/cosmos/bank/v1beta1/tx_pb';
+import { MsgVote as ProtoMsgVote } from 'bitbadgesjs-sdk/dist/proto/cosmos/gov/v1beta1/tx_pb';
+import { MsgDeposit as ProtoMsgDeposit } from 'bitbadgesjs-sdk/dist/proto/cosmos/gov/v1beta1';
+import { MsgSubmitProposal as ProtoMsgSubmitProposal } from 'bitbadgesjs-sdk/dist/proto/cosmos/gov/v1beta1/tx_pb';
 import { MsgDelegate as ProtoMsgDelegate, MsgUndelegate as ProtoMsgUndelegate } from 'bitbadgesjs-sdk/dist/proto/cosmos/staking/v1beta1';
 
 import { createTransactionPayload } from 'bitbadgesjs-sdk';
@@ -225,6 +228,31 @@ export function TxModal({
             return new ProtoMsgUndelegate({
               ...params,
               delegatorAddress: chain.cosmosAddress
+            });
+          };
+          break;
+        case 'MsgSubmitProposal':
+          createFunction = (params: ProtoMsgSubmitProposal) => {
+            console.log('params', params);
+            return new ProtoMsgSubmitProposal({
+              ...params,
+              proposer: chain.cosmosAddress
+            });
+          };
+          break;
+        case 'MsgDeposit':
+          createFunction = (params: ProtoMsgDeposit) => {
+            return new ProtoMsgDeposit({
+              ...params,
+              depositor: chain.cosmosAddress
+            });
+          };
+          break;
+        case 'MsgVote':
+          createFunction = (params: ProtoMsgVote) => {
+            return new ProtoMsgVote({
+              ...params,
+              voter: chain.cosmosAddress
             });
           };
           break;
