@@ -15,6 +15,8 @@ import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 import { EmptyStepItem, NEW_COLLECTION_ID } from '../../../bitbadges-api/contexts/TxTimelineContext';
 import { updateCollection, useCollection } from '../../../bitbadges-api/contexts/collections/CollectionsContext';
 import { areBalancesBitBadgesHosted } from '../../../bitbadges-api/utils/balances';
+import { ApiCallPlugins, ApiPluginMetadataDisplay } from '../../../integrations/api';
+import { PluginCodesModal } from '../../../integrations/codes';
 import { IntegrationPluginDetails, getBlankPlugin, getMaxUses, getPlugin, getPluginDetails } from '../../../integrations/integrations';
 import { MarkdownDisplay } from '../../../pages/account/[addressOrUsername]/settings';
 import { BitBadgesClaimLogo, hasAlreadyUsedAllClaims } from '../../../pages/lists/[listId]';
@@ -29,6 +31,7 @@ import {
 } from '../../badges/DistributionCard';
 import { BlockinDisplay } from '../../blockin/BlockinDisplay';
 import { ErrDisplay } from '../../common/ErrDisplay';
+import { Pagination } from '../../common/Pagination';
 import { Divider } from '../../display/Divider';
 import { GenericModal } from '../../display/GenericModal';
 import IconButton from '../../display/IconButton';
@@ -38,8 +41,6 @@ import { FormTimeline } from '../../navigation/FormTimeline';
 import { Tabs } from '../../navigation/Tabs';
 import { PluginTextDisplay } from './DetailsCard';
 import { PredeterminedCard } from './PredeterminedCard';
-import { PluginCodesModal } from '../../../integrations/codes';
-import { Pagination } from '../../common/Pagination';
 const { SHA256 } = CryptoJS;
 
 export const generateCodesFromSeed = (seedCode: string, numCodes: number): string[] => {
@@ -104,6 +105,11 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
     info = {
       host: 'Balance storage is outsourced to BitBadges.',
       assignMethod: 'Balances can be assigned by the collection manager (if permitted).'
+    };
+  } else if (offChainBalancesMetadata?.uri === 'https://api.bitbadges.io/placeholder/{address}') {
+    info = {
+      host: 'Balances are hosted and fetched on-demand by the BitBadges API.',
+      assignMethod: 'Balances are assigned by the BitBadges API.'
     };
   } else if (offChainBalancesMetadata?.uri === 'https://api.bitbadges.io/api/v0/ethFirstTx/{address}') {
     info = {
@@ -174,6 +180,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
 
   const isPreview = collectionId === NEW_COLLECTION_ID;
   const usesBitBadgesClaimBuilder = (isBitBadgesHosted || isPreview) && collection.offChainClaims.length > 0;
+  const usesOffChainQueries = offChainBalancesMetadata?.uri === 'https://api.bitbadges.io/placeholder/{address}';
 
   const numCodes = getPluginDetails('codes', fetchedPlugins)?.publicParams.numCodes ?? 0;
   const seedCode = getPluginDetails('codes', fetchedPlugins)?.privateParams.seedCode;
@@ -221,6 +228,31 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
         </div>
       </GenericModal>
       <div className="flex flex-wrap">
+        {usesOffChainQueries && (
+          <InformationDisplayCard
+            title={<BitBadgesClaimLogo />}
+            subtitle={<>Users are granted x1 of the badges in this collection automatically if they meet the following criteria.</>}
+            md={12}
+            xs={24}
+            sm={24}>
+            <br />
+            {getPluginDetails('api', fetchedPlugins)?.publicParams.apiCalls.map((x) => (
+              <div key={x.name} className="flex">
+                <ApiPluginMetadataDisplay
+                  name={x.name}
+                  image={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.image ?? ''}
+                  description={x.description ?? ''}
+                  uri={x.uri}
+                  passAddress={x.passAddress}
+                  passDiscord={x.passDiscord}
+                  passTwitter={x.passTwitter}
+                  passGithub={x.passGithub}
+                  passGoogle={x.passGoogle}
+                />
+              </div>
+            ))}
+          </InformationDisplayCard>
+        )}
         {usesBitBadgesClaimBuilder && (
           <InformationDisplayCard
             title={<BitBadgesClaimLogo />}
@@ -310,7 +342,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
             }
           </InformationDisplayCard>
         )}
-        {!usesBitBadgesClaimBuilder && (
+        {!usesBitBadgesClaimBuilder && !usesOffChainQueries && (
           <InformationDisplayCard title="Distribution" md={12} xs={24} sm={24} style={{ textAlign: 'left' }}>
             <div className="p-2">
               {info.host && (
@@ -463,10 +495,14 @@ export const ClaimInputs = ({
 
     const requiresDiscordSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passDiscord);
     const requiresTwitterSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passTwitter);
+    const requiresGithubSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passGithub);
+    const requiresGoogleSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passGoogle);
 
     const additionalPlugins = [...plugins];
     if (requiresDiscordSignIn && !plugins.some((x) => x.id === 'discord')) additionalPlugins.push(getBlankPlugin('discord'));
     if (requiresTwitterSignIn && !plugins.some((x) => x.id === 'twitter')) additionalPlugins.push(getBlankPlugin('twitter'));
+    if (requiresGithubSignIn && !plugins.some((x) => x.id === 'github')) additionalPlugins.push(getBlankPlugin('github'));
+    if (requiresGoogleSignIn && !plugins.some((x) => x.id === 'google')) additionalPlugins.push(getBlankPlugin('google'));
 
     return [
       ...preSteps,

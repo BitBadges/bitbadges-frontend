@@ -1,6 +1,6 @@
-import { iApprovalAmounts, iApprovalCriteriaWithDetails, iMaxNumTransfers } from 'bitbadgesjs-sdk';
+import { iApprovalAmounts, iApprovalCriteria, iMaxNumTransfers } from 'bitbadgesjs-sdk';
 
-export function approvalCriteriaUsesPredeterminedBalances(approvalCriteria?: iApprovalCriteriaWithDetails<bigint>) {
+export function approvalCriteriaUsesPredeterminedBalances(approvalCriteria?: iApprovalCriteria<bigint>) {
   if (!approvalCriteria?.predeterminedBalances) {
     return false;
   }
@@ -11,7 +11,7 @@ export function approvalCriteriaUsesPredeterminedBalances(approvalCriteria?: iAp
   );
 }
 
-export function approvalCriteriaHasNoAmountRestrictions(approvalCriteria?: iApprovalCriteriaWithDetails<bigint>) {
+export function approvalCriteriaHasNoAmountRestrictions(approvalCriteria?: iApprovalCriteria<bigint>) {
   if (!approvalCriteria) return true;
 
   return (
@@ -22,7 +22,7 @@ export function approvalCriteriaHasNoAmountRestrictions(approvalCriteria?: iAppr
 }
 
 export function approvalCriteriaHasNoAdditionalRestrictions(
-  approvalCriteria?: iApprovalCriteriaWithDetails<bigint>,
+  approvalCriteria?: iApprovalCriteria<bigint>,
   allowMintOverrides?: boolean,
   allowToOverrides?: boolean
 ) {

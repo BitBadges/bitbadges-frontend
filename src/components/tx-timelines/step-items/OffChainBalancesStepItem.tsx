@@ -428,7 +428,7 @@ export function OffChainBalancesStorageSelectStepItem() {
 
   useEffect(() => {
     txTimelineContext.setTransfers([]);
-    if (!collection || collection.balancesType === 'Standard') return;
+    if (!collection || collection.balancesType === 'Standard' || collection.balancesType === 'Off-Chain - Non-Indexed') return;
 
     const tab = addMethod === MetadataAddMethod.Manual ? 'manual' : addMethod === MetadataAddMethod.Plugins ? 'plugins' : 'upload';
 

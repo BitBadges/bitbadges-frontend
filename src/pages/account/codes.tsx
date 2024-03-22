@@ -74,6 +74,8 @@ export const AuthCode = ({
         }
       } else {
         for (const asset of normalItem.assets) {
+          if (asset.chain !== 'BitBadges') continue;
+
           if (asset.collectionId) {
             if (asset.collectionId === 'BitBadges Lists') {
               listIds.push(asset.assetIds[0] as string);

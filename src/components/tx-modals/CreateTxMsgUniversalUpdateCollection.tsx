@@ -276,7 +276,10 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
       if (!txTimelineContext.updateOffChainBalancesMetadataTimeline || (!!txTimelineContext.existingCollectionId && msg.balancesType == 'Standard')) {
         //Do nothing, not even if self-hosted
         offChainBalancesMetadataTimeline = []; //just for the msg, doesn't actually change the collection since update flag is false
-      } else if (msg.balancesType == 'Off-Chain - Indexed' && txTimelineContext.updateOffChainBalancesMetadataTimeline) {
+      } else if (
+        (msg.balancesType == 'Off-Chain - Indexed' || msg.balancesType === 'Off-Chain - Non-Indexed') &&
+        txTimelineContext.updateOffChainBalancesMetadataTimeline
+      ) {
         if (txTimelineContext.offChainAddMethod === MetadataAddMethod.UploadUrl) {
           //Do nothing (already set to self-hosted URL)
         }
@@ -300,7 +303,7 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
             );
             const frozenForever = details.isAlwaysFrozenAndForbidden || noManager;
 
-            const updatable = !frozenForever;
+            const updatable = !frozenForever || collection.balancesType === 'Off-Chain - Non-Indexed';
             const method = updatable ? 'centralized' : 'ipfs';
             const transfersToAdd = txTimelineContext.offChainAddMethod === MetadataAddMethod.Manual ? txTimelineContext.transfers : [];
 
@@ -344,13 +347,13 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
                 ];
               } else throw new Error('Off-chain balances not added');
             } else {
-              //if bitbadges
+              //if bitbadges (indexed and non-indexed)
               if (res.uri) {
                 offChainBalancesMetadataTimeline = [
                   new OffChainBalancesMetadataTimeline({
                     timelineTimes: UintRangeArray.FullRanges(),
                     offChainBalancesMetadata: {
-                      uri: res.uri,
+                      uri: collection.balancesType === 'Off-Chain - Non-Indexed' ? 'https://api.bitbadges.io/placeholder/{address}' : res.uri,
                       customData: res.uri.split('/').pop() ?? ''
                     }
                   })
@@ -358,11 +361,15 @@ export function CreateTxMsgUniversalUpdateCollectionModal({
               } else throw new Error('Off-chain balances not added');
             }
           } else {
+            let uri = 'https://api.bitbadges.io/placeholder/{address}';
+            if (collection.balancesType === 'Off-Chain - Indexed') {
+              uri = 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs'; //dummy for simulation
+            }
             offChainBalancesMetadataTimeline = [
               new OffChainBalancesMetadataTimeline({
                 timelineTimes: UintRangeArray.FullRanges(),
                 offChainBalancesMetadata: {
-                  uri: 'ipfs://QmQKn1G41gcVEZPenXjtTTQfQJnx5Q6fDtZrcSNJvBqxUs', //dummy for simulation
+                  uri,
                   customData: ''
                 }
               })

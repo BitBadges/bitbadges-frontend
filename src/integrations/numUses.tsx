@@ -34,8 +34,6 @@ const NumUsesCreateNode = ({
       setDisabled('');
     }
   }, [publicParams, claim.plugins]);
-  console.log(publicParams);
-  console.log(assignMethod);
 
   return (
     <>

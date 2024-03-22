@@ -7,14 +7,14 @@ import {
   ClaimIntegrationPluginType,
   CollectionApprovalPermissionWithDetails,
   CollectionApprovalWithDetails,
-  MerkleChallengeWithDetails,
+  MerkleChallenge,
   MustOwnBadges,
   TransferWithIncrements,
   UintRangeArray,
   convertToCosmosAddress,
   deepCopyPrimitives,
   getAllBadgeIdsToBeTransferred,
-  iApprovalCriteriaWithDetails,
+  iApprovalCriteria,
   iApprovalInfoDetails,
   iCollectionApprovalWithDetails,
   iUintRange,
@@ -57,7 +57,7 @@ export enum PredeterminedTab {
 }
 
 export type RequiredApprovalProps = iCollectionApprovalWithDetails<bigint> & {
-  approvalCriteria: Required<iApprovalCriteriaWithDetails<bigint>>;
+  approvalCriteria: Required<iApprovalCriteria<bigint>>;
   details: iApprovalInfoDetails<bigint>;
 };
 
@@ -155,7 +155,7 @@ export function ApprovalSelect({
 
   const amountTrackerId = useRef(crypto.randomBytes(32).toString('hex'));
   const defaultApprovalToAdd: iCollectionApprovalWithDetails<bigint> & {
-    approvalCriteria: Required<iApprovalCriteriaWithDetails<bigint>>;
+    approvalCriteria: Required<iApprovalCriteria<bigint>>;
     details: iApprovalInfoDetails<bigint>;
   } = {
     fromListId: defaultFromList ? defaultFromList.listId : 'Mint',
@@ -747,7 +747,6 @@ export function ApprovalSelect({
               </div>
               <br />
               <ClaimBuilder
-                
                 type="balances"
                 claim={{
                   claimId: approvalToAdd.amountTrackerId ? approvalToAdd.amountTrackerId : amountTrackerId.current,
@@ -1079,7 +1078,7 @@ export function ApprovalSelect({
           const addresses = [];
 
           const newApprovalToAdd: iCollectionApprovalWithDetails<bigint> & {
-            approvalCriteria: iApprovalCriteriaWithDetails<bigint>;
+            approvalCriteria: iApprovalCriteria<bigint>;
           } = approvalToAdd;
 
           const treeOptions = {
@@ -1155,7 +1154,7 @@ export function ApprovalSelect({
             ];
 
             newApprovalToAdd.details = details;
-            newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>;
+            newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallenge<bigint>;
           } else if (distributionMethod === DistributionMethod.Whitelist) {
             const toAddresses = approvalToAdd.initiatedByList.addresses;
             newApprovalToAdd.initiatedByList = AddressList.AllAddresses();
@@ -1180,7 +1179,7 @@ export function ApprovalSelect({
             details.challengeDetails.treeOptions = treeOptions;
 
             newApprovalToAdd.details = details;
-            newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallengeWithDetails<bigint>;
+            newApprovalToAdd.approvalCriteria.merkleChallenge = merkleChallenge as MerkleChallenge<bigint>;
           } else {
             newApprovalToAdd.approvalCriteria.merkleChallenge = undefined;
             newApprovalToAdd.details = details;

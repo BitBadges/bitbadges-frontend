@@ -267,7 +267,7 @@ export function WalletHeader() {
           <Menu.Item
             className="dropdown-item text-sm text-vivid-blue"
             onClick={() => {
-              signOut({ signOutBlockin: true, signOutDiscord: true, signOutTwitter: true });
+              signOut({ signOutBlockin: true, signOutDiscord: true, signOutTwitter: true, signOutGithub: true, signOutGoogle: true });
               setCookie('blockincookie', '', { path: '/' });
               web2Context.setDiscord({ username: '', discriminator: '', id: '' });
             }}>
@@ -280,7 +280,7 @@ export function WalletHeader() {
           <Menu.Item
             className="dropdown-item text-sm text-vivid-blue"
             onClick={() => {
-              signOut({ signOutBlockin: true, signOutDiscord: true, signOutTwitter: true });
+              signOut({ signOutBlockin: true, signOutDiscord: true, signOutTwitter: true, signOutGithub: true, signOutGoogle: true });
               setCookie('blockincookie', '', { path: '/' });
               chain.disconnect();
               web2Context.setDiscord({ username: '', discriminator: '', id: '' });

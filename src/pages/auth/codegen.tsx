@@ -191,12 +191,13 @@ export const AssetConditionGroupUI = ({
       </>
     );
   } else {
+    const isEthereumAsset = ownershipRequirements.assets.some((x) => x.chain === 'Ethereum' || x.chain === 'Polygon');
     const containsList = ownershipRequirements.assets.some((asset) => asset.collectionId === 'BitBadges Lists');
     const containsBadges = ownershipRequirements.assets.some((asset) => asset.collectionId !== 'BitBadges Lists');
     const listsBadgesStr = containsList && containsBadges ? 'badges / lists' : containsList ? 'lists' : 'badges';
     let totalNumAssets = 0n;
     for (const asset of ownershipRequirements.assets) {
-      if (asset.collectionId !== 'BitBadges Lists') {
+      if (asset.collectionId !== 'BitBadges Lists' && !isEthereumAsset) {
         totalNumAssets += UintRangeArray.From(asset.assetIds as UintRangeArray<bigint>).size();
       } else {
         totalNumAssets += BigInt(asset.assetIds.length);
@@ -251,7 +252,12 @@ export const AssetConditionGroupUI = ({
             );
             const hasMoreThanOneBadge = badgeIds.size() > 1;
             const collection = getCollection(BigInt(asset.collectionId));
+
             const badgeMetadata = !hasMoreThanOneBadge ? collection?.getBadgeMetadata(badgeIds[0].start) : undefined;
+            let openSeaChain = asset.chain === 'Ethereum' ? 'ethereum' : '';
+            if (asset.chain === 'Polygon') {
+              openSeaChain = 'matic';
+            }
             const assetsText = hasMoreThanOneBadge ? (
               <>
                 {asset.assetIds.map((assetId, index) => {
@@ -284,7 +290,7 @@ export const AssetConditionGroupUI = ({
                   <a onClick={() => {}}>{collection?.cachedCollectionMetadata?.name ?? 'Unknown Collection'}</a>
                 </Tooltip>
               </>
-            ) : (
+            ) : !isEthereumAsset ? (
               <>
                 <Tooltip title={`Badge ID ${badgeIds[0].start.toString()}`}>
                   <a onClick={() => {}}>{badgeMetadata?.name ?? 'Unknown Badge'}</a>
@@ -292,6 +298,17 @@ export const AssetConditionGroupUI = ({
                 {' from '}
                 <Tooltip title={`Collection ID ${asset.collectionId.toString()}`}>
                   <a onClick={() => {}}>{collection?.cachedCollectionMetadata?.name ?? 'Unknown Collection'}</a>
+                </Tooltip>
+              </>
+            ) : (
+              <>
+                <Tooltip title={`https://opensea.io/assets/${openSeaChain}/${asset.collectionId}/${asset.assetIds[0].toString()}`}>
+                  <a
+                    href={`https://opensea.io/assets/${openSeaChain}/${asset.collectionId}/${asset.assetIds[0].toString()}`}
+                    target="_blank"
+                    rel="noreferrer">
+                    this {asset.chain} NFT
+                  </a>
                 </Tooltip>
               </>
             );
@@ -337,18 +354,22 @@ export const AssetConditionGroupUI = ({
                         .join(', ') +
                       ''
                     : 'at the time of sign in'}
-                  <br />
-                  <br />
-                  <BadgeAvatarDisplay
-                    collectionId={BigInt(asset.collectionId)}
-                    badgeIds={UintRangeArray.From(
-                      asset.assetIds.map((x) => {
-                        if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
-                        return { start: BigInt(x.start), end: BigInt(x.end) };
-                      })
-                    )}
-                    size={75}
-                  />
+                  {!isEthereumAsset && (
+                    <>
+                      <br />
+                      <br />
+                      <BadgeAvatarDisplay
+                        collectionId={BigInt(asset.collectionId)}
+                        badgeIds={UintRangeArray.From(
+                          asset.assetIds.map((x) => {
+                            if (typeof x === 'string') return { start: BigInt(x), end: BigInt(x) };
+                            return { start: BigInt(x.start), end: BigInt(x.end) };
+                          })
+                        )}
+                        size={75}
+                      />
+                    </>
+                  )}
                 </div>
                 <br />
               </>
@@ -424,6 +445,8 @@ function BlockinCodesScreen() {
         }
       } else {
         for (const asset of normalItem.assets) {
+          if (asset.chain !== 'BitBadges') continue;
+
           if (asset.collectionId) {
             if (asset.collectionId === 'BitBadges Lists') {
               listIds.push(asset.assetIds[0] as string);

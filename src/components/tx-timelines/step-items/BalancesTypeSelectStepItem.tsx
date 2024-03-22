@@ -6,7 +6,12 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { GenericFormStepWrapper } from '../form-items/GenericFormStepWrapper';
 import { SwitchForm } from '../form-items/SwitchForm';
-import { OffChainBalancesMetadataTimeline, UintRangeArray } from 'bitbadgesjs-sdk';
+import { IncrementedBalances, OffChainBalancesMetadataTimeline, UintRangeArray } from 'bitbadgesjs-sdk';
+import { Tabs } from '../../navigation/Tabs';
+import { MetadataAddMethod } from '../../../bitbadges-api/types';
+import { CreateNodeFromPlugin } from '../../transfers/ClaimBuilder';
+import { useMemo } from 'react';
+import crypto from 'crypto';
 
 export function BalanceTypeSelectStepItem() {
   const collection = useCollection(NEW_COLLECTION_ID);
@@ -14,7 +19,22 @@ export function BalanceTypeSelectStepItem() {
   const txTimelineContext = useTxTimelineContext();
   const existingCollectionId = txTimelineContext.existingCollectionId;
 
+  const offChainAddMethod = txTimelineContext.offChainAddMethod;
+  const setOffChainAddMethod = txTimelineContext.setOffChainAddMethod;
+
   const noBalancesStandard = collection && collection.getStandards()?.includes('No User Ownership');
+
+  let claim = collection?.clone().offChainClaims?.[0];
+  const randomId = useMemo(() => crypto.randomBytes(32).toString('hex'), []);
+  const claimId = claim?.claimId || randomId;
+
+  if (!claim) {
+    claim = {
+      claimId: claimId,
+      plugins: [],
+      balancesToSet: new IncrementedBalances({ startBalances: [], incrementBadgeIdsBy: 0n, incrementOwnershipTimesBy: 0n })
+    };
+  }
 
   if (noBalancesStandard) return EmptyStepItem;
   if (!collection || existingCollectionId) return EmptyStepItem;
@@ -35,7 +55,7 @@ export function BalanceTypeSelectStepItem() {
     message: (
       <div className="full-width">
         <span>
-          Balances will be stored off-chain and fetched on-demand. This option should only be used for specific use cases. Learn more
+          Balances will be stored off-chain on a server (not the blockchain). This option should only be used for specific use cases. Learn more
           <a href="https://docs.bitbadges.io/overview/how-it-works/balances-types#off-chain" target="_blank" rel="noopener noreferrer">
             {' '}
             here{' '}
@@ -60,53 +80,115 @@ export function BalanceTypeSelectStepItem() {
           }}
         />
         <br />
-        <div className="secondary-text" style={{ textAlign: 'center' }}></div>
+        <div className="secondary-text" style={{ textAlign: 'center' }}>
+          {collection.balancesType === 'Off-Chain - Indexed'
+            ? 'The entire distribution of balances will be indexed and known at any given time. Limited to 15k owners.'
+            : 'Balances will be fetched on-demand. No verifiable total supply, ledger of activity, or list of all balances / owners. This option also does not show up in search results.'}
+        </div>
 
         {collection.balancesType === 'Off-Chain - Non-Indexed' && (
-          <div>
+          <div className="full-width">
             <br />
-            <div className="full-width">
-              <Input
-                placeholder="Enter the URL for your balances"
-                value={
-                  collection.offChainBalancesMetadataTimeline.length > 0
-                    ? collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri
-                    : ''
-                }
-                onChange={(e) => {
-                  if (!collection) return;
-
-                  updateCollection({
-                    collectionId: NEW_COLLECTION_ID,
-                    balancesType: collection.balancesType,
-                    collectionApprovals: collection.collectionApprovals,
-                    offChainBalancesMetadataTimeline: [
-                      new OffChainBalancesMetadataTimeline({
-                        timelineTimes: UintRangeArray.FullRanges(),
-                        offChainBalancesMetadata: {
-                          uri: e.target.value,
-                          customData: ''
-                        }
-                      })
-                    ]
-                  });
+            <div className="flex-center mb-7">
+              <Tabs
+                tab={offChainAddMethod}
+                setTab={(tab) => {
+                  setOffChainAddMethod(tab as MetadataAddMethod);
                 }}
-                className="primary-text inherit-bg"
+                tabInfo={[
+                  { key: MetadataAddMethod.UploadUrl, content: 'URL' },
+                  {
+                    key: MetadataAddMethod.Plugins,
+                    content: 'Queries'
+                  }
+                ]}
+                type="underline"
               />
-              <div
-                className="secondary-text"
-                style={{
-                  color:
-                    collection.offChainBalancesMetadataTimeline.length == 0 ||
-                    collection.offChainBalancesMetadataTimeline.some(
-                      (x) => x.offChainBalancesMetadata.uri == '' || !x.offChainBalancesMetadata.uri.includes('{address}')
-                    )
-                      ? 'red'
-                      : undefined
-                }}>
-                <InfoCircleOutlined /> You must use {`"{address}"`} as a placeholder for the address in the URL.
-              </div>
             </div>
+            {offChainAddMethod === MetadataAddMethod.Plugins && claim && (
+              <>
+                <div className="primary-text my-3">
+                  Create a custom query to fetch balances. If an address meets the criteria, they will be assigned a balance of x1 for ALL badge IDs.
+                </div>
+                <div className="w-full">
+                  <CreateNodeFromPlugin
+                    nonIndexed
+                    id="api"
+                    plugins={claim?.plugins || []}
+                    disabledMap={{}}
+                    setDisabledMap={() => {}}
+                    isUpdate={!!txTimelineContext.existingCollectionId && txTimelineContext.existingCollectionId > 0}
+                    type={'balances'}
+                    claim={claim}
+                    setPlugins={(plugins) => {
+                      updateCollection({
+                        collectionId: NEW_COLLECTION_ID,
+                        offChainClaims: [
+                          {
+                            claimId: claimId,
+                            plugins,
+                            balancesToSet: new IncrementedBalances({ startBalances: [], incrementBadgeIdsBy: 0n, incrementOwnershipTimesBy: 0n })
+                          }
+                        ],
+                        offChainBalancesMetadataTimeline: [
+                          new OffChainBalancesMetadataTimeline({
+                            timelineTimes: UintRangeArray.FullRanges(),
+                            offChainBalancesMetadata: {
+                              uri: 'https://api.bitbadges.io/placeholder/{address}',
+                              customData: ''
+                            }
+                          })
+                        ]
+                      });
+                    }}
+                  />
+                </div>
+              </>
+            )}
+            {txTimelineContext.offChainAddMethod === MetadataAddMethod.UploadUrl && (
+              <div className="full-width">
+                <Input
+                  placeholder="Enter the URL for your balances"
+                  value={
+                    collection.offChainBalancesMetadataTimeline.length > 0
+                      ? collection.offChainBalancesMetadataTimeline[0].offChainBalancesMetadata.uri
+                      : ''
+                  }
+                  onChange={(e) => {
+                    if (!collection) return;
+
+                    updateCollection({
+                      collectionId: NEW_COLLECTION_ID,
+                      balancesType: collection.balancesType,
+                      collectionApprovals: collection.collectionApprovals,
+                      offChainBalancesMetadataTimeline: [
+                        new OffChainBalancesMetadataTimeline({
+                          timelineTimes: UintRangeArray.FullRanges(),
+                          offChainBalancesMetadata: {
+                            uri: e.target.value,
+                            customData: ''
+                          }
+                        })
+                      ]
+                    });
+                  }}
+                  className="primary-text inherit-bg"
+                />
+                <div
+                  className="secondary-text"
+                  style={{
+                    color:
+                      collection.offChainBalancesMetadataTimeline.length == 0 ||
+                      collection.offChainBalancesMetadataTimeline.some(
+                        (x) => x.offChainBalancesMetadata.uri == '' || !x.offChainBalancesMetadata.uri.includes('{address}')
+                      )
+                        ? 'red'
+                        : undefined
+                  }}>
+                  <InfoCircleOutlined /> You must use {`"{address}"`} as a placeholder for the address in the URL.
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -121,7 +203,9 @@ export function BalanceTypeSelectStepItem() {
       collection.balancesType === 'Off-Chain - Non-Indexed' &&
       (collection.offChainBalancesMetadataTimeline.length == 0 ||
         collection.offChainBalancesMetadataTimeline.some(
-          (x) => x.offChainBalancesMetadata.uri == '' || !x.offChainBalancesMetadata.uri.includes('{address}')
+          (x) =>
+            x.offChainBalancesMetadata.uri == '' ||
+            (offChainAddMethod === MetadataAddMethod.UploadUrl && !x.offChainBalancesMetadata.uri.includes('{address}'))
         )),
     description: (
       <>
@@ -141,7 +225,7 @@ export function BalanceTypeSelectStepItem() {
               options={options}
               onSwitchChange={(idx) => {
                 if (!collection) return;
-
+                setOffChainAddMethod(MetadataAddMethod.Plugins);
                 updateCollection({
                   collectionId: NEW_COLLECTION_ID,
                   balancesType: idx == 1 ? 'Standard' : idx == 0 ? 'Off-Chain - Indexed' : 'Off-Chain - Non-Indexed',

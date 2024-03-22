@@ -1,8 +1,8 @@
-import { DeleteOutlined, LinkOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
-import { Checkbox, DatePicker, Form, Tooltip } from 'antd';
+import { DeleteOutlined, GithubOutlined, GoogleOutlined, LinkOutlined, MinusOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Checkbox, DatePicker, Form, Tooltip } from 'antd';
 import { ClaimApiCallInfo, ClaimIntegrationPublicParamsType, JsonBodyInputSchema, JsonBodyInputWithValue } from 'bitbadgesjs-sdk';
 import moment from 'moment';
-import { useMemo, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { DevMode } from '../components/common/DevMode';
 import { ErrDisplay } from '../components/common/ErrDisplay';
 import IconButton from '../components/display/IconButton';
@@ -142,25 +142,35 @@ const ApiQueryInputForm = ({ schema, setBody, body }: { schema: JsonBodyInputSch
     </Form>
   );
 };
-const ApiPluginMetadataDisplay = ({
+export const ApiPluginMetadataDisplay = ({
   name,
   image,
   description,
   uri,
   passDiscord,
-  passTwitter
+  passTwitter,
+  passGithub,
+  passGoogle,
+  passAddress
 }: {
   uri: string;
   name: string;
-  image: string;
-  description: string;
+  image: string | ReactNode;
+  description: string | ReactNode;
+  passGithub?: boolean;
   passDiscord?: boolean;
   passTwitter?: boolean;
+  passGoogle?: boolean;
+  passAddress?: boolean;
 }) => {
   return (
     <div className="flex">
-      <div>
-        <img src={image || '/images/bitbadgeslogo.png'} style={{ width: 40, height: 40 }} />
+      <div style={{ alignItems: 'normal' }} className="flex">
+        {typeof image === 'string' ? (
+          <img src={image || '/images/bitbadgeslogo.png'} style={{ width: 40, height: 40 }} />
+        ) : (
+          <Avatar size={40} src={image} />
+        )}
       </div>
       <div>
         <div className="flex flex-wrap">
@@ -170,7 +180,12 @@ const ApiPluginMetadataDisplay = ({
               <LinkOutlined className="ml-1" />
             </Tooltip>
           </a>
-          <div className="flex">
+          <div className="flex" style={{ alignItems: 'center' }}>
+            {passAddress && (
+              <Tooltip title="Passes your address to this query">
+                <UserOutlined className="ml-1" />
+              </Tooltip>
+            )}
             {passDiscord && (
               <Tooltip title="Passes Discord username to this query">
                 <svg className="ml-1" fill="#1890ff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" height="15" style={{}}>
@@ -194,9 +209,17 @@ const ApiPluginMetadataDisplay = ({
                 </svg>
               </Tooltip>
             )}
+            {passGithub && <GithubOutlined className="ml-1" />}
+            {passGoogle && <GoogleOutlined className="ml-1" />}
           </div>
         </div>
-        <div className="secondary-text flex">{description}</div>
+        <div
+          className="secondary-text "
+          style={{
+            textAlign: 'left'
+          }}>
+          {description}
+        </div>
       </div>
     </div>
   );
@@ -204,8 +227,10 @@ const ApiPluginMetadataDisplay = ({
 
 const ApiPluginCreateNode = ({
   publicParams,
-  setParams
+  setParams,
+  type
 }: {
+  type: 'balances' | 'list' | 'nonIndexed';
   publicParams: ClaimIntegrationPublicParamsType<'api'>;
   setParams: (params: ClaimIntegrationPublicParamsType<'api'>, state: {}) => void;
 }) => {
@@ -219,8 +244,11 @@ const ApiPluginCreateNode = ({
     name: '',
     uri: '',
     description: '',
+    passAddress: true,
     passDiscord: false,
     passTwitter: false,
+    passGithub: false,
+    passGoogle: false,
     bodyParams: {},
     userInputsSchema: []
   });
@@ -236,31 +264,56 @@ const ApiPluginCreateNode = ({
   return (
     <>
       {apiCalls.map((x, i) => {
+        const plugin = ApiCallPlugins.find((y) => y.metadata.name === x.name);
+
         return (
-          <div key={i} className="flex flex-between">
-            <ApiPluginMetadataDisplay
-              name={x.name}
-              image={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.image ?? ''}
-              description={x.description ?? ''}
-              uri={x.uri}
-              passDiscord={x.passDiscord}
-              passTwitter={x.passTwitter}
-            />
-            <div className="flex-center">
-              <IconButton
-                src={<DeleteOutlined />}
-                onClick={() => {
-                  setParams(
-                    {
-                      apiCalls: publicParams.apiCalls.filter((_, idx) => idx !== i)
-                    },
-                    {}
-                  );
-                }}
-                text="Remove"
+          <>
+            <div key={i} className="flex flex-between">
+              <ApiPluginMetadataDisplay
+                name={x.name}
+                image={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.image ?? ''}
+                description={
+                  <>
+                    {x.description ?? ''}
+                    <br />
+                    {plugin &&
+                      plugin?.detailsString?.({
+                        uri: x.uri,
+                        passAddress: x.passAddress ?? false,
+                        passDiscord: x.passDiscord ?? false,
+                        passTwitter: x.passTwitter ?? false,
+                        passGoogle: x.passGoogle ?? false,
+                        passGithub: x.passGithub ?? false,
+                        userInputsSchema: x.userInputsSchema,
+                        name: x.name,
+                        bodyParams: x.bodyParams
+                      })}
+                  </>
+                }
+                uri={x.uri}
+                passDiscord={x.passDiscord}
+                passTwitter={x.passTwitter}
+                passGithub={x.passGithub}
+                passGoogle={x.passGoogle}
+                passAddress={x.passAddress}
               />
+
+              <div className="flex-center">
+                <IconButton
+                  src={<DeleteOutlined />}
+                  onClick={() => {
+                    setParams(
+                      {
+                        apiCalls: publicParams.apiCalls.filter((_, idx) => idx !== i)
+                      },
+                      {}
+                    );
+                  }}
+                  text="Remove"
+                />
+              </div>
             </div>
-          </div>
+          </>
         );
       })}
       <div className="flex-center">
@@ -274,7 +327,7 @@ const ApiPluginCreateNode = ({
       </div>
       {addIsVisible && (
         <>
-          <div className="flex-center">
+          <div className="mb-2 flex-center">
             <Tabs
               tab={tab}
               setTab={setTab}
@@ -288,8 +341,10 @@ const ApiPluginCreateNode = ({
           {tab === 'templates' && (
             <>
               {ApiCallPlugins.map((x) => {
+                if (type === 'nonIndexed' && x.metadata.nonIndexedCompatible === false) return null;
+
                 return (
-                  <div key={x.id}>
+                  <div key={x.id} className="mb-4">
                     <div className="flex flex-between">
                       <ApiPluginMetadataDisplay
                         name={x.metadata.name}
@@ -298,6 +353,9 @@ const ApiPluginCreateNode = ({
                         uri={x.apiCallInfo.uri}
                         passDiscord={x.apiCallInfo.passDiscord}
                         passTwitter={x.apiCallInfo.passTwitter}
+                        passGithub={x.apiCallInfo.passGithub}
+                        passGoogle={x.apiCallInfo.passGoogle}
+                        passAddress={x.apiCallInfo.passAddress}
                       />
                       <Checkbox
                         checked={apiCall.name === x.metadata.name}
@@ -309,6 +367,9 @@ const ApiPluginCreateNode = ({
                               description: x.metadata.description,
                               passDiscord: x.apiCallInfo.passDiscord,
                               passTwitter: x.apiCallInfo.passTwitter,
+                              passAddress: x.apiCallInfo.passAddress,
+                              passGoogle: x.apiCallInfo.passGoogle,
+                              passGithub: x.apiCallInfo.passGithub,
                               bodyParams: toJsonObject(x.apiCallInfo.hardcodedInputs),
                               userInputsSchema: x.apiCallInfo.userInputsSchema
                             });
@@ -317,8 +378,11 @@ const ApiPluginCreateNode = ({
                               name: '',
                               uri: '',
                               description: '',
+                              passAddress: true,
                               passDiscord: false,
+                              passGithub: false,
                               passTwitter: false,
+                              passGoogle: false,
                               bodyParams: {},
                               userInputsSchema: []
                             });
@@ -335,6 +399,9 @@ const ApiPluginCreateNode = ({
                             uri: x.apiCallInfo.uri,
                             description: x.metadata.description,
                             passDiscord: x.apiCallInfo.passDiscord,
+                            passAddress: x.apiCallInfo.passAddress,
+                            passGithub: x.apiCallInfo.passGithub,
+                            passGoogle: x.apiCallInfo.passGoogle,
                             passTwitter: x.apiCallInfo.passTwitter,
                             bodyParams: {
                               ...toJsonObject(x.apiCallInfo.hardcodedInputs),
@@ -371,6 +438,12 @@ const ApiPluginCreateNode = ({
                   label="Description"
                 />
                 <GenericCheckboxFormInput
+                  value={apiCall.passAddress ?? false}
+                  setValue={(val) => setApiCall({ ...apiCall, passAddress: !!val })}
+                  label="Pass user web3 address?"
+                  helper="This determines whether the URI expects to receive the user's address."
+                />
+                <GenericCheckboxFormInput
                   value={apiCall.passDiscord ?? false}
                   setValue={(val) => setApiCall({ ...apiCall, passDiscord: !!val })}
                   label="Pass user Discord data?"
@@ -381,6 +454,18 @@ const ApiPluginCreateNode = ({
                   setValue={(val) => setApiCall({ ...apiCall, passTwitter: !!val })}
                   label="Pass user Twitter data?"
                   helper="This determines whether the URI expects to receive the user's Twitter username."
+                />
+                <GenericCheckboxFormInput
+                  value={apiCall.passGithub ?? false}
+                  setValue={(val) => setApiCall({ ...apiCall, passGithub: !!val })}
+                  label="Pass user Github data?"
+                  helper="This determines whether the URI expects to receive the user's Github username."
+                />
+                <GenericCheckboxFormInput
+                  value={apiCall.passGoogle ?? false}
+                  setValue={(val) => setApiCall({ ...apiCall, passGoogle: !!val })}
+                  label="Pass user Google data?"
+                  helper="This determines whether the URI expects to receive the user's Google username."
                 />
                 <JSONBodyInputWithValueSelect
                   value={hardcodedInputs}
@@ -432,16 +517,21 @@ const ApiPluginCreateNode = ({
                     Example Body
                     <br />
                   </b>
-                  {['cosmosAddress', 'claimId', ...(apiCall.passDiscord ? ['discord'] : []), ...(apiCall.passTwitter ? ['twitter'] : [])].some(
-                    (x: string) => {
-                      return !!(apiCall.bodyParams as any)?.[x] || apiCall.userInputsSchema.find((y) => y.key === x);
-                    }
-                  ) && <ErrDisplay err={'Do not use reserved keys. Your custom values will be overwritten.'} />}
+                  {[
+                    'cosmosAddress',
+                    'claimId',
+                    ...(apiCall.passGithub ? ['github'] : []),
+                    ...(apiCall.passDiscord ? ['discord'] : []),
+                    ...(apiCall.passTwitter ? ['twitter'] : []),
+                    ...(apiCall.passGoogle ? ['google'] : [])
+                  ].some((x: string) => {
+                    return !!(apiCall.bodyParams as any)?.[x] || apiCall.userInputsSchema.find((y) => y.key === x);
+                  }) && <ErrDisplay err={'Do not use reserved keys. Your custom values will be overwritten.'} />}
                   <DevMode
                     override
                     obj={{
                       claimId: 'abcxyz123',
-                      cosmosAddress: 'cosmos1...',
+                      cosmosAddress: apiCall.passAddress ? 'cosmos1...' : '',
                       discord: apiCall.passDiscord
                         ? {
                             id: '...',
@@ -459,7 +549,19 @@ const ApiPluginCreateNode = ({
                       ...apiCall.userInputsSchema.reduce((acc, x) => {
                         acc[x.key] = x.type === 'string' ? '...' : x.type === 'number' ? 1234 : true;
                         return acc;
-                      }, {} as any)
+                      }, {} as any),
+                      github: apiCall.passGithub
+                        ? {
+                            id: '...',
+                            username: '...'
+                          }
+                        : undefined,
+                      google: apiCall.passGoogle
+                        ? {
+                            id: '...',
+                            username: '...'
+                          }
+                        : undefined
                     }}
                   />
                 </div>
@@ -482,7 +584,10 @@ const ApiPluginCreateNode = ({
                 name: '',
                 uri: '',
                 description: '',
+                passAddress: true,
                 passDiscord: false,
+                passGithub: false,
+                passGoogle: false,
                 passTwitter: false,
                 bodyParams: {},
                 userInputsSchema: []
@@ -519,10 +624,29 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
               <ApiPluginMetadataDisplay
                 name={x.name}
                 image={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.image ?? ''}
-                description={x.description ?? ''}
+                description={
+                  <>
+                    {x.description ?? ''}
+                    <br />
+                    {ApiCallPlugins.find((y) => y.metadata.name === x.name)?.detailsString?.({
+                      uri: x.uri,
+                      passAddress: x.passAddress ?? false,
+                      passDiscord: x.passDiscord ?? false,
+                      passTwitter: x.passTwitter ?? false,
+                      passGoogle: x.passGoogle ?? false,
+                      passGithub: x.passGithub ?? false,
+                      userInputsSchema: x.userInputsSchema,
+                      name: x.name,
+                      bodyParams: x.bodyParams
+                    })}
+                  </>
+                }
                 uri={x.uri}
                 passDiscord={x.passDiscord}
                 passTwitter={x.passTwitter}
+                passGithub={x.passGithub}
+                passGoogle={x.passGoogle}
+                passAddress={x.passAddress}
               />
 
               <ApiQueryInputForm
@@ -546,8 +670,8 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
       </>
     );
   },
-  createNode({ publicParams, setParams }) {
-    return <ApiPluginCreateNode publicParams={publicParams} setParams={setParams} />;
+  createNode({ publicParams, setParams, type }) {
+    return <ApiPluginCreateNode publicParams={publicParams} setParams={setParams} type={type} />;
   },
   detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'api'> }) => {
     return (
@@ -562,12 +686,21 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
                   title={
                     <div className="text-center">
                       {x.description}
-                      {(x.passDiscord || x.passTwitter) && (
+                      {(x.passDiscord || x.passTwitter || x.passGithub || x.passGoogle || x.passAddress) && (
                         <>
                           <br />
                           <br />
-                          *Will pass {x.passDiscord ? 'Discord' : ''} {x.passDiscord && x.passTwitter ? 'and' : ''} {x.passTwitter ? 'Twitter' : ''}{' '}
-                          username data to this API.
+                          *Will pass{' '}
+                          {[
+                            x.passAddress ? 'address' : '',
+                            x.passDiscord ? 'Discord' : '',
+                            x.passTwitter ? 'Twitter' : '',
+                            x.passGithub ? 'Github' : '',
+                            x.passGoogle ? 'Google' : ''
+                          ]
+                            .filter((x) => x)
+                            .join(', ')}
+                          data to this API.
                         </>
                       )}
                     </div>
@@ -599,26 +732,63 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
 
 export const ApiCallPlugins: ApiCallPlugin[] = [
   {
-    id: 'test',
+    id: 'github-contributions',
     metadata: {
-      name: 'Test API',
-      description: 'Test API',
+      name: 'Github Contributions',
+      description: "Check a user's Github contributions.",
+      image: <Avatar size={40} src={<GithubOutlined style={{ fontSize: 30 }} />} />,
+      createdBy: 'BitBadges',
+      nonIndexedCompatible: false
+    },
+    apiCallInfo: {
+      uri: 'https://api.bitbadges.io/api/v0/integrations/query/github-contributions',
+      passDiscord: false,
+      passTwitter: false,
+      passAddress: false,
+      passGoogle: false,
+      passGithub: true,
+      userInputsSchema: [],
+      creatorInputsSchema: [{ key: 'repository', label: 'Repository', type: 'string', helper: 'Ex: bitbadges/bitbadges-frontend' }],
+      hardcodedInputs: []
+    },
+    detailsString: (apiCall) => {
+      return (
+        <div>
+          <div className="">
+            <b>Repository:</b> {apiCall.bodyParams?.repository}
+          </div>
+        </div>
+      );
+    }
+  },
+  {
+    id: 'min-badge',
+    metadata: {
+      name: 'Min $BADGE',
+      description: 'Users must have a minimum balance of $BADGE.',
       image: 'https://avatars.githubusercontent.com/u/86890740',
       createdBy: 'BitBadges',
       nonIndexedCompatible: true
     },
     apiCallInfo: {
-      uri: 'https://api.bitbadges.io/test',
-      passDiscord: true,
-      passTwitter: true,
-      userInputsSchema: [{ key: 'username', label: 'Username', type: 'string' }],
-      creatorInputsSchema: [
-        { key: 'username', label: 'Username', type: 'string' },
-        { key: 'ss', label: 'Test', type: 'number' },
-        { key: 'date', label: 'Date', type: 'date' },
-        { key: 'd', label: 'Test', type: 'number' }
-      ],
-      hardcodedInputs: [{ key: 'fdsgsdfg', label: 'Test', value: 'test' }]
+      uri: 'https://api.bitbadges.io/api/v0/integrations/query/min-badge',
+      passDiscord: false,
+      passTwitter: false,
+      passAddress: true,
+      passGoogle: false,
+      passGithub: false,
+      userInputsSchema: [],
+      creatorInputsSchema: [{ key: 'minBalance', label: 'Minimum Balance', type: 'number' }],
+      hardcodedInputs: []
+    },
+    detailsString: (apiCall) => {
+      return (
+        <div>
+          <div className="">
+            <b>Minimum $BADGE Balance:</b> {apiCall.bodyParams?.minBalance}
+          </div>
+        </div>
+      );
     }
   }
 ];
@@ -628,16 +798,20 @@ export interface ApiCallPlugin {
   metadata: {
     name: string;
     description: string;
-    image: string;
+    image: string | ReactNode;
     createdBy: string;
     nonIndexedCompatible?: boolean;
   };
   apiCallInfo: {
     uri: string;
+    passAddress: boolean;
     passDiscord: boolean;
     passTwitter: boolean;
+    passGoogle: boolean;
+    passGithub: boolean;
     userInputsSchema: Array<JsonBodyInputSchema>;
     creatorInputsSchema: Array<JsonBodyInputSchema>;
     hardcodedInputs: Array<JsonBodyInputWithValue>;
   };
+  detailsString?: (apiCall: ClaimApiCallInfo) => ReactNode;
 }

@@ -37,7 +37,7 @@ export const PredeterminedCard = ({
   useEffect(() => {
     //fetch accounts as needed if we iterate through whitelist
     if (claim?.useCreatorAddressAsLeaf && approval.details?.challengeDetails?.leavesDetails.leaves[orderNumber]) {
-      fetchAccounts([approvalCriteria?.merkleChallenge?.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? '']);
+      fetchAccounts([approval?.details?.challengeDetails?.leavesDetails.leaves[orderNumber] ?? '']);
     }
   }, [orderNumber, claim, approval, approvalCriteria]);
 
@@ -81,7 +81,7 @@ export const PredeterminedCard = ({
     transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementBadgeIdsBy ||
     transfer.approvalCriteria?.predeterminedBalances?.incrementedBalances.incrementOwnershipTimesBy
   );
-  
+
   return (
     <>
       {transfer.approvalCriteria?.predeterminedBalances &&

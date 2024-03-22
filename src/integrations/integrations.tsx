@@ -6,15 +6,14 @@ import {
 } from 'bitbadgesjs-sdk';
 import { ReactNode } from 'react';
 import { OffChainClaim } from '../components/tx-timelines/step-items/OffChainBalancesStepItem';
-import { DiscordPluginDetails, ProofOfAddressPluginDetails, TwitterPluginDetails } from './auth';
+import { ApiPluginDetails } from './api';
+import { DiscordPluginDetails, GithubPluginDetails, GooglePluginDetails, ProofOfAddressPluginDetails, TwitterPluginDetails } from './auth';
 import { CodesPluginDetails } from './codes';
-import { MinBalancesPluginDetails } from './minBalances';
 import { MustOwnPluginDetails } from './mustOwn';
 import { NumUsesPluginDetails } from './numUses';
 import { PasswordPluginDetails } from './passwords';
 import { TransferTimesPluginDetails } from './transferTimes';
 import { WhitelistPluginDetails } from './whitelist';
-import { ApiPluginDetails } from './api';
 
 interface ContextInfo {
   address: string;
@@ -64,7 +63,7 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     disabled: string;
     setDisabled: (disabled: string) => void;
     claim: Readonly<OffChainClaim<bigint>>;
-    type: 'balances' | 'list';
+    type: 'balances' | 'list' | 'nonIndexed';
     isUpdate: boolean;
   }) => ReactNode;
   inputNode?: ({
@@ -168,7 +167,8 @@ export const Plugins: { [key in ClaimIntegrationPluginType]: ClaimIntegrationPlu
   discord: DiscordPluginDetails,
   codes: CodesPluginDetails,
   password: PasswordPluginDetails,
-  greaterThanXBADGEBalance: MinBalancesPluginDetails,
   mustOwnBadges: MustOwnPluginDetails,
-  api: ApiPluginDetails
+  api: ApiPluginDetails,
+  github: GithubPluginDetails,
+  google: GooglePluginDetails
 };

@@ -1,6 +1,6 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Checkbox, DatePicker, Form, Input, Tooltip, Typography, message } from 'antd';
-import { BalanceArray, BitBadgesAddressList, MustOwnBadges, UintRangeArray } from 'bitbadgesjs-sdk';
+import { BalanceArray, BitBadgesAddressList, MustOwnBadges, UintRange, UintRangeArray } from 'bitbadgesjs-sdk';
 import { AndGroup, ChallengeParams, OwnershipRequirements } from 'blockin/dist/types/verify.types';
 import moment from 'moment';
 import { useEffect, useMemo, useState } from 'react';
@@ -11,7 +11,8 @@ import { BalanceInput } from '../../components/balances/BalanceInput';
 import { CustomizeAddRemoveListFromPage } from '../../components/display/CustomPages';
 import { Divider } from '../../components/display/Divider';
 import { InformationDisplayCard } from '../../components/display/InformationDisplayCard';
-import { CheckboxSelect } from '../../components/inputs/Selects';
+import { NumberInput } from '../../components/inputs/NumberInput';
+import { CheckboxSelect, RadioGroup } from '../../components/inputs/Selects';
 import { Tabs } from '../../components/navigation/Tabs';
 import { GenericTextFormInput, ImageSelect } from '../../components/tx-timelines/form-items/MetadataForm';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
@@ -826,7 +827,7 @@ export const AssetConditionGroupSelect = ({
       if (idsToFetch.length === 0) return;
 
       const res = await getAddressLists({ listsToFetch: idsToFetch.map((x) => ({ listId: x })) });
-      setLists(lists => [...lists, ...res.addressLists]);
+      setLists((lists) => [...lists, ...res.addressLists]);
     }
 
     fetchLists();
@@ -834,8 +835,38 @@ export const AssetConditionGroupSelect = ({
 
   const selectedLists = [...mustBeOnLists, ...mustNotBeOnLists];
 
+  const [chainTab, setChainTab] = useState<string>('Ethereum');
+  const [tokenAddress, setTokenAddress] = useState<string>('');
+  const [tokenId, setTokenId] = useState<string>('');
+  const [amountRange, setAmountRange] = useState<UintRange<bigint>>(new UintRange({ start: 1n, end: 1n }));
+
+  useEffect(() => {
+    if (tab === 'other') {
+      setAssetOwnershipRequirements({
+        $and: [
+          {
+            assets: [
+              {
+                assetIds: [tokenId],
+                collectionId: tokenAddress,
+                mustOwnAmounts: amountRange,
+                chain: chainTab,
+                ownershipTimes: []
+              }
+            ],
+            options: {
+              numMatchesForVerification: 1n
+            }
+          }
+        ]
+      });
+    } else {
+      setAssetOwnershipRequirements({ $and: [] });
+    }
+  }, [tokenAddress, tokenId, amountRange, chainTab, tab]);
+
   return (
-    <div className="primary-text">
+    <div className="primary-text full-width">
       <br />
       <Tabs
         fullWidth
@@ -849,10 +880,73 @@ export const AssetConditionGroupSelect = ({
           {
             key: 'lists',
             content: 'Lists'
+          },
+          {
+            key: 'other',
+            content: 'Other'
           }
         ]}
         type="underline"
       />
+      {tab === 'other' && (
+        <>
+          <div className=" full-width">
+            <InformationDisplayCard
+              md={24}
+              xs={24}
+              sm={24}
+              title="Ethereum NFTs"
+              subtitle="Note that only Ethereum users will be able to satisfy this requirement.">
+              <br />
+              <RadioGroup
+                label=""
+                value={chainTab}
+                options={[
+                  {
+                    label: 'Ethereum',
+                    value: 'Ethereum'
+                  },
+                  {
+                    label: 'Polygon',
+                    value: 'Polygon'
+                  }
+                ]}
+                onChange={setChainTab}
+              />
+
+              <Form colon={false} layout="vertical">
+                <br />
+                <GenericTextFormInput
+                  label="Contract Address"
+                  value={tokenAddress}
+                  setValue={setTokenAddress}
+                  helper="The address of the token contract."
+                />
+                <GenericTextFormInput label="Token ID" value={tokenId} setValue={setTokenId} helper="The ID of the token." />
+                <div className="flex-center flex-wrap primary-text">
+                  <div className="mx-4">
+                    <NumberInput
+                      title="Min Amount"
+                      value={Number(amountRange.start)}
+                      setValue={(x) => setAmountRange(new UintRange({ start: BigInt(x), end: amountRange.end }))}
+                      min={0}
+                    />
+                  </div>
+                  <div className="mx-4">
+                    <NumberInput
+                      title="Max Amount"
+                      value={Number(amountRange.end)}
+                      setValue={(x) => setAmountRange(new UintRange({ start: amountRange.start, end: BigInt(x) }))}
+                      min={0}
+                    />
+                  </div>
+                </div>
+              </Form>
+            </InformationDisplayCard>
+          </div>
+        </>
+      )}
+
       {tab === 'badges' && (
         <>
           <br />

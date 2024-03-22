@@ -1,63 +1,70 @@
-import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { Spin, Input, Tag, Divider } from 'antd';
-import { ClaimIntegrationPublicParamsType, ClaimIntegrationPrivateParamsType } from 'bitbadgesjs-sdk';
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { GithubOutlined, GoogleOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { Divider, Input, Spin, Tag } from 'antd';
+import { ClaimIntegrationPrivateParamsType, ClaimIntegrationPublicParamsType } from 'bitbadgesjs-sdk';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { BitBadgesApi } from '../bitbadges-api/api';
 import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
-import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
-import { BACKEND_URL } from '../constants';
-import { ClaimIntegrationPlugin } from './integrations';
-import { PublicPrivateSelect } from './whitelist';
 import { useWeb2Context } from '../bitbadges-api/contexts/chains/Web2Context';
+import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
+import { NumberInput } from '../components/inputs/NumberInput';
+import { BACKEND_URL } from '../constants';
+import { ClaimIntegrationPlugin, getPlugin } from './integrations';
+import { PublicPrivateSelect } from './whitelist';
 
-const TwitterInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => void }) => {
-  const [currTwitterUser, setCurrTwitterUser] = useState<
-    | {
-        username: string;
-      }
-    | undefined
-  >(undefined);
+const GenericOAuthInputNode = <T extends { username: string }>({
+  appName,
+  appLogo
+  // setDisabled
+}: {
+  appLogo: ReactNode;
+  appName: string;
+  setDisabled: (disabled: string) => void;
+}) => {
+  const [currUser, setCurrUser] = useState<T | undefined>(undefined);
   const [clicked, setClicked] = useState(false);
 
-  const pollTwitter = useCallback(async () => {
-    if (!currTwitterUser) {
+  const poll = useCallback(async () => {
+    if (!currUser) {
       const user = await BitBadgesApi.checkIfSignedIn({});
-      if (user.twitter) {
-        setCurrTwitterUser(user.twitter);
+      if (user[appName as keyof typeof user]) {
+        setCurrUser(user[appName as keyof typeof user] as unknown as T);
       }
     }
-  }, [currTwitterUser]);
+  }, [currUser, appName]);
 
   useEffect(() => {
-    if (!currTwitterUser) {
-      pollTwitter();
+    if (!currUser) {
+      poll();
 
       //Every 5 seconds
       const interval = setInterval(async () => {
-        await pollTwitter();
+        await poll();
       }, 5000);
 
       return () => clearInterval(interval);
     }
   }, []);
 
-  useEffect(() => {
-    setDisabled(!currTwitterUser?.username ? 'Not signed in' : '');
-  }, [currTwitterUser]);
-
   return (
     <>
-      {currTwitterUser?.username && (
+      {currUser?.username && (
         <>
-          <div>Signed in as @{currTwitterUser.username}</div>
+          <div>Signed in as {currUser?.username}</div>
           <br />
           <br />
           <div className="flex-center">
             <button
               className="bg-black p-3 rounded-lg flex hover:bg-gray-800 "
               onClick={async () => {
-                await BitBadgesApi.signOut({ signOutDiscord: false, signOutBlockin: false, signOutTwitter: true });
-                setCurrTwitterUser(undefined);
+                await BitBadgesApi.signOut({
+                  signOutDiscord: false,
+                  signOutBlockin: false,
+                  signOutTwitter: false,
+                  signOutGoogle: false,
+                  signOutGithub: false,
+                  ['signOut' + appName.charAt(0).toUpperCase() + appName.slice(1)]: true
+                });
+                setCurrUser(undefined);
                 setClicked(false);
               }}>
               Sign Out
@@ -65,25 +72,16 @@ const TwitterInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => 
           </div>
         </>
       )}
-      {!currTwitterUser?.username && (
+      {!currUser?.username && (
         <div className="flex-center">
           <button
             className="bg-black p-3 rounded-lg flex hover:bg-gray-800 "
             onClick={() => {
               setClicked(true);
-              window.open(BACKEND_URL + '/auth/twitter', '_blank');
+              window.open(BACKEND_URL + `/auth/${appName}`, '_blank');
             }}>
-            Sign In to
-            <svg
-              height="24"
-              viewBox="0 0 1200 1227"
-              fill="#1890ff"
-              x="0px"
-              y="0px"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ marginLeft: '10px', marginRight: '10px' }}>
-              <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
-            </svg>
+            Sign In to {appName.charAt(0).toUpperCase() + appName.slice(1)}
+            <div style={{ marginLeft: 10, marginRight: 10 }}>{appLogo}</div>
             {clicked && <Spin />}
           </button>
         </div>
@@ -92,16 +90,23 @@ const TwitterInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => 
   );
 };
 
-const TwitterCreateNode = ({
+const TwitterInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => void }) => {
+  return <GenericOAuthInputNode appName="twitter" appLogo={getPlugin('twitter').metadata.image} setDisabled={setDisabled} />;
+};
+
+type OauthAppName = 'twitter' | 'discord' | 'github' | 'google';
+
+const GenericOAuthCreateNode = <P extends OauthAppName>({
   publicParams,
   privateParams,
   setParams
 }: {
-  publicParams: ClaimIntegrationPublicParamsType<'twitter'>;
-  privateParams: ClaimIntegrationPrivateParamsType<'twitter'>;
-  setParams: (publicParams: ClaimIntegrationPublicParamsType<'twitter'>, privateParams: ClaimIntegrationPrivateParamsType<'twitter'>) => void;
+  privateParams: ClaimIntegrationPrivateParamsType<P>;
+  publicParams: ClaimIntegrationPublicParamsType<P>;
+  setParams: (publicParams: ClaimIntegrationPublicParamsType<P>, privateParams: ClaimIntegrationPrivateParamsType<P>) => void;
 }) => {
   const [privateValues, setPrivateValues] = useState<boolean>(!!privateParams.users?.length);
+  const maxUsesPerUser = publicParams.maxUsesPerUser ?? 0;
 
   const usernames = useMemo(() => {
     if (privateValues) {
@@ -113,26 +118,37 @@ const TwitterCreateNode = ({
 
   const [inputStr, setInputStr] = useState(usernames?.join(', '));
 
-  const setUsers = (users: string[], privateUsers?: boolean) => {
+  const setUsers = (users: string[], maxPerUser: number, privateUsers?: boolean) => {
     if (privateUsers) {
-      setParams({}, { users });
+      setParams({ maxUsesPerUser: maxPerUser } as ClaimIntegrationPublicParamsType<P>, { users } as ClaimIntegrationPrivateParamsType<P>);
     } else {
-      setParams({ users }, {});
+      setParams({ users, maxUsesPerUser: maxPerUser } as ClaimIntegrationPublicParamsType<P>, {} as ClaimIntegrationPrivateParamsType<P>);
     }
   };
 
-  console.log('privateValues', privateValues);
-  console.log('usernames', usernames);
-  console.log(publicParams, privateParams);
-
   return (
     <div>
+      <div className="mb-5 flex-center flex-column">
+        <div className="text-center">
+          <b>Per User</b>
+        </div>
+        <NumberInput
+          title=""
+          value={maxUsesPerUser ?? 0}
+          setValue={(val) => {
+            if (!val) return;
+
+            setUsers(usernames, val, privateValues);
+          }}
+          min={1}
+        />
+      </div>
       <div className="flex-center flex-column">
         <PublicPrivateSelect
           privateVal={privateValues}
           setPrivateVal={setPrivateValues}
           onChange={(val) => {
-            setUsers(usernames, val);
+            setUsers(usernames, maxUsesPerUser, val);
           }}
         />
       </div>
@@ -148,7 +164,7 @@ const TwitterCreateNode = ({
           setInputStr(e.target.value);
           console.log(names);
 
-          setUsers(names, privateValues);
+          setUsers(names, maxUsesPerUser, privateValues);
         }}
         className="primary-text inherit-bg"
       />
@@ -165,6 +181,7 @@ const TwitterCreateNode = ({
             onClose={() => {
               setUsers(
                 usernames.filter((n) => n !== name),
+                maxUsesPerUser,
                 privateValues
               );
               setInputStr(usernames.filter((n) => n !== name).join(', '));
@@ -176,6 +193,66 @@ const TwitterCreateNode = ({
     </div>
   );
 };
+
+const TwitterCreateNode = ({
+  publicParams,
+  privateParams,
+  setParams
+}: {
+  publicParams: ClaimIntegrationPublicParamsType<'twitter'>;
+  privateParams: ClaimIntegrationPrivateParamsType<'twitter'>;
+  setParams: (publicParams: ClaimIntegrationPublicParamsType<'twitter'>, privateParams: ClaimIntegrationPrivateParamsType<'twitter'>) => void;
+}) => {
+  return <GenericOAuthCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} />;
+};
+
+const GoogleCreateNode = ({
+  publicParams,
+  privateParams,
+  setParams
+}: {
+  publicParams: ClaimIntegrationPublicParamsType<'google'>;
+  privateParams: ClaimIntegrationPrivateParamsType<'google'>;
+  setParams: (publicParams: ClaimIntegrationPublicParamsType<'google'>, privateParams: ClaimIntegrationPrivateParamsType<'google'>) => void;
+}) => {
+  return <GenericOAuthCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} />;
+};
+
+const GoogleInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => void }) => {
+  return <GenericOAuthInputNode appName="google" appLogo={getPlugin('google').metadata.image} setDisabled={setDisabled} />;
+};
+
+const GithubCreateNode = ({
+  publicParams,
+  privateParams,
+  setParams
+}: {
+  publicParams: ClaimIntegrationPublicParamsType<'github'>;
+  privateParams: ClaimIntegrationPrivateParamsType<'github'>;
+  setParams: (publicParams: ClaimIntegrationPublicParamsType<'github'>, privateParams: ClaimIntegrationPrivateParamsType<'github'>) => void;
+}) => {
+  return <GenericOAuthCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} />;
+};
+
+const GithubInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => void }) => {
+  return <GenericOAuthInputNode appName="github" appLogo={getPlugin('github').metadata.image} setDisabled={setDisabled} />;
+};
+
+// const StripeCreateNode = ({
+//   publicParams,
+//   privateParams,
+//   setParams
+// }: {
+//   publicParams: ClaimIntegrationPublicParamsType<'stripe'>;
+//   privateParams: ClaimIntegrationPrivateParamsType<'stripe'>;
+//   setParams: (publicParams: ClaimIntegrationPublicParamsType<'stripe'>, privateParams: ClaimIntegrationPrivateParamsType<'stripe'>) => void;
+// }) => {
+//   return <GenericOAuthCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} />;
+// };
+
+// const StripeInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => void }) => {
+//   return <GenericOAuthInputNode appName="stripe" appLogo={getPlugin('stripe').metadata.image} setDisabled={setDisabled} />;
+// };
 
 const ProofOfAddressInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => void }) => {
   const chain = useChainContext();
@@ -205,11 +282,11 @@ const DiscordCreateNode = ({
   const [privateValues, setPrivateValues] = useState<boolean>(isPrivate);
   const [inputStr, setInputStr] = useState(publicParams.users?.join(', '));
 
-  const setUsers = (users: string[], serverId: string, serverName: string, privateUsers?: boolean) => {
+  const setUsers = (users: string[], serverId: string, serverName: string, maxPerUser?: number, privateUsers?: boolean) => {
     if (privateUsers) {
-      setParams({}, { users, serverId, serverName });
+      setParams({ maxUsesPerUser: maxPerUser, hasPrivateList: users.length > 0 }, { users, serverId, serverName });
     } else {
-      setParams({ users, serverId, serverName }, {});
+      setParams({ users, serverId, serverName, maxUsesPerUser: maxPerUser, hasPrivateList: false }, {});
     }
   };
 
@@ -237,14 +314,31 @@ const DiscordCreateNode = ({
     return publicParams.serverName ?? '';
   }, [publicParams.serverName, privateParams.serverName, privateValues]);
 
+  const numPerUser = publicParams.maxUsesPerUser;
+
   return (
     <div>
+      <div className="mb-5 flex-center flex-column">
+        <div className="text-center">
+          <b>Per User</b>
+        </div>
+        <NumberInput
+          title=""
+          value={numPerUser ?? 0}
+          setValue={(val) => {
+            if (!val) return;
+
+            setUsers(usernames, serverId, serverName, val, privateValues);
+          }}
+          min={1}
+        />
+      </div>
       <div className="flex-center flex-column">
         <PublicPrivateSelect
           privateVal={privateValues}
           setPrivateVal={setPrivateValues}
           onChange={(val) => {
-            setUsers(usernames, serverId, serverName, val);
+            setUsers(usernames, serverId, serverName, numPerUser, val);
           }}
         />
       </div>
@@ -253,7 +347,7 @@ const DiscordCreateNode = ({
       <Input
         value={serverId}
         onChange={(e) => {
-          setUsers(usernames ?? [], e.target.value, serverName, privateValues);
+          setUsers(usernames ?? [], e.target.value, serverName, numPerUser, privateValues);
         }}
         className="primary-text inherit-bg"
       />
@@ -272,7 +366,7 @@ const DiscordCreateNode = ({
           <Input
             value={serverName}
             onChange={(e) => {
-              setUsers(usernames ?? [], serverId, e.target.value, privateValues);
+              setUsers(usernames ?? [], serverId, e.target.value, numPerUser, privateValues);
             }}
             className="primary-text inherit-bg"
           />
@@ -295,7 +389,7 @@ const DiscordCreateNode = ({
             .map((name) => (name.startsWith('@') ? name.slice(1) : name));
           setInputStr(e.target.value);
 
-          setUsers(names, serverId, serverName, privateValues);
+          setUsers(names, serverId, serverName, numPerUser, privateValues);
         }}
         className="primary-text inherit-bg"
       />
@@ -315,6 +409,7 @@ const DiscordCreateNode = ({
                   usernames.filter((n) => n !== name),
                   serverId,
                   serverName,
+                  numPerUser,
                   privateValues
                 );
                 setInputStr(usernames.filter((n) => n !== name).join(', '));
@@ -389,7 +484,13 @@ export const DiscordInputNode = ({
             className="bg-black p-3 rounded-lg flex hover:bg-gray-800 "
             onClick={async () => {
               if (currDiscordUser?.username) {
-                await BitBadgesApi.signOut({ signOutDiscord: true, signOutBlockin: false, signOutTwitter: false });
+                await BitBadgesApi.signOut({
+                  signOutDiscord: true,
+                  signOutBlockin: false,
+                  signOutTwitter: false,
+                  signOutGithub: false,
+                  signOutGoogle: false
+                });
                 setCurrDiscordUser(undefined);
                 setClicked(false);
                 web2Context.setDiscord({ username: '', discriminator: '', id: '' });
@@ -463,17 +564,9 @@ export const TwitterPluginDetails: ClaimIntegrationPlugin<'twitter'> = {
   id: 'twitter',
   metadata: {
     name: 'X',
-    description: 'Gate claims by X usernames. One claim per username.',
+    description: 'Gate claims by X.',
     image: (
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 1200 1227"
-        fill="#1890ff"
-        x="0px"
-        y="0px"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ marginRight: '10px' }}>
+      <svg width="18" height="18" viewBox="0 0 1200 1227" fill="#1890ff" x="0px" y="0px" xmlns="http://www.w3.org/2000/svg">
         <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
       </svg>
     ),
@@ -491,14 +584,18 @@ export const TwitterPluginDetails: ClaimIntegrationPlugin<'twitter'> = {
   },
   detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'twitter'> }) => {
     const isPublicList = !!publicParams.users?.length;
+    const hasPrivateList = publicParams.hasPrivateList;
 
-    return `One claim per Twitter user${isPublicList ? ` in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : ' (private list).'}`;
+    return `${
+      publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
+    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : '.'}
+    ${hasPrivateList ? 'Must be on private list.' : ''}`;
   },
   getBlankPrivateParams() {
     return {};
   },
   getBlankPublicParams() {
-    return { users: [] };
+    return { users: [], maxUsesPerUser: 1, hasPrivateList: false };
   },
   getBlankPublicState() {
     return { users: [] };
@@ -509,7 +606,7 @@ export const DiscordPluginDetails: ClaimIntegrationPlugin<'discord'> = {
   id: 'discord',
   metadata: {
     name: 'Discord',
-    description: 'Gate by Discord usernames and/or server. One claim per username.',
+    description: 'Gate by Discord usernames and/or server.',
     image: (
       <svg fill="#1890ff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" height="18" style={{ marginRight: '10px' }}>
         <path d="M524.531,69.836a1.5,1.5,0,0,0-.764-.7A485.065,485.065,0,0,0,404.081,32.03a1.816,1.816,0,0,0-1.923.91,337.461,337.461,0,0,0-14.9,30.6,447.848,447.848,0,0,0-134.426,0,309.541,309.541,0,0,0-15.135-30.6,1.89,1.89,0,0,0-1.924-.91A483.689,483.689,0,0,0,116.085,69.137a1.712,1.712,0,0,0-.788.676C39.068,183.651,18.186,294.69,28.43,404.354a2.016,2.016,0,0,0,.765,1.375A487.666,487.666,0,0,0,176.02,479.918a1.9,1.9,0,0,0,2.063-.676A348.2,348.2,0,0,0,208.12,430.4a1.86,1.86,0,0,0-1.019-2.588,321.173,321.173,0,0,1-45.868-21.853,1.885,1.885,0,0,1-.185-3.126c3.082-2.309,6.166-4.711,9.109-7.137a1.819,1.819,0,0,1,1.9-.256c96.229,43.917,200.41,43.917,295.5,0a1.812,1.812,0,0,1,1.924.233c2.944,2.426,6.027,4.851,9.132,7.16a1.884,1.884,0,0,1-.162,3.126,301.407,301.407,0,0,1-45.89,21.83,1.875,1.875,0,0,0-1,2.611,391.055,391.055,0,0,0,30.014,48.815,1.864,1.864,0,0,0,2.063.7A486.048,486.048,0,0,0,610.7,405.729a1.882,1.882,0,0,0,.765-1.352C623.729,277.594,590.933,167.465,524.531,69.836ZM222.491,337.58c-28.972,0-52.844-26.587-52.844-59.239S193.056,219.1,222.491,219.1c29.665,0,53.306,26.82,52.843,59.239C275.334,310.993,251.924,337.58,222.491,337.58Zm195.38,0c-28.971,0-52.843-26.587-52.843-59.239S388.437,219.1,417.871,219.1c29.667,0,53.307,26.82,52.844,59.239C470.715,310.993,447.538,337.58,417.871,337.58Z" />
@@ -531,23 +628,141 @@ export const DiscordPluginDetails: ClaimIntegrationPlugin<'discord'> = {
   createNode: ({ publicParams, privateParams, setParams }) => {
     return <DiscordCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
   },
-  detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'discord'> }) => {
+  detailsString: ({ publicParams }) => {
     const isPublicList = !!publicParams.users?.length;
     if (!isPublicList) {
       return `One claim per Discord user (private user list).`;
     }
 
-    return `One claim per Discord user${publicParams.serverId ? ` in the ${publicParams.serverName} server` : ''}${
+    return `${
+      publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
+    } Restricted to specific users ${publicParams.serverId ? ` in the ${publicParams.serverName} server` : ''}${
       publicParams.users && publicParams.users.length > 0 ? ` with usernames ${publicParams.users.map((x) => '@' + x).join(', ')}` : ''
-    }.`;
+    }.${publicParams.hasPrivateList ? ' Must be on private list.' : ''}`;
   },
   getBlankPrivateParams() {
     return {};
   },
   getBlankPublicParams() {
-    return { users: [], serverId: '', serverName: '' };
+    return { users: [], serverId: '', serverName: '', maxUsesPerUser: 1, hasPrivateList: false };
   },
   getBlankPublicState() {
-    return { numUses: 0 };
+    return { numUses: 0, hasPrivateList: false };
   }
 };
+
+export const GithubPluginDetails: ClaimIntegrationPlugin<'github'> = {
+  id: 'github',
+  metadata: {
+    name: 'Github',
+    description: 'Gate claims by Github.',
+    image: <GithubOutlined />,
+    createdBy: 'BitBadges',
+    stateless: false,
+    scoped: true,
+    onChainCompatible: true
+  },
+  stateString: () => 'The state tracks the list of Github usernames that have claimed.',
+  createNode: ({ publicParams, setParams, privateParams }) => {
+    return <GithubCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
+  },
+  inputNode: ({ setDisabled }) => {
+    return <GithubInputNode setDisabled={setDisabled} />;
+  },
+  detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'github'> }) => {
+    const isPublicList = !!publicParams.users?.length;
+    const hasPrivateList = publicParams.hasPrivateList;
+
+    return `${
+      publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
+    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : '.'}
+    ${hasPrivateList ? 'Must be on private list.' : ''}`;
+  },
+  getBlankPrivateParams() {
+    return {};
+  },
+  getBlankPublicParams() {
+    return { users: [], maxUsesPerUser: 1, hasPrivateList: false };
+  },
+  getBlankPublicState() {
+    return { users: [] };
+  }
+};
+
+export const GooglePluginDetails: ClaimIntegrationPlugin<'google'> = {
+  id: 'google',
+  metadata: {
+    name: 'Google',
+    description: 'Gate claims by Google.',
+    image: <GoogleOutlined />,
+    createdBy: 'BitBadges',
+    stateless: false,
+    scoped: true,
+    onChainCompatible: true
+  },
+  stateString: () => 'The state tracks the list of Google usernames that have claimed.',
+  createNode: ({ publicParams, setParams, privateParams }) => {
+    return <GoogleCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
+  },
+  inputNode: ({ setDisabled }) => {
+    return <GoogleInputNode setDisabled={setDisabled} />;
+  },
+  detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'google'> }) => {
+    const isPublicList = !!publicParams.users?.length;
+    const hasPrivateList = publicParams.hasPrivateList;
+
+    return `${
+      publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
+    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : '.'}
+    ${hasPrivateList ? 'Must be on private list.' : ''}`;
+  },
+  getBlankPrivateParams() {
+    return {};
+  },
+  getBlankPublicParams() {
+    return { users: [], maxUsesPerUser: 1, hasPrivateList: false };
+  },
+  getBlankPublicState() {
+    return { users: [] };
+  }
+};
+
+// export const StripePluginDetails: ClaimIntegrationPlugin<'stripe'> = {
+//   id: 'stripe',
+//   metadata: {
+//     name: 'Stripe',
+//     description: 'Gate claims by Stripe.',
+//     image: (
+//       <svg width="18" height="18" viewBox="0 0 1200 1227" fill="#1890ff" x="0px" y="0px" xmlns="http://www.w3.org/2000/svg">
+//         <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
+//       </svg>
+//     ),
+//     createdBy: 'BitBadges',
+//     stateless: false,
+//     scoped: true,
+//     onChainCompatible: true
+//   },
+//   stateString: () => 'The state tracks the list of usernames that have claimed.',
+//   createNode: ({ publicParams, setParams, privateParams }) => {
+//     return <StripeCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
+//   },
+//   inputNode: ({ setDisabled }) => {
+//     return <StripeInputNode setDisabled={setDisabled} />;
+//   },
+//   detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'stripe'> }) => {
+//     const isPublicList = !!publicParams.users?.length;
+
+//     return `${
+//       publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
+//     } Must be in list${isPublicList ? `: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : ' (private list).'}`;
+//   },
+//   getBlankPrivateParams() {
+//     return {};
+//   },
+//   getBlankPublicParams() {
+//     return { users: [], maxUsesPerUser: 1 };
+//   },
+//   getBlankPublicState() {
+//     return { users: [] };
+//   }
+// };

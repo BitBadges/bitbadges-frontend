@@ -383,7 +383,13 @@ export function AccountSettings() {
                               <button
                                 className="landing-button"
                                 onClick={async () => {
-                                  await BitBadgesApi.signOut({ signOutDiscord: true, signOutBlockin: false, signOutTwitter: false });
+                                  await BitBadgesApi.signOut({
+                                    signOutDiscord: true,
+                                    signOutBlockin: false,
+                                    signOutTwitter: false,
+                                    signOutGithub: false,
+                                    signOutGoogle: false
+                                  });
                                   web2Context.setDiscord({ username: '', discriminator: '', id: '' });
                                 }}>
                                 Sign Out

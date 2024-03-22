@@ -118,7 +118,7 @@ export const ClaimBuilder = ({
   );
 };
 
-const CreateNodeFromPlugin = ({
+export const CreateNodeFromPlugin = ({
   id,
   plugins,
   disabledMap,
@@ -126,7 +126,8 @@ const CreateNodeFromPlugin = ({
   isUpdate,
   type,
   claim,
-  setPlugins
+  setPlugins,
+  nonIndexed
 }: {
   id: ClaimIntegrationPluginType;
   plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
@@ -136,6 +137,7 @@ const CreateNodeFromPlugin = ({
   type: 'balances' | 'list';
   claim: Readonly<OffChainClaim<bigint>>;
   setPlugins: (plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[]) => void;
+  nonIndexed?: boolean;
 }) => {
   const pluginInstance = getPlugin(id);
   const currPlugin = getPluginDetails(id, plugins);
@@ -158,7 +160,7 @@ const CreateNodeFromPlugin = ({
         metadata: pluginInstance.metadata,
         privateParams: currPlugin?.privateParams ?? getBlankPlugin(id).privateParams,
         publicParams: currPlugin?.publicParams ?? getBlankPlugin(id).publicParams,
-        type,
+        type: nonIndexed ? 'nonIndexed' : type,
         isUpdate: !!isUpdate,
         setParams: (publicParams, privateParams) => {
           const newPlugins = plugins;

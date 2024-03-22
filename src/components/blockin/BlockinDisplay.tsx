@@ -107,7 +107,7 @@ export const BlockinDisplay = ({ hideLogo, hideLogin }: { hideLogo?: boolean; hi
   };
 
   const logout = async () => {
-    await signOut({ signOutBlockin: true, signOutDiscord: true, signOutTwitter: true });
+    await signOut({ signOutBlockin: true, signOutDiscord: true, signOutTwitter: true, signOutGithub: true, signOutGoogle: true });
     setCookie('blockincookie', '', { path: '/' });
     chainContext.setChallengeParams(undefined);
     web2Context.setDiscord({ username: '', discriminator: '', id: '' });
