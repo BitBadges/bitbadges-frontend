@@ -41,6 +41,7 @@ import { FormTimeline } from '../../navigation/FormTimeline';
 import { Tabs } from '../../navigation/Tabs';
 import { PluginTextDisplay } from './DetailsCard';
 import { PredeterminedCard } from './PredeterminedCard';
+import { useAccount } from '../../../bitbadges-api/contexts/accounts/AccountsContext';
 const { SHA256 } = CryptoJS;
 
 export const generateCodesFromSeed = (seedCode: string, numCodes: number): string[] => {
@@ -248,6 +249,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
                   passTwitter={x.passTwitter}
                   passGithub={x.passGithub}
                   passGoogle={x.passGoogle}
+                  passEmail={x.passEmail}
                 />
               </div>
             ))}
@@ -463,6 +465,8 @@ export const ClaimInputs = ({
   const [stepNum, setStepNum] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState(chain.cosmosAddress);
 
+  const signedInAccount = useAccount(chain.address);
+
   const requiresSignIn = plugins.some((x) => x.id === 'requiresProofOfAddress');
   let recipientAddress = requiresSignIn ? chain.cosmosAddress : selectedAddress;
 
@@ -497,6 +501,7 @@ export const ClaimInputs = ({
     const requiresTwitterSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passTwitter);
     const requiresGithubSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passGithub);
     const requiresGoogleSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passGoogle);
+    const requiresEmailSignIn = getPluginDetails('api', plugins)?.publicParams.apiCalls.some((x) => x.passEmail);
 
     const additionalPlugins = [...plugins];
     if (requiresDiscordSignIn && !plugins.some((x) => x.id === 'discord')) additionalPlugins.push(getBlankPlugin('discord'));
@@ -504,9 +509,11 @@ export const ClaimInputs = ({
     if (requiresGithubSignIn && !plugins.some((x) => x.id === 'github')) additionalPlugins.push(getBlankPlugin('github'));
     if (requiresGoogleSignIn && !plugins.some((x) => x.id === 'google')) additionalPlugins.push(getBlankPlugin('google'));
 
+    const showEmailNotice =
+      requiresEmailSignIn && (!signedInAccount?.notifications?.emailVerification?.verified || !signedInAccount?.notifications?.email);
+
     return [
       ...preSteps,
-
       ...additionalPlugins.map((fetchedPlugin) => {
         const plugin = getPlugin(fetchedPlugin.id);
         if (!plugin.inputNode) return EmptyStepItem;
@@ -556,6 +563,24 @@ export const ClaimInputs = ({
           disabled: !!disabledMap[plugin.id]
         };
       }),
+      ...[
+        showEmailNotice
+          ? {
+              title: 'Email Verification',
+              description: '',
+              node: () => {
+                return (
+                  <div style={{ textAlign: 'center' }} className="full-width">
+                    <ErrDisplay
+                      warning
+                      err="It seems you do not have a verified email in your BitBadges account but one or more plugins require it."
+                    />
+                  </div>
+                );
+              }
+            }
+          : EmptyStepItem
+      ],
       {
         title: 'Submit',
         description: '',

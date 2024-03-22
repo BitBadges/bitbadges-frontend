@@ -1,4 +1,4 @@
-import { GithubOutlined, GoogleOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { GithubOutlined, GoogleOutlined, InfoCircleOutlined, MailOutlined, WarningOutlined } from '@ant-design/icons';
 import { Divider, Input, Spin, Tag } from 'antd';
 import { ClaimIntegrationPrivateParamsType, ClaimIntegrationPublicParamsType } from 'bitbadgesjs-sdk';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
@@ -94,7 +94,7 @@ const TwitterInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => 
   return <GenericOAuthInputNode appName="twitter" appLogo={getPlugin('twitter').metadata.image} setDisabled={setDisabled} />;
 };
 
-type OauthAppName = 'twitter' | 'discord' | 'github' | 'google';
+type OauthAppName = 'twitter' | 'discord' | 'github' | 'google' | 'email';
 
 const GenericOAuthCreateNode = <P extends OauthAppName>({
   publicParams,
@@ -173,7 +173,7 @@ const GenericOAuthCreateNode = <P extends OauthAppName>({
       </div>
       <br />
       {usernames.map((name) => {
-        const displayname = name.startsWith('@') ? name : `@${name}`;
+        const displayname = name;
         return (
           <Tag
             key={name}
@@ -236,6 +236,18 @@ const GithubCreateNode = ({
 
 const GithubInputNode = ({ setDisabled }: { setDisabled: (disabled: string) => void }) => {
   return <GenericOAuthInputNode appName="github" appLogo={getPlugin('github').metadata.image} setDisabled={setDisabled} />;
+};
+
+const EmailCreateNode = ({
+  publicParams,
+  privateParams,
+  setParams
+}: {
+  publicParams: ClaimIntegrationPublicParamsType<'email'>;
+  privateParams: ClaimIntegrationPrivateParamsType<'email'>;
+  setParams: (publicParams: ClaimIntegrationPublicParamsType<'email'>, privateParams: ClaimIntegrationPrivateParamsType<'email'>) => void;
+}) => {
+  return <GenericOAuthCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} />;
 };
 
 // const StripeCreateNode = ({
@@ -714,6 +726,42 @@ export const GooglePluginDetails: ClaimIntegrationPlugin<'google'> = {
     return `${
       publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
     } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : '.'}
+    ${hasPrivateList ? 'Must be on private list.' : ''}`;
+  },
+  getBlankPrivateParams() {
+    return {};
+  },
+  getBlankPublicParams() {
+    return { users: [], maxUsesPerUser: 1, hasPrivateList: false };
+  },
+  getBlankPublicState() {
+    return { users: [] };
+  }
+};
+
+export const EmailPluginDetails: ClaimIntegrationPlugin<'email'> = {
+  id: 'email',
+  metadata: {
+    name: 'Email',
+    description: 'Gate claims by Email.',
+    image: <MailOutlined />,
+    createdBy: 'BitBadges',
+    stateless: false,
+    scoped: true,
+    onChainCompatible: true
+  },
+  stateString: () => 'The state tracks the list of email addresses that have claimed.',
+  createNode: ({ publicParams, setParams, privateParams }) => {
+    return <EmailCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
+  },
+  // inputNode is not displayed bc we just auto pass the email fromt heir account
+  detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'email'> }) => {
+    const isPublicList = !!publicParams.users?.length;
+    const hasPrivateList = publicParams.hasPrivateList;
+
+    return `${
+      publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
+    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `${x}`).join(', ')}.` : '.'}
     ${hasPrivateList ? 'Must be on private list.' : ''}`;
   },
   getBlankPrivateParams() {

@@ -7,7 +7,14 @@ import {
 import { ReactNode } from 'react';
 import { OffChainClaim } from '../components/tx-timelines/step-items/OffChainBalancesStepItem';
 import { ApiPluginDetails } from './api';
-import { DiscordPluginDetails, GithubPluginDetails, GooglePluginDetails, ProofOfAddressPluginDetails, TwitterPluginDetails } from './auth';
+import {
+  DiscordPluginDetails,
+  EmailPluginDetails,
+  GithubPluginDetails,
+  GooglePluginDetails,
+  ProofOfAddressPluginDetails,
+  TwitterPluginDetails
+} from './auth';
 import { CodesPluginDetails } from './codes';
 import { MustOwnPluginDetails } from './mustOwn';
 import { NumUsesPluginDetails } from './numUses';
@@ -170,5 +177,6 @@ export const Plugins: { [key in ClaimIntegrationPluginType]: ClaimIntegrationPlu
   mustOwnBadges: MustOwnPluginDetails,
   api: ApiPluginDetails,
   github: GithubPluginDetails,
-  google: GooglePluginDetails
+  google: GooglePluginDetails,
+  email: EmailPluginDetails
 };

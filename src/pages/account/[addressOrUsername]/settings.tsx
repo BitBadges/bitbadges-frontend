@@ -1,5 +1,5 @@
-import { FullscreenExitOutlined, FullscreenOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
-import { Divider, Form, Layout, Typography, Upload, notification } from 'antd';
+import { CheckCircleFilled, FullscreenExitOutlined, FullscreenOutlined, LoadingOutlined, MailOutlined, PlusOutlined } from '@ant-design/icons';
+import { Divider, Form, Input, Layout, Typography, Upload, notification } from 'antd';
 import Text from 'antd/lib/typography/Text';
 import { BitBadgesUserInfo, SupportedChain } from 'bitbadgesjs-sdk';
 
@@ -165,6 +165,10 @@ export function AccountSettings() {
   const username = newAccount?.username ? newAccount.username : '';
   const setUsername = (username: string) => {
     setNewAccount(new BitBadgesUserInfo<bigint>({ ...newAccount, username }));
+  };
+
+  const setNotifications = (notifications: any) => {
+    setNewAccount(new BitBadgesUserInfo<bigint>({ ...newAccount, notifications }));
   };
 
   const [newCustomLinkTitle, setNewCustomLinkTitle] = useState('');
@@ -400,17 +404,17 @@ export function AccountSettings() {
                       </>
                     )}
                   </Form.Item>
-                  {/*
+
                   <Divider />
-                  <b className='primary-text' style={{ fontSize: 24, textAlign: 'center' }}>Notifications</b>
+                  <b className="primary-text" style={{ fontSize: 24, textAlign: 'start' }}>
+                    Connections
+                  </b>
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className="primary-text" strong>
                         Email
                       </Text>
-                    }
-                  >
-
+                    }>
                     <Input
                       defaultValue={notifications?.email ?? ''}
                       value={notifications?.email ?? ''}
@@ -419,16 +423,21 @@ export function AccountSettings() {
                       }}
                       className="form-input"
                     />
-                    <div className='secondary-text'>
-                      Your email is used to send you push notifications about activity on your account.
+                    <div className="secondary-text">
+                      Your email is used to send you push notifications about activity and also may be needed to satisfy the criteria for certain
+                      claims (you will see the <MailOutlined /> icon).
                     </div>
-                    <div className='secondary-text'>
-                      {signedInAccount?.notifications?.emailVerification?.verified ? <div className='secondary-text'>
-                        <CheckCircleFilled style={{ color: 'green' }} /> Email verified</div> : <div className='secondary-text'>Email not verified</div>}
+                    <div className="secondary-text">
+                      {signedInAccount?.notifications?.emailVerification?.verified ? (
+                        <div className="secondary-text">
+                          <CheckCircleFilled style={{ color: 'green' }} /> Email verified
+                        </div>
+                      ) : (
+                        <div className="secondary-text">Email not verified</div>
+                      )}
                     </div>
-
                   </Form.Item>
-                  <Form.Item
+                  {/* <Form.Item
                     label={
                       <Text className='primary-text' strong>
                         Preferences
@@ -455,30 +464,30 @@ export function AccountSettings() {
                         { label: 'Yes', value: true },
                       ]} />
                     </div>
-                  </Form.Item>
+                  </Form.Item> */}
 
                   <Form.Item
                     label={
-                      <Text className='primary-text' strong>
+                      <Text className="primary-text" strong>
                         Anti-Phishing Code
                       </Text>
-                    }
-                  >
-
+                    }>
                     <Input
                       defaultValue={notifications?.emailVerification?.antiPhishingCode ?? ''}
                       value={notifications?.emailVerification?.antiPhishingCode ?? ''}
                       onChange={(e) => {
-                        setNotifications({ ...notifications, emailVerification: { ...notifications?.emailVerification, antiPhishingCode: e.target.value } });
+                        setNotifications({
+                          ...notifications,
+                          emailVerification: { ...notifications?.emailVerification, antiPhishingCode: e.target.value }
+                        });
                       }}
                       className="form-input"
                     />
-                    <div className='secondary-text'>
-                      An anti-phishing code is used to verify that emails from BitBadges are not spoofed.
-                      We will provide this code in all notification emails sent to you.
+                    <div className="secondary-text">
+                      An anti-phishing code is used to verify that emails from BitBadges are not spoofed. We will provide this code in all
+                      notification emails sent to you.
                     </div>
-
-                    </Form.Item>*/}
+                  </Form.Item>
                 </div>
               </Form>
               <Divider />
@@ -580,8 +589,7 @@ export function AccountSettings() {
                         if (updatedEmail) {
                           notification.info({
                             message: 'Email updated',
-                            description:
-                              'We have sent you an email to verify your new email address. Once you verify, you will begin receiving notifications.',
+                            description: 'We have sent you an email to verify your new email address. ',
                             duration: 0
                           });
                         }

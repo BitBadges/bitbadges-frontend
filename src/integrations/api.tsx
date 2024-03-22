@@ -1,4 +1,13 @@
-import { DeleteOutlined, GithubOutlined, GoogleOutlined, LinkOutlined, MinusOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  GithubOutlined,
+  GoogleOutlined,
+  LinkOutlined,
+  MailOutlined,
+  MinusOutlined,
+  PlusOutlined,
+  UserOutlined
+} from '@ant-design/icons';
 import { Avatar, Checkbox, DatePicker, Form, Tooltip } from 'antd';
 import { ClaimApiCallInfo, ClaimIntegrationPublicParamsType, JsonBodyInputSchema, JsonBodyInputWithValue } from 'bitbadgesjs-sdk';
 import moment from 'moment';
@@ -147,6 +156,7 @@ export const ApiPluginMetadataDisplay = ({
   image,
   description,
   uri,
+  passEmail,
   passDiscord,
   passTwitter,
   passGithub,
@@ -162,6 +172,7 @@ export const ApiPluginMetadataDisplay = ({
   passTwitter?: boolean;
   passGoogle?: boolean;
   passAddress?: boolean;
+  passEmail?: boolean;
 }) => {
   return (
     <div className="flex">
@@ -184,6 +195,11 @@ export const ApiPluginMetadataDisplay = ({
             {passAddress && (
               <Tooltip title="Passes your address to this query">
                 <UserOutlined className="ml-1" />
+              </Tooltip>
+            )}
+            {passEmail && (
+              <Tooltip title="Passes your email to this query. This is your email stored in your BitBadges account profile.">
+                <MailOutlined className="ml-1" />
               </Tooltip>
             )}
             {passDiscord && (
@@ -245,6 +261,7 @@ const ApiPluginCreateNode = ({
     uri: '',
     description: '',
     passAddress: true,
+    passEmail: false,
     passDiscord: false,
     passTwitter: false,
     passGithub: false,
@@ -280,6 +297,7 @@ const ApiPluginCreateNode = ({
                       plugin?.detailsString?.({
                         uri: x.uri,
                         passAddress: x.passAddress ?? false,
+                        passEmail: x.passEmail ?? false,
                         passDiscord: x.passDiscord ?? false,
                         passTwitter: x.passTwitter ?? false,
                         passGoogle: x.passGoogle ?? false,
@@ -291,6 +309,7 @@ const ApiPluginCreateNode = ({
                   </>
                 }
                 uri={x.uri}
+                passEmail={x.passEmail}
                 passDiscord={x.passDiscord}
                 passTwitter={x.passTwitter}
                 passGithub={x.passGithub}
@@ -351,6 +370,7 @@ const ApiPluginCreateNode = ({
                         image={x.metadata.image}
                         description={x.metadata.description}
                         uri={x.apiCallInfo.uri}
+                        passEmail={x.apiCallInfo.passEmail}
                         passDiscord={x.apiCallInfo.passDiscord}
                         passTwitter={x.apiCallInfo.passTwitter}
                         passGithub={x.apiCallInfo.passGithub}
@@ -365,6 +385,7 @@ const ApiPluginCreateNode = ({
                               name: x.metadata.name,
                               uri: x.apiCallInfo.uri,
                               description: x.metadata.description,
+                              passEmail: x.apiCallInfo.passEmail,
                               passDiscord: x.apiCallInfo.passDiscord,
                               passTwitter: x.apiCallInfo.passTwitter,
                               passAddress: x.apiCallInfo.passAddress,
@@ -381,6 +402,7 @@ const ApiPluginCreateNode = ({
                               passAddress: true,
                               passDiscord: false,
                               passGithub: false,
+                              passEmail: false,
                               passTwitter: false,
                               passGoogle: false,
                               bodyParams: {},
@@ -398,6 +420,7 @@ const ApiPluginCreateNode = ({
                             name: x.metadata.name,
                             uri: x.apiCallInfo.uri,
                             description: x.metadata.description,
+                            passEmail: x.apiCallInfo.passEmail,
                             passDiscord: x.apiCallInfo.passDiscord,
                             passAddress: x.apiCallInfo.passAddress,
                             passGithub: x.apiCallInfo.passGithub,
@@ -442,6 +465,12 @@ const ApiPluginCreateNode = ({
                   setValue={(val) => setApiCall({ ...apiCall, passAddress: !!val })}
                   label="Pass user web3 address?"
                   helper="This determines whether the URI expects to receive the user's address."
+                />
+                <GenericCheckboxFormInput
+                  value={apiCall.passEmail ?? false}
+                  setValue={(val) => setApiCall({ ...apiCall, passEmail: !!val })}
+                  label="Pass user email?"
+                  helper="This determines whether the URI expects to receive the user's email."
                 />
                 <GenericCheckboxFormInput
                   value={apiCall.passDiscord ?? false}
@@ -523,7 +552,8 @@ const ApiPluginCreateNode = ({
                     ...(apiCall.passGithub ? ['github'] : []),
                     ...(apiCall.passDiscord ? ['discord'] : []),
                     ...(apiCall.passTwitter ? ['twitter'] : []),
-                    ...(apiCall.passGoogle ? ['google'] : [])
+                    ...(apiCall.passGoogle ? ['google'] : []),
+                    ...(apiCall.passEmail ? ['email'] : [])
                   ].some((x: string) => {
                     return !!(apiCall.bodyParams as any)?.[x] || apiCall.userInputsSchema.find((y) => y.key === x);
                   }) && <ErrDisplay err={'Do not use reserved keys. Your custom values will be overwritten.'} />}
@@ -532,6 +562,7 @@ const ApiPluginCreateNode = ({
                     obj={{
                       claimId: 'abcxyz123',
                       cosmosAddress: apiCall.passAddress ? 'cosmos1...' : '',
+                      email: apiCall.passEmail ? '...' : '',
                       discord: apiCall.passDiscord
                         ? {
                             id: '...',
@@ -585,6 +616,7 @@ const ApiPluginCreateNode = ({
                 uri: '',
                 description: '',
                 passAddress: true,
+                passEmail: false,
                 passDiscord: false,
                 passGithub: false,
                 passGoogle: false,
@@ -632,6 +664,7 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
                       uri: x.uri,
                       passAddress: x.passAddress ?? false,
                       passDiscord: x.passDiscord ?? false,
+                      passEmail: x.passEmail ?? false,
                       passTwitter: x.passTwitter ?? false,
                       passGoogle: x.passGoogle ?? false,
                       passGithub: x.passGithub ?? false,
@@ -644,6 +677,7 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
                 uri={x.uri}
                 passDiscord={x.passDiscord}
                 passTwitter={x.passTwitter}
+                passEmail={x.passEmail}
                 passGithub={x.passGithub}
                 passGoogle={x.passGoogle}
                 passAddress={x.passAddress}
@@ -686,13 +720,14 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
                   title={
                     <div className="text-center">
                       {x.description}
-                      {(x.passDiscord || x.passTwitter || x.passGithub || x.passGoogle || x.passAddress) && (
+                      {(x.passDiscord || x.passTwitter || x.passGithub || x.passGoogle || x.passAddress || x.passEmail) && (
                         <>
                           <br />
                           <br />
                           *Will pass{' '}
                           {[
                             x.passAddress ? 'address' : '',
+                            x.passEmail ? 'email' : '',
                             x.passDiscord ? 'Discord' : '',
                             x.passTwitter ? 'Twitter' : '',
                             x.passGithub ? 'Github' : '',
@@ -743,6 +778,7 @@ export const ApiCallPlugins: ApiCallPlugin[] = [
     apiCallInfo: {
       uri: 'https://api.bitbadges.io/api/v0/integrations/query/github-contributions',
       passDiscord: false,
+      passEmail: false,
       passTwitter: false,
       passAddress: false,
       passGoogle: false,
@@ -773,6 +809,7 @@ export const ApiCallPlugins: ApiCallPlugin[] = [
     apiCallInfo: {
       uri: 'https://api.bitbadges.io/api/v0/integrations/query/min-badge',
       passDiscord: false,
+      passEmail: false,
       passTwitter: false,
       passAddress: true,
       passGoogle: false,
@@ -806,6 +843,7 @@ export interface ApiCallPlugin {
     uri: string;
     passAddress: boolean;
     passDiscord: boolean;
+    passEmail: boolean;
     passTwitter: boolean;
     passGoogle: boolean;
     passGithub: boolean;
