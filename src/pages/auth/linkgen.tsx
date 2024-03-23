@@ -14,7 +14,7 @@ import { InformationDisplayCard } from '../../components/display/InformationDisp
 import { NumberInput } from '../../components/inputs/NumberInput';
 import { CheckboxSelect, RadioGroup } from '../../components/inputs/Selects';
 import { Tabs } from '../../components/navigation/Tabs';
-import { GenericTextFormInput, ImageSelect } from '../../components/tx-timelines/form-items/MetadataForm';
+import { FormInputLabel, GenericTextFormInput, ImageSelect } from '../../components/tx-timelines/form-items/MetadataForm';
 import { DisconnectedWrapper } from '../../components/wrappers/DisconnectedWrapper';
 import { CodeGenQueryParams } from './codegen';
 
@@ -895,27 +895,33 @@ export const AssetConditionGroupSelect = ({
               md={24}
               xs={24}
               sm={24}
+              noBorder
+              inheritBg
               title="Ethereum NFTs"
               subtitle="Note that only Ethereum users will be able to satisfy this requirement.">
               <br />
-              <RadioGroup
-                label=""
-                value={chainTab}
-                options={[
-                  {
-                    label: 'Ethereum',
-                    value: 'Ethereum'
-                  },
-                  {
-                    label: 'Polygon',
-                    value: 'Polygon'
-                  }
-                ]}
-                onChange={setChainTab}
-              />
 
               <Form colon={false} layout="vertical">
                 <br />
+                <Form.Item label={<FormInputLabel label="Chain" />}>
+                  <div style={{ float: 'left' }}>
+                    <RadioGroup
+                      label=""
+                      value={chainTab}
+                      options={[
+                        {
+                          label: 'Ethereum',
+                          value: 'Ethereum'
+                        },
+                        {
+                          label: 'Polygon',
+                          value: 'Polygon'
+                        }
+                      ]}
+                      onChange={setChainTab}
+                    />
+                  </div>
+                </Form.Item>
                 <GenericTextFormInput
                   label="Contract Address"
                   value={tokenAddress}
@@ -923,24 +929,26 @@ export const AssetConditionGroupSelect = ({
                   helper="The address of the token contract."
                 />
                 <GenericTextFormInput label="Token ID" value={tokenId} setValue={setTokenId} helper="The ID of the token." />
-                <div className="flex-center flex-wrap primary-text">
-                  <div className="mx-4">
-                    <NumberInput
-                      title="Min Amount"
-                      value={Number(amountRange.start)}
-                      setValue={(x) => setAmountRange(new UintRange({ start: BigInt(x), end: amountRange.end }))}
-                      min={0}
-                    />
+                <Form.Item label={<FormInputLabel label="Amount" />}>
+                  <div className="flex-center flex-wrap primary-text">
+                    <div className="mx-4">
+                      <NumberInput
+                        title="Min Amount"
+                        value={Number(amountRange.start)}
+                        setValue={(x) => setAmountRange(new UintRange({ start: BigInt(x), end: amountRange.end }))}
+                        min={0}
+                      />
+                    </div>
+                    <div className="mx-4">
+                      <NumberInput
+                        title="Max Amount"
+                        value={Number(amountRange.end)}
+                        setValue={(x) => setAmountRange(new UintRange({ start: amountRange.start, end: BigInt(x) }))}
+                        min={0}
+                      />
+                    </div>
                   </div>
-                  <div className="mx-4">
-                    <NumberInput
-                      title="Max Amount"
-                      value={Number(amountRange.end)}
-                      setValue={(x) => setAmountRange(new UintRange({ start: amountRange.start, end: BigInt(x) }))}
-                      min={0}
-                    />
-                  </div>
-                </div>
+                </Form.Item>
               </Form>
             </InformationDisplayCard>
           </div>

@@ -1,7 +1,7 @@
 import { Divider, Input, Switch, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { addMetadataToIpfs, updateAddressLists } from '../../../bitbadges-api/api';
+import { addMetadataToIpfs, createAddressLists, updateAddressLists } from '../../../bitbadges-api/api';
 import { useChainContext } from '../../../bitbadges-api/contexts/ChainContext';
 
 import { NEW_COLLECTION_ID, useTxTimelineContext } from '../../../bitbadges-api/contexts/TxTimelineContext';
@@ -14,8 +14,8 @@ import { getBlankPlugin } from '../../../integrations/integrations';
 import { InformationDisplayCard } from '../../display/InformationDisplayCard';
 import { TableRow } from '../../display/TableRow';
 import { ClaimBuilder } from '../../transfers/ClaimBuilder';
-import { SwitchForm } from './SwitchForm';
 import { ClaimPaginationWithEditButtons } from '../step-items/OffChainBalancesStepItem';
+import { SwitchForm } from './SwitchForm';
 const crypto = require('crypto');
 
 export function SubmitMsgCreateAddressList() {
@@ -47,10 +47,6 @@ export function SubmitMsgCreateAddressList() {
     }
     console.log('in use effect');
   }, [addressList.editClaims]);
-
-  useEffect(() => {
-    console.log('disabled')
-  }, [disabledArr]);
 
   useEffect(() => {
     if (!isUpdateAddressList) {
@@ -254,7 +250,7 @@ export function SubmitMsgCreateAddressList() {
                       <>
                         <br />
                         <ClaimBuilder
-                          type='list'
+                          type="list"
                           claim={claim}
                           isUpdate={!!txState.isUpdateAddressList}
                           plugins={plugins}
@@ -311,7 +307,7 @@ export function SubmitMsgCreateAddressList() {
             const metadataUrl = metadataRes.collectionMetadataResult?.cid ? 'ipfs://' + metadataRes.collectionMetadataResult?.cid : '';
             const listId = onChainStorage ? addressList.listId : chain.cosmosAddress + '_' + addressList.listId;
 
-            await updateAddressLists({
+            const body = {
               addressLists: [
                 {
                   ...addressList,
@@ -322,7 +318,13 @@ export function SubmitMsgCreateAddressList() {
                   viewableWithLink: viewableWithLink
                 }
               ]
-            });
+            };
+
+            if (isUpdateAddressList) {
+              updateAddressLists(body);
+            } else {
+              createAddressLists(body);
+            }
 
             router.push(`/lists/${!isUpdateAddressList ? listId : addressList.listId}`);
           }

@@ -1,6 +1,7 @@
 import { Switch } from 'antd';
 import { ClaimIntegrationPluginType, IntegrationPluginDetails } from 'bitbadgesjs-sdk';
 import { useCallback, useEffect, useState } from 'react';
+import { ApiCallPlugins } from '../../integrations/api';
 import { Plugins, getBlankPlugin, getPlugin, getPluginDetails } from '../../integrations/integrations';
 import { PluginTextDisplay } from '../collection-page/transferability/DetailsCard';
 import { ClaimCriteriaDisplay, generateCodesFromSeed } from '../collection-page/transferability/OffChainTransferabilityTab';
@@ -95,13 +96,8 @@ export const ClaimBuilder = ({
               />
             );
           })}
-          <div className="text-center">
-            <b>Custom Queries</b>
-          </div>
-          <div className="text-center">
-            <ErrDisplay warning err="Always use third party tools at your own risk!" />
-          </div>
-          <br />
+          <div className="text-center mt-3"></div>
+
           <CreateNodeFromPlugin
             id="api"
             plugins={plugins}
@@ -127,7 +123,8 @@ export const CreateNodeFromPlugin = ({
   type,
   claim,
   setPlugins,
-  nonIndexed
+  nonIndexed,
+  supportedPluginIds
 }: {
   id: ClaimIntegrationPluginType;
   plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[];
@@ -138,6 +135,7 @@ export const CreateNodeFromPlugin = ({
   claim: Readonly<OffChainClaim<bigint>>;
   setPlugins: (plugins: IntegrationPluginDetails<ClaimIntegrationPluginType>[]) => void;
   nonIndexed?: boolean;
+  supportedPluginIds?: ClaimIntegrationPluginType[];
 }) => {
   const pluginInstance = getPlugin(id);
   const currPlugin = getPluginDetails(id, plugins);
@@ -162,6 +160,7 @@ export const CreateNodeFromPlugin = ({
         publicParams: currPlugin?.publicParams ?? getBlankPlugin(id).publicParams,
         type: nonIndexed ? 'nonIndexed' : type,
         isUpdate: !!isUpdate,
+        supportedPluginIds: supportedPluginIds,
         setParams: (publicParams, privateParams) => {
           const newPlugins = plugins;
           if (newPlugins.find((x) => x.id === id)) {
@@ -182,6 +181,23 @@ export const CreateNodeFromPlugin = ({
           }
         }
       })}
+      {/** If we have custom API plugins, we display them here */}
+      {id !== 'api' && ApiCallPlugins.some((x) => x.parentPluginId === id) && (
+        <>
+          <br />
+          <CreateNodeFromPlugin
+            id="api"
+            plugins={plugins}
+            disabledMap={disabledMap}
+            setDisabledMap={setDisabledMap}
+            isUpdate={isUpdate}
+            type={type}
+            claim={claim}
+            setPlugins={setPlugins}
+            supportedPluginIds={[id]}
+          />
+        </>
+      )}
     </>
   );
 };
@@ -256,14 +272,19 @@ const ClaimBuilderRow = ({
   }
 
   return (
-    <div key={id}>
+    <div key={id} className="mt-3" style={{ borderBottom: '1px solid grey' }}>
       <TableRow
         labelSpan={16}
         valueSpan={8}
         label={<PluginTextDisplay pluginId={id} text={<b>{pluginInstance.metadata.name}</b>} />}
         value={
           <Switch
-            checked={!!currPlugin}
+            checked={
+              !!currPlugin ||
+              getPluginDetails('api', plugins)?.publicParams.apiCalls.some(
+                (x) => ApiCallPlugins.find((y) => y.metadata.name === x.name)?.parentPluginId === id
+              )
+            }
             disabled={!!currPlugin && id == 'numUses'}
             onChange={(checked) => {
               if (checked) {
@@ -275,7 +296,17 @@ const ClaimBuilderRow = ({
                   }
                 ]);
               } else {
-                setPlugins(plugins.filter((x) => x.id !== id));
+                //Filter out the plugin and any associated API calls
+                const newPlugins = [...plugins.filter((x) => x.id !== id)];
+                for (const plugin of newPlugins) {
+                  if (plugin.id === 'api') {
+                    (plugin as IntegrationPluginDetails<'api'>).publicParams.apiCalls = (
+                      plugin as IntegrationPluginDetails<'api'>
+                    ).publicParams.apiCalls.filter((x) => ApiCallPlugins.find((y) => y.metadata.name === x.name)?.parentPluginId !== id);
+                  }
+                }
+
+                setPlugins(newPlugins);
                 setDisabledMap({ ...disabledMap, [id]: '' });
               }
             }}
@@ -293,6 +324,11 @@ const ClaimBuilderRow = ({
         }
         value={<></>}
       />
+      {!currPlugin && id === 'requiresProofOfAddress' && (
+        <div className="mt-2" style={{ textAlign: 'start' }}>
+          <ErrDisplay warning err={'Users can specify any recipient address without proving they own it.'} />
+        </div>
+      )}
       {!!currPlugin && isUpdate && !pluginInstance.metadata.stateless && (
         <div className="flex-center flex-column mb-2">
           <RadioGroup

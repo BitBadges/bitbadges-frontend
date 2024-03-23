@@ -59,7 +59,8 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     setDisabled,
     claim,
     isUpdate,
-    type
+    type,
+    supportedPluginIds
   }: {
     id: P;
     metadata: IntegrationMetadata;
@@ -72,6 +73,7 @@ export interface ClaimIntegrationPlugin<P extends ClaimIntegrationPluginType = C
     claim: Readonly<OffChainClaim<bigint>>;
     type: 'balances' | 'list' | 'nonIndexed';
     isUpdate: boolean;
+    supportedPluginIds?: ClaimIntegrationPluginType[];
   }) => ReactNode;
   inputNode?: ({
     id,
@@ -170,12 +172,12 @@ export const Plugins: { [key in ClaimIntegrationPluginType]: ClaimIntegrationPlu
   requiresProofOfAddress: ProofOfAddressPluginDetails,
   transferTimes: TransferTimesPluginDetails,
   whitelist: WhitelistPluginDetails,
-  twitter: TwitterPluginDetails,
-  discord: DiscordPluginDetails,
   codes: CodesPluginDetails,
   password: PasswordPluginDetails,
   mustOwnBadges: MustOwnPluginDetails,
   api: ApiPluginDetails,
+  twitter: TwitterPluginDetails,
+  discord: DiscordPluginDetails,
   github: GithubPluginDetails,
   google: GooglePluginDetails,
   email: EmailPluginDetails

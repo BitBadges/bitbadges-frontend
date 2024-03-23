@@ -1,15 +1,16 @@
 import { GithubOutlined, GoogleOutlined, InfoCircleOutlined, MailOutlined, WarningOutlined } from '@ant-design/icons';
-import { Divider, Input, Spin, Tag } from 'antd';
+import { Form, Input, Spin, Switch, Tag } from 'antd';
 import { ClaimIntegrationPrivateParamsType, ClaimIntegrationPublicParamsType } from 'bitbadgesjs-sdk';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { BitBadgesApi } from '../bitbadges-api/api';
 import { useChainContext } from '../bitbadges-api/contexts/ChainContext';
 import { useWeb2Context } from '../bitbadges-api/contexts/chains/Web2Context';
 import { BlockinDisplay } from '../components/blockin/BlockinDisplay';
+import { TableRow } from '../components/display/TableRow';
 import { NumberInput } from '../components/inputs/NumberInput';
+import { FormInputLabel, GenericTextAreaFormInput } from '../components/tx-timelines/form-items/MetadataForm';
 import { BACKEND_URL } from '../constants';
 import { ClaimIntegrationPlugin, getPlugin } from './integrations';
-import { PublicPrivateSelect } from './whitelist';
 
 const GenericOAuthInputNode = <T extends { username: string }>({
   appName,
@@ -99,13 +100,18 @@ type OauthAppName = 'twitter' | 'discord' | 'github' | 'google' | 'email';
 const GenericOAuthCreateNode = <P extends OauthAppName>({
   publicParams,
   privateParams,
-  setParams
+  setParams,
+  noun = 'user',
+  appName
 }: {
   privateParams: ClaimIntegrationPrivateParamsType<P>;
   publicParams: ClaimIntegrationPublicParamsType<P>;
   setParams: (publicParams: ClaimIntegrationPublicParamsType<P>, privateParams: ClaimIntegrationPrivateParamsType<P>) => void;
+  noun?: string;
+  appName?: OauthAppName;
 }) => {
-  const [privateValues, setPrivateValues] = useState<boolean>(!!privateParams.users?.length);
+  // const [privateValues, setPrivateValues] = useState<boolean>(!!privateParams.users?.length);
+  const privateValues = true;
   const maxUsesPerUser = publicParams.maxUsesPerUser ?? 0;
 
   const usernames = useMemo(() => {
@@ -117,79 +123,142 @@ const GenericOAuthCreateNode = <P extends OauthAppName>({
   }, [publicParams.users, privateParams.users, privateValues]);
 
   const [inputStr, setInputStr] = useState(usernames?.join(', '));
+  const [restrictToUsers, setRestrictToUsers] = useState<boolean>(!!usernames.length);
 
-  const setUsers = (users: string[], maxPerUser: number, privateUsers?: boolean) => {
+  const setUsers = (users: string[], maxPerUser: number, listUrl?: string, privateUsers?: boolean) => {
     if (privateUsers) {
-      setParams({ maxUsesPerUser: maxPerUser } as ClaimIntegrationPublicParamsType<P>, { users } as ClaimIntegrationPrivateParamsType<P>);
+      setParams(
+        { listUrl, maxUsesPerUser: maxPerUser, hasPrivateList: users.length > 0 } as ClaimIntegrationPublicParamsType<P>,
+        { users } as ClaimIntegrationPrivateParamsType<P>
+      );
     } else {
-      setParams({ users, maxUsesPerUser: maxPerUser } as ClaimIntegrationPublicParamsType<P>, {} as ClaimIntegrationPrivateParamsType<P>);
+      setParams(
+        { users, listUrl, maxUsesPerUser: maxPerUser, hasPrivateList: false } as ClaimIntegrationPublicParamsType<P>,
+        {} as ClaimIntegrationPrivateParamsType<P>
+      );
     }
   };
+
+  const listUrl = publicParams.listUrl;
 
   return (
     <div>
       <div className="mb-5 flex-center flex-column">
-        <div className="text-center">
-          <b>Per User</b>
-        </div>
-        <NumberInput
-          title=""
-          value={maxUsesPerUser ?? 0}
-          setValue={(val) => {
-            if (!val) return;
+        <br />
+        <TableRow
+          customClass="mb-5"
+          label={<>Limit per {noun}?</>}
+          value={
+            <div className="" style={{ float: 'right' }}>
+              <div>
+                <Switch
+                  checked={!!maxUsesPerUser}
+                  checkedChildren={`Limit to ${maxUsesPerUser} Uses`}
+                  unCheckedChildren="No Limit"
+                  onChange={(checked) => {
+                    setUsers(usernames, checked ? 1 : 0, listUrl, privateValues);
+                  }}
+                  className="mb-2"
+                />
+              </div>
 
-            setUsers(usernames, val, privateValues);
-          }}
-          min={1}
+              {!!maxUsesPerUser && (
+                <NumberInput
+                  title=""
+                  value={maxUsesPerUser}
+                  setValue={(val) => {
+                    setUsers(usernames, val, listUrl, privateValues);
+                  }}
+                  min={1}
+                />
+              )}
+            </div>
+          }
+          labelSpan={12}
+          valueSpan={12}
         />
-      </div>
-      <div className="flex-center flex-column">
-        <PublicPrivateSelect
-          privateVal={privateValues}
-          setPrivateVal={setPrivateValues}
-          onChange={(val) => {
-            setUsers(usernames, maxUsesPerUser, val);
-          }}
+        <TableRow
+          customClass="mb-5"
+          label={<>Restrict to specific {noun}s?</>}
+          value={
+            <div className="" style={{ float: 'right' }}>
+              <div>
+                <Switch
+                  checked={restrictToUsers}
+                  checkedChildren="Yes"
+                  unCheckedChildren="No"
+                  onChange={(checked) => {
+                    setRestrictToUsers(checked);
+                    if (!checked) {
+                      setUsers([], maxUsesPerUser, listUrl, privateValues);
+                    }
+                  }}
+                  className="mb-2"
+                />
+              </div>
+            </div>
+          }
+          labelSpan={12}
+          valueSpan={12}
         />
+        {restrictToUsers && (
+          <>
+            <div className="text-center secondary-text mb-10">
+              The list will remain private by default, but you can host it publicly yourself, if desired.
+            </div>
+            <Form layout="vertical">
+              <GenericTextAreaFormInput
+                label="List Info"
+                value={publicParams.listUrl ?? ''}
+                setValue={(val) => {
+                  setUsers(usernames, maxUsesPerUser, val, privateValues);
+                }}
+                placeholder=""
+                helper="Provide details for how users can access the list (if public). Leave blank for private lists."
+              />
+              <Form.Item label={<FormInputLabel label={noun.charAt(0).toUpperCase() + noun.slice(1) + 's'} />}>
+                <Input.TextArea
+                  value={inputStr}
+                  onChange={(e) => {
+                    const names = e.target.value
+                      .split(',')
+                      .map((name) => name.trim())
+                      .filter((name) => name)
+                      .map((name) => (name.startsWith('@') ? name.slice(1) : name));
+                    setInputStr(e.target.value);
+                    setUsers(names, maxUsesPerUser, listUrl, privateValues);
+                  }}
+                  className="primary-text inherit-bg"
+                />
+                <div className="secondary-text">
+                  <InfoCircleOutlined /> Separate {noun}s with a comma (abc, xyz). If none are provided, there will be no restriction.
+                  {appName == 'discord' ? ' Discord discriminators are supported as xyz#1234.' : ''}
+                </div>
+                <br />
+                {usernames.map((name) => {
+                  const displayname = name;
+                  return (
+                    <Tag
+                      key={name}
+                      closable
+                      onClose={() => {
+                        setUsers(
+                          usernames.filter((n) => n !== name),
+                          maxUsesPerUser,
+                          listUrl,
+                          privateValues
+                        );
+                        setInputStr(usernames.filter((n) => n !== name).join(', '));
+                      }}>
+                      {displayname}
+                    </Tag>
+                  );
+                })}
+              </Form.Item>
+            </Form>
+          </>
+        )}
       </div>
-      <br />
-      <Input.TextArea
-        value={inputStr}
-        onChange={(e) => {
-          const names = e.target.value
-            .split(',')
-            .map((name) => name.trim())
-            .filter((name) => name)
-            .map((name) => (name.startsWith('@') ? name.slice(1) : name));
-          setInputStr(e.target.value);
-          console.log(names);
-
-          setUsers(names, maxUsesPerUser, privateValues);
-        }}
-        className="primary-text inherit-bg"
-      />
-      <div className="secondary-text">
-        <InfoCircleOutlined /> Separate usernames with a comma (abc, xyz). If none are provided, there will be no username restriction.
-      </div>
-      <br />
-      {usernames.map((name) => {
-        const displayname = name;
-        return (
-          <Tag
-            key={name}
-            closable
-            onClose={() => {
-              setUsers(
-                usernames.filter((n) => n !== name),
-                maxUsesPerUser,
-                privateValues
-              );
-              setInputStr(usernames.filter((n) => n !== name).join(', '));
-            }}>
-            {displayname}
-          </Tag>
-        );
-      })}
     </div>
   );
 };
@@ -247,7 +316,7 @@ const EmailCreateNode = ({
   privateParams: ClaimIntegrationPrivateParamsType<'email'>;
   setParams: (publicParams: ClaimIntegrationPublicParamsType<'email'>, privateParams: ClaimIntegrationPrivateParamsType<'email'>) => void;
 }) => {
-  return <GenericOAuthCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} />;
+  return <GenericOAuthCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} noun={'email'} />;
 };
 
 // const StripeCreateNode = ({
@@ -276,161 +345,6 @@ const ProofOfAddressInputNode = ({ setDisabled }: { setDisabled: (disabled: stri
   return (
     <div className="flex-center flex-column">
       <BlockinDisplay />
-    </div>
-  );
-};
-
-const DiscordCreateNode = ({
-  publicParams,
-  privateParams,
-  setParams
-}: {
-  privateParams: ClaimIntegrationPrivateParamsType<'discord'>;
-  publicParams: ClaimIntegrationPublicParamsType<'discord'>;
-  setParams: (publicParams: ClaimIntegrationPublicParamsType<'discord'>, privateParams: ClaimIntegrationPrivateParamsType<'discord'>) => void;
-}) => {
-  const isPrivate = !!privateParams?.users?.length;
-
-  const [privateValues, setPrivateValues] = useState<boolean>(isPrivate);
-  const [inputStr, setInputStr] = useState(publicParams.users?.join(', '));
-
-  const setUsers = (users: string[], serverId: string, serverName: string, maxPerUser?: number, privateUsers?: boolean) => {
-    if (privateUsers) {
-      setParams({ maxUsesPerUser: maxPerUser, hasPrivateList: users.length > 0 }, { users, serverId, serverName });
-    } else {
-      setParams({ users, serverId, serverName, maxUsesPerUser: maxPerUser, hasPrivateList: false }, {});
-    }
-  };
-
-  const usernames = useMemo(() => {
-    if (privateValues) {
-      return privateParams.users ?? [];
-    }
-
-    return publicParams.users ?? [];
-  }, [publicParams.users, privateParams.users, privateValues]);
-
-  const serverId = useMemo(() => {
-    if (privateValues) {
-      return privateParams.serverId ?? '';
-    }
-
-    return publicParams.serverId ?? '';
-  }, [publicParams.serverId, privateParams.serverId, privateValues]);
-
-  const serverName = useMemo(() => {
-    if (privateValues) {
-      return privateParams.serverName ?? '';
-    }
-
-    return publicParams.serverName ?? '';
-  }, [publicParams.serverName, privateParams.serverName, privateValues]);
-
-  const numPerUser = publicParams.maxUsesPerUser;
-
-  return (
-    <div>
-      <div className="mb-5 flex-center flex-column">
-        <div className="text-center">
-          <b>Per User</b>
-        </div>
-        <NumberInput
-          title=""
-          value={numPerUser ?? 0}
-          setValue={(val) => {
-            if (!val) return;
-
-            setUsers(usernames, serverId, serverName, val, privateValues);
-          }}
-          min={1}
-        />
-      </div>
-      <div className="flex-center flex-column">
-        <PublicPrivateSelect
-          privateVal={privateValues}
-          setPrivateVal={setPrivateValues}
-          onChange={(val) => {
-            setUsers(usernames, serverId, serverName, numPerUser, val);
-          }}
-        />
-      </div>
-      <br />
-      <b>Server ID</b>
-      <Input
-        value={serverId}
-        onChange={(e) => {
-          setUsers(usernames ?? [], e.target.value, serverName, numPerUser, privateValues);
-        }}
-        className="primary-text inherit-bg"
-      />
-      <br />
-      <div className="secondary-text">
-        <InfoCircleOutlined /> If no server ID is provided, there will be no server restriction. See{' '}
-        <a href="https://docs.bitbadges.io/overview/claim-builder/discord" target="_blank" rel="noreferrer">
-          here
-        </a>{' '}
-        for how to get your server ID. This is a large number (e.g. 846474505189588992), not the server name.
-      </div>
-      {serverId && (
-        <>
-          <br />
-          <b>Server Name</b>
-          <Input
-            value={serverName}
-            onChange={(e) => {
-              setUsers(usernames ?? [], serverId, e.target.value, numPerUser, privateValues);
-            }}
-            className="primary-text inherit-bg"
-          />
-          <br />
-          <div className="secondary-text">
-            <InfoCircleOutlined /> Provide a display name for the server.
-          </div>
-        </>
-      )}
-
-      <Divider />
-      <b>Usernames</b>
-      <Input.TextArea
-        value={inputStr}
-        onChange={(e) => {
-          const names = e.target.value
-            .split(',')
-            .map((name) => name.trim())
-            .filter((name) => name)
-            .map((name) => (name.startsWith('@') ? name.slice(1) : name));
-          setInputStr(e.target.value);
-
-          setUsers(names, serverId, serverName, numPerUser, privateValues);
-        }}
-        className="primary-text inherit-bg"
-      />
-      <div className="secondary-text">
-        <InfoCircleOutlined /> Separate usernames with a comma (abc, xyz#5747). If none are provided, there will be no username restriction.
-      </div>
-      <br />
-      <div className="flex flex-wrap">
-        {usernames.map((name) => {
-          const displayname = name.startsWith('@') ? name : `@${name}`;
-          return (
-            <Tag
-              key={name}
-              closable
-              onClose={() => {
-                setUsers(
-                  usernames.filter((n) => n !== name),
-                  serverId,
-                  serverName,
-                  numPerUser,
-                  privateValues
-                );
-                setInputStr(usernames.filter((n) => n !== name).join(', '));
-              }}>
-              {displayname}
-            </Tag>
-          );
-        })}
-      </div>
     </div>
   );
 };
@@ -536,7 +450,7 @@ export const DiscordInputNode = ({
 export const ProofOfAddressPluginDetails: ClaimIntegrationPlugin<'requiresProofOfAddress'> = {
   id: 'requiresProofOfAddress',
   metadata: {
-    name: 'Verify Address Ownership',
+    name: 'Signed in to BitBadges',
     description: 'Require users to prove they own the claiming address via signing into BitBadges.',
     image: 'https://avatars.githubusercontent.com/u/86890740',
     createdBy: 'BitBadges',
@@ -600,14 +514,14 @@ export const TwitterPluginDetails: ClaimIntegrationPlugin<'twitter'> = {
 
     return `${
       publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
-    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : '.'}
-    ${hasPrivateList ? 'Must be on private list.' : ''}`;
+    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : ''}
+    ${hasPrivateList ? 'Restricted to specific users.' : ''} ${publicParams.listUrl ? `${publicParams.listUrl}` : ''}`;
   },
   getBlankPrivateParams() {
-    return {};
+    return { users: [] };
   },
   getBlankPublicParams() {
-    return { users: [], maxUsesPerUser: 1, hasPrivateList: false };
+    return { users: [], maxUsesPerUser: 1, hasPrivateList: true };
   },
   getBlankPublicState() {
     return { users: [] };
@@ -620,7 +534,7 @@ export const DiscordPluginDetails: ClaimIntegrationPlugin<'discord'> = {
     name: 'Discord',
     description: 'Gate by Discord usernames and/or server.',
     image: (
-      <svg fill="#1890ff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" height="18" style={{ marginRight: '10px' }}>
+      <svg fill="#1890ff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" height="18">
         <path d="M524.531,69.836a1.5,1.5,0,0,0-.764-.7A485.065,485.065,0,0,0,404.081,32.03a1.816,1.816,0,0,0-1.923.91,337.461,337.461,0,0,0-14.9,30.6,447.848,447.848,0,0,0-134.426,0,309.541,309.541,0,0,0-15.135-30.6,1.89,1.89,0,0,0-1.924-.91A483.689,483.689,0,0,0,116.085,69.137a1.712,1.712,0,0,0-.788.676C39.068,183.651,18.186,294.69,28.43,404.354a2.016,2.016,0,0,0,.765,1.375A487.666,487.666,0,0,0,176.02,479.918a1.9,1.9,0,0,0,2.063-.676A348.2,348.2,0,0,0,208.12,430.4a1.86,1.86,0,0,0-1.019-2.588,321.173,321.173,0,0,1-45.868-21.853,1.885,1.885,0,0,1-.185-3.126c3.082-2.309,6.166-4.711,9.109-7.137a1.819,1.819,0,0,1,1.9-.256c96.229,43.917,200.41,43.917,295.5,0a1.812,1.812,0,0,1,1.924.233c2.944,2.426,6.027,4.851,9.132,7.16a1.884,1.884,0,0,1-.162,3.126,301.407,301.407,0,0,1-45.89,21.83,1.875,1.875,0,0,0-1,2.611,391.055,391.055,0,0,0,30.014,48.815,1.864,1.864,0,0,0,2.063.7A486.048,486.048,0,0,0,610.7,405.729a1.882,1.882,0,0,0,.765-1.352C623.729,277.594,590.933,167.465,524.531,69.836ZM222.491,337.58c-28.972,0-52.844-26.587-52.844-59.239S193.056,219.1,222.491,219.1c29.665,0,53.306,26.82,52.843,59.239C275.334,310.993,251.924,337.58,222.491,337.58Zm195.38,0c-28.971,0-52.843-26.587-52.843-59.239S388.437,219.1,417.871,219.1c29.667,0,53.307,26.82,52.844,59.239C470.715,310.993,447.538,337.58,417.871,337.58Z" />
       </svg>
     ),
@@ -638,7 +552,7 @@ export const DiscordPluginDetails: ClaimIntegrationPlugin<'discord'> = {
     );
   },
   createNode: ({ publicParams, privateParams, setParams }) => {
-    return <DiscordCreateNode publicParams={publicParams} setParams={setParams} privateParams={privateParams} />;
+    return <GenericOAuthCreateNode publicParams={publicParams} privateParams={privateParams} setParams={setParams} noun={'user'} appName="discord" />;
   },
   detailsString: ({ publicParams }) => {
     const isPublicList = !!publicParams.users?.length;
@@ -650,16 +564,16 @@ export const DiscordPluginDetails: ClaimIntegrationPlugin<'discord'> = {
       publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
     } Restricted to specific users ${publicParams.serverId ? ` in the ${publicParams.serverName} server` : ''}${
       publicParams.users && publicParams.users.length > 0 ? ` with usernames ${publicParams.users.map((x) => '@' + x).join(', ')}` : ''
-    }.${publicParams.hasPrivateList ? ' Must be on private list.' : ''}`;
+    }.${publicParams.hasPrivateList ? ' Restricted to specific users.' : ''} ${publicParams.listUrl ? `${publicParams.listUrl}` : ''}`;
   },
   getBlankPrivateParams() {
-    return {};
+    return { users: [] };
   },
   getBlankPublicParams() {
-    return { users: [], serverId: '', serverName: '', maxUsesPerUser: 1, hasPrivateList: false };
+    return { users: [], serverId: '', serverName: '', maxUsesPerUser: 1, hasPrivateList: true };
   },
   getBlankPublicState() {
-    return { numUses: 0, hasPrivateList: false };
+    return { numUses: 0, hasPrivateList: true };
   }
 };
 
@@ -687,14 +601,14 @@ export const GithubPluginDetails: ClaimIntegrationPlugin<'github'> = {
 
     return `${
       publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
-    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : '.'}
-    ${hasPrivateList ? 'Must be on private list.' : ''}`;
+    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : ''}
+    ${hasPrivateList ? 'Restricted to specific users.' : ''} ${publicParams.listUrl ? `${publicParams.listUrl}` : ''}`;
   },
   getBlankPrivateParams() {
-    return {};
+    return { users: [] };
   },
   getBlankPublicParams() {
-    return { users: [], maxUsesPerUser: 1, hasPrivateList: false };
+    return { users: [], maxUsesPerUser: 1, hasPrivateList: true };
   },
   getBlankPublicState() {
     return { users: [] };
@@ -725,14 +639,14 @@ export const GooglePluginDetails: ClaimIntegrationPlugin<'google'> = {
 
     return `${
       publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
-    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : '.'}
-    ${hasPrivateList ? 'Must be on private list.' : ''}`;
+    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `@${x}`).join(', ')}.` : ''}
+    ${hasPrivateList ? 'Restricted to specific users.' : ''} ${publicParams.listUrl ? `${publicParams.listUrl}` : ''}`;
   },
   getBlankPrivateParams() {
-    return {};
+    return { users: [] };
   },
   getBlankPublicParams() {
-    return { users: [], maxUsesPerUser: 1, hasPrivateList: false };
+    return { users: [], maxUsesPerUser: 1, hasPrivateList: true };
   },
   getBlankPublicState() {
     return { users: [] };
@@ -761,14 +675,14 @@ export const EmailPluginDetails: ClaimIntegrationPlugin<'email'> = {
 
     return `${
       publicParams.maxUsesPerUser ? `Max ${publicParams.maxUsesPerUser} claims per user.` : 'No limit on claims per user.'
-    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `${x}`).join(', ')}.` : '.'}
-    ${hasPrivateList ? 'Must be on private list.' : ''}`;
+    } ${isPublicList ? `Must be in list: ${publicParams.users?.map((x) => `${x}`).join(', ')}.` : ''}
+    ${hasPrivateList ? 'Restricted to specific users.' : ''} ${publicParams.listUrl ? `${publicParams.listUrl}` : ''}`;
   },
   getBlankPrivateParams() {
-    return {};
+    return { users: [] };
   },
   getBlankPublicParams() {
-    return { users: [], maxUsesPerUser: 1, hasPrivateList: false };
+    return { users: [], maxUsesPerUser: 1, hasPrivateList: true };
   },
   getBlankPublicState() {
     return { users: [] };

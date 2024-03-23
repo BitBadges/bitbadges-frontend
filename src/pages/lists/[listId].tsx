@@ -146,11 +146,14 @@ export const AddressListClaimCardWithModal = ({
           <div className="flex-center">
             <button
               className="landing-button"
+              style={{ width: 220 }}
               disabled={alreadyClaimed}
               onClick={() => {
                 setVisible(!visible);
               }}>
-              <Tooltip title={exceedsMaxUses ? 'All spots on the list have been taken.' : 'Claim a spot on this list.'}>Claim</Tooltip>
+              <Tooltip title={exceedsMaxUses ? 'All spots on the list have been taken.' : 'Claim a spot on this list.'}>
+                <b>Claim</b>
+              </Tooltip>
             </button>
           </div>
         )}

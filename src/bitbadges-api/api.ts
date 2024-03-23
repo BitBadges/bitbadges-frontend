@@ -409,6 +409,17 @@ export async function getTokensFromFaucet(requestBody?: GetTokensFromFaucetRoute
   }
 }
 
+export async function createAddressLists(
+  requestBody: UpdateAddressListsRouteRequestBody<DesiredNumberType>
+): Promise<UpdateAddressListsRouteSuccessResponse> {
+  try {
+    return await BitBadgesApi.createAddressLists(requestBody);
+  } catch (error) {
+    await handleApiError(error);
+    return await Promise.reject(error);
+  }
+}
+
 export async function updateAddressLists(
   requestBody: UpdateAddressListsRouteRequestBody<DesiredNumberType>
 ): Promise<UpdateAddressListsRouteSuccessResponse> {

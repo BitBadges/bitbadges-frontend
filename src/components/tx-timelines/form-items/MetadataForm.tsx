@@ -317,23 +317,25 @@ export const GenericCheckboxFormInput = ({
 }) => {
   return (
     <Form.Item required={required} label={<FormInputLabel label={label} />}>
-      <Checkbox
-        checked={value}
-        onChange={(e) => {
-          setValue(e.target.checked);
-        }}
-        className="primary-text"
-      />
-      {helper ? (
-        typeof helper === 'string' ? (
-          <div style={{ fontSize: 12 }}>
-            <Text className="secondary-text">{helper}</Text>
-          </div>
-        ) : (
-          helper
-        )
-      ) : null}
-      {err && <div style={{ fontSize: 12, color: 'red' }}>{err}</div>}
+      <div className="flex flex-wrap">
+        <Checkbox
+          checked={value}
+          onChange={(e) => {
+            setValue(e.target.checked);
+          }}
+          className="primary-text mr-2"
+        />
+        {helper ? (
+          typeof helper === 'string' ? (
+            <div style={{ fontSize: 12 }}>
+              <Text className="secondary-text">{helper}</Text>
+            </div>
+          ) : (
+            helper
+          )
+        ) : null}
+        {err && <div style={{ fontSize: 12, color: 'red' }}>{err}</div>}
+      </div>
     </Form.Item>
   );
 };

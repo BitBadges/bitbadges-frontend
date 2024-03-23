@@ -265,26 +265,22 @@ export function CodesDisplay({
             <WarningOutlined style={{ color: 'orange' }} /> However, always use third-party services at your own risk.
             <br />
             <br />
-            {
+            {hasPassword && (
               <>
-                {hasPassword && (
-                  <>
-                    <span style={{ color: '#FF5733' }}>
-                      <WarningOutlined /> Anyone with the password can claim the badge!
-                    </span>
-                  </>
-                )}
-                {codes && codes.length > 0 && !hasPassword && (
-                  <>
-                    <span style={{ color: '#FF5733' }}>
-                      <WarningOutlined /> Keep these codes safe and secure! Anyone with the code can claim the badge! Codes can only be used once.
-                    </span>
-                  </>
-                )}{' '}
-                If leaked, unwanted parties can claim the badge. Use best practices to prevent spam and leaks, such as short claim windows, only
-                sending to trusted parties, and using secure communication methods.
+                <span style={{ color: '#FF5733' }}>
+                  <WarningOutlined /> Anyone with the password can claim the badge!
+                </span>
               </>
-            }
+            )}
+            {codes && codes.length > 0 && !hasPassword && (
+              <>
+                <span style={{ color: '#FF5733' }}>
+                  <WarningOutlined /> Keep these codes safe and secure! Anyone with the code can claim the badge! Codes can only be used once.
+                </span>
+              </>
+            )}{' '}
+            If leaked, unwanted parties can claim the badge. Use best practices to prevent spam and leaks, such as short claim windows, only sending
+            to trusted parties, and using secure communication methods.
           </div>
           <br />
           <Tabs

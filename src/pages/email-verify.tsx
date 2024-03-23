@@ -100,7 +100,7 @@ export default function EmailVerify() {
                             <Form layout="vertical">
                               <GenericTextFormInput label="Verification Code" value={emailToken} setValue={setEmailToken} />
                               <br />
-                              <button className="landing-button full-width" onClick={verifyEmail}>
+                              <button className="landing-button full-width" onClick={verifyEmail} style={{ width: '100%' }}>
                                 Verify Email
                               </button>
                             </Form>

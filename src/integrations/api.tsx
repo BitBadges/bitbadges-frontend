@@ -9,7 +9,13 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import { Avatar, Checkbox, DatePicker, Form, Tooltip } from 'antd';
-import { ClaimApiCallInfo, ClaimIntegrationPublicParamsType, JsonBodyInputSchema, JsonBodyInputWithValue } from 'bitbadgesjs-sdk';
+import {
+  ClaimApiCallInfo,
+  ClaimIntegrationPluginType,
+  ClaimIntegrationPublicParamsType,
+  JsonBodyInputSchema,
+  JsonBodyInputWithValue
+} from 'bitbadgesjs-sdk';
 import moment from 'moment';
 import { ReactNode, useMemo, useState } from 'react';
 import { DevMode } from '../components/common/DevMode';
@@ -161,7 +167,8 @@ export const ApiPluginMetadataDisplay = ({
   passTwitter,
   passGithub,
   passGoogle,
-  passAddress
+  passAddress,
+  createdBy
 }: {
   uri: string;
   name: string;
@@ -173,6 +180,7 @@ export const ApiPluginMetadataDisplay = ({
   passGoogle?: boolean;
   passAddress?: boolean;
   passEmail?: boolean;
+  createdBy?: string;
 }) => {
   return (
     <div className="flex">
@@ -180,7 +188,7 @@ export const ApiPluginMetadataDisplay = ({
         {typeof image === 'string' ? (
           <img src={image || '/images/bitbadgeslogo.png'} style={{ width: 40, height: 40 }} />
         ) : (
-          <Avatar size={40} src={image} />
+          <Avatar size={40} src={image} shape="square" />
         )}
       </div>
       <div>
@@ -229,6 +237,16 @@ export const ApiPluginMetadataDisplay = ({
             {passGoogle && <GoogleOutlined className="ml-1" />}
           </div>
         </div>
+        {
+          <div
+            className="secondary-text "
+            style={{
+              textAlign: 'left',
+              fontSize: 10
+            }}>
+            {createdBy ? 'Created by ' + createdBy : 'Manually Added'}
+          </div>
+        }
         <div
           className="secondary-text "
           style={{
@@ -244,10 +262,12 @@ export const ApiPluginMetadataDisplay = ({
 const ApiPluginCreateNode = ({
   publicParams,
   setParams,
-  type
+  type,
+  supportedPluginIds
 }: {
   type: 'balances' | 'list' | 'nonIndexed';
   publicParams: ClaimIntegrationPublicParamsType<'api'>;
+  supportedPluginIds?: ClaimIntegrationPluginType[];
   setParams: (params: ClaimIntegrationPublicParamsType<'api'>, state: {}) => void;
 }) => {
   const apiCalls = publicParams.apiCalls;
@@ -282,12 +302,23 @@ const ApiPluginCreateNode = ({
     <>
       {apiCalls.map((x, i) => {
         const plugin = ApiCallPlugins.find((y) => y.metadata.name === x.name);
+        const onlyShowSupportedPlugins = !!supportedPluginIds;
+
+        if (onlyShowSupportedPlugins) {
+          if (!plugin?.parentPluginId) return null;
+
+          if (plugin?.parentPluginId && !supportedPluginIds?.includes(plugin.parentPluginId)) return null;
+        } else {
+          //If it has a parent plugin, we handle in that section
+          if (plugin?.parentPluginId) return null;
+        }
 
         return (
           <>
             <div key={i} className="flex flex-between">
               <ApiPluginMetadataDisplay
                 name={x.name}
+                createdBy={plugin?.metadata.createdBy ?? ''}
                 image={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.image ?? ''}
                 description={
                   <>
@@ -341,26 +372,42 @@ const ApiPluginCreateNode = ({
           onClick={() => {
             setAddIsVisible(!addIsVisible);
           }}
-          text={addIsVisible ? 'Hide' : 'Add'}
+          text={addIsVisible ? 'Hide' : 'Add Criteria'}
         />
       </div>
       {addIsVisible && (
         <>
-          <div className="mb-2 flex-center">
-            <Tabs
-              tab={tab}
-              setTab={setTab}
-              tabInfo={[
-                { key: 'templates', content: 'Browse' },
-                { key: 'custom', content: 'Custom' }
-              ]}
-              type="underline"
-            />
+          <div className="text-center">
+            <ErrDisplay warning err="Always use third party tools at your own risk!" />
           </div>
+          <br />
+          {!supportedPluginIds && (
+            <div className="mb-2 flex-center">
+              <Tabs
+                tab={tab}
+                setTab={setTab}
+                tabInfo={[
+                  { key: 'templates', content: 'Browse' },
+                  { key: 'custom', content: 'Custom' }
+                ]}
+                type="underline"
+              />
+            </div>
+          )}
           {tab === 'templates' && (
             <>
               {ApiCallPlugins.map((x) => {
-                if (type === 'nonIndexed' && x.metadata.nonIndexedCompatible === false) return null;
+                if (type === 'nonIndexed') {
+                  if (x.metadata.nonIndexedCompatible === false) return null;
+                } else {
+                  const onlyShowSupportedPlugins = !!supportedPluginIds;
+                  if (onlyShowSupportedPlugins) {
+                    if (!x.parentPluginId) return null;
+                    if (supportedPluginIds && x.parentPluginId && !supportedPluginIds?.includes(x.parentPluginId)) return null;
+                  } else {
+                    if (!supportedPluginIds && x.parentPluginId) return null;
+                  }
+                }
 
                 return (
                   <div key={x.id} className="mb-4">
@@ -369,6 +416,7 @@ const ApiPluginCreateNode = ({
                         name={x.metadata.name}
                         image={x.metadata.image}
                         description={x.metadata.description}
+                        createdBy={x.metadata.createdBy}
                         uri={x.apiCallInfo.uri}
                         passEmail={x.apiCallInfo.passEmail}
                         passDiscord={x.apiCallInfo.passDiscord}
@@ -562,7 +610,7 @@ const ApiPluginCreateNode = ({
                     obj={{
                       claimId: 'abcxyz123',
                       cosmosAddress: apiCall.passAddress ? 'cosmos1...' : '',
-                      email: apiCall.passEmail ? '...' : '',
+                      email: apiCall.passEmail ? 'bob@abc.com' : undefined,
                       discord: apiCall.passDiscord
                         ? {
                             id: '...',
@@ -603,7 +651,7 @@ const ApiPluginCreateNode = ({
           <br />
           <button
             className="w-full landing-button"
-            disabled={!apiCall.name || !apiCall.uri}
+            disabled={!apiCall.name || !apiCall.uri || !!ApiCallPlugins.find((x) => x.id === apiCall.name)}
             onClick={() => {
               setParams(
                 {
@@ -628,6 +676,9 @@ const ApiPluginCreateNode = ({
             }}>
             Add
           </button>
+          {ApiCallPlugins.find((x) => x.id === apiCall.name) ? (
+            <ErrDisplay warning err="Please use a custom name. The current one is reserved." />
+          ) : null}
         </>
       )}
     </>
@@ -647,15 +698,15 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
   },
   stateString: () => '',
   inputNode: ({ publicParams, setCustomBody, customBody }) => {
-    console.log(customBody);
     return (
       <>
         {publicParams.apiCalls.map((x, i) => {
           return (
-            <div key={i}>
+            <div key={i} className="mb-4">
               <ApiPluginMetadataDisplay
                 name={x.name}
                 image={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.image ?? ''}
+                createdBy={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.createdBy}
                 description={
                   <>
                     {x.description ?? ''}
@@ -683,6 +734,32 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
                 passAddress={x.passAddress}
               />
 
+              {(x.passAddress || x.passEmail || x.passDiscord || x.passTwitter || x.passGithub || x.passGoogle) && (
+                <>
+                  <br />
+
+                  <div className="text-center secondary-text">
+                    {!ApiCallPlugins.find((y) => y.metadata.name === x.name) ||
+                    ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.createdBy !== 'BitBadges' ? (
+                      <ErrDisplay warning err="This is checked using a third-party service." />
+                    ) : (
+                      <>This is a BitBadges service. </>
+                    )}
+                    To check this criteria, your{' '}
+                    {[
+                      x.passAddress ? 'address' : '',
+                      x.passEmail ? 'email' : '',
+                      x.passDiscord ? 'Discord' : '',
+                      x.passTwitter ? 'Twitter' : '',
+                      x.passGithub ? 'Github' : '',
+                      x.passGoogle ? 'Google' : ''
+                    ]
+                      .filter((x) => x)
+                      .join(', ')}{' '}
+                    details are used by the service.
+                  </div>
+                </>
+              )}
               <ApiQueryInputForm
                 schema={x.userInputsSchema}
                 setBody={(body) => {
@@ -704,8 +781,8 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
       </>
     );
   },
-  createNode({ publicParams, setParams, type }) {
-    return <ApiPluginCreateNode publicParams={publicParams} setParams={setParams} type={type} />;
+  createNode({ publicParams, setParams, type, supportedPluginIds }) {
+    return <ApiPluginCreateNode publicParams={publicParams} setParams={setParams} type={type} supportedPluginIds={supportedPluginIds} />;
   },
   detailsString: ({ publicParams }: { publicParams: ClaimIntegrationPublicParamsType<'api'> }) => {
     return (
@@ -734,7 +811,7 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
                             x.passGoogle ? 'Google' : ''
                           ]
                             .filter((x) => x)
-                            .join(', ')}
+                            .join(', ')}{' '}
                           data to this API.
                         </>
                       )}
@@ -768,6 +845,7 @@ export const ApiPluginDetails: ClaimIntegrationPlugin<'api'> = {
 export const ApiCallPlugins: ApiCallPlugin[] = [
   {
     id: 'github-contributions',
+    parentPluginId: 'github',
     metadata: {
       name: 'Github Contributions',
       description: "Check a user's Github contributions.",
@@ -827,11 +905,57 @@ export const ApiCallPlugins: ApiCallPlugin[] = [
         </div>
       );
     }
+  },
+  {
+    id: 'discord-server',
+    parentPluginId: 'discord',
+    metadata: {
+      name: 'Discord Server',
+      description: 'Check if a user is in a Discord server.',
+      image: (
+        <svg fill="#1890ff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" height="24">
+          <path d="M524.531,69.836a1.5,1.5,0,0,0-.764-.7A485.065,485.065,0,0,0,404.081,32.03a1.816,1.816,0,0,0-1.923.91,337.461,337.461,0,0,0-14.9,30.6,447.848,447.848,0,0,0-134.426,0,309.541,309.541,0,0,0-15.135-30.6,1.89,1.89,0,0,0-1.924-.91A483.689,483.689,0,0,0,116.085,69.137a1.712,1.712,0,0,0-.788.676C39.068,183.651,18.186,294.69,28.43,404.354a2.016,2.016,0,0,0,.765,1.375A487.666,487.666,0,0,0,176.02,479.918a1.9,1.9,0,0,0,2.063-.676A348.2,348.2,0,0,0,208.12,430.4a1.86,1.86,0,0,0-1.019-2.588,321.173,321.173,0,0,1-45.868-21.853,1.885,1.885,0,0,1-.185-3.126c3.082-2.309,6.166-4.711,9.109-7.137a1.819,1.819,0,0,1,1.9-.256c96.229,43.917,200.41,43.917,295.5,0a1.812,1.812,0,0,1,1.924.233c2.944,2.426,6.027,4.851,9.132,7.16a1.884,1.884,0,0,1-.162,3.126,301.407,301.407,0,0,1-45.89,21.83,1.875,1.875,0,0,0-1,2.611,391.055,391.055,0,0,0,30.014,48.815,1.864,1.864,0,0,0,2.063.7A486.048,486.048,0,0,0,610.7,405.729a1.882,1.882,0,0,0,.765-1.352C623.729,277.594,590.933,167.465,524.531,69.836ZM222.491,337.58c-28.972,0-52.844-26.587-52.844-59.239S193.056,219.1,222.491,219.1c29.665,0,53.306,26.82,52.843,59.239C275.334,310.993,251.924,337.58,222.491,337.58Zm195.38,0c-28.971,0-52.843-26.587-52.843-59.239S388.437,219.1,417.871,219.1c29.667,0,53.307,26.82,52.844,59.239C470.715,310.993,447.538,337.58,417.871,337.58Z" />
+        </svg>
+      ),
+      createdBy: 'BitBadges',
+      nonIndexedCompatible: false
+    },
+    apiCallInfo: {
+      uri: 'https://api.bitbadges.io/api/v0/integrations/query/discord-server',
+      passDiscord: true,
+      passEmail: false,
+      passTwitter: false,
+      passAddress: false,
+      passGoogle: false,
+      passGithub: false,
+      userInputsSchema: [],
+      creatorInputsSchema: [
+        {
+          key: 'serverId',
+          label: 'Server ID',
+          type: 'string',
+          helper:
+            'ID of the Discord serve. This is a large number (e.g. 846474505189588992), not the server name. See https://docs.bitbadges.io/overview/claim-builder/discord for more information.'
+        },
+        { key: 'serverName', label: 'Server Name', type: 'string', helper: 'Display name of the server' }
+      ],
+      hardcodedInputs: []
+    },
+    detailsString: (apiCall) => {
+      return (
+        <div>
+          <div className="">
+            <b>Server:</b> {apiCall.bodyParams?.serverName}
+          </div>
+        </div>
+      );
+    }
   }
 ];
 
 export interface ApiCallPlugin {
   id: string;
+  parentPluginId?: ClaimIntegrationPluginType;
   metadata: {
     name: string;
     description: string;

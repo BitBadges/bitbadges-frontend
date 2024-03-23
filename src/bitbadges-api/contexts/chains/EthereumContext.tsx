@@ -68,15 +68,33 @@ export const EthereumContextProvider: React.FC<Props> = ({ children }) => {
 
   const signTxn = async (context: TxContext, payload: TransactionPayload, simulate: boolean) => {
     if (!account) throw new Error('Account not found.');
+    //If we are within  ~1000 chars limit, we can have user sign the typed EIP712
+    //Else, we hash the JSON and have user sign the hash
 
+    const normalMessage = payload.jsonToSign.length < 1000;
     let sig = '';
-    if (!simulate) {
-      sig = await signTypedData({
-        message: payload.eipToSign.message as any,
-        types: payload.eipToSign.types as any,
-        domain: payload.eipToSign.domain,
-        primaryType: payload.eipToSign.primaryType
-      });
+    if (normalMessage) {
+      if (!simulate) {
+        sig = await signTypedData({
+          message: payload.eipToSign.message as any,
+          types: payload.eipToSign.types as any,
+          domain: payload.eipToSign.domain,
+          primaryType: payload.eipToSign.primaryType
+        });
+      }
+    } else {
+      if (!simulate) {
+        notification.warn({
+          message: 'Alternative Method',
+          description: `This transaction message is very large, so we must resort to an alternative method of signing (JSON). 
+          The transaction may be displayed in a different format than you are used to.`
+        });
+
+        const message = payload.jsonToSign;
+        sig = await signMessage({
+          message: message
+        });
+      }
     }
 
     const txBody = createTxBroadcastBody(context, payload, sig);

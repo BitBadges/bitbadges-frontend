@@ -240,6 +240,7 @@ export function OffChainTransferabilityTab({ collectionId, badgeId }: { collecti
             {getPluginDetails('api', fetchedPlugins)?.publicParams.apiCalls.map((x) => (
               <div key={x.name} className="flex">
                 <ApiPluginMetadataDisplay
+                  createdBy={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.createdBy ?? ''}
                   name={x.name}
                   image={ApiCallPlugins.find((y) => y.metadata.name === x.name)?.metadata.image ?? ''}
                   description={x.description ?? ''}

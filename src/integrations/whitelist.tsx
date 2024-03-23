@@ -17,8 +17,8 @@ export const PublicPrivateSelect = ({
     <>
       <RadioGroup
         options={[
-          { label: 'Private', value: true },
-          { label: 'Public', value: false }
+          { label: 'Private List', value: true },
+          { label: 'Public List', value: false }
         ]}
         value={privateVal}
         onChange={(val) => {
@@ -26,7 +26,7 @@ export const PublicPrivateSelect = ({
           onChange(val);
         }}
       />
-      <div className="secondary-text mt-1">Should these details be displayed publicly with the claim?</div>
+      <div className="secondary-text mt-1">Should this be displayed publicly with the claim?</div>
       <br />
     </>
   );

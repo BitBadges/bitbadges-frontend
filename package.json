@@ -36,7 +36,7 @@
     "@web3modal/standalone": "^2.3.6",
     "@web3modal/wagmi": "^3.0.2",
     "antd": "^4.24.14",
-    "axios": "^1.6.2",
+    "axios": "^1.6.8",
     "bech32": "^2.0.0",
     "blockin": "^1.2.114",
     "bs58": "^5.0.0",

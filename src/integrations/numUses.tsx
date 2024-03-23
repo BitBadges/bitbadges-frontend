@@ -6,6 +6,8 @@ import { NumberInput } from '../components/inputs/NumberInput';
 import { RadioGroup } from '../components/inputs/Selects';
 import { OffChainClaim } from '../components/tx-timelines/step-items/OffChainBalancesStepItem';
 import { ClaimIntegrationPlugin } from './integrations';
+import { TableRow } from '../components/display/TableRow';
+import { Switch } from 'antd';
 
 const NumUsesCreateNode = ({
   claim,
@@ -38,35 +40,54 @@ const NumUsesCreateNode = ({
   return (
     <>
       <div className="flex-center flex-wrap mt-4" style={{ alignItems: 'normal' }}>
-        <div className="mx-5">
-          <NumberInput
-            title="Total"
-            value={numRecipients}
-            setValue={(val) => {
-              setParams({ maxUses: val, maxUsesPerAddress: numRecipientsPerAddress, assignMethod }, {});
-            }}
-            min={1}
-          />
-        </div>
-        <div className="mx-5">
-          <div className="text-center">
-            <b>Per Address</b>
-          </div>
-          {!!numRecipientsPerAddress && (
-            <>
+        <TableRow
+          label={<>Total Claims</>}
+          value={
+            <div className="mt-2" style={{ float: 'right' }}>
               <NumberInput
                 title=""
-                value={numRecipientsPerAddress}
+                value={numRecipients}
                 setValue={(val) => {
-                  if (!val) return;
-
-                  setParams({ maxUses: numRecipients, maxUsesPerAddress: val, assignMethod }, {});
+                  setParams({ maxUses: val, maxUsesPerAddress: numRecipientsPerAddress, assignMethod }, {});
                 }}
                 min={1}
               />
-            </>
-          )}
-        </div>
+            </div>
+          }
+          labelSpan={12}
+          valueSpan={12}
+        />
+        <TableRow
+          label={<>Claims Per Address</>}
+          value={
+            <div className="mt-2" style={{ float: 'right' }}>
+              <div>
+                <Switch
+                  checked={!!numRecipientsPerAddress}
+                  checkedChildren="Limit"
+                  unCheckedChildren="No Limit"
+                  onChange={(checked) => {
+                    setParams({ maxUses: numRecipients, maxUsesPerAddress: checked ? 1 : 0, assignMethod }, {});
+                  }}
+                  className="mb-2"
+                />
+              </div>
+
+              {!!numRecipientsPerAddress && (
+                <NumberInput
+                  title=""
+                  value={numRecipientsPerAddress}
+                  setValue={(val) => {
+                    setParams({ maxUses: numRecipients, maxUsesPerAddress: val, assignMethod }, {});
+                  }}
+                  min={1}
+                />
+              )}
+            </div>
+          }
+          labelSpan={12}
+          valueSpan={12}
+        />
       </div>
       {toShowAssignMethodSelector && (
         <div className="flex-center flex-wrap mt-4" style={{ alignItems: 'normal' }}>
